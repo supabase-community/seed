@@ -1,0 +1,37 @@
+{
+  "name": "@snaplet/root",
+  "private": true,
+  "type": "module",
+  "workspaces": [
+    "apps/*",
+    "packages/*"
+  ],
+  "devDependencies": {
+    "@snaplet/eslint-config": "workspace:*",
+    "@snaplet/tsconfig": "workspace:*",
+    "eslint": "8.56.0",
+    "knip": "4.3.0",
+    "skott": "0.32.1",
+    "turbo": "1.12.2",
+    "typescript": "5.3.3",
+    "vitest": "1.2.2"
+  },
+  "scripts": {
+    "build": "turbo run build",
+    "clean": "turbo run clean",
+    "clean-monorepo": "git clean -dfX -e \\!.env.local",
+    "dev": "turbo run dev",
+    "lint": "eslint --cache . --max-warnings 0 && turbo run lint",
+    "lint-monorepo": "knip",
+    "test": "turbo run test",
+    "test:e2e": "turbo run test:e2e",
+    "type-check": "tsc --build",
+    "update-deps": "pnpm update --interactive --recursive --latest",
+    "update-infra": "nix flake update",
+    "visualize-deps": "skott --displayMode=webapp --trackBuiltinDependencies --trackThirdPartyDependencies"
+  },
+  "packageManager": "pnpm@8.15.1",
+  "engines": {
+    "node": ">=20.9.0"
+  }
+}

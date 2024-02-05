@@ -1,0 +1,16 @@
+{
+  "extends": [
+    "@tsconfig/strictest",
+    "@tsconfig/node18"
+  ],
+  "compilerOptions": {
+    "allowJs": true,
+    "composite": true,
+    "customConditions": [
+      "development"
+    ],
+    "emitDeclarationOnly": true,
+    "exactOptionalPropertyTypes": false,
+    "noEmit": false,
+  }
+}

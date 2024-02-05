@@ -1,0 +1,18 @@
+{
+  "extends": "@snaplet/tsconfig",
+  "compilerOptions": {
+    "outDir": ".dts",
+  },
+  "references": [
+    {
+      "path": "./apps/cli"
+    },
+    {
+      "path": "./packages/core"
+    },
+  ],
+  "exclude": [
+    "./apps",
+    "./packages"
+  ]
+}

@@ -1,0 +1,38 @@
+{
+  "name": "snaplet",
+  "type": "module",
+  "version": "1.0.0",
+  "imports": {
+    "#*": "./src/*",
+    "#test": "./test/index.js"
+  },
+  "exports": {
+    ".": "./dist/index.js"
+  },
+  "dependencies": {
+    "@snaplet/core": "workspace:*",
+    "yargs": "17.7.2"
+  },
+  "devDependencies": {
+    "@snaplet/eslint-config": "workspace:*",
+    "@snaplet/tsconfig": "workspace:*",
+    "@total-typescript/ts-reset": "0.5.1",
+    "@types/node": "20.11.16",
+    "@types/yargs": "17.0.32",
+    "eslint": "8.56.0",
+    "execa": "8.0.1",
+    "tsx": "4.7.0",
+    "typescript": "5.3.3",
+    "vitest": "1.2.2",
+    "wait-for-localhost": "4.0.1"
+  },
+  "scripts": {
+    "build": "tsc --build tsconfig.build.json",
+    "clean": "rm -rf .dts .turbo dist .eslintcache",
+    "lint": "eslint --cache . --max-warnings 0",
+    "start": "node dist/index.js",
+    "start:dev": "tsx --conditions development src/index.ts",
+    "test": "vitest run",
+    "type-check": "tsc --build"
+  }
+}

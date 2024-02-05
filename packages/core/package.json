@@ -1,0 +1,38 @@
+{
+  "name": "@snaplet/core",
+  "type": "module",
+  "version": "1.0.0",
+  "sideEffects": false,
+  "imports": {
+    "#*": "./src/*",
+    "#test": "./test/index.js"
+  },
+  "exports": {
+    ".": {
+      "development": "./src/index.ts",
+      "default": "./dist/index.js"
+    }
+  },
+  "devDependencies": {
+    "@snaplet/eslint-config": "workspace:*",
+    "@snaplet/tsconfig": "workspace:*",
+    "@total-typescript/ts-reset": "0.5.1",
+    "@types/node": "20.11.16",
+    "eslint": "8.56.0",
+    "typescript": "5.3.3",
+    "vitest": "1.2.2"
+  },
+  "peerDependencies": {
+    "@snaplet/copycat": "2.0.0"
+  },
+  "scripts": {
+    "build": "tsc --build tsconfig.build.json",
+    "clean": "rm -rf .dts .turbo dist .eslintcache",
+    "lint": "eslint --cache . --max-warnings 0",
+    "type-check": "tsc --build",
+    "test": "vitest run"
+  },
+  "dependencies": {
+    "remeda": "1.40.0"
+  }
+}

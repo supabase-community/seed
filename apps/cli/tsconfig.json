@@ -1,0 +1,11 @@
+{
+  "extends": "@snaplet/tsconfig",
+  "compilerOptions": {
+    "outDir": ".dts",
+  },
+  "references": [
+    {
+      "path": "../../packages/core"
+    },
+  ]
+}
