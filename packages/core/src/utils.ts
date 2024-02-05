@@ -9,7 +9,7 @@ export const dedupePreferLast = <Value>(values: Array<Value>): Array<Value> =>
 // * Comparing values created inside of a sandbox (e.g. an evaluated snaplet.config.ts file) with constructors created
 // outside of that sandbox
 export const isInstanceOf = <
-  Constructor extends new (...args: Array<any>) => unknown,
+  Constructor extends new (...args: Array<unknown>) => unknown,
 >(
   v: unknown,
   constructor: Constructor,

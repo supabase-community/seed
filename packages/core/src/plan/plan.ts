@@ -26,6 +26,7 @@ import {
   type CountCallback,
   type GenerateOptions,
   type IPlan,
+  type ModelData,
   type ModelRecord,
   type ParentField,
   type PlanInputs,
@@ -33,18 +34,20 @@ import {
 } from "./types.js";
 
 export interface PlanOptions {
-  connect?: Record<string, Array<any>> | true;
+  connect?: Record<string, Array<Record<string, Json>>> | true;
   models?: UserModels;
   seed?: string;
 }
 
 export class Plan implements IPlan {
-  private readonly connectStore?: Record<string, Array<any>>;
+  private readonly connectStore?: Record<string, Array<ModelData>>;
   private readonly ctx: ClientState;
   private readonly dataModel: DataModel;
   private readonly fingerprint: Fingerprint;
   private readonly plan: PlanInputs;
-  private readonly runStatements?: (statements: Array<string>) => Promise<any>;
+  private readonly runStatements?: (
+    statements: Array<string>,
+  ) => Promise<unknown>;
   private readonly seed?: string;
   private readonly userModels: UserModels;
 
@@ -79,7 +82,7 @@ export class Plan implements IPlan {
         this.connectStore = Object.fromEntries(
           Object.keys(this.dataModel.models).map((modelName) => [
             modelName,
-            partialStore[modelName] ?? [],
+            modelName in partialStore ? partialStore[modelName] : [],
           ]),
         );
       }
@@ -104,7 +107,7 @@ export class Plan implements IPlan {
   ) {
     const path = ctx?.path ?? [model];
     const userModels = options.models;
-    const modelStructure = this.dataModel.models[model]!;
+    const modelStructure = this.dataModel.models[model];
 
     // this is the "x" function that we inject for child fields: (x) => x(10, (i) => ({ id: i }))
     const countCallback: CountCallback = (x, cb) => {
@@ -141,7 +144,7 @@ export class Plan implements IPlan {
           ? inputs
           : [inputs];
 
-    const generatedModels: Array<Record<string, any>> = [];
+    const generatedModels: Array<ModelData> = [];
 
     // we partition the fields into 3 categories:
     // - scalar fields
@@ -150,7 +153,7 @@ export class Plan implements IPlan {
     const fields = groupFields(modelStructure.fields);
 
     for (let index = 0; index < modelsInputs.length; index++) {
-      const modelData: Record<string, any> = {};
+      const modelData: ModelData = {};
       const modelSeed = `${options.seed}/${[...path, index].join("/")}`;
 
       const modelInputs = modelsInputs[index];
@@ -174,7 +177,7 @@ export class Plan implements IPlan {
         );
         if (parentIdsProvided) {
           for (const f of field.relationFromFields) {
-            modelData[f] = inputsData[f];
+            modelData[f] = inputsData[f] as Json;
           }
           continue;
         }
@@ -183,7 +186,7 @@ export class Plan implements IPlan {
         if (
           !field.isRequired &&
           inputsData[field.name] === undefined &&
-          !userModels[field.type]!.connect
+          !userModels[field.type].connect
         ) {
           for (const f of field.relationFromFields) {
             modelData[f] = null;
@@ -195,7 +198,7 @@ export class Plan implements IPlan {
           const parentModelName = field.type;
 
           if (parentField === undefined) {
-            const connectFallback = userModels[parentModelName]!.connect;
+            const connectFallback = userModels[parentModelName].connect;
             if (connectFallback) {
               return connectFallback({
                 $store: this.ctx.store._store,
@@ -211,7 +214,7 @@ export class Plan implements IPlan {
           if (typeof parentField === "function") {
             const modelCallbackResult = parentField({
               $store: this.ctx.store._store,
-              connect: (cb) => new ConnectInstruction(cb),
+              connect: (cb: ConnectCallback) => new ConnectInstruction(cb),
               data: {},
               seed: [modelSeed, field.name, 0].join("/"),
               store: this.store._store,
@@ -242,7 +245,7 @@ export class Plan implements IPlan {
               },
               options,
             )
-          )[0]!;
+          )[0];
 
           return parent;
         };
@@ -252,8 +255,8 @@ export class Plan implements IPlan {
         );
 
         for (const [i] of field.relationFromFields.entries()) {
-          modelData[field.relationFromFields[i]!] =
-            parent[field.relationToFields[i]!];
+          modelData[field.relationFromFields[i]] =
+            parent[field.relationToFields[i]];
         }
       }
 
@@ -281,7 +284,7 @@ export class Plan implements IPlan {
 
         const generateFn =
           scalarField === undefined
-            ? userModels[model]!.data?.[field.name]
+            ? userModels[model].data?.[field.name]
             : scalarField;
 
         const value =
@@ -359,15 +362,15 @@ export class Plan implements IPlan {
           continue;
         }
         // we need to find the corresponding relationship in the child to get the impacted columns
-        const childModel = this.dataModel.models[childModelName]!;
+        const childModel = this.dataModel.models[childModelName];
         const childRelation = childModel.fields.find(
           (f) => f.kind === "object" && f.relationName === field.relationName,
-        )! as DataModelObjectField;
+        ) as DataModelObjectField;
 
-        const childFields: Record<string, any> = {};
+        const childFields: ModelData = {};
         for (const [i] of childRelation.relationFromFields.entries()) {
-          childFields[childRelation.relationFromFields[i]!] =
-            modelData[childRelation.relationToFields[i]!];
+          childFields[childRelation.relationFromFields[i]] =
+            modelData[childRelation.relationToFields[i]];
         }
 
         let childInputs: ChildField;
@@ -386,7 +389,7 @@ export class Plan implements IPlan {
               return {
                 ...childData,
                 ...childFields,
-              };
+              } as ModelRecord;
             });
           };
         } else {
@@ -425,7 +428,9 @@ export class Plan implements IPlan {
 
   private getGenerateOptions(modelName: string, fieldName: string) {
     const fingerprintField =
-      this.fingerprint[modelName]?.[fieldName] ?? ({} as FingerprintField);
+      modelName in this.fingerprint && fieldName in this.fingerprint[modelName]
+        ? this.fingerprint[modelName][fieldName]
+        : ({} as FingerprintField);
 
     if (isOptionsField(fingerprintField)) {
       return fingerprintField.options as Record<string, Json>;
@@ -444,10 +449,11 @@ export class Plan implements IPlan {
 
     const orderedFieldNames = dedupePreferLast([
       ...fieldMap.keys(),
-      ...Object.keys(userModels[modelName]?.data ?? {}),
+      ...Object.keys(userModels[modelName].data ?? {}),
       ...Object.keys(inputsData ?? {}),
     ]).filter((fieldName) => fieldMap.has(fieldName));
 
+    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
     return orderedFieldNames.map((name) => fieldMap.get(name)!);
   }
 
@@ -461,18 +467,18 @@ export class Plan implements IPlan {
 
     if (this.connectStore) {
       for (const modelName of Object.keys(this.connectStore)) {
-        if (this.connectStore[modelName]!.length > 0) {
+        if (this.connectStore[modelName].length > 0) {
           const connectFallback: ConnectCallback = (ctx) =>
-            copycat.oneOf(ctx.seed, this.connectStore![modelName]!);
-          // @ts-expect-error tagging the fallback function for retry purposes when checking constraints
+            // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+            copycat.oneOf(ctx.seed, this.connectStore![modelName]);
           connectFallback.fallback = true;
-          userModels[modelName]!.connect =
-            userModels[modelName]!.connect ?? connectFallback;
+          userModels[modelName].connect =
+            userModels[modelName].connect ?? connectFallback;
         }
       }
     }
 
-    if (this.ctx.seeds[this.plan.model] === undefined) {
+    if (!(this.plan.model in this.ctx.seeds)) {
       this.ctx.seeds[this.plan.model] = -1;
     }
     this.ctx.seeds[this.plan.model] += 1;
@@ -481,7 +487,7 @@ export class Plan implements IPlan {
       { ...this.plan },
       {
         models: userModels,
-        seed: seed ?? this.ctx.seeds[this.plan.model]!.toString(),
+        seed: seed ?? this.ctx.seeds[this.plan.model].toString(),
       },
     );
 
@@ -496,13 +502,13 @@ export class Plan implements IPlan {
     return store._store;
   }
 
-  then<TResult1 = any, TResult2 = never>(
+  then<TResult1 = unknown, TResult2 = never>(
     onfulfilled?:
-      | ((value: any) => PromiseLike<TResult1> | TResult1)
+      | ((value: unknown) => PromiseLike<TResult1> | TResult1)
       | null
       | undefined,
     onrejected?:
-      | ((reason: any) => PromiseLike<TResult2> | TResult2)
+      | ((reason: unknown) => PromiseLike<TResult2> | TResult2)
       | null
       | undefined,
   ): PromiseLike<TResult1 | TResult2> {

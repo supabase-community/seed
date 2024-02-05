@@ -19,17 +19,16 @@ export function mergeUserModels(
   userModels1Keys.forEach((modelName) => {
     mergedUserModels[modelName] = {
       data: mergeUserModelsData(
-        userModels1[modelName]?.data ?? {},
-        userModels2[modelName]?.data ?? {},
+        userModels1[modelName].data ?? {},
+        userModels2[modelName].data ?? {},
       ),
-      connect:
-        userModels2[modelName]?.connect ?? userModels1[modelName]?.connect,
+      connect: userModels2[modelName].connect ?? userModels1[modelName].connect,
     };
   });
 
   userModels2Keys.forEach((modelName) => {
     if (!userModels1Keys.includes(modelName)) {
-      mergedUserModels[modelName] = userModels2[modelName]!;
+      mergedUserModels[modelName] = userModels2[modelName];
     }
   });
 

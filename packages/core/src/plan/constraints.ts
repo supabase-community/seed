@@ -14,6 +14,7 @@ import { type UserModels } from "../userModels/types.js";
 import {
   type GenerateCallback,
   type GenerateCallbackContext,
+  type ModelData,
   type ModelRecord,
   type ScalarField,
 } from "./types.js";
@@ -47,7 +48,7 @@ interface Context {
   ) => GenerateCallbackContext;
   inputsData: ModelRecord;
   model: string;
-  modelData: Record<string, any>;
+  modelData: ModelData;
   modelSeed: string;
   userModels: UserModels;
 }
@@ -72,10 +73,10 @@ export async function checkConstraints(
    */
   const filteredConstraints = props.uniqueConstraints.filter((constraint) => {
     return !constraint.fields.some((uniqueField) => {
-      const field = props.scalarFields.find((f) => f.name === uniqueField)!;
+      const field = props.scalarFields.find((f) => f.name === uniqueField);
       return (
-        !field.isId &&
-        field.hasDefaultValue &&
+        !field?.isId &&
+        field?.hasDefaultValue &&
         field.sequence === false &&
         props.inputsData[field.name] === undefined
       );
@@ -89,9 +90,12 @@ export async function checkConstraints(
   const sortedConstraints = sortBy(filteredConstraints, (c) => c.fields.length);
 
   for (const constraint of sortedConstraints) {
-    const hash = getHash(constraint.fields.map((c) => props.modelData[c]));
+    const hash = getHash(
+      // eslint-disable-next-line @typescript-eslint/no-base-to-string, @typescript-eslint/no-non-null-assertion
+      constraint.fields.map((f) => props.modelData[f]!.toString()),
+    );
     const constraintStore =
-      props.constraintsStores[props.model]![constraint.name]!;
+      props.constraintsStores[props.model][constraint.name];
 
     // constraint is violated, we try to fix it
     if (constraintStore.has(hash)) {
@@ -109,7 +113,7 @@ export async function checkConstraints(
         const scalarField = props.inputsData[f.name] as ScalarField;
         const generateFn =
           scalarField === undefined
-            ? props.userModels[props.model]!.data?.[f.name]
+            ? props.userModels[props.model].data?.[f.name]
             : scalarField;
 
         return (
@@ -122,7 +126,7 @@ export async function checkConstraints(
       processedFields.push(...constraint.fields);
 
       const getConstraintData = () =>
-        constraint.fields.reduce<Record<string, any>>((acc, c) => {
+        constraint.fields.reduce<ModelData>((acc, c) => {
           acc[c] = props.modelData[c];
           return acc;
         }, {});
@@ -168,7 +172,10 @@ export async function checkConstraints(
       for (const column of constraint.fields) {
         props.modelData[column] = constraintData[column];
       }
-      const hash = getHash(constraint.fields.map((c) => constraintData[c]));
+      const hash = getHash(
+        // eslint-disable-next-line @typescript-eslint/no-non-null-assertion, @typescript-eslint/no-base-to-string
+        constraint.fields.map((f) => constraintData[f]!.toString()),
+      );
       constraintStore.add(hash);
     } else {
       constraintStore.add(hash);
@@ -186,11 +193,11 @@ function getHash(values: Array<string>) {
  */
 async function cartesianProduct(
   props: {
-    connectStores: Record<string, Array<any>>;
+    connectStores: Record<string, Array<ModelData>>;
     constraint: DataModelUniqueConstraint;
-    constraintData: Record<string, any>;
+    constraintData: ModelData;
     constraintStore: Set<string>;
-    fields: Array<DataModelObjectField | DataModelScalarField>;
+    fields: Array<DataModelObjectField | DataModelScalarField | undefined>;
     level: number;
   } & Context,
 ): Promise<boolean> {
@@ -207,28 +214,29 @@ async function cartesianProduct(
 
   const SCALAR_MAX_ATTEMPTS = 50;
   let iterations = SCALAR_MAX_ATTEMPTS;
-  if (isParentField(field)) {
-    iterations = props.connectStore![field.type]!.length;
+  if (isParentField(field) && props.connectStore) {
+    iterations = props.connectStore[field.type].length;
   }
   for (let i = 0; i < iterations; i++) {
-    if (isParentField(field)) {
+    if (isParentField(field) && props.connectStore) {
       // process parent field
-      let connectStore = props.connectStores[field.type];
-      if (!connectStore) {
-        connectStore = [...props.connectStore![field.type]!];
-      }
+      let connectStore =
+        field.type in props.connectStores
+          ? props.connectStores[field.type]
+          : [...props.connectStore[field.type]];
       const candidate = copycat.oneOf(
         `${props.modelSeed}/${field.name}`,
         connectStore,
-      ) as Record<string, any>;
+      );
 
       for (const [i] of field.relationFromFields.entries()) {
-        props.constraintData[field.relationFromFields[i]!] =
-          candidate[field.relationToFields[i]!];
+        props.constraintData[field.relationFromFields[i]] =
+          candidate[field.relationToFields[i]];
       }
 
       const hash = getHash(
-        props.constraint.fields.map((c) => props.constraintData[c]),
+        // eslint-disable-next-line @typescript-eslint/no-non-null-assertion, @typescript-eslint/no-base-to-string
+        props.constraint.fields.map((c) => props.constraintData[c]!.toString()),
       );
 
       if (!props.constraintStore.has(hash)) {
@@ -244,7 +252,7 @@ async function cartesianProduct(
       const scalarField = props.inputsData[field.name] as ScalarField;
       const generateFn = (
         scalarField === undefined
-          ? props.userModels[props.model]?.data?.[field.name]
+          ? props.userModels[props.model].data?.[field.name]
           : scalarField
       ) as GenerateCallback;
 
@@ -253,7 +261,8 @@ async function cartesianProduct(
       );
 
       const hash = getHash(
-        props.constraint.fields.map((c) => props.constraintData[c]),
+        // eslint-disable-next-line @typescript-eslint/no-non-null-assertion, @typescript-eslint/no-base-to-string
+        props.constraint.fields.map((f) => props.constraintData[f]!.toString()),
       );
 
       if (!props.constraintStore.has(hash)) {

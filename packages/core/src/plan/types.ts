@@ -13,11 +13,11 @@ export interface PlanGenerateContext {
   index: number;
   sequences?: Record<string, Generator<number, never>>;
 }
-export interface IPlan extends PromiseLike<any> {
+export interface IPlan extends PromiseLike<unknown> {
   generate(options?: GenerateOptions): Promise<Store>;
   options?: PlanOptions;
 
-  run(): Promise<any>;
+  run(): Promise<unknown>;
 
   store: Store;
 }
@@ -62,9 +62,9 @@ export interface ConnectCallbackContext {
   store: Store["_store"];
 }
 
-export type ConnectCallback = (
+export type ConnectCallback = ((
   ctx: ConnectCallbackContext,
-) => Record<string, Serializable>;
+) => Record<string, Serializable>) & { fallback?: boolean };
 
 export class ConnectInstruction {
   constructor(public callback: ConnectCallback) {}
@@ -85,10 +85,10 @@ type ParentModelCallback = (
 
 export type ParentField = ModelRecord | ParentModelCallback;
 
-export type ModelRecord = Record<
-  string,
-  ChildField | ParentField | ScalarField
->;
+// eslint-disable-next-line @typescript-eslint/consistent-indexed-object-style
+export interface ModelRecord {
+  [key: string]: ChildField | ParentField | ScalarField;
+}
 
 export interface PlanInputs {
   inputs: ChildField;
@@ -107,3 +107,5 @@ export interface GenerateCallbackContext {
 export type GenerateCallback = (
   ctx: GenerateCallbackContext,
 ) => Promise<Serializable> | Serializable;
+
+export type ModelData = Record<string, Json | undefined>;

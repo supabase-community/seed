@@ -11,6 +11,7 @@
     ],
     "emitDeclarationOnly": true,
     "exactOptionalPropertyTypes": false,
+    "noUncheckedIndexedAccess": false,
     "noEmit": false,
   }
 }
