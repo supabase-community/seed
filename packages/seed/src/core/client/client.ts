@@ -1,12 +1,12 @@
-import { type DataModel } from "#core/dataModel/types.js";
-import { type Fingerprint } from "#core/fingerprint/types.js";
-import { getInitialConstraints } from "#core/plan/constraints.js";
-import { Plan } from "#core/plan/plan.js";
-import { type PlanInputs, type PlanOptions } from "#core/plan/types.js";
-import { generateUserModelsSequences } from "#core/sequences/sequences.js";
-import { type Store } from "#core/store/store.js";
-import { type UserModels } from "#core/userModels/types.js";
-import { mergeUserModels } from "#core/userModels/userModels.js";
+import { type DataModel } from "../dataModel/types.js";
+import { type Fingerprint } from "../fingerprint/types.js";
+import { getInitialConstraints } from "../plan/constraints.js";
+import { Plan } from "../plan/plan.js";
+import { type PlanInputs, type PlanOptions } from "../plan/types.js";
+import { generateUserModelsSequences } from "../sequences/sequences.js";
+import { type Store } from "../store/store.js";
+import { type UserModels } from "../userModels/types.js";
+import { mergeUserModels } from "../userModels/userModels.js";
 import { type ClientState } from "./types.js";
 
 export interface SeedClientBaseOptions {
