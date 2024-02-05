@@ -1,8 +1,0 @@
-name: Setup environment variables
-
-runs:
-  using: "composite"
-  steps:
-    - name: Pull .env files
-      shell: devenv {0}
-      run: pnpm env:pull

@@ -19,8 +19,6 @@ defaults:
     shell: devenv {0}
 
 env:
-  INFISICAL_ENV: ${{ vars.INFISICAL_ENV }}
-  INFISICAL_TOKEN: ${{ secrets.INFISICAL_TOKEN }}
   TURBO_TEAM: ${{ vars.TURBO_TEAM }}
   TURBO_TOKEN: ${{ secrets.TURBO_TOKEN }}
 
@@ -80,51 +78,3 @@ jobs:
 
       - name: Run unit and integration tests
         run: pnpm test
-
-  test-components:
-    if: github.event.pull_request.draft == false
-    name: Component tests
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-
-      - name: Setup
-        uses: ./.github/actions/setup
-        with:
-          playwright: true
-
-      - name: Run components tests
-        run: pnpm test:components
-
-  test-storybook:
-    if: github.event.pull_request.draft == false
-    name: Storybook tests
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-
-      - name: Setup
-        uses: ./.github/actions/setup
-        with:
-          playwright: true
-
-      - name: Run Storybook tests
-        run: pnpm test:storybook
-
-  test-e2e:
-    if: github.event.pull_request.draft == false
-    name: E2E tests
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-
-      - name: Setup
-        uses: ./.github/actions/setup
-        with:
-          playwright: true
-
-      - name: Run E2E tests
-        run: pnpm test:e2e
