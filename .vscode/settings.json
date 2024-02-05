@@ -15,6 +15,6 @@
   "typescript.tsdk": "node_modules/typescript/lib",
   "vitest.include": [
     "apps/{api,cli}/**/*.test.ts",
-    "packages/core/**/*.test.ts",
+    "packages/seed/**/*.test.ts",
   ],
 }

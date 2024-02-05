@@ -35,9 +35,9 @@ importers:
 
   apps/cli:
     dependencies:
-      '@snaplet/core':
+      '@snaplet/seed':
         specifier: workspace:*
-        version: link:../../packages/core
+        version: link:../../packages/seed
       yargs:
         specifier: 17.7.2
         version: 17.7.2
@@ -75,37 +75,6 @@ importers:
       wait-for-localhost:
         specifier: 4.0.1
         version: 4.0.1
-
-  packages/core:
-    dependencies:
-      '@snaplet/copycat':
-        specifier: 2.0.0
-        version: 2.0.0
-      remeda:
-        specifier: 1.40.0
-        version: 1.40.0
-    devDependencies:
-      '@snaplet/eslint-config':
-        specifier: workspace:*
-        version: link:../eslint-config
-      '@snaplet/tsconfig':
-        specifier: workspace:*
-        version: link:../tsconfig
-      '@total-typescript/ts-reset':
-        specifier: 0.5.1
-        version: 0.5.1
-      '@types/node':
-        specifier: 20.11.16
-        version: 20.11.16
-      eslint:
-        specifier: 8.56.0
-        version: 8.56.0
-      typescript:
-        specifier: 5.3.3
-        version: 5.3.3
-      vitest:
-        specifier: 1.2.2
-        version: 1.2.2(@types/node@20.11.16)
 
   packages/eslint-config:
     dependencies:
@@ -167,6 +136,37 @@ importers:
       '@types/eslint':
         specifier: 8.56.2
         version: 8.56.2
+
+  packages/seed:
+    dependencies:
+      '@snaplet/copycat':
+        specifier: ^2.0.0
+        version: 2.0.0
+      remeda:
+        specifier: 1.40.0
+        version: 1.40.0
+    devDependencies:
+      '@snaplet/eslint-config':
+        specifier: workspace:*
+        version: link:../eslint-config
+      '@snaplet/tsconfig':
+        specifier: workspace:*
+        version: link:../tsconfig
+      '@total-typescript/ts-reset':
+        specifier: 0.5.1
+        version: 0.5.1
+      '@types/node':
+        specifier: 20.11.16
+        version: 20.11.16
+      eslint:
+        specifier: 8.56.0
+        version: 8.56.0
+      typescript:
+        specifier: 5.3.3
+        version: 5.3.3
+      vitest:
+        specifier: 1.2.2
+        version: 1.2.2(@types/node@20.11.16)
 
   packages/tsconfig:
     dependencies:

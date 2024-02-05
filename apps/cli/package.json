@@ -10,7 +10,7 @@
     ".": "./dist/index.js"
   },
   "dependencies": {
-    "@snaplet/core": "workspace:*",
+    "@snaplet/seed": "workspace:*",
     "yargs": "17.7.2"
   },
   "devDependencies": {

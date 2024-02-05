@@ -11,7 +11,7 @@ export function helloCommand(program: Argv) {
         type: "string",
       }),
     async (args) => {
-      const { hello } = await import("@snaplet/core");
+      const { hello } = await import("@snaplet/seed");
 
       console.log(hello(args.name));
     },

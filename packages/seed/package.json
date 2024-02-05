@@ -1,5 +1,5 @@
 {
-  "name": "@snaplet/core",
+  "name": "@snaplet/seed",
   "type": "module",
   "version": "1.0.0",
   "sideEffects": false,
