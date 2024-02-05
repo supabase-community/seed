@@ -18,7 +18,9 @@
     "@snaplet/tsconfig": "workspace:*",
     "@total-typescript/ts-reset": "0.5.1",
     "@types/node": "20.11.16",
+    "@types/pg": "8.11.0",
     "eslint": "8.56.0",
+    "pg": "8.11.3",
     "typescript": "5.3.3",
     "vitest": "1.2.2"
   },

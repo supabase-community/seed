@@ -1,6 +1,5 @@
 import { type Store } from "../store/store.js";
 import { type UserModels } from "../userModels/types.js";
-import { type PlanOptions } from "./plan.js";
 
 export type Constraints = Record<string, Record<string, Set<string>>>;
 
@@ -67,7 +66,7 @@ export type ConnectCallback = ((
 ) => Record<string, Serializable>) & { fallback?: boolean };
 
 export class ConnectInstruction {
-  constructor(public callback: ConnectCallback) {}
+  constructor(public callback: ConnectCallback) { }
 }
 
 interface ModelCallbackContext {
@@ -109,3 +108,9 @@ export type GenerateCallback = (
 ) => Promise<Serializable> | Serializable;
 
 export type ModelData = Record<string, Json | undefined>;
+
+export interface PlanOptions {
+  connect?: Record<string, Array<Record<string, Json>>> | true;
+  models?: UserModels;
+  seed?: string;
+}

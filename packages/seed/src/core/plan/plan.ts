@@ -30,14 +30,9 @@ import {
   type ModelRecord,
   type ParentField,
   type PlanInputs,
+  type PlanOptions,
   type ScalarField,
 } from "./types.js";
-
-export interface PlanOptions {
-  connect?: Record<string, Array<Record<string, Json>>> | true;
-  models?: UserModels;
-  seed?: string;
-}
 
 export class Plan implements IPlan {
   private readonly connectStore?: Record<string, Array<ModelData>>;
@@ -161,12 +156,12 @@ export class Plan implements IPlan {
       const inputsData = (
         typeof modelInputs === "function"
           ? modelInputs({
-              $store: this.ctx.store._store,
-              data: {},
-              index,
-              seed: modelSeed,
-              store: this.store._store,
-            })
+            $store: this.ctx.store._store,
+            data: {},
+            index,
+            seed: modelSeed,
+            store: this.store._store,
+          })
           : modelsInputs[index]
       ) as ModelRecord;
 
@@ -290,13 +285,13 @@ export class Plan implements IPlan {
         const value =
           typeof generateFn === "function"
             ? await generateFn({
-                index: ctx?.index ?? index,
-                seed: `${modelSeed}/${field.name}`,
-                data: modelData,
-                $store: this.ctx.store._store,
-                store: this.store._store,
-                options: this.getGenerateOptions(model, field.name),
-              })
+              index: ctx?.index ?? index,
+              seed: `${modelSeed}/${field.name}`,
+              data: modelData,
+              $store: this.ctx.store._store,
+              store: this.store._store,
+              options: this.getGenerateOptions(model, field.name),
+            })
             : generateFn;
 
         modelData[field.name] = serializeValue(value);
