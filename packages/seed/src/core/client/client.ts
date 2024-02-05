@@ -14,7 +14,7 @@ export interface SeedClientBaseOptions {
   models?: UserModels;
 }
 
-export abstract class SeedClientBase {
+export abstract class SeedClientBase implements SeedClient {
   readonly createStore: (dataModel: DataModel) => Store;
   dataModel: DataModel;
   readonly emit: (event: string) => void;
@@ -107,6 +107,14 @@ export abstract class SeedClientBase {
   get $store() {
     return this.state.store._store;
   }
+
+  abstract $resetDatabase(): Promise<void>;
+
+  abstract $syncDatabase(): Promise<void>;
+
+  abstract $transaction(
+    _cb: (snaplet: SeedClient) => Promise<void>,
+  ): Promise<void>;
 }
 
 export interface SeedClient {
@@ -118,7 +126,5 @@ export interface SeedClient {
 
   $syncDatabase: () => Promise<void>;
 
-  $transaction: (
-    _cb: (snaplet: SeedClientBase) => Promise<void>,
-  ) => Promise<void>;
+  $transaction: (_cb: (seed: SeedClient) => Promise<void>) => Promise<void>;
 }
