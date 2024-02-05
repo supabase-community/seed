@@ -4,7 +4,6 @@ import { type Store } from "../store/store.js";
 import { type UserModels } from "../userModels/types.js";
 
 export interface SeedClientBaseOptions {
-  config?: Configuration;
   fingerprint?: Fingerprint;
   models?: UserModels;
 }
