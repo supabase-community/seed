@@ -18,7 +18,7 @@ export const isInstanceOf = <
     return true;
   }
 
-  if (v?.constructor?.name === constructor.name) {
+  if (v?.constructor.name === constructor.name) {
     return true;
   }
 
