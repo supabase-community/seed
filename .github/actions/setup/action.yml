@@ -1,0 +1,23 @@
+name: Setup
+
+inputs:
+  playwright:
+    description: "Setup Playwright"
+    type: boolean
+    default: false
+
+runs:
+  using: "composite"
+  steps:
+    - name: Setup Nix
+      uses: ./.github/actions/setup-nix
+
+    - name: Install dependencies
+      uses: ./.github/actions/install
+
+    - if: inputs.playwright == 'true'
+      name: Setup Playwright
+      uses: ./.github/actions/setup-playwright
+
+    - name: Setup environment variables
+      uses: ./.github/actions/setup-env

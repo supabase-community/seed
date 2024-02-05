@@ -1,13 +1,11 @@
-import { isInstanceOf } from '../utils.js'
-import { Serializable, Json } from './types.js'
-import { mapValues } from 'remeda'
+import { mapValues } from "remeda";
+import { isInstanceOf } from "../utils.js";
+import { type Json, type Serializable } from "./types.js";
 
 export const serializeValue = (value: Serializable): Json | undefined => {
-  return isInstanceOf(value, Date) ? value.toISOString() : value
-}
+  return isInstanceOf(value, Date) ? value.toISOString() : value;
+};
 
-export const serializeModelValues = (model: {
-  [field: string]: Serializable
-}): {
-  [field: string]: Json | undefined
-} => mapValues(model, serializeValue)
+export const serializeModelValues = (
+  model: Record<string, Serializable>,
+): Record<string, Json | undefined> => mapValues(model, serializeValue);

@@ -1,135 +1,92 @@
+import { copycat } from "@snaplet/copycat";
+import { type ClientState } from "../client/types.js";
+import { serializeModelValues, serializeValue } from "../data/data.js";
+import { type Json } from "../data/types.js";
+import { groupFields } from "../dataModel/dataModel.js";
 import {
-  DataModel,
-  DataModelObjectField,
-  DataModelScalarField,
-} from '../dataModel/types.js'
-import { groupFields } from '../dataModel/dataModel.js'
-import { FingerprintField, type Fingerprint } from '../fingerprint/types.js'
-import { isOptionsField } from '../fingerprint/fingerprint.js'
-import { Store } from '../store/store.js'
-import { copycat } from '@snaplet/copycat'
-import { checkConstraints } from './constraints.js'
-import { UserModels } from '../userModels/types.js'
-import { ClientState } from '../client/types.js'
-import { ChildField, ChildModel, ConnectCallback, ConnectInstruction, CountCallback, GenerateOptions, IPlan, ModelRecord, ParentField, PlanInputs, ScalarField } from './types.js'
-import { serializeModelValues, serializeValue } from '../data/data.js'
-import { Json } from '../data/types.js'
-import { mergeUserModels } from '../userModels/userModels.js'
-import { dedupePreferLast } from '../utils.js'
+  type DataModel,
+  type DataModelObjectField,
+  type DataModelScalarField,
+} from "../dataModel/types.js";
+import { isOptionsField } from "../fingerprint/fingerprint.js";
+import {
+  type Fingerprint,
+  type FingerprintField,
+} from "../fingerprint/types.js";
+import { type Store } from "../store/store.js";
+import { type UserModels } from "../userModels/types.js";
+import { mergeUserModels } from "../userModels/userModels.js";
+import { dedupePreferLast } from "../utils.js";
+import { checkConstraints } from "./constraints.js";
+import {
+  type ChildField,
+  type ChildModel,
+  type ConnectCallback,
+  ConnectInstruction,
+  type CountCallback,
+  type GenerateOptions,
+  type IPlan,
+  type ModelRecord,
+  type ParentField,
+  type PlanInputs,
+  type ScalarField,
+} from "./types.js";
 
-export type PlanOptions = {
-  connect?: true | Record<string, Array<any>>
-  models?: UserModels
-  seed?: string
+export interface PlanOptions {
+  connect?: Record<string, Array<any>> | true;
+  models?: UserModels;
+  seed?: string;
 }
 
 export class Plan implements IPlan {
-  private readonly ctx: ClientState
-  private readonly dataModel: DataModel
-  private readonly plan: PlanInputs
-  private readonly userModels: UserModels
-  private readonly fingerprint: Fingerprint
-  private readonly connectStore?: Record<string, Array<any>>
-  private readonly seed?: string
-  private readonly runStatements?: (statements: string[]) => Promise<any>
+  private readonly connectStore?: Record<string, Array<any>>;
+  private readonly ctx: ClientState;
+  private readonly dataModel: DataModel;
+  private readonly fingerprint: Fingerprint;
+  private readonly plan: PlanInputs;
+  private readonly runStatements?: (statements: Array<string>) => Promise<any>;
+  private readonly seed?: string;
+  private readonly userModels: UserModels;
 
-  public store: Store
-  public options?: PlanOptions
-  public emit: (event: string) => void
+  public emit: (event: string) => void;
+  public options?: PlanOptions;
+  public store: Store;
 
   constructor(props: {
-    createStore: (dataModel: DataModel) => Store
-    emit: (event: string) => void
-    ctx: ClientState
-    runStatements?: (statements: string[]) => Promise<void>
-    dataModel: DataModel
-    userModels: UserModels
-    plan: PlanInputs
-    fingerprint?: Fingerprint
-    options?: PlanOptions
+    createStore: (dataModel: DataModel) => Store;
+    ctx: ClientState;
+    dataModel: DataModel;
+    emit: (event: string) => void;
+    fingerprint?: Fingerprint;
+    options?: PlanOptions;
+    plan: PlanInputs;
+    runStatements?: (statements: Array<string>) => Promise<void>;
+    userModels: UserModels;
   }) {
-    this.ctx = props.ctx
-    this.emit = props.emit
-    this.runStatements = props.runStatements
-    this.dataModel = props.dataModel
-    this.fingerprint = props.fingerprint ?? {}
-    this.plan = props.plan
+    this.ctx = props.ctx;
+    this.emit = props.emit;
+    this.runStatements = props.runStatements;
+    this.dataModel = props.dataModel;
+    this.fingerprint = props.fingerprint ?? {};
+    this.plan = props.plan;
     // plan's internal store
-    this.store = props.createStore(props.dataModel)
+    this.store = props.createStore(props.dataModel);
     if (props.options?.connect) {
       if (props.options.connect === true) {
-        this.connectStore = this.ctx.store._store
+        this.connectStore = this.ctx.store._store;
       } else {
-        const partialStore = props.options.connect
+        const partialStore = props.options.connect;
         this.connectStore = Object.fromEntries(
           Object.keys(this.dataModel.models).map((modelName) => [
             modelName,
             partialStore[modelName] ?? [],
-          ])
-        )
+          ]),
+        );
       }
     }
-    this.seed = props.options?.seed
-    this.userModels = props.userModels
-    this.options = props.options
-  }
-
-  async generate(options?: GenerateOptions) {
-    const seed = this.seed ?? options?.seed
-    // if generate receives options?.models it means it comes from a merge or pipe
-    const userModels = mergeUserModels(
-      mergeUserModels(this.userModels, options?.models ?? {}),
-      this.options?.models ?? {}
-    )
-
-    if (this.connectStore) {
-      for (const modelName of Object.keys(this.connectStore)) {
-        if (this.connectStore[modelName]!.length > 0) {
-          const connectFallback: ConnectCallback = (ctx) =>
-            copycat.oneOf(ctx.seed, this.connectStore![modelName]!)
-          // @ts-expect-error tagging the fallback function for retry purposes when checking constraints
-          connectFallback['fallback'] = true
-          userModels[modelName]!.connect =
-            userModels[modelName]!.connect ?? connectFallback
-        }
-      }
-    }
-
-    if (this.ctx.seeds[this.plan.model] === undefined) {
-      this.ctx.seeds[this.plan.model] = -1
-    }
-    this.ctx.seeds[this.plan.model] += 1
-
-    await this.generateModel(
-      { ...this.plan },
-      {
-        models: userModels,
-        seed: seed ?? this.ctx.seeds[this.plan.model]!.toString(),
-      }
-    )
-
-    return this.store
-  }
-
-  async run() {
-    this.emit('$call:plan:run:start')
-    const store = await this.generate()
-    await this.runStatements?.(store.toSQL())
-    this.emit('$call:plan:run:end')
-    return store._store
-  }
-
-  then<TResult1 = any, TResult2 = never>(
-    onfulfilled?:
-      | ((value: any) => TResult1 | PromiseLike<TResult1>)
-      | null
-      | undefined,
-    onrejected?:
-      | ((reason: any) => TResult2 | PromiseLike<TResult2>)
-      | null
-      | undefined
-  ): PromiseLike<TResult1 | TResult2> {
-    return this.run().then(onfulfilled, onrejected)
+    this.seed = props.options?.seed;
+    this.userModels = props.userModels;
+    this.options = props.options;
   }
 
   private async generateModel(
@@ -139,87 +96,87 @@ export class Plan implements IPlan {
       inputs,
     }: PlanInputs & {
       ctx?: {
-        index?: number
-        path?: (string | number)[]
-      }
+        index?: number;
+        path?: Array<number | string>;
+      };
     },
-    options: Required<GenerateOptions>
+    options: Required<GenerateOptions>,
   ) {
-    const path = ctx?.path ?? [model]
-    const userModels = options.models
-    const modelStructure = this.dataModel.models[model]!
+    const path = ctx?.path ?? [model];
+    const userModels = options.models;
+    const modelStructure = this.dataModel.models[model]!;
 
     // this is the "x" function that we inject for child fields: (x) => x(10, (i) => ({ id: i }))
     const countCallback: CountCallback = (x, cb) => {
-      const result: Array<ChildModel> = []
+      const result: Array<ChildModel> = [];
 
-      const seed = `${options.seed}/${path.join('/')}`
-      const n = typeof x === 'number' ? x : copycat.int(seed, x)
+      const seed = `${options.seed}/${path.join("/")}`;
+      const n = typeof x === "number" ? x : copycat.int(seed, x);
 
       for (const i of new Array(n).keys()) {
         if (cb === undefined) {
-          result.push({})
-        } else if (typeof cb === 'function') {
+          result.push({});
+        } else if (typeof cb === "function") {
           result.push(
             cb({
               $store: this.ctx.store._store,
               data: {},
               store: this.store._store,
               index: i,
-              seed: [seed, i].join('/'),
-            })
-          )
+              seed: [seed, i].join("/"),
+            }),
+          );
         } else {
-          result.push(cb)
+          result.push(cb);
         }
       }
 
-      return result
-    }
+      return result;
+    };
 
     const modelsInputs =
-      typeof inputs === 'function'
+      typeof inputs === "function"
         ? inputs(countCallback)
         : Array.isArray(inputs)
           ? inputs
-          : [inputs]
+          : [inputs];
 
-    const generatedModels: Record<string, any>[] = []
+    const generatedModels: Array<Record<string, any>> = [];
 
     // we partition the fields into 3 categories:
     // - scalar fields
     // - parent relation fields
     // - child relation fields
-    const fields = groupFields(modelStructure.fields)
+    const fields = groupFields(modelStructure.fields);
 
     for (let index = 0; index < modelsInputs.length; index++) {
-      const modelData: Record<string, any> = {}
-      const modelSeed = `${options.seed}/${[...path, index].join('/')}`
+      const modelData: Record<string, any> = {};
+      const modelSeed = `${options.seed}/${[...path, index].join("/")}`;
 
-      const modelInputs = modelsInputs[index]
+      const modelInputs = modelsInputs[index];
 
       const inputsData = (
-        typeof modelInputs === 'function'
+        typeof modelInputs === "function"
           ? modelInputs({
-            $store: this.ctx.store._store,
-            data: {},
-            index,
-            seed: modelSeed,
-            store: this.store._store,
-          })
+              $store: this.ctx.store._store,
+              data: {},
+              index,
+              seed: modelSeed,
+              store: this.store._store,
+            })
           : modelsInputs[index]
-      ) as ModelRecord
+      ) as ModelRecord;
 
       for (const field of fields.parents) {
         // the parent ids were already provided (by the user or by children generation)
         const parentIdsProvided = field.relationFromFields.every(
-          (f) => inputsData[f] !== undefined
-        )
+          (f) => inputsData[f] !== undefined,
+        );
         if (parentIdsProvided) {
           for (const f of field.relationFromFields) {
-            modelData[f] = inputsData[f]
+            modelData[f] = inputsData[f];
           }
-          continue
+          continue;
         }
 
         // right now let's not generate nullable parent relations if the user did not specify them or if there is no connect fallback
@@ -229,36 +186,36 @@ export class Plan implements IPlan {
           !userModels[field.type]!.connect
         ) {
           for (const f of field.relationFromFields) {
-            modelData[f] = null
+            modelData[f] = null;
           }
-          continue
+          continue;
         }
 
         const getParent = async (parentField?: ParentField) => {
-          const parentModelName = field.type
+          const parentModelName = field.type;
 
           if (parentField === undefined) {
-            const connectFallback = userModels[parentModelName]!.connect
+            const connectFallback = userModels[parentModelName]!.connect;
             if (connectFallback) {
               return connectFallback({
                 $store: this.ctx.store._store,
                 store: this.store._store,
                 index,
                 seed: `${modelSeed}/${field.name}`,
-              })
+              });
             }
           }
 
           // if parentField is defined, it means the user wants to override the default behavior
           // is the parentField a modelCallback
-          if (typeof parentField === 'function') {
+          if (typeof parentField === "function") {
             const modelCallbackResult = parentField({
               $store: this.ctx.store._store,
               connect: (cb) => new ConnectInstruction(cb),
               data: {},
-              seed: [modelSeed, field.name, 0].join('/'),
+              seed: [modelSeed, field.name, 0].join("/"),
               store: this.store._store,
-            })
+            });
 
             if (modelCallbackResult instanceof ConnectInstruction) {
               return modelCallbackResult.callback({
@@ -266,10 +223,10 @@ export class Plan implements IPlan {
                 store: this.store._store,
                 index,
                 seed: `${modelSeed}/${field.name}`,
-              })
+              });
             }
 
-            parentField = modelCallbackResult
+            parentField = modelCallbackResult;
           }
 
           const parent = (
@@ -283,28 +240,28 @@ export class Plan implements IPlan {
                 // todo: support aliases or fetch relation names
                 inputs: [parentField ?? {}] as ChildField,
               },
-              options
+              options,
             )
-          )[0]!
+          )[0]!;
 
-          return parent
-        }
+          return parent;
+        };
 
         const parent = serializeModelValues(
-          await getParent(inputsData[field.name] as ParentField | undefined)
-        )
+          await getParent(inputsData[field.name] as ParentField | undefined),
+        );
 
         for (const [i] of field.relationFromFields.entries()) {
           modelData[field.relationFromFields[i]!] =
-            parent[field.relationToFields[i]!]
+            parent[field.relationToFields[i]!];
         }
       }
 
       const handleScalarField = async (field: DataModelScalarField) => {
-        const scalarField = inputsData[field.name] as ScalarField | undefined
+        const scalarField = inputsData[field.name] as ScalarField | undefined;
         // the field is always generated by the database
         if (!field.isId && field.isGenerated) {
-          return
+          return;
         }
         // the field has a default value generated by the database
         // and is not a sequence that we gonna mock
@@ -315,53 +272,53 @@ export class Plan implements IPlan {
           field.sequence === false &&
           scalarField === undefined
         ) {
-          return
+          return;
         }
         // the field was already taken care of by a parent relation
         if (modelData[field.name] !== undefined) {
-          return
+          return;
         }
 
         const generateFn =
           scalarField === undefined
             ? userModels[model]!.data?.[field.name]
-            : scalarField
+            : scalarField;
 
         const value =
-          typeof generateFn === 'function'
+          typeof generateFn === "function"
             ? await generateFn({
-              index: ctx?.index ?? index,
-              seed: `${modelSeed}/${field.name}`,
-              data: modelData,
-              $store: this.ctx.store._store,
-              store: this.store._store,
-              options: this.getGenerateOptions(model, field.name),
-            })
-            : generateFn
+                index: ctx?.index ?? index,
+                seed: `${modelSeed}/${field.name}`,
+                data: modelData,
+                $store: this.ctx.store._store,
+                store: this.store._store,
+                options: this.getGenerateOptions(model, field.name),
+              })
+            : generateFn;
 
-        modelData[field.name] = serializeValue(value)
-      }
+        modelData[field.name] = serializeValue(value);
+      };
 
       // we prioritize ids so we can access them in the store as soon as possible
       for (const field of fields.scalars.filter((f) => f.isId)) {
-        await handleScalarField(field)
+        await handleScalarField(field);
       }
 
       // we persist the generated model as soon as we have the ids
-      this.store.add(model, modelData)
-      this.ctx.store.add(model, modelData)
-      generatedModels.push(modelData)
+      this.store.add(model, modelData);
+      this.ctx.store.add(model, modelData);
+      generatedModels.push(modelData);
 
       const scalarFields = this.sortScalars(
         model,
         fields.scalars,
         userModels,
-        inputsData
-      )
+        inputsData,
+      );
 
       // TODO: filter out the fields that are part of a parent relation
       for (const field of scalarFields.filter((f) => !f.isId)) {
-        await handleScalarField(field)
+        await handleScalarField(field);
       }
 
       await checkConstraints({
@@ -383,71 +340,71 @@ export class Plan implements IPlan {
           store: this.store._store,
           options: this.getGenerateOptions(model, fieldName),
         }),
-      })
+      });
 
       for (const field of fields.children) {
-        const childModelName = field.type
-        const childField = inputsData[field.name] as ChildField | undefined
+        const childModelName = field.type;
+        const childField = inputsData[field.name] as ChildField | undefined;
         // skip cyclic relationships where the child is the same as the parent
         if (
           fields.parents.find(
-            (p) => p.name === field.name && p.type === field.type
+            (p) => p.name === field.name && p.type === field.type,
           )
         ) {
-          continue
+          continue;
         }
 
         // for now if the child is not user defined, we don't generate it
         if (!childField) {
-          continue
+          continue;
         }
         // we need to find the corresponding relationship in the child to get the impacted columns
-        const childModel = this.dataModel.models[childModelName]!
+        const childModel = this.dataModel.models[childModelName]!;
         const childRelation = childModel.fields.find(
-          (f) => f.kind === 'object' && f.relationName === field.relationName
-        )! as DataModelObjectField
+          (f) => f.kind === "object" && f.relationName === field.relationName,
+        )! as DataModelObjectField;
 
-        const childFields: Record<string, any> = {}
+        const childFields: Record<string, any> = {};
         for (const [i] of childRelation.relationFromFields.entries()) {
           childFields[childRelation.relationFromFields[i]!] =
-            modelData[childRelation.relationToFields[i]!]
+            modelData[childRelation.relationToFields[i]!];
         }
 
-        let childInputs: ChildField
-        if (typeof childField === 'function') {
+        let childInputs: ChildField;
+        if (typeof childField === "function") {
           childInputs = (cb: CountCallback) => {
             return childField(cb).map((childData, index) => {
-              if (typeof childData === 'function') {
+              if (typeof childData === "function") {
                 childData = childData({
                   $store: this.ctx.store._store,
                   data: {},
                   index,
-                  seed: [modelSeed, field.name, index].join('/'),
+                  seed: [modelSeed, field.name, index].join("/"),
                   store: this.store._store,
-                })
+                });
               }
               return {
                 ...childData,
                 ...childFields,
-              }
-            })
-          }
+              };
+            });
+          };
         } else {
           childInputs = childField.map((childData, index) => {
-            if (typeof childData === 'function') {
+            if (typeof childData === "function") {
               childData = childData({
                 $store: this.ctx.store._store,
                 data: {},
                 index,
-                seed: [modelSeed, field.name, index].join('/'),
+                seed: [modelSeed, field.name, index].join("/"),
                 store: this.store._store,
-              })
+              });
             }
             return {
               ...childData,
               ...childFields,
-            }
-          })
+            };
+          });
         }
 
         await this.generateModel(
@@ -458,38 +415,97 @@ export class Plan implements IPlan {
             model: childModelName,
             inputs: childInputs,
           },
-          options
-        )
+          options,
+        );
       }
     }
 
-    return generatedModels
+    return generatedModels;
   }
 
   private getGenerateOptions(modelName: string, fieldName: string) {
-    const fingerprintField = this.fingerprint[modelName]?.[fieldName] ?? {} as FingerprintField
+    const fingerprintField =
+      this.fingerprint[modelName]?.[fieldName] ?? ({} as FingerprintField);
 
     if (isOptionsField(fingerprintField)) {
-      return fingerprintField.options as Record<string, Json>
+      return fingerprintField.options as Record<string, Json>;
     } else {
-      return {}
+      return {};
     }
   }
 
   private sortScalars(
     modelName: string,
-    fields: DataModelScalarField[],
+    fields: Array<DataModelScalarField>,
     userModels: UserModels,
-    inputsData: ModelRecord | null | undefined
-  ): DataModelScalarField[] {
-    const fieldMap = new Map(fields.map((field) => [field.name, field]))
+    inputsData: ModelRecord | null | undefined,
+  ): Array<DataModelScalarField> {
+    const fieldMap = new Map(fields.map((field) => [field.name, field]));
 
     const orderedFieldNames = dedupePreferLast([
       ...fieldMap.keys(),
       ...Object.keys(userModels[modelName]?.data ?? {}),
       ...Object.keys(inputsData ?? {}),
-    ]).filter((fieldName) => fieldMap.has(fieldName))
+    ]).filter((fieldName) => fieldMap.has(fieldName));
 
-    return orderedFieldNames.map((name) => fieldMap.get(name)!)
+    return orderedFieldNames.map((name) => fieldMap.get(name)!);
+  }
+
+  async generate(options?: GenerateOptions) {
+    const seed = this.seed ?? options?.seed;
+    // if generate receives options?.models it means it comes from a merge or pipe
+    const userModels = mergeUserModels(
+      mergeUserModels(this.userModels, options?.models ?? {}),
+      this.options?.models ?? {},
+    );
+
+    if (this.connectStore) {
+      for (const modelName of Object.keys(this.connectStore)) {
+        if (this.connectStore[modelName]!.length > 0) {
+          const connectFallback: ConnectCallback = (ctx) =>
+            copycat.oneOf(ctx.seed, this.connectStore![modelName]!);
+          // @ts-expect-error tagging the fallback function for retry purposes when checking constraints
+          connectFallback.fallback = true;
+          userModels[modelName]!.connect =
+            userModels[modelName]!.connect ?? connectFallback;
+        }
+      }
+    }
+
+    if (this.ctx.seeds[this.plan.model] === undefined) {
+      this.ctx.seeds[this.plan.model] = -1;
+    }
+    this.ctx.seeds[this.plan.model] += 1;
+
+    await this.generateModel(
+      { ...this.plan },
+      {
+        models: userModels,
+        seed: seed ?? this.ctx.seeds[this.plan.model]!.toString(),
+      },
+    );
+
+    return this.store;
+  }
+
+  async run() {
+    this.emit("$call:plan:run:start");
+    const store = await this.generate();
+    await this.runStatements?.(store.toSQL());
+    this.emit("$call:plan:run:end");
+    return store._store;
+  }
+
+  then<TResult1 = any, TResult2 = never>(
+    onfulfilled?:
+      | ((value: any) => PromiseLike<TResult1> | TResult1)
+      | null
+      | undefined,
+    onrejected?:
+      | ((reason: any) => PromiseLike<TResult2> | TResult2)
+      | null
+      | undefined,
+  ): PromiseLike<TResult1 | TResult2> {
+    return this.run().then(onfulfilled, onrejected);
   }
 }

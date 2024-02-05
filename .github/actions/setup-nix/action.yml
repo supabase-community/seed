@@ -1,0 +1,25 @@
+name: Setup Nix
+
+runs:
+  using: "composite"
+  steps:
+    - name: Install Nix
+      uses: nixbuild/nix-quick-install-action@v26
+
+    - name: Restore and cache Nix store
+      uses: nix-community/cache-nix-action@v5
+      with:
+        primary-key: cache-${{ runner.os }}-nix-store-${{ hashFiles('**/*.nix') }}
+        restore-prefixes-first-match: cache-${{ runner.os }}-nix-store-
+
+    - name: Create a custom shell for devenv
+      shell: bash
+      run: |
+        mkdir -p $HOME/.local/bin
+        echo "#!/usr/bin/env bash" > $HOME/.local/bin/devenv
+        echo "nix develop --impure --command bash \"\$1\"" >> $HOME/.local/bin/devenv
+        chmod +x $HOME/.local/bin/devenv
+
+    - name: Build the devenv shell
+      shell: devenv {0}
+      run: echo 🚀

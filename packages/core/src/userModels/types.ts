@@ -1,21 +1,20 @@
-import { ScalarField, Serializable } from '../plan/types.js'
-import { Store } from '../store/store.js'
+import { type ScalarField, type Serializable } from "../plan/types.js";
+import { type Store } from "../store/store.js";
 
-export type ConnectCallbackContext = {
-  index: number
-  seed: string
-  store: Store['_store']
-  $store: Store['_store']
+export interface ConnectCallbackContext {
+  $store: Store["_store"];
+  index: number;
+  seed: string;
+  store: Store["_store"];
 }
 
 export type ConnectCallback = (
-  ctx: ConnectCallbackContext
-) => Record<string, Serializable>
+  ctx: ConnectCallbackContext,
+) => Record<string, Serializable>;
 
-
-export type UserModelsData = Record<string, ScalarField>
+export type UserModelsData = Record<string, ScalarField>;
 
 export type UserModels = Record<
   string,
-  { data?: UserModelsData; connect?: ConnectCallback }
->
+  { connect?: ConnectCallback; data?: UserModelsData }
+>;

@@ -1,55 +1,55 @@
-export type DataModel = {
-  models: Record<string, DataModelModel>
-  enums: Record<string, DataModelEnum>
+export interface DataModel {
+  enums: Record<string, DataModelEnum>;
+  models: Record<string, DataModelModel>;
 }
 
-type DataModelEnum = {
-  schemaName?: string
-  values: { name: string }[]
+interface DataModelEnum {
+  schemaName?: string;
+  values: Array<{ name: string }>;
 }
 
-export type DataModelModel = {
-  id: string
-  schemaName?: string
-  tableName: string
-  fields: DataModelField[]
-  uniqueConstraints: DataModelUniqueConstraint[]
+export interface DataModelModel {
+  fields: Array<DataModelField>;
+  id: string;
+  schemaName?: string;
+  tableName: string;
+  uniqueConstraints: Array<DataModelUniqueConstraint>;
 }
 
-export type DataModelUniqueConstraint = {
-  name: string
-  fields: Array<string>
+export interface DataModelUniqueConstraint {
+  fields: Array<string>;
+  name: string;
 }
 
-export type DataModelSequence = {
-  identifier: string | null
-  current: number
-  start: number
-  increment: number
+export interface DataModelSequence {
+  current: number;
+  identifier: null | string;
+  increment: number;
+  start: number;
 }
 
-export type DataModelField = DataModelObjectField | DataModelScalarField
+export type DataModelField = DataModelObjectField | DataModelScalarField;
 
 export type DataModelObjectField = DataModelCommonFieldProps & {
-  kind: 'object'
-  relationName: string
-  relationFromFields: string[]
-  relationToFields: string[]
-}
+  kind: "object";
+  relationFromFields: Array<string>;
+  relationName: string;
+  relationToFields: Array<string>;
+};
 
 export type DataModelScalarField = DataModelCommonFieldProps & {
-  kind: 'scalar'
-  id: string
-  columnName: string
-}
+  columnName: string;
+  id: string;
+  kind: "scalar";
+};
 
-type DataModelCommonFieldProps = {
-  name: string
-  type: string
-  isRequired: boolean
-  isGenerated: boolean
-  hasDefaultValue: boolean
-  isList: boolean
-  isId: boolean
-  sequence: DataModelSequence | false
+interface DataModelCommonFieldProps {
+  hasDefaultValue: boolean;
+  isGenerated: boolean;
+  isId: boolean;
+  isList: boolean;
+  isRequired: boolean;
+  name: string;
+  sequence: DataModelSequence | false;
+  type: string;
 }

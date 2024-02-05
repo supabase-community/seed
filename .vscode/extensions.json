@@ -1,0 +1,11 @@
+{
+  "recommendations": [
+    "dbaeumer.vscode-eslint",
+    "orta.vscode-twoslash-queries",
+    "yoavbls.pretty-ts-errors",
+    "zixuanchen.vitest-explorer"
+  ],
+  "unwantedRecommendations": [
+    "esbenp.prettier-vscode"
+  ]
+}

@@ -1,108 +1,109 @@
-import { Store } from '../store/store.js'
-import { UserModels } from '../userModels/types.js'
-import { PlanOptions } from './plan.js'
+import { type Store } from "../store/store.js";
+import { type UserModels } from "../userModels/types.js";
+import { type PlanOptions } from "./plan.js";
 
-export type Constraints = Record<string, Record<string, Set<string>>>
+export type Constraints = Record<string, Record<string, Set<string>>>;
 
-export type GenerateOptions = {
-  seed?: string
-  models?: UserModels
+export interface GenerateOptions {
+  models?: UserModels;
+  seed?: string;
 }
 
-export type PlanGenerateContext = {
-  index: number
-  sequences?: Record<string, Generator<number, never, unknown>>
+export interface PlanGenerateContext {
+  index: number;
+  sequences?: Record<string, Generator<number, never>>;
 }
 export interface IPlan extends PromiseLike<any> {
-  store: Store
-  options?: PlanOptions
+  generate(options?: GenerateOptions): Promise<Store>;
+  options?: PlanOptions;
 
-  generate(options?: GenerateOptions): Promise<Store>
+  run(): Promise<any>;
 
-  run(): Promise<any>
+  store: Store;
 }
 
-export type JsonPrimitive = string | number | boolean | null
+export type JsonPrimitive = boolean | null | number | string;
 
-type Json = JsonPrimitive | { [key: string]: Json } | Json[]
+type Json = { [key: string]: Json } | Array<Json> | JsonPrimitive;
 
 export type SerializablePrimitive =
-  | string
-  | number
+  | Date
   | boolean
   | null
-  | Date
-  | undefined
+  | number
+  | string
+  | undefined;
 
-export type Serializable = SerializablePrimitive | Json
+export type Serializable = Json | SerializablePrimitive;
 
-export type ScalarField = GenerateCallback | Serializable
+export type ScalarField = GenerateCallback | Serializable;
 
 type ChildModelCallback = (
   ctx: ModelCallbackContext & {
-    index: number
-  }
-) => ModelRecord
+    index: number;
+  },
+) => ModelRecord;
 
-export type ChildModel = ModelRecord | ChildModelCallback
+export type ChildModel = ChildModelCallback | ModelRecord;
 
 export type CountCallback = (
-  x: number | { min: number; max: number },
-  cb?: ChildModel
-) => Array<ChildModel>
+  x: { max: number; min: number } | number,
+  cb?: ChildModel,
+) => Array<ChildModel>;
 
 export type ChildField =
   | ((cb: CountCallback) => Array<ChildModel>)
-  | Array<ChildModel>
+  | Array<ChildModel>;
 
-export type ConnectCallbackContext = {
-  index: number
-  seed: string
-  store: Store['_store']
-  $store: Store['_store']
+export interface ConnectCallbackContext {
+  $store: Store["_store"];
+  index: number;
+  seed: string;
+  store: Store["_store"];
 }
 
 export type ConnectCallback = (
-  ctx: ConnectCallbackContext
-) => Record<string, Serializable>
+  ctx: ConnectCallbackContext,
+) => Record<string, Serializable>;
 
 export class ConnectInstruction {
-  constructor(public callback: ConnectCallback) { }
+  constructor(public callback: ConnectCallback) {}
 }
 
-type ModelCallbackContext = {
-  seed: string
-  store: Store['_store']
-  $store: Store['_store']
-  data: Record<string, Json>
+interface ModelCallbackContext {
+  $store: Store["_store"];
+  data: Record<string, Json>;
+  seed: string;
+  store: Store["_store"];
 }
 
 type ParentModelCallback = (
   ctx: ModelCallbackContext & {
-    connect: (cb: ConnectCallback) => ConnectInstruction
-  }
-) => ConnectInstruction | ModelRecord
+    connect: (cb: ConnectCallback) => ConnectInstruction;
+  },
+) => ConnectInstruction | ModelRecord;
 
-export type ParentField = ModelRecord | ParentModelCallback
+export type ParentField = ModelRecord | ParentModelCallback;
 
-export interface ModelRecord {
-  [key: string]: ScalarField | ParentField | ChildField
+export type ModelRecord = Record<
+  string,
+  ChildField | ParentField | ScalarField
+>;
+
+export interface PlanInputs {
+  inputs: ChildField;
+  model: string;
 }
 
-export type PlanInputs = {
-  model: string
-  inputs: ChildField
-}
-
-export type GenerateCallbackContext = {
-  options: Record<string, unknown>
-  data: Record<string, unknown>
-  index: number
-  seed: string
-  store: Store['_store']
-  $store: Store['_store']
+export interface GenerateCallbackContext {
+  $store: Store["_store"];
+  data: Record<string, unknown>;
+  index: number;
+  options: Record<string, unknown>;
+  seed: string;
+  store: Store["_store"];
 }
 
 export type GenerateCallback = (
-  ctx: GenerateCallbackContext
-) => Serializable | Promise<Serializable>
+  ctx: GenerateCallbackContext,
+) => Promise<Serializable> | Serializable;

@@ -1,30 +1,34 @@
-import { DataModelField, DataModelObjectField, DataModelScalarField } from "./types.js"
+import {
+  type DataModelField,
+  type DataModelObjectField,
+  type DataModelScalarField,
+} from "./types.js";
 
-export function groupFields(fields: DataModelField[]) {
+export function groupFields(fields: Array<DataModelField>) {
   const groupedFields = {
-    scalars: [] as DataModelScalarField[],
-    parents: [] as DataModelObjectField[],
-    children: [] as DataModelObjectField[],
-  }
+    scalars: [] as Array<DataModelScalarField>,
+    parents: [] as Array<DataModelObjectField>,
+    children: [] as Array<DataModelObjectField>,
+  };
 
   for (const field of fields) {
-    if (field.kind === 'scalar') {
-      groupedFields.scalars.push(field)
-    } else if (field.kind === 'object' && field.relationFromFields.length > 0) {
-      groupedFields.parents.push(field)
+    if (field.kind === "scalar") {
+      groupedFields.scalars.push(field);
+    } else if (field.kind === "object" && field.relationFromFields.length > 0) {
+      groupedFields.parents.push(field);
     } else if (
-      field.kind === 'object' &&
+      field.kind === "object" &&
       field.relationFromFields.length === 0
     ) {
-      groupedFields.children.push(field)
+      groupedFields.children.push(field);
     }
   }
 
-  return groupedFields
+  return groupedFields;
 }
 
 export function isParentField(
-  field: DataModelField
+  field: DataModelField,
 ): field is DataModelObjectField {
-  return field.kind === 'object' && field.relationFromFields.length > 0
+  return field.kind === "object" && field.relationFromFields.length > 0;
 }

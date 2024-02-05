@@ -1,13 +1,13 @@
-export type JsonPrimitive = string | number | boolean | null
+export type JsonPrimitive = boolean | null | number | string;
 
-export type Json = JsonPrimitive | { [key: string]: Json } | Json[]
+export type Json = { [key: string]: Json } | Array<Json> | JsonPrimitive;
 
 export type SerializablePrimitive =
-  | string
-  | number
+  | Date
   | boolean
   | null
-  | Date
-  | undefined
+  | number
+  | string
+  | undefined;
 
-export type Serializable = SerializablePrimitive | Json
+export type Serializable = Json | SerializablePrimitive;

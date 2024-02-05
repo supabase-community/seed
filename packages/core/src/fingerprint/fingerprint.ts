@@ -1,7 +1,10 @@
-import { FingerprintField, FingerprintOptionsField } from "./types.js";
+import {
+  type FingerprintField,
+  type FingerprintOptionsField,
+} from "./types.js";
 
 export function isOptionsField(
-  field: FingerprintField
+  field: FingerprintField,
 ): field is FingerprintOptionsField {
-  return 'options' in field
+  return "options" in field;
 }

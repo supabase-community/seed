@@ -1,14 +1,18 @@
-export type Fingerprint = Record<string, Record<string, FingerprintField>>
+export type Fingerprint = Record<string, Record<string, FingerprintField>>;
 
 export type FingerprintField =
   | FingerprintJsonField
   | FingerprintOptionsField
-  | FingerprintRelationshipField
+  | FingerprintRelationshipField;
 
-export type FingerprintJsonField = { schema: Record<string, unknown> }
+export interface FingerprintJsonField {
+  schema: Record<string, unknown>;
+}
 
-export type FingerprintOptionsField = { options: Record<string, unknown> }
+export interface FingerprintOptionsField {
+  options: Record<string, unknown>;
+}
 
-type FingerprintRelationshipField = {
-  count: number | { min: number; max: number }
+interface FingerprintRelationshipField {
+  count: { max: number; min: number } | number;
 }

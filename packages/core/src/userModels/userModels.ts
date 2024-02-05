@@ -1,5 +1,5 @@
-import { dedupePreferLast } from '../utils.js'
-import { UserModels, UserModelsData } from './types.js'
+import { dedupePreferLast } from "../utils.js";
+import { type UserModels, type UserModelsData } from "./types.js";
 
 /**
  * Utility function to merge two user models, userModels2 will override userModels1 fields
@@ -9,45 +9,44 @@ import { UserModels, UserModelsData } from './types.js'
  */
 export function mergeUserModels(
   userModels1: UserModels,
-  userModels2: UserModels
+  userModels2: UserModels,
 ) {
-  const mergedUserModels: UserModels = {}
+  const mergedUserModels: UserModels = {};
 
-  const userModels1Keys = Object.keys(userModels1)
-  const userModels2Keys = Object.keys(userModels2)
+  const userModels1Keys = Object.keys(userModels1);
+  const userModels2Keys = Object.keys(userModels2);
 
   userModels1Keys.forEach((modelName) => {
     mergedUserModels[modelName] = {
       data: mergeUserModelsData(
         userModels1[modelName]?.data ?? {},
-        userModels2[modelName]?.data ?? {}
+        userModels2[modelName]?.data ?? {},
       ),
       connect:
         userModels2[modelName]?.connect ?? userModels1[modelName]?.connect,
-    }
-  })
+    };
+  });
 
   userModels2Keys.forEach((modelName) => {
     if (!userModels1Keys.includes(modelName)) {
-      mergedUserModels[modelName] = userModels2[modelName]!
+      mergedUserModels[modelName] = userModels2[modelName]!;
     }
-  })
+  });
 
-  return mergedUserModels
+  return mergedUserModels;
 }
 
 const mergeUserModelsData = (
   data1: UserModelsData,
-  data2: UserModelsData
+  data2: UserModelsData,
 ): UserModelsData => {
-  const results: UserModelsData = {}
+  const results: UserModelsData = {};
 
-  const keys = dedupePreferLast([...Object.keys(data1), ...Object.keys(data2)])
+  const keys = dedupePreferLast([...Object.keys(data1), ...Object.keys(data2)]);
 
   for (const key of keys) {
-    results[key] = data2[key] ?? data1[key]
+    results[key] = data2[key] ?? data1[key];
   }
 
-  return results
-}
-
+  return results;
+};
