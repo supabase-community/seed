@@ -76,6 +76,43 @@ importers:
         specifier: 4.0.1
         version: 4.0.1
 
+  packages/config:
+    dependencies:
+      c12:
+        specifier: 1.6.1
+        version: 1.6.1
+      find-up:
+        specifier: 7.0.0
+        version: 7.0.0
+      remeda:
+        specifier: 1.40.0
+        version: 1.40.0
+      zod:
+        specifier: 3.22.4
+        version: 3.22.4
+    devDependencies:
+      '@snaplet/eslint-config':
+        specifier: workspace:*
+        version: link:../eslint-config
+      '@snaplet/tsconfig':
+        specifier: workspace:*
+        version: link:../tsconfig
+      '@total-typescript/ts-reset':
+        specifier: 0.5.1
+        version: 0.5.1
+      '@types/node':
+        specifier: 20.11.16
+        version: 20.11.16
+      eslint:
+        specifier: 8.56.0
+        version: 8.56.0
+      typescript:
+        specifier: 5.3.3
+        version: 5.3.3
+      vitest:
+        specifier: 1.2.2
+        version: 1.2.2(@types/node@20.11.16)
+
   packages/eslint-config:
     dependencies:
       '@typescript-eslint/eslint-plugin':
@@ -139,21 +176,15 @@ importers:
 
   packages/seed:
     dependencies:
+      '@snaplet/config':
+        specifier: workspace:*
+        version: link:../config
       '@snaplet/copycat':
         specifier: ^2.0.0
         version: 2.0.0
-      c12:
-        specifier: 1.6.1
-        version: 1.6.1
-      find-up:
-        specifier: 7.0.0
-        version: 7.0.0
       remeda:
         specifier: 1.40.0
         version: 1.40.0
-      valibot:
-        specifier: 0.28.0
-        version: 0.28.0
     devDependencies:
       '@snaplet/eslint-config':
         specifier: workspace:*
@@ -5325,10 +5356,6 @@ packages:
     hasBin: true
     dev: false
 
-  /valibot@0.28.0:
-    resolution: {integrity: sha512-+ADabFSOGEffVmMYltPVK3K1GpbzXGoNSoP9ZbjTVz7wkjVIj6L2NvOu4TaeU2R9s7tyNKihcAeddmrpT6LDzQ==}
-    dev: false
-
   /validate-npm-package-license@3.0.4:
     resolution: {integrity: sha512-DpKm2Ui/xN7/HQKCtpZxoRWBhZ9Z0kqtygG8XCgNQ8ZlDnxuQmWhj566j8fN4Cu3/JmbhsDo7fcAJq4s9h27Ew==}
     dependencies:
@@ -5658,4 +5685,3 @@ packages:
 
   /zod@3.22.4:
     resolution: {integrity: sha512-iC+8Io04lddc+mVqQ9AZ7OQ2MrUKGN+oIQyq1vemgt46jwCwLfhq7/pwnBnNXXXZb8VTVLKwp9EDkx+ryxIWmg==}
-    dev: true
