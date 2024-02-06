@@ -1,6 +1,6 @@
+import { getProjectConfig } from "@snaplet/config";
 import { EOL } from "node:os";
 import { Client } from "pg";
-import { getProjectConfig } from "#config/projectConfig.js";
 import { SeedClientBase } from "#core/client/client.js";
 import { type SeedClientBaseOptions } from "#core/client/types.js";
 import { type DataModel } from "#core/dataModel/types.js";
@@ -12,7 +12,9 @@ export type SeedClientOptions = SeedClientBaseOptions & {
   dryRun?: boolean;
 };
 
-export type WithClient = (fn: (client: Client) => unknown) => Promise<unknown>;
+export type WithClient = (
+  fn: (client: Client) => Promise<unknown>,
+) => Promise<unknown>;
 
 export function getSeedClient(dataModel: DataModel, userModels: UserModels) {
   class SeedClient extends SeedClientBase {
@@ -87,11 +89,12 @@ export function getSeedClient(dataModel: DataModel, userModels: UserModels) {
         fn(client);
     }
 
-    return await setupSeedClient(
-      (options) => new SeedClient(withClient, options),
-      config,
-      options,
-    );
+    const seed = new SeedClient(withClient, options);
+
+    await seed.$syncDatabase();
+    seed.$reset();
+
+    return seed;
   };
 
   return createSeedClient;

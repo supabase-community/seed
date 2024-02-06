@@ -1,3 +1,4 @@
+export { getFingerprintConfig } from "./fingerprintConfig/fingerprintConfig.js";
 export {
   type ProjectConfig,
   getProjectConfig,
