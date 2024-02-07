@@ -10,7 +10,9 @@ export function isOptionsField(
 ): field is FingerprintOptionsField {
   return "options" in field;
 }
-
+/**
+ * @public will be used during code generation
+ */
 export async function getFingerprint() {
   const snapletConfig = await getSnapletConfig();
   const fingerprintConfig = await getFingerprintConfig();

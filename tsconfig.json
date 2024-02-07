@@ -5,14 +5,10 @@
   },
   "references": [
     {
-      "path": "./apps/cli"
-    },
-    {
       "path": "./packages/seed"
     },
   ],
   "exclude": [
-    "./apps",
     "./packages"
   ]
 }

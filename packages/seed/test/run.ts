@@ -5,8 +5,8 @@ export async function run(command: string, options?: Options) {
   const processedCommand = command.replace(
     "snaplet",
     process.env["CI"]
-      ? "node dist/index.js"
-      : "tsx --conditions development src/index.ts",
+      ? "node dist/cli/index.js"
+      : "tsx --conditions development src/cli/index.ts",
   );
 
   return execaCommand(processedCommand, {

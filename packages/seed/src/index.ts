@@ -1,1 +1,1 @@
-export { hello } from "./hello/hello.js";
+console.log("Hello, World!");

@@ -10,10 +10,9 @@ export function helloCommand(program: Argv) {
         describe: "Name to say hello to",
         type: "string",
       }),
-    async (args) => {
-      const { hello } = await import("@snaplet/seed");
-
-      console.log(hello(args.name));
+    async (_args) => {
+      // const { hello } = await import("@snaplet/seed");
+      // console.log(hello(args.name));
     },
   );
 }
