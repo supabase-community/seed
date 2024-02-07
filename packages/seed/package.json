@@ -50,7 +50,7 @@
   },
   "dependencies": {
     "@snaplet/config": "workspace:*",
-    "remeda": "1.40.0",
+    "remeda": "1.40.1",
     "yargs": "17.7.2"
   }
 }

@@ -1,3 +1,3 @@
-export function generate() {
+export function generateAssets() {
   return "Hello Bob!";
 }

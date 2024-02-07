@@ -18,8 +18,8 @@ export function generateCommand(program: Argv) {
           type: "string",
         }),
     async (_args) => {
-      const { generate } = await import("#core/codegen/codegen.js");
-      console.log(generate());
+      const { generateAssets } = await import("#core/codegen/codegen.js");
+      console.log(generateAssets());
     },
   );
 }
