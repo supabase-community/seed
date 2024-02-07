@@ -23,6 +23,7 @@ export abstract class SeedClientBase implements SeedClient {
     createStore: (dataModel: DataModel) => Store;
     dataModel: DataModel;
     emit: (event: string) => void;
+    fingerprint: Fingerprint;
     options?: SeedClientBaseOptions;
     runStatements: (statements: Array<string>) => Promise<void>;
     userModels: UserModels;
@@ -30,13 +31,12 @@ export abstract class SeedClientBase implements SeedClient {
     this.emit = props.emit;
     this.createStore = props.createStore;
     this.runStatements = props.runStatements;
+    this.fingerprint = props.fingerprint;
     this.dataModel = props.dataModel;
     this.initialUserModels = mergeUserModels(
       props.userModels,
       props.options?.models ?? {},
     );
-
-    this.fingerprint = props.options?.fingerprint ?? {};
 
     this.userModels = mergeUserModels(
       props.userModels,

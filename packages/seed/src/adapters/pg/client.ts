@@ -1,10 +1,13 @@
 import { getProjectConfig } from "@snaplet/config";
 import { EOL } from "node:os";
-import { Client } from "pg";
+import { Client, escapeIdentifier } from "pg";
 import { SeedClientBase } from "#core/client/client.js";
 import { type SeedClientBaseOptions } from "#core/client/types.js";
 import { type DataModel } from "#core/dataModel/types.js";
+import { type Fingerprint } from "#core/fingerprint/types.js";
 import { type UserModels } from "#core/userModels/types.js";
+import { getDatamodel } from "./dataModel/dataModel.js";
+import { updateDataModelSequences } from "./dataModel/updateDataModelSequences.js";
 import { Store } from "./store.js";
 
 export type SeedClientOptions = SeedClientBaseOptions & {
@@ -16,7 +19,11 @@ export type WithClient = (
   fn: (client: Client) => Promise<unknown>,
 ) => Promise<unknown>;
 
-export function getSeedClient(dataModel: DataModel, userModels: UserModels) {
+export function getSeedClient(props: {
+  dataModel: DataModel;
+  fingerprint: Fingerprint;
+  userModels: UserModels;
+}) {
   class SeedClient extends SeedClientBase {
     readonly dryRun: boolean;
     readonly options: SeedClientOptions;
@@ -24,8 +31,7 @@ export function getSeedClient(dataModel: DataModel, userModels: UserModels) {
 
     constructor(withClient: WithClient, options?: SeedClientOptions) {
       super({
-        dataModel,
-        userModels,
+        ...props,
         createStore: (dataModel: DataModel) => new Store(dataModel),
         emit: (event) => {
           console.log(event);
@@ -47,27 +53,23 @@ export function getSeedClient(dataModel: DataModel, userModels: UserModels) {
 
     async $resetDatabase() {
       if (!this.dryRun) {
-        // We extract the list of tables to truncate from the data model.
-        // Since the dataModel generation is driven by the snaplet.config.ts select field
-        // this will ensure that we only truncate tables that are selected and available to the
-        // dataModel / seed SeedClient
         const tablesToTruncate = Object.values(this.dataModel.models)
-          .filter((model) => Boolean(model.schemaName))
-          .map((model) => ({
-            // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-            schema: model.schemaName!,
-            table: model.tableName,
-          }));
+          .map(
+            (model) =>
+              // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+              `${escapeIdentifier(model.schemaName!)}.${escapeIdentifier(model.tableName)}`,
+          )
+          .join(", ");
 
-        await this.withClient((client) =>
-          truncateTables(client, tablesToTruncate),
-        );
+        await this.withClient(async (client) => {
+          await client.query(`TRUNCATE ${tablesToTruncate} CASCADE`);
+        });
       }
     }
 
     async $syncDatabase(): Promise<void> {
       await this.withClient(async (client) => {
-        const nextDataModel = await fetchDataModel(client);
+        const nextDataModel = await getDatamodel(client);
         this.dataModel = updateDataModelSequences(
           this.dataModel,
           nextDataModel,
