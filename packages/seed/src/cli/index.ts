@@ -1,9 +1,9 @@
 import yargs from "yargs";
 import { hideBin } from "yargs/helpers";
-import { helloCommand } from "./commands/hello/hello.js";
+import { generateCommand } from "./commands/generate/generate.js";
 
-const program = yargs(hideBin(process.argv)).scriptName("snaplet");
+const program = yargs(hideBin(process.argv)).scriptName("@snaplet/seed");
 
-helloCommand(program);
+generateCommand(program);
 
 await program.parse();

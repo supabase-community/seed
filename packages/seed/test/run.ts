@@ -3,7 +3,7 @@ import { fileURLToPath } from "node:url";
 
 export async function run(command: string, options?: Options) {
   const processedCommand = command.replace(
-    "snaplet",
+    "@snaplet/seed",
     process.env["CI"]
       ? "node dist/cli/index.js"
       : "tsx --conditions development src/cli/index.ts",
