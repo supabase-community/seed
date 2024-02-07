@@ -66,7 +66,7 @@ export type ConnectCallback = ((
 ) => Record<string, Serializable>) & { fallback?: boolean };
 
 export class ConnectInstruction {
-  constructor(public callback: ConnectCallback) { }
+  constructor(public callback: ConnectCallback) {}
 }
 
 interface ModelCallbackContext {
