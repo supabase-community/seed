@@ -6,9 +6,9 @@ import { type SeedClientBaseOptions } from "#core/client/types.js";
 import { type DataModel } from "#core/dataModel/types.js";
 import { type Fingerprint } from "#core/fingerprint/types.js";
 import { type UserModels } from "#core/userModels/types.js";
+import { Store } from "#dialects/postgres/store.js";
 import { getDatamodel } from "./dataModel/dataModel.js";
 import { updateDataModelSequences } from "./dataModel/updateDataModelSequences.js";
-import { Store } from "./store.js";
 
 type SeedClientOptions = SeedClientBaseOptions & {
   client?: Client;
