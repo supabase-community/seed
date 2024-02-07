@@ -44,5 +44,3 @@ export const selectConfigSchema = z.intersection(
     ]),
   ),
 );
-
-export type SelectConfig = z.infer<typeof selectConfigSchema>;

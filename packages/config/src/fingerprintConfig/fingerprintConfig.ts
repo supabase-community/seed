@@ -24,10 +24,10 @@ export const fingerprintConfigSchema = z.record(
   ),
 );
 
-export type FingerConfig = z.infer<typeof fingerprintConfigSchema>;
+type FingerprintConfig = z.infer<typeof fingerprintConfigSchema>;
 
 export async function getFingerprintConfig() {
-  let fingerprintConfig: FingerConfig = {};
+  let fingerprintConfig: FingerprintConfig = {};
 
   const dotSnapletPath = await findUp(".snaplet");
 

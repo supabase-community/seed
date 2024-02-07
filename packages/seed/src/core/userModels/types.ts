@@ -1,14 +1,14 @@
 import { type ScalarField, type Serializable } from "../plan/types.js";
 import { type Store } from "../store/store.js";
 
-export interface ConnectCallbackContext {
+interface ConnectCallbackContext {
   $store: Store["_store"];
   index: number;
   seed: string;
   store: Store["_store"];
 }
 
-export type ConnectCallback = (
+type ConnectCallback = (
   ctx: ConnectCallbackContext,
 ) => Record<string, Serializable>;
 

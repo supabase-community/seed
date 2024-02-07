@@ -10,7 +10,7 @@ import { getDatamodel } from "./dataModel/dataModel.js";
 import { updateDataModelSequences } from "./dataModel/updateDataModelSequences.js";
 import { Store } from "./store.js";
 
-export type SeedClientOptions = SeedClientBaseOptions & {
+type SeedClientOptions = SeedClientBaseOptions & {
   client?: Client;
   dryRun?: boolean;
 };
@@ -102,7 +102,7 @@ export function getSeedClient(props: {
   return createSeedClient;
 }
 
-export const withClientDefault: WithClient = async (fn) => {
+const withClientDefault: WithClient = async (fn) => {
   const connectionString = (await getProjectConfig()).targetDatabaseUrl;
   const client = new Client({ connectionString });
   await client.connect();

@@ -112,7 +112,7 @@ export abstract class SeedClientBase implements SeedClient {
   ): Promise<void>;
 }
 
-export interface SeedClient {
+interface SeedClient {
   $reset: () => void;
 
   $resetDatabase: () => Promise<void>;

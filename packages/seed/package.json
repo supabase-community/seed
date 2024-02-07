@@ -11,6 +11,10 @@
     ".": {
       "development": "./src/index.ts",
       "default": "./dist/index.js"
+    },
+    "./pg": {
+      "development": "./src/adapters/pg/client.ts",
+      "default": "./dist/adapters/pg/client.js"
     }
   },
   "devDependencies": {

@@ -18,5 +18,3 @@ export const introspectConfigSchema = z.object({
     )
     .optional(),
 });
-
-export type IntrospectConfig = z.infer<typeof introspectConfigSchema>;

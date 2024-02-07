@@ -1,7 +1,7 @@
 import { type DataModel, type DataModelSequence } from "../dataModel/types.js";
 import { type UserModels } from "../userModels/types.js";
 
-export function sequenceGeneratorFactory(sequence: DataModelSequence) {
+function sequenceGeneratorFactory(sequence: DataModelSequence) {
   return function* () {
     let current = sequence.current;
     // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition

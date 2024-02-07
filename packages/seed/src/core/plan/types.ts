@@ -8,10 +8,6 @@ export interface GenerateOptions {
   seed?: string;
 }
 
-export interface PlanGenerateContext {
-  index: number;
-  sequences?: Record<string, Generator<number, never>>;
-}
 export interface IPlan extends PromiseLike<unknown> {
   generate(options?: GenerateOptions): Promise<Store>;
   options?: PlanOptions;
@@ -21,11 +17,11 @@ export interface IPlan extends PromiseLike<unknown> {
   store: Store;
 }
 
-export type JsonPrimitive = boolean | null | number | string;
+type JsonPrimitive = boolean | null | number | string;
 
 type Json = { [key: string]: Json } | Array<Json> | JsonPrimitive;
 
-export type SerializablePrimitive =
+type SerializablePrimitive =
   | Date
   | boolean
   | null
@@ -54,7 +50,7 @@ export type ChildField =
   | ((cb: CountCallback) => Array<ChildModel>)
   | Array<ChildModel>;
 
-export interface ConnectCallbackContext {
+interface ConnectCallbackContext {
   $store: Store["_store"];
   index: number;
   seed: string;

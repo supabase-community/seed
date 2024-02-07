@@ -35,7 +35,7 @@ export function getInitialConstraints(dataModel: DataModel) {
   );
 }
 
-export type Constraints = ReturnType<typeof getInitialConstraints>;
+type Constraints = ReturnType<typeof getInitialConstraints>;
 
 /**
  * Shared context between checkConstraints and cartesianProduct

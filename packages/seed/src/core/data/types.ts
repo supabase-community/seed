@@ -1,8 +1,8 @@
-export type JsonPrimitive = boolean | null | number | string;
+type JsonPrimitive = boolean | null | number | string;
 
 export type Json = { [key: string]: Json } | Array<Json> | JsonPrimitive;
 
-export type SerializablePrimitive =
+type SerializablePrimitive =
   | Date
   | boolean
   | null
