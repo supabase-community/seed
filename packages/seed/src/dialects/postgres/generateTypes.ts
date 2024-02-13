@@ -1,18 +1,18 @@
 import { EOL } from "node:os";
-import { groupFields } from "../../core/dataModel/dataModel.js";
+import { groupFields } from "#core/dataModel/dataModel.js";
 import {
   type DataModel,
   type DataModelField,
   type DataModelModel,
   type DataModelObjectField,
   type DataModelScalarField,
-} from "../../core/dataModel/types.js";
+} from "#core/dataModel/types.js";
 import {
   isJsonField,
   jsonSchemaToTypescriptType,
-} from "../../core/fingerprint/fingerprint.js";
-import { type Fingerprint } from "../../core/fingerprint/types.js";
-import { escapeKey } from "../../core/utils.js";
+} from "#core/fingerprint/fingerprint.js";
+import { type Fingerprint } from "#core/fingerprint/types.js";
+import { escapeKey } from "#core/utils.js";
 import {
   PG_DATE_TYPES,
   PG_NUMBER_TYPES,
