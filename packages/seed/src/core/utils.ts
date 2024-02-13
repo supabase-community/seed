@@ -24,3 +24,16 @@ export const isInstanceOf = <
 
   return false;
 };
+
+export function isError(e: unknown): e is Error {
+  return Boolean(
+    e instanceof Error ||
+      // In some case, like jest test running environment, we can't rely on the instanceof
+      // operator because jest override global Error object
+      // Since some of our sdk code is integrated into the seed client which can be run in test environment
+      // we need this custom function to check if an object is an error, or more accurately, if it's 'error like'
+      (typeof (e as Error).message === "string" &&
+        typeof (e as Error).name === "string" &&
+        (e as Error).constructor),
+  );
+}

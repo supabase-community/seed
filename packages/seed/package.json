@@ -49,6 +49,7 @@
     "test": "vitest run"
   },
   "dependencies": {
+    "@scaleleap/pg-format": "1.0.0",
     "@snaplet/config": "workspace:*",
     "remeda": "1.40.1",
     "yargs": "17.7.2"

@@ -1,4 +1,5 @@
 import {
+  type DataModel,
   type DataModelField,
   type DataModelObjectField,
   type DataModelScalarField,
@@ -28,4 +29,22 @@ export function isParentField(
   field: DataModelField,
 ): field is DataModelObjectField {
   return field.kind === "object" && field.relationFromFields.length > 0;
+}
+
+export function isNullableParent(
+  dataModel: DataModel,
+  model: string,
+  fieldName: string,
+) {
+  // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+  const field = dataModel.models[model].fields.find(
+    (f) => f.name === fieldName,
+  )!;
+
+  return (
+    !field.isRequired &&
+    dataModel.models[model].fields.some(
+      (f) => f.kind === "object" && f.relationFromFields.includes(fieldName),
+    )
+  );
 }

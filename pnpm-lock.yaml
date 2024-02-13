@@ -112,6 +112,9 @@ importers:
 
   packages/seed:
     dependencies:
+      '@scaleleap/pg-format':
+        specifier: 1.0.0
+        version: 1.0.0
       '@snaplet/config':
         specifier: workspace:*
         version: link:../config
@@ -1071,6 +1074,10 @@ packages:
     os: [win32]
     requiresBuild: true
     optional: true
+
+  /@scaleleap/pg-format@1.0.0:
+    resolution: {integrity: sha512-gFkcYMnpeylF2OJ30FsDBjwICB9JTiZ5i3guPwdiBDrJFwIKr+Zk6jwI8Mg22a4FwXn5ezd5cHEFMKqBqBz4RQ==}
+    dev: false
 
   /@sinclair/typebox@0.27.8:
     resolution: {integrity: sha512-+Fj43pSMwJs4KRrH/938Uf+uAELIgVBmQzg/q1YG10djyfA3TnrU8N8XzqCh/okZdszqBQTZf96idMfE5lnwTA==}
