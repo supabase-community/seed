@@ -7,7 +7,7 @@ import { generateUserModelsSequences } from "../sequences/sequences.js";
 import { type Store } from "../store/store.js";
 import { type UserModels } from "../userModels/types.js";
 import { mergeUserModels } from "../userModels/userModels.js";
-import { type ClientState, type SeedClientBaseOptions } from "./types.js";
+import { type ClientState, type SeedClientOptions } from "./types.js";
 
 export abstract class SeedClientBase implements SeedClient {
   readonly createStore: (dataModel: DataModel) => Store;
@@ -24,7 +24,7 @@ export abstract class SeedClientBase implements SeedClient {
     dataModel: DataModel;
     emit: (event: string) => void;
     fingerprint: Fingerprint;
-    options?: SeedClientBaseOptions;
+    options?: SeedClientOptions;
     runStatements: (statements: Array<string>) => Promise<void>;
     userModels: UserModels;
   }) {
