@@ -1,7 +1,7 @@
 import { flatten } from "remeda";
 import { type Json } from "#core/data/types.js";
 
-const isNestedArrayPgType = (pgType: string): boolean =>
+export const isNestedArrayPgType = (pgType: string): boolean =>
   pgType.startsWith("_") || pgType.endsWith("[]");
 
 type Serializer = (v: Json) => string;
@@ -15,7 +15,7 @@ const SERIALIZERS: Serializers = {
   Json: (v) => JSON.stringify(v),
 };
 
-const getPgTypeArrayDimensions = (pgType: string): number => {
+export const getPgTypeArrayDimensions = (pgType: string): number => {
   if (pgType.startsWith("_")) {
     return 1;
   }
@@ -102,15 +102,16 @@ type NonNullableJsTypeName = keyof JsToPgTypes;
 type JsTypeName = "null" | NonNullableJsTypeName;
 type PgTypeName = JsToPgTypes[NonNullableJsTypeName][number];
 
-const PG_TO_JS_TYPES: Record<PgTypeName, JsTypeName> = Object.fromEntries(
-  flatten(
-    Object.entries(JS_TO_PG_TYPES).map(([jsType, pgTypes]) =>
-      pgTypes.map((pgType) => [pgType, jsType]),
+export const PG_TO_JS_TYPES: Record<PgTypeName, JsTypeName> =
+  Object.fromEntries(
+    flatten(
+      Object.entries(JS_TO_PG_TYPES).map(([jsType, pgTypes]) =>
+        pgTypes.map((pgType) => [pgType, jsType]),
+      ),
     ),
-  ),
-) as Record<PgTypeName, JsTypeName>;
+  ) as Record<PgTypeName, JsTypeName>;
 
-const extractPrimitivePgType = (pgType: string): PgTypeName => {
+export const extractPrimitivePgType = (pgType: string): PgTypeName => {
   if (isNestedArrayPgType(pgType)) {
     if (pgType.startsWith("_")) {
       return pgType.slice(1) as PgTypeName;
@@ -168,3 +169,75 @@ export const serializeToSQL = (type: string, value: Json): Json => {
 
   return value;
 };
+
+/**
+ * From https://github.com/brianc/node-postgres/blob/2a8efbee09a284be12748ed3962bc9b816965e36/packages/pg/lib/utils.js#L175-L202
+ */
+export const escapeIdentifier = function (str: string) {
+  return '"' + str.replace(/"/g, '""') + '"';
+};
+export const escapeLiteral = function (str: string) {
+  var hasBackslash = false;
+  var escaped = "'";
+
+  // eslint-disable-next-line @typescript-eslint/prefer-for-of
+  for (var i = 0; i < str.length; i++) {
+    var c = str[i];
+    if (c === "'") {
+      escaped += c + c;
+    } else if (c === "\\") {
+      escaped += c + c;
+      hasBackslash = true;
+    } else {
+      escaped += c;
+    }
+  }
+
+  escaped += "'";
+
+  if (hasBackslash) {
+    escaped = " E" + escaped;
+  }
+
+  return escaped;
+};
+
+export const PG_DATE_TYPES = new Set([
+  "datetime",
+  "timestamp",
+  "date",
+  "timestamptz",
+  "datetime2",
+  "smalldatetime",
+  "datetimeoffset",
+]);
+
+export const PG_NUMBER_TYPES = new Set([
+  "tinyint",
+  "int",
+  "numeric",
+  "integer",
+  "real",
+  "smallint",
+  "decimal",
+  "float",
+  "float4",
+  "float8",
+  "double precision",
+  "double",
+  "dec",
+  "fixed",
+  "year",
+  "smallserial",
+  "serial",
+  "serial2",
+  "serial4",
+  "serial8",
+  "bigserial",
+  "int2",
+  "int4",
+  "int8",
+  "int16",
+  "int32",
+  "bigint",
+]);

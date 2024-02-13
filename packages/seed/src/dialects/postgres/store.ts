@@ -1,5 +1,4 @@
 import { format, ident, literal } from "@scaleleap/pg-format";
-import { escapeIdentifier, escapeLiteral } from "pg";
 import { type Json } from "#core/data/types.js";
 import { isNullableParent as checkIsNullableParent } from "#core/dataModel/dataModel.js";
 import {
@@ -8,7 +7,11 @@ import {
 } from "#core/dataModel/types.js";
 import { StoreBase } from "#core/store/store.js";
 import { sortModels } from "#core/store/topologicalSort.js";
-import { serializeToSQL } from "./serializer.js";
+import {
+  escapeIdentifier,
+  escapeLiteral,
+  serializeToSQL,
+} from "./serializer.js";
 
 interface MissingPKForUpdateError {
   modelName: string;

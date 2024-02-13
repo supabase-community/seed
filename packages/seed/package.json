@@ -51,6 +51,9 @@
   "dependencies": {
     "@scaleleap/pg-format": "1.0.0",
     "@snaplet/config": "workspace:*",
+    "drizzle-orm": "0.29.3",
+    "inflection": "3.0.0",
+    "quicktype-core": "23.0.81",
     "remeda": "1.40.1",
     "yargs": "17.7.2"
   }

@@ -5,7 +5,7 @@ export type FingerprintField =
   | FingerprintOptionsField
   | FingerprintRelationshipField;
 
-interface FingerprintJsonField {
+export interface FingerprintJsonField {
   schema: Record<string, unknown>;
 }
 
