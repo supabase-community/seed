@@ -22,8 +22,6 @@ import {
   isNestedArrayPgType,
 } from "./serializer.js";
 
-type AdapterName = keyof typeof generateClientTypesByAdapter;
-
 export async function generateTypes(props: {
   dataModel: DataModel;
   fingerprint?: Fingerprint;
