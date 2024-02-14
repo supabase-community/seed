@@ -7,11 +7,7 @@ import {
 } from "#core/dataModel/types.js";
 import { StoreBase } from "#core/store/store.js";
 import { sortModels } from "#core/store/topologicalSort.js";
-import {
-  escapeIdentifier,
-  escapeLiteral,
-  serializeToSQL,
-} from "./utils.js";
+import { escapeIdentifier, escapeLiteral, serializeToSQL } from "./utils.js";
 
 interface MissingPKForUpdateError {
   modelName: string;
