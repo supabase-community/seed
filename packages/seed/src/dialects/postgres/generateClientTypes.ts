@@ -7,7 +7,7 @@ import {
   extractPrimitivePgType,
   getPgTypeArrayDimensions,
   isNestedArrayPgType,
-} from "./serializer.js";
+} from "./utils.js";
 
 export function generateClientTypes(props: {
   dataModel: DataModel;

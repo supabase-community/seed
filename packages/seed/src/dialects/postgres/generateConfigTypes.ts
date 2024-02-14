@@ -1,6 +1,6 @@
 import { generateConfigTypes as _generateConfigTypes } from "#core/codegen/generateConfigTypes.js";
 import { type DataModel, type DataModelField } from "#core/dataModel/types.js";
-import { PG_DATE_TYPES, PG_JSON_TYPES, PG_NUMBER_TYPES } from "./serializer.js";
+import { PG_DATE_TYPES, PG_JSON_TYPES, PG_NUMBER_TYPES } from "./utils.js";
 
 export function generateConfigTypes(props: {
   dataModel: DataModel;

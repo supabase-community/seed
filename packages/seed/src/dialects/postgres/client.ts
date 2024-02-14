@@ -8,7 +8,7 @@ import { type Fingerprint } from "#core/fingerprint/types.js";
 import { updateDataModelSequences } from "#core/sequences/updateDataModelSequences.js";
 import { type UserModels } from "#core/userModels/types.js";
 import { getDatamodel } from "./dataModel.js";
-import { escapeIdentifier } from "./serializer.js";
+import { escapeIdentifier } from "./utils.js";
 import { PgStore } from "./store.js";
 
 export function getSeedClient(props: {

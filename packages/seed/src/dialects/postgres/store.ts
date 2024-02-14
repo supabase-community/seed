@@ -11,7 +11,7 @@ import {
   escapeIdentifier,
   escapeLiteral,
   serializeToSQL,
-} from "./serializer.js";
+} from "./utils.js";
 
 interface MissingPKForUpdateError {
   modelName: string;
