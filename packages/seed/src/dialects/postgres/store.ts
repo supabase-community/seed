@@ -41,7 +41,7 @@ function logToSqlErrors(errors: Array<ToSQLErrors>) {
   }
 }
 
-export class Store extends StoreBase {
+export class PgStore extends StoreBase {
   toSQL() {
     const SQL_DEFAULT_SYMBOL = "$$DEFAULT$$";
 

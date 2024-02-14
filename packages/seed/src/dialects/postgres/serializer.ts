@@ -212,6 +212,8 @@ export const PG_DATE_TYPES = new Set([
   "datetimeoffset",
 ]);
 
+export const PG_JSON_TYPES = new Set(["json", "jsonb", "TVP"]);
+
 export const PG_NUMBER_TYPES = new Set([
   "tinyint",
   "int",

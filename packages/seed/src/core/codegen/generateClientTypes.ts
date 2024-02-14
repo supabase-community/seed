@@ -1,116 +1,57 @@
 import { EOL } from "node:os";
-import { groupFields } from "#core/dataModel/dataModel.js";
+import { groupFields } from "../dataModel/dataModel.js";
 import {
   type DataModel,
-  type DataModelField,
   type DataModelModel,
   type DataModelObjectField,
   type DataModelScalarField,
-} from "#core/dataModel/types.js";
+} from "../dataModel/types.js";
 import {
   isJsonField,
   jsonSchemaToTypescriptType,
-} from "#core/fingerprint/fingerprint.js";
-import { type Fingerprint } from "#core/fingerprint/types.js";
-import { escapeKey } from "#core/utils.js";
-import {
-  PG_DATE_TYPES,
-  PG_NUMBER_TYPES,
-  PG_TO_JS_TYPES,
-  extractPrimitivePgType,
-  getPgTypeArrayDimensions,
-  isNestedArrayPgType,
-} from "./serializer.js";
+} from "../fingerprint/fingerprint.js";
+import { type Fingerprint } from "../fingerprint/types.js";
+import { escapeKey } from "../utils.js";
 
-export async function generateTypes(props: {
+type Database2tsType = (
+  dataModel: DataModel,
+  databaseType: string,
+  isRequired: boolean,
+) => string;
+
+type IsJson = (databaseType: string) => boolean;
+
+type RefineType = (
+  type: string,
+  databaseType: string,
+  isRequired: boolean,
+) => string;
+
+export async function generateClientTypes(props: {
   dataModel: DataModel;
+  database2tsType: Database2tsType;
+  databaseClientType: string;
   fingerprint?: Fingerprint;
+  imports: string;
+  isJson: IsJson;
+  refineType: RefineType;
 }) {
-  const { dataModel, fingerprint } = props;
+  const { dataModel, fingerprint, imports } = props;
   return [
-    `import { PgDatabase } from "drizzle-orm/pg-core";`,
+    imports,
     generateHelpers(),
     generateStoreTypes(dataModel),
     generateEnums(dataModel),
-    await generateInputsTypes(dataModel, fingerprint ?? {}),
-    generateClientBaseTypes(dataModel),
-    generateClientTypes(),
+    await generateInputsTypes({
+      dataModel,
+      fingerprint: fingerprint ?? {},
+      database2tsType: props.database2tsType,
+      isJson: props.isJson,
+      refineType: props.refineType,
+    }),
+    generateSeedClientBaseTypes(dataModel),
+    generateSeedClientTypes(props.databaseClientType),
   ].join(EOL);
-}
-
-export function generateConfigTypes(props: {
-  dataModel: DataModel;
-  rawDataModel?: DataModel;
-}) {
-  const { dataModel, rawDataModel = dataModel } = props;
-  return [
-    generateAliasTypes(rawDataModel),
-    generateFingerprintTypes(dataModel),
-  ].join(EOL);
-}
-
-const computeFingerprintFieldTypeName = (field: DataModelField) => {
-  if (field.kind === "object") {
-    return "FingerprintRelationField";
-  }
-
-  if (["json", "jsonb"].includes(field.type)) {
-    return "FingerprintJsonField";
-  }
-
-  if (PG_DATE_TYPES.has(field.type)) {
-    return "FingerprintDateField";
-  }
-
-  if (PG_NUMBER_TYPES.has(field.type)) {
-    return "FingerprintNumberField";
-  }
-
-  return null;
-};
-
-function generateFingerprintTypes(dataModel: DataModel) {
-  const relationField = `interface FingerprintRelationField {
-  count?: number | MinMaxOption;
-}`;
-  const jsonField = `interface FingerprintJsonField {
-  schema?: any;
-}`;
-  const dateField = `interface FingerprintDateField {
-  options?: {
-    minYear?: number;
-    maxYear?: number;
-  }
-}`;
-  const numberField = `interface FingerprintNumberField {
-  options?: {
-    min?: number;
-    max?: number;
-  }
-}`;
-  const fingerprint = `export interface Fingerprint {
-${Object.keys(dataModel.models)
-  .map(
-    (modelName) => `  ${modelName}?: {
-${dataModel.models[modelName].fields
-  .map((f) => {
-    const fieldType = computeFingerprintFieldTypeName(f);
-
-    if (fieldType === null) {
-      return null;
-    }
-
-    return `    ${escapeKey(f.name)}?: ${fieldType};`;
-  })
-  .filter(Boolean)
-  .join(EOL)}
-  }`,
-  )
-  .join(EOL)}}`;
-
-  return [relationField, jsonField, dateField, numberField, fingerprint].join(
-    EOL,
-  );
 }
 
 function generateHelpers() {
@@ -396,24 +337,38 @@ ${Object.keys(dataModel.models)
 };`;
 }
 
-async function generateInputsTypes(
-  dataModel: DataModel,
-  fingerprint: Fingerprint,
-) {
+async function generateInputsTypes(props: {
+  dataModel: DataModel;
+  database2tsType: Database2tsType;
+  fingerprint: Fingerprint;
+  isJson: IsJson;
+  refineType: RefineType;
+}) {
   return (
     await Promise.all(
-      Object.keys(dataModel.models).map((modelName) =>
-        generateInputTypes(dataModel, modelName, fingerprint),
+      Object.keys(props.dataModel.models).map((modelName) =>
+        generateInputTypes({ ...props, modelName }),
       ),
     )
   ).join(EOL);
 }
 
-async function generateInputTypes(
-  dataModel: DataModel,
-  modelName: string,
-  fingerprint: Fingerprint,
-) {
+async function generateInputTypes(props: {
+  dataModel: DataModel;
+  database2tsType: Database2tsType;
+  fingerprint: Fingerprint;
+  isJson: IsJson;
+  modelName: string;
+  refineType: RefineType;
+}) {
+  const {
+    dataModel,
+    modelName,
+    fingerprint,
+    isJson,
+    refineType,
+    database2tsType,
+  } = props;
   const model = dataModel.models[modelName];
   const fields = groupFields(model.fields);
   const jsonSchemaTypes: Array<string> = [];
@@ -423,10 +378,9 @@ ${(
     Object.values(fields.scalars).map(async (f) => {
       const isOptional = f.isGenerated || (f.isRequired && f.hasDefaultValue);
       const fingerprintField = fingerprint[modelName][f.name];
-      const isJson = ["json", "jsonb"].includes(extractPrimitivePgType(f.type));
       // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
       if (fingerprintField) {
-        if (isJson && isJsonField(fingerprintField)) {
+        if (isJson(f.type) && isJsonField(fingerprintField)) {
           const jsonSchemaType = await jsonSchemaToTypescriptType(
             `${modelName}_${f.name}`,
             JSON.stringify(fingerprintField.schema),
@@ -440,10 +394,10 @@ ${(
         }
       }
 
-      const pgTsType = pg2tsType(dataModel, f.type, f.isRequired);
+      const tsType = database2tsType(dataModel, f.type, f.isRequired);
       return [
         generateScalarFieldJsDoc({ model, field: f }),
-        `  ${escapeKey(f.name)}${isOptional ? "?" : ""}: ${pgTsType};`,
+        `  ${escapeKey(f.name)}${isOptional ? "?" : ""}: ${tsType};`,
       ].join(EOL);
     }),
   )
@@ -454,6 +408,7 @@ ${fields.parents
   .map((p) => {
     const parentModel = dataModel.models[p.type];
     // get the parent's field name that references this model
+
     // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
     const parentField = dataModel.models[p.type].fields.find(
       (f) => f.kind === "object" && f.relationName === p.relationName,
@@ -598,46 +553,7 @@ function generateModelMethodJsDoc(modelName: string) {
    */`;
 }
 
-function generateAliasTypes(dataModel: DataModel) {
-  const inflection = `type ScalarField = {
-  name: string;
-  type: string;
-};
-type ObjectField = ScalarField & {
-  relationFromFields: string[];
-  relationToFields: string[];
-};
-type Inflection = {
-  modelName?: (name: string) => string;
-  scalarField?: (field: ScalarField) => string;
-  parentField?: (field: ObjectField, oppositeBaseNameMap: Record<string, string>) => string;
-  childField?: (field: ObjectField, oppositeField: ObjectField, oppositeBaseNameMap: Record<string, string>) => string;
-  oppositeBaseNameMap?: Record<string, string>;
-};`;
-
-  const override = `type Override = {
-${Object.keys(dataModel.models)
-  .map(
-    (modelName) => `  ${modelName}?: {
-    name?: string;
-    fields?: {
-${dataModel.models[modelName].fields
-  .map((f) => `      ${escapeKey(f.name)}?: string;`)
-  .join(EOL)}
-    };
-  }`,
-  )
-  .join(EOL)}}`;
-
-  const alias = `export type Alias = {
-  inflection?: Inflection | boolean;
-  override?: Override;
-};`;
-
-  return [inflection, override, alias].join(EOL);
-}
-
-function generateClientBaseTypes(dataModel: DataModel) {
+function generateSeedClientBaseTypes(dataModel: DataModel) {
   return `export declare class SeedClient {
 ${Object.keys(dataModel.models)
   .map((modelName) =>
@@ -672,55 +588,11 @@ ${Object.keys(dataModel.models)
 }`;
 }
 
-function generateClientTypes() {
+function generateSeedClientTypes(databaseClientType: string) {
   return `
   export type SeedClientOptions = {
     dryRun?: boolean;
     models?: UserModels;
   }
-  export declare const createSeedClient: (db: PgDatabase<any>, options?: SeedClientOptions) => Promise<SeedClient>`;
-}
-
-function pg2tsTypeName(dataModel: DataModel, postgresType: string) {
-  const primitiveType = extractPrimitivePgType(postgresType);
-  if (PG_DATE_TYPES.has(primitiveType)) {
-    return "( Date | string )";
-  }
-  const jsType = PG_TO_JS_TYPES[primitiveType];
-  // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
-  if (jsType) {
-    return jsType;
-  }
-
-  const enumName = Object.keys(dataModel.enums).find(
-    (name) => name === primitiveType,
-  );
-
-  if (enumName) {
-    return `${enumName}Enum`;
-  }
-
-  return "unknown";
-}
-
-function pg2tsType(
-  dataModel: DataModel,
-  postgresType: string,
-  isRequired: boolean,
-) {
-  const type = pg2tsTypeName(dataModel, postgresType);
-
-  return refineType(type, postgresType, isRequired);
-}
-
-function refineType(type: string, postgresType: string, isRequired: boolean) {
-  if (isNestedArrayPgType(postgresType)) {
-    type = `${type}${"[]".repeat(getPgTypeArrayDimensions(postgresType))}`;
-  }
-
-  if (!isRequired) {
-    type = `${type} | null`;
-  }
-
-  return type;
+  export declare const createSeedClient: (db: ${databaseClientType}, options?: SeedClientOptions) => Promise<SeedClient>`;
 }

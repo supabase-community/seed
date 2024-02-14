@@ -9,7 +9,7 @@ import { updateDataModelSequences } from "#core/sequences/updateDataModelSequenc
 import { type UserModels } from "#core/userModels/types.js";
 import { getDatamodel } from "./dataModel.js";
 import { escapeIdentifier } from "./serializer.js";
-import { Store } from "./store.js";
+import { PgStore } from "./store.js";
 
 export function getSeedClient(props: {
   dataModel: DataModel;
@@ -26,7 +26,7 @@ export function getSeedClient(props: {
     constructor(db: PgDatabase<any>, options?: SeedClientOptions) {
       super({
         ...props,
-        createStore: (dataModel: DataModel) => new Store(dataModel),
+        createStore: (dataModel: DataModel) => new PgStore(dataModel),
         emit: (event) => {
           console.log(event);
         },
