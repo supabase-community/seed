@@ -1,3 +1,5 @@
+import { type DataModelModel } from "./dataModel/types.js";
+
 export const dedupePreferLast = <Value>(values: Array<Value>): Array<Value> =>
   Array.from(new Set(values.reverse())).reverse();
 
@@ -47,5 +49,48 @@ export function escapeKey(key: string): string {
     return key;
   } else {
     return `"${key}"`;
+  }
+}
+
+export const ERROR_CODES = {
+  SEED_ALIAS_MODEL_NAME_CONFLICTS: 9300,
+};
+
+type CodeType = keyof typeof ERROR_CODES;
+
+export interface AliasModelNameConflict {
+  aliasName: string;
+  models: Map<string, DataModelModel>;
+}
+
+interface Data extends Record<CodeType, unknown> {
+  SEED_ALIAS_MODEL_NAME_CONFLICTS: {
+    conflicts: Array<AliasModelNameConflict>;
+  };
+}
+
+export interface SnapletErrorBase<Code extends CodeType = CodeType> {
+  readonly _tag: string;
+  code: Code;
+  data: Data[Code];
+  name: string;
+}
+
+export class SnapletError<Code extends CodeType = CodeType>
+  extends Error
+  implements SnapletErrorBase<Code>
+{
+  static Codes = ERROR_CODES;
+  readonly _tag = "SnapletError";
+
+  code: Code;
+  data: Data[Code];
+  override name = "SnapletError";
+
+  constructor(code: Code, data: Data[Code]) {
+    super();
+
+    this.code = code;
+    this.data = data;
   }
 }
