@@ -17,7 +17,7 @@ export async function getSnapletConfig() {
     name: "snaplet",
   });
 
-  const parsedConfig = snapletConfigSchema.parse(config);
+  const parsedConfig = snapletConfigSchema.parse(config ?? {});
 
   return parsedConfig;
 }
