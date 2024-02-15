@@ -79,6 +79,8 @@ export const recommended = [
       "unused-imports/no-unused-vars": ["error", { "vars": "all", "varsIgnorePattern": "^_", "args": "after-used", "argsIgnorePattern": "^_" }],
       ...prettierConfig.rules,
       ...prettierPlugin.configs.recommended.rules,
+      "dot-notation": "off",
+      "@typescript-eslint/dot-notation": "error"
     },
   },
   {
