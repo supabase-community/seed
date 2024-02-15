@@ -17,11 +17,12 @@ export async function introspectHandler(args: { connectionString: string }) {
 }
 
 async function pgIntrospect(connectionString: string) {
-  await assertPackage("pg");
-  const { Client } = await import("pg");
-  const client = new Client({ connectionString });
-  await client.connect();
-  const { drizzle } = await import("drizzle-orm/node-postgres");
+  await assertPackage("postgres");
+  const { default: postgres } = await import("postgres");
+  const client = postgres(connectionString, {
+    max: 1,
+  });
+  const { drizzle } = await import("drizzle-orm/postgres-js");
   const db = drizzle(client);
   const { getDatamodel } = await import("#dialects/postgres/dataModel.js");
   try {

@@ -10,9 +10,11 @@ export function introspectCommand(program: Argv) {
         describe:
           "The connection string to use for introspecting your database",
         type: "string",
+        demandOption: true,
       }),
-    async (_args) => {
-      await import("./introspectHandler.js");
+    async (args) => {
+      const { introspectHandler } = await import("./introspectHandler.js");
+      await introspectHandler(args);
     },
   );
 }
