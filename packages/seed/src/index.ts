@@ -1,1 +1,1 @@
-console.log("Hello, World!");
+export { defineConfig } from "#config/snapletConfig/defineConfig.js";
