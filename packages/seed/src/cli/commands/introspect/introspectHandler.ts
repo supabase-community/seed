@@ -1,4 +1,4 @@
-import { setDataModelConfig } from "#config/dataModelConfig/dataModelConfig.js";
+import { setDataModelConfig } from "../../../config/dataModelConfig.js";
 
 export async function introspectHandler(args: { connectionString: string }) {
   const protocol = new URL(args.connectionString).protocol.slice(0, -1);
