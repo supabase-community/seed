@@ -1,5 +1,5 @@
 import * as z from "zod";
-import { fingerprintConfigSchema } from "../fingerprintConfig/fingerprintConfig.js";
+import { fingerprintConfigSchema } from "../fingerprintConfig.js";
 
 type JsonPrimitive = boolean | null | number | string;
 type Nested<V> = { [s: string]: Nested<V> | V } | Array<Nested<V> | V> | V;

@@ -3,9 +3,4 @@
   "compilerOptions": {
     "outDir": ".dts",
   },
-  "references": [
-    {
-      "path": "../config"
-    },
-  ]
 }
