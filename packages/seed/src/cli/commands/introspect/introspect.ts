@@ -1,6 +1,6 @@
 import { type Argv } from "yargs";
 
-export function generateCommand(program: Argv) {
+export function introspectCommand(program: Argv) {
   return program.command(
     "introspect",
     "Introspect and generate the data model for your database",
