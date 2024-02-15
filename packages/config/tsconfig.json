@@ -1,6 +1,0 @@
-{
-  "extends": "@snaplet/tsconfig",
-  "compilerOptions": {
-    "outDir": ".dts",
-  }
-}

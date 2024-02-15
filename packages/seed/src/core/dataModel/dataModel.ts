@@ -1,3 +1,6 @@
+import { getDataModelConfig } from "#config/dataModelConfig/dataModelConfig.js";
+import { getSnapletConfig } from "#config/snapletConfig/snapletConfig.js";
+import { getAliasedDataModel } from "./aliases.js";
 import {
   type DataModel,
   type DataModelField,
@@ -47,4 +50,19 @@ export function isNullableParent(
       (f) => f.kind === "object" && f.relationFromFields.includes(fieldName),
     )
   );
+}
+
+export async function getDataModel() {
+  const dataModelConfig = await getDataModelConfig();
+
+  if (dataModelConfig === null) {
+    // TODO: Add a better error
+    throw new Error(
+      "DataModel not found. Please run `snaplet introspect` to generate it.",
+    );
+  }
+
+  const snapletConfig = await getSnapletConfig();
+
+  return getAliasedDataModel(dataModelConfig, snapletConfig.seed?.alias);
 }

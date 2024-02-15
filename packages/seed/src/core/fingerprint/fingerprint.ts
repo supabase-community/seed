@@ -1,4 +1,3 @@
-import { getFingerprintConfig, getSnapletConfig } from "@snaplet/config";
 import { camelize } from "inflection";
 import {
   FetchingJSONSchemaStore,
@@ -7,6 +6,8 @@ import {
   quicktype,
 } from "quicktype-core";
 import { mergeDeep } from "remeda";
+import { getFingerprintConfig } from "#config/fingerprintConfig/fingerprintConfig.js";
+import { getSnapletConfig } from "#config/snapletConfig/snapletConfig.js";
 import {
   type FingerprintField,
   type FingerprintJsonField,

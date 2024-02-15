@@ -113,7 +113,7 @@ importers:
   packages/seed:
     dependencies:
       '@scaleleap/pg-format':
-        specifier: 1.0.0
+        specifier: ^1.0.0
         version: 1.0.0
       '@snaplet/config':
         specifier: workspace:*
@@ -121,21 +121,30 @@ importers:
       '@snaplet/copycat':
         specifier: ^2.0.0
         version: 2.0.0
+      c12:
+        specifier: 1.6.1
+        version: 1.6.1
       drizzle-orm:
         specifier: 0.29.3
         version: 0.29.3(@types/pg@8.11.0)(pg@8.11.3)
+      find-up:
+        specifier: 7.0.0
+        version: 7.0.0
       inflection:
-        specifier: 3.0.0
+        specifier: ^3.0.0
         version: 3.0.0
       quicktype-core:
-        specifier: 23.0.81
+        specifier: ^23.0.81
         version: 23.0.81
       remeda:
-        specifier: 1.40.1
+        specifier: ^1.40.1
         version: 1.40.1
       yargs:
-        specifier: 17.7.2
+        specifier: ^17.7.2
         version: 17.7.2
+      zod:
+        specifier: 3.22.4
+        version: 3.22.4
     devDependencies:
       '@snaplet/eslint-config':
         specifier: workspace:*

@@ -42,11 +42,13 @@
   },
   "dependencies": {
     "@scaleleap/pg-format": "^1.0.0",
-    "@snaplet/config": "workspace:*",
+    "c12": "1.6.1",
+    "find-up": "7.0.0",
     "inflection": "^3.0.0",
     "quicktype-core": "^23.0.81",
     "remeda": "^1.40.1",
-    "yargs": "^17.7.2"
+    "yargs": "^17.7.2",
+    "zod": "3.22.4"
   },
   "scripts": {
     "build": "tsc --build tsconfig.build.json",
