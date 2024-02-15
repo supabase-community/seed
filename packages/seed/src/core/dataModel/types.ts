@@ -1,4 +1,5 @@
 export interface DataModel {
+  dialect: "mysql" | "postgres" | "sqlite";
   enums: Record<string, DataModelEnum>;
   models: Record<string, DataModelModel>;
 }

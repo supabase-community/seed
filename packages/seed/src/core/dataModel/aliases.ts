@@ -289,6 +289,7 @@ export function applyAliasesToDataModel(
   aliases: Aliases,
 ) {
   const aliasedDataModel: DataModel = {
+    dialect: dataModel.dialect,
     models: {},
     enums: dataModel.enums,
   };
