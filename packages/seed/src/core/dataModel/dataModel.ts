@@ -1,4 +1,4 @@
-import { getDataModelConfig } from "../../config/dataModelConfig.js";
+import { getDataModelConfig } from "#config/dataModelConfig.js";
 import { getSnapletConfig } from "#config/snapletConfig/snapletConfig.js";
 import { getAliasedDataModel } from "./aliases.js";
 import {

@@ -1,6 +1,6 @@
 import { generateClientTypes as _generateClientTypes } from "#core/codegen/generateClientTypes.js";
 import { type DataModel } from "#core/dataModel/types.js";
-import { type Fingerprint } from "../../core/fingerprint/types.js";
+import { type Fingerprint } from "#core/fingerprint/types.js";
 import {
   PG_DATE_TYPES,
   PG_TO_JS_TYPES,
