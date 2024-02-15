@@ -5,38 +5,6 @@ import { fetchUniqueConstraints } from "./fetchUniqueConstraints.js";
 
 const { createTestDb } = postgres;
 
-test("should create a new test database", async () => {
-  const structure = `
-    CREATE TABLE "Courses" (
-        "CourseID" SERIAL PRIMARY KEY,
-        "CourseName" VARCHAR(255) UNIQUE NOT NULL,
-        CHECK ("CourseID" > 0)
-    );
-    CREATE TABLE "Students" (
-        "StudentID" SERIAL PRIMARY KEY,
-        "FirstName" VARCHAR(255) NOT NULL,
-        "LastName" VARCHAR(255) NOT NULL,
-        UNIQUE ("FirstName", "LastName")
-    );
-    CREATE TABLE "Enrollments" (
-        "EnrollmentID" SERIAL PRIMARY KEY,
-        "CourseID" INT REFERENCES "Courses"("CourseID"),
-        "StudentID" INT REFERENCES "Students"("StudentID"),
-        UNIQUE ("CourseID", "StudentID")
-    );
-    CREATE TABLE "Test" (
-        "TestID" SERIAL,
-        "Test2ID" SERIAL,
-        "Test3" INT,
-        UNIQUE ("Test3"),
-        PRIMARY KEY ("TestID", "Test2ID")
-    );
-  `;
-
-  const db = await createTestDb(structure);
-  expect(db).toBeDefined();
-});
-
 test("should get all unique constraints for tables primary key and unique composite and single", async () => {
   const structure = `
     CREATE TABLE "Courses" (
