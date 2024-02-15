@@ -21,6 +21,7 @@ defaults:
 env:
   TURBO_TEAM: ${{ vars.TURBO_TEAM }}
   TURBO_TOKEN: ${{ secrets.TURBO_TOKEN }}
+  TEST_DATABASE_SERVER: 'postgresql://postgres:postgres@localhost/postgres'
 
 jobs:
   test-type-check:
@@ -69,6 +70,19 @@ jobs:
     if: github.event.pull_request.draft == false
     name: Unit and integration tests
     runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:14
+        credentials:
+          username: ${{ secrets.DOCKER_HUB_USERNAME }}
+          password: ${{ secrets.DOCKER_HUB_PASSWORD }}
+        ports:
+          - 5432:5432
+        options: --health-cmd pg_isready --health-interval 10s --health-timeout 5s --health-retries 5
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: postgres
     steps:
       - name: Checkout
         uses: actions/checkout@v4
