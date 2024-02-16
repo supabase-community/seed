@@ -10,7 +10,7 @@ interface FetchEnumsResult {
   values: Array<string>;
 }
 
-const FETCH_AUTHORIZED_ENUMS = `
+const FETCH_ENUMS = `
   WITH
   accessible_schemas AS (
     SELECT
@@ -37,7 +37,7 @@ export async function fetchEnums<T extends QueryResultHKT>(
   client: PgDatabase<T>,
 ) {
   const response = (await client.execute(
-    sql.raw(FETCH_AUTHORIZED_ENUMS),
+    sql.raw(FETCH_ENUMS),
   )) as postgres.RowList<Array<FetchEnumsResult>>;
 
   return response;
