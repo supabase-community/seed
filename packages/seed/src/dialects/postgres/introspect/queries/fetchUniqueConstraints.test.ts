@@ -123,7 +123,6 @@ test("should get constraints from different schemas", async () => {
       schema: "private",
       table: "Students",
       dirty: false,
-      // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
       name: expect.any(String),
       columns: ["FirstName"],
     },
@@ -132,7 +131,6 @@ test("should get constraints from different schemas", async () => {
       schema: "private",
       table: "Students",
       dirty: false,
-      // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
       name: expect.any(String),
       columns: ["StudentID"],
     },

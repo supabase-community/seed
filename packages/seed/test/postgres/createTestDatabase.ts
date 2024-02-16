@@ -2,12 +2,10 @@ import { sql } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/postgres-js";
 import postgres from "postgres";
 import { v4 } from "uuid";
-import { afterEach } from "vitest";
 
 interface State {
   dbs: Array<{
     client: postgres.Sql;
-    connString: string;
     name: string;
   }>;
 }
@@ -29,7 +27,6 @@ export const defineCreateTestDb = (state: State) => {
     const result = {
       client: client,
       name: dbName,
-      connString: `${connString}/${dbName}`,
     };
     state.dbs.push(result);
     if (structure) {
@@ -73,5 +70,3 @@ export const defineCreateTestDb = (state: State) => {
 };
 
 export const createTestDb = defineCreateTestDb({ dbs: [] });
-
-afterEach(createTestDb.afterEach);

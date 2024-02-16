@@ -88,6 +88,9 @@ export const recommended = [
     plugins: {
       vitest: vitestPlugin,
     },
-    rules: vitestPlugin.configs.recommended.rules
-  }
+    rules: {
+      ...vitestPlugin.configs.recommended.rules,
+      // Disable the rule for expect.arrayContainting matcher to not cause issue
+      "@typescript-eslint/no-unsafe-assignment": "off",
+    },
 ];
