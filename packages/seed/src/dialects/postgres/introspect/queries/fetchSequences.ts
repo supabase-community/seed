@@ -3,36 +3,25 @@ import { sql } from "drizzle-orm";
 import { type PgDatabase, type QueryResultHKT } from "drizzle-orm/pg-core";
 import { buildSchemaExclusionClause } from "./utils.js";
 
-interface FetchSequencesResult {
-  schema: string;
-  table: string;
-  column: string;
-  sequence: string;
+type FetchSequencesResult = {
+  schema: string
+  name: string
+  start: number
+  current: number
+  interval: number
 }
 
 const FETCH_SEQUENCES = `
-  WITH
-  accessible_schemas AS (
-    SELECT
-      schema_name
-    FROM information_schema.schemata
-    WHERE
-      ${buildSchemaExclusionClause('schema_name')}
-  )
-  SELECT
-    n.nspname AS schema,
-    t.relname AS table,
-    a.attname AS column,
-    s.relname AS sequence
-  FROM pg_class s
-    JOIN pg_depend d ON d.objid = s.oid
-    JOIN pg_class t ON d.objid = s.oid AND d.refobjid = t.oid
-    JOIN pg_attribute a ON (d.refobjid, d.refobjsubid) = (a.attrelid, a.attnum)
-    JOIN pg_namespace n ON n.oid = s.relnamespace
-    INNER JOIN accessible_schemas acc ON acc.schema_name = n.nspname
-  WHERE s.relkind = 'S'
-  ORDER BY n.nspname, t.relname
-`;
+SELECT
+  schemaname AS schema,
+  sequencename AS name,
+  start_value AS start,
+  COALESCE(last_value, start_value) AS current,
+  increment_by AS interval
+FROM
+ pg_sequences
+WHERE ${buildSchemaExclusionClause('pg_sequences.schemaname')}
+`
 
 export async function fetchSequences<T extends QueryResultHKT>(
   client: PgDatabase<T>,
@@ -41,5 +30,13 @@ export async function fetchSequences<T extends QueryResultHKT>(
     sql.raw(FETCH_SEQUENCES),
   )) as postgres.RowList<Array<FetchSequencesResult>>;
 
-  return response;
+  return response.map((r) => ({
+    schema: r.schema,
+    name: r.name,
+    // When a sequence is created, the current value is the start value and is available for use
+    // but when the sequence is used for the first time, the current values is the last used one not available for use
+    // so we increment it by one to get the next available value instead
+    current: r.start === r.current ? Number(r.current) : Number(r.current) + 1,
+    interval: Number(r.interval),
+  }))
 }

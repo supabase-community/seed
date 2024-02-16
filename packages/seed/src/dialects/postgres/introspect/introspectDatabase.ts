@@ -1,27 +1,20 @@
 import { Dictionary, groupBy } from 'lodash'
 
-import { AsyncFunctionSuccessType } from '~/types.js'
-
-import type { DatabaseClient } from '../client.js'
+import { type PgDatabase, type QueryResultHKT } from "drizzle-orm/pg-core";
 import { fetchEnums } from './queries/fetchEnums.js'
-import { fetchAuthorizedSchemas } from './queries/fetchAuthorizedSchemas.js'
 import { fetchDatabaseRelationships } from './queries/fetchDatabaseRelationships.js'
-import { fetchIndexes } from './queries/fetchIndexes.js'
 import { fetchPrimaryKeys } from './queries/fetchPrimaryKeys.js'
 import { fetchTablesAndColumns } from './queries/fetchTablesAndColumns.js'
 import { groupParentsChildrenRelations } from './groupParentsChildrenRelations.js'
-import {
-  IntrospectConfig,
-  mergeConfigWithRelationshipsResult,
-} from '~/config/snapletConfig/introspectConfig.js'
 import { z } from 'zod'
 import { fetchSequences } from './queries/fetchSequences.js'
 import { fetchUniqueConstraints } from './queries/fetchUniqueConstraints.js'
 
-type PrimaryKeys = AsyncFunctionSuccessType<typeof fetchPrimaryKeys>
-type Constraints = AsyncFunctionSuccessType<typeof fetchUniqueConstraints>
+type AsyncFunctionSuccessType<
+  T extends (...args: any) => Promise<unknown>,
+> = Awaited<ReturnType<T>>
 type Tables = AsyncFunctionSuccessType<typeof fetchTablesAndColumns>
-type Enums = AsyncFunctionSuccessType<typeof fetchEnums>
+type Enums = Array<AsyncFunctionSuccessType<typeof fetchEnums>[number]>
 type Sequences = AsyncFunctionSuccessType<typeof fetchSequences>
 export type Relationships = AsyncFunctionSuccessType<
   typeof fetchDatabaseRelationships
@@ -44,31 +37,23 @@ export interface IntrospectedStructure extends IntrospectedStructureBase {
   tables: Array<
     IntrospectedStructureBase['tables'][number] &
       GroupedRelationshipsValue & {
-        primaryKeys: PrimaryKeys[number] | null
-        constraints?: Constraints
+        // primaryKeys: PrimaryKeys[number] | null
+        // constraints?: Constraints
       }
   >
-  // indexes: Indexes
   sequences?: Dictionary<Sequences>
 }
 
-export const introspectDatabaseV3 = async (
-  client: DatabaseClient,
-  introspectConfig?: IntrospectConfig
-): Promise<IntrospectedStructure> => {
+export async function introspectDatabase<T extends QueryResultHKT>(
+  client: PgDatabase<T>,
+) : Promise<IntrospectedStructure> {
   const tablesInfos = await fetchTablesAndColumns(client)
   const enums = await fetchEnums(client)
-  const baseRelationships = await fetchDatabaseRelationships(client)
+  const relationships = await fetchDatabaseRelationships(client)
   const primaryKeys = await fetchPrimaryKeys(client)
   const constraints = await fetchUniqueConstraints(client)
   const sequences = await fetchSequences(client)
   const tableIds = tablesInfos.map((table) => table.id)
-  const relationships = introspectConfig
-    ? mergeConfigWithRelationshipsResult(introspectConfig, {
-        relationships: baseRelationships,
-        tables: tablesInfos,
-      })
-    : baseRelationships
   const groupedRelationships = groupParentsChildrenRelations(
     relationships,
     tableIds
@@ -84,26 +69,16 @@ export const introspectDatabaseV3 = async (
       const tableRelationships = groupedRelationships.get(table.id)!
       const primaryKeys = groupedPrimaryKeys[table.id]?.[0] ?? null
       const constraints = groupedConstraints[table.id] ?? []
-      if (introspectConfig?.virtualForeignKeys?.length) {
-        const relations = [
-          ...tableRelationships.parents,
-          ...tableRelationships.children,
-        ]
-        // Since the relations can have been augmented via the config, we need to
-        // update the columns constraints to reflect the new "virtual" foreign keys
-        relations
-          .filter((relation) => relation.fkTable === table.id)
-          .flatMap((relation) => relation.keys.map((k) => k.fkColumn))
-          .forEach((fkColumn) => {
-            const column = table.columns.find((c) => c.name === fkColumn)
-            if (column && !column.constraints.some((c) => c === 'f')) {
-              column.constraints.push('f')
-            }
-          })
-      }
       return {
-        ...table,
-        ...tableRelationships,
+        id: table.id,
+        name: table.name,
+        schema: table.schema,
+        rows: table.rows,
+        bytes: table.bytes,
+        partitioned: table.partitioned,
+        columns: table.columns,
+        parents: tableRelationships.parents,
+        children: tableRelationships.children,
         primaryKeys,
         constraints,
       }
@@ -111,13 +86,12 @@ export const introspectDatabaseV3 = async (
   )
   return {
     tables: tablesWithRelations,
-    enums,
+    enums: enums,
     sequences: sequencesGroupesBySchema,
   }
 }
 
 const introspectedStructureBaseSchema = z.object({
-  schemas: z.array(z.string()),
   tables: z.array(
     z.object({
       id: z.string(),

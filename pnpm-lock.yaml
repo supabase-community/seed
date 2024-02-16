@@ -121,6 +121,9 @@ importers:
       '@types/fs-extra':
         specifier: 11.0.4
         version: 11.0.4
+      '@types/lodash':
+        specifier: 4.14.202
+        version: 4.14.202
       '@types/node':
         specifier: 20.11.18
         version: 20.11.18
@@ -142,6 +145,9 @@ importers:
       fs-extra:
         specifier: 11.2.0
         version: 11.2.0
+      lodash:
+        specifier: 4.17.21
+        version: 4.17.21
       pg:
         specifier: 8.11.3
         version: 8.11.3
@@ -1139,6 +1145,10 @@ packages:
     resolution: {integrity: sha512-D5qGUYwjvnNNextdU59/+fI+spnwtTFmyQP0h+PfIOSkNfpU6AOICUOkm4i0OnSk+NyjdPJrxCDro0sJsWlRpQ==}
     dependencies:
       '@types/node': 20.11.18
+    dev: true
+
+  /@types/lodash@4.14.202:
+    resolution: {integrity: sha512-OvlIYQK9tNneDlS0VN54LLd5uiPCBOp7gS5Z0f1mjoJYBrtStzgmJBxONW3U6OZqdtNzZPmn9BS/7WI7BFFcFQ==}
     dev: true
 
   /@types/minimatch@3.0.5:

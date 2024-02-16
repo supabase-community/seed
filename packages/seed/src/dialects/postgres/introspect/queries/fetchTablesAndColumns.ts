@@ -267,6 +267,6 @@ export async function fetchTablesAndColumns<T extends QueryResultHKT>(
               }
             : c.identity,
         })),
-      })
+      }) as FetchTableAndColumnsResult
   )
 }

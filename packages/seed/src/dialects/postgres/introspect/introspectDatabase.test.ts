@@ -1,85 +1,14 @@
-import {
-  createTestDb,
-  createSnapletTestDb,
-  createTestRole,
-} from '../../testing.js'
-import { withDbClient, execQueryNext } from '../client.js'
+
+import { drizzle } from "drizzle-orm/postgres-js";
+import { expect, test } from "vitest";
+import { postgres } from "#test";
 import type { Relationship } from './introspectDatabase.js'
 import {
-  basicIntrospectDatabase,
-  introspectDatabaseV3,
+  introspectDatabase,
 } from './introspectDatabase.js'
+import { sql } from "drizzle-orm";
 
-test('basicIntrospectDatabase should return basic database structure', async () => {
-  const structure = `
-    CREATE SCHEMA test;
-    CREATE TABLE test."Table1" (id serial PRIMARY KEY, name text);
-    CREATE TYPE test."Enum1" AS ENUM ('A', 'B');
-  `
-  const connString = await createTestDb(structure)
-  await execQueryNext(`VACUUM ANALYZE;`, connString)
-
-  const result = await withDbClient(basicIntrospectDatabase, {
-    connString: connString.toString(),
-  })
-  expect(result).toEqual({
-    enums: [
-      {
-        id: 'test.Enum1',
-        name: 'Enum1',
-        schema: 'test',
-        values: ['A', 'B'],
-      },
-    ],
-    extensions: [],
-    schemas: ['public', 'test'],
-    server: {
-      version: expect.stringMatching(/\d+\.\d+/),
-    },
-    tables: [
-      {
-        bytes: 0,
-        columns: [
-          {
-            constraints: ['p'],
-            default: 'nextval(\'test."Table1_id_seq"\'::regclass)',
-            generated: 'NEVER',
-            identity: null,
-            id: 'test.Table1.id',
-            maxLength: null,
-            name: 'id',
-            nullable: false,
-            schema: 'test',
-            table: 'Table1',
-            type: 'int4',
-            typeCategory: 'N',
-            typeId: 'pg_catalog.int4',
-          },
-          {
-            constraints: [],
-            default: null,
-            generated: 'NEVER',
-            identity: null,
-            id: 'test.Table1.name',
-            maxLength: null,
-            name: 'name',
-            nullable: true,
-            schema: 'test',
-            table: 'Table1',
-            type: 'text',
-            typeCategory: 'S',
-            typeId: 'pg_catalog.text',
-          },
-        ],
-        id: 'test.Table1',
-        name: 'Table1',
-        partitioned: false,
-        rows: 0,
-        schema: 'test',
-      },
-    ],
-  })
-})
+const { createTestDb, createTestRole } = postgres;
 
 test('introspectDatabase should return detailed database structure', async () => {
   const structure = `
@@ -88,12 +17,9 @@ test('introspectDatabase should return detailed database structure', async () =>
     CREATE TABLE test."Table2" (id serial PRIMARY KEY, name text, table1_id integer REFERENCES test."Table1"(id));
     CREATE TYPE test."Enum1" AS ENUM ('A', 'B');
   `
-  const connString = await createTestDb(structure)
-  await execQueryNext(`VACUUM ANALYZE;`, connString)
-
-  const result = await withDbClient(introspectDatabaseV3, {
-    connString: connString.toString(),
-  })
+  const db = await createTestDb(structure)
+  await (drizzle(db.client).execute(sql.raw(`VACUUM ANALYZE;`)))
+  const result = await introspectDatabase(drizzle(db.client))
   expect(result).toMatchObject({
     enums: [
       {
@@ -103,52 +29,21 @@ test('introspectDatabase should return detailed database structure', async () =>
         values: ['A', 'B'],
       },
     ],
-    extensions: [],
     sequences: {
       test: [
         {
           current: 1,
-          max: 2147483647,
-          min: 1,
           name: 'Table1_id_seq',
           schema: 'test',
-          start: 1,
           interval: 1,
         },
         {
           current: 1,
-          max: 2147483647,
-          min: 1,
           name: 'Table2_id_seq',
           schema: 'test',
-          start: 1,
           interval: 1,
         },
       ],
-    },
-    indexes: [
-      {
-        definition:
-          'CREATE UNIQUE INDEX "Table1_pkey" ON test."Table1" USING btree (id)',
-        index: 'Table1_pkey',
-        indexColumns: ['id'],
-        schema: 'test',
-        table: 'Table1',
-        type: 'btree',
-      },
-      {
-        definition:
-          'CREATE UNIQUE INDEX "Table2_pkey" ON test."Table2" USING btree (id)',
-        index: 'Table2_pkey',
-        indexColumns: ['id'],
-        schema: 'test',
-        table: 'Table2',
-        type: 'btree',
-      },
-    ],
-    schemas: ['public', 'test'],
-    server: {
-      version: expect.any(String),
     },
     tables: [
       {
@@ -346,7 +241,7 @@ test('Read primary keys with readaccess permissions', async () => {
   )
   await execQueryNext(`VACUUM ANALYZE;`, connString)
 
-  const result = await withDbClient(introspectDatabaseV3, {
+  const result = await withDbClient(introspectDatabase, {
     connString: readAccessConnString.toString(),
   })
 
@@ -356,7 +251,7 @@ test('Read primary keys with readaccess permissions', async () => {
 
 test('introspectDatabase - get parent relationships from structure', async () => {
   const connString = await createSnapletTestDb()
-  const structure = await withDbClient(introspectDatabaseV3, {
+  const structure = await withDbClient(introspectDatabase, {
     connString: connString.toString(),
   })
 
@@ -386,7 +281,7 @@ test('introspectDatabase - get parent relationships from structure', async () =>
 test('introspectDatabase - get primary keys from structure', async () => {
   const connString = await createSnapletTestDb()
 
-  const structure = await withDbClient(introspectDatabaseV3, {
+  const structure = await withDbClient(introspectDatabase, {
     connString: connString.toString(),
   })
 
@@ -406,7 +301,7 @@ test('introspectDatabase - get primary keys from structure', async () => {
 test('introspectDatabase - get child relationships from structure', async () => {
   const connString = await createSnapletTestDb()
 
-  const structure = await withDbClient(introspectDatabaseV3, {
+  const structure = await withDbClient(introspectDatabase, {
     connString: connString.toString(),
   })
 
@@ -464,7 +359,7 @@ test('introspect with tables and schemas the user cannot access', async () => {
     connectionString
   )
 
-  const structure = await withDbClient(introspectDatabaseV3, {
+  const structure = await withDbClient(introspectDatabase, {
     connString: restrictedString.toString(),
   })
 
@@ -494,7 +389,7 @@ test('partitions of a partitioned table should not be present in the introspecti
     connectionString
   )
   // act
-  const structure = await withDbClient(introspectDatabaseV3, {
+  const structure = await withDbClient(introspectDatabase, {
     connString: connectionString.toString(),
   })
   // assert
