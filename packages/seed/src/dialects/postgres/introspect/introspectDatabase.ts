@@ -3,13 +3,11 @@ import { Dictionary, groupBy } from 'lodash'
 import { AsyncFunctionSuccessType } from '~/types.js'
 
 import type { DatabaseClient } from '../client.js'
-import { fetchAuthorizedEnums } from './queries/fetchAuthorizedEnums.js'
-import { fetchAuthorizedExtensions } from './queries/fetchAuthorizedExtensions.js'
+import { fetchEnums } from './queries/fetchEnums.js'
 import { fetchAuthorizedSchemas } from './queries/fetchAuthorizedSchemas.js'
 import { fetchDatabaseRelationships } from './queries/fetchDatabaseRelationships.js'
 import { fetchIndexes } from './queries/fetchIndexes.js'
 import { fetchPrimaryKeys } from './queries/fetchPrimaryKeys.js'
-import { fetchServerVersion } from './queries/fetchServerVersion.js'
 import { fetchTablesAndColumns } from './queries/fetchTablesAndColumns.js'
 import { groupParentsChildrenRelations } from './groupParentsChildrenRelations.js'
 import {
@@ -22,11 +20,8 @@ import { fetchUniqueConstraints } from './queries/fetchUniqueConstraints.js'
 
 type PrimaryKeys = AsyncFunctionSuccessType<typeof fetchPrimaryKeys>
 type Constraints = AsyncFunctionSuccessType<typeof fetchUniqueConstraints>
-type Schemas = AsyncFunctionSuccessType<typeof fetchAuthorizedSchemas>
 type Tables = AsyncFunctionSuccessType<typeof fetchTablesAndColumns>
-type Extensions = AsyncFunctionSuccessType<typeof fetchAuthorizedExtensions>
-type Indexes = AsyncFunctionSuccessType<typeof fetchIndexes>
-type Enums = AsyncFunctionSuccessType<typeof fetchAuthorizedEnums>
+type Enums = AsyncFunctionSuccessType<typeof fetchEnums>
 type Sequences = AsyncFunctionSuccessType<typeof fetchSequences>
 export type Relationships = AsyncFunctionSuccessType<
   typeof fetchDatabaseRelationships
@@ -41,11 +36,8 @@ export type IntrospectedEnum = Enums[number]
 export type IntrospectedTable = Tables[number]
 
 export interface IntrospectedStructureBase {
-  schemas: Schemas
   tables: Tables
-  extensions: Extensions
   enums: Enums
-  server: { version: string }
 }
 
 export interface IntrospectedStructure extends IntrospectedStructureBase {
@@ -56,42 +48,19 @@ export interface IntrospectedStructure extends IntrospectedStructureBase {
         constraints?: Constraints
       }
   >
-  indexes: Indexes
+  // indexes: Indexes
   sequences?: Dictionary<Sequences>
-}
-
-export const basicIntrospectDatabase = async (
-  client: DatabaseClient
-): Promise<IntrospectedStructureBase> => {
-  const schemas = await fetchAuthorizedSchemas(client)
-  const tablesInfos = await fetchTablesAndColumns(client)
-  const extensions = await fetchAuthorizedExtensions(client)
-  const version = await fetchServerVersion(client)
-  const enums = await fetchAuthorizedEnums(client)
-  return {
-    schemas,
-    tables: tablesInfos,
-    extensions,
-    enums,
-    server: { version },
-  }
 }
 
 export const introspectDatabaseV3 = async (
   client: DatabaseClient,
   introspectConfig?: IntrospectConfig
 ): Promise<IntrospectedStructure> => {
-  const {
-    schemas,
-    tables: tablesInfos,
-    extensions,
-    enums,
-    server,
-  } = await basicIntrospectDatabase(client)
+  const tablesInfos = await fetchTablesAndColumns(client)
+  const enums = await fetchEnums(client)
   const baseRelationships = await fetchDatabaseRelationships(client)
   const primaryKeys = await fetchPrimaryKeys(client)
   const constraints = await fetchUniqueConstraints(client)
-  const indexes = await fetchIndexes(client)
   const sequences = await fetchSequences(client)
   const tableIds = tablesInfos.map((table) => table.id)
   const relationships = introspectConfig
@@ -141,12 +110,8 @@ export const introspectDatabaseV3 = async (
     }
   )
   return {
-    schemas,
     tables: tablesWithRelations,
-    extensions,
     enums,
-    server,
-    indexes,
     sequences: sequencesGroupesBySchema,
   }
 }
@@ -276,13 +241,6 @@ const introspectedStructureBaseSchema = z.object({
         .optional(),
     })
   ),
-  extensions: z.array(
-    z.object({
-      name: z.string(),
-      version: z.string(),
-      schema: z.string(),
-    })
-  ),
   enums: z.array(
     z.object({
       id: z.string(),
@@ -291,7 +249,6 @@ const introspectedStructureBaseSchema = z.object({
       values: z.array(z.string()),
     })
   ),
-  server: z.object({ version: z.string() }),
   // satisfies allow us to ensure that zod schema always match
   // the actual type of IntrospectedStructure, if the type change and the schema does not
   // it'll raise an error at type-checking time

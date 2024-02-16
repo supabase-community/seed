@@ -2,8 +2,8 @@ import {
   IntrospectedStructure,
   Relationship,
   IntrospectedTableColumn,
-} from '~/db/introspect/introspectDatabase.js'
-import { escapeIdentifier } from '~/db/introspect/queries/utils.js'
+} from './introspectDatabase.js'
+import { escapeIdentifier } from '../utils.js'
 
 export type DataModel = {
   models: Record<string, DataModelModel>
@@ -280,6 +280,7 @@ export function introspectionToDataModel(
         primaryKeysColumnsNames.set(key.name, true)
       }
     }
+
     for (const column of table.columns) {
       const type =
         column.typeCategory === 'E'
@@ -303,6 +304,7 @@ export function introspectionToDataModel(
       }
       fields.push(field)
     }
+
     for (const parentRelation of table.parents) {
       const targetTable = introspection.tables.find(
         (t) => t.id === parentRelation.targetTable
@@ -335,6 +337,7 @@ export function introspectionToDataModel(
       }
       fields.push(field)
     }
+
     for (const childRelation of table.children) {
       // TODO: isList detection for one-to-one relationships
       // a child relation is not a list if there is a unique constraint on the keys
