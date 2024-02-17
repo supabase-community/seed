@@ -1,6 +1,6 @@
 import { type PgDatabase, type QueryResultHKT } from "drizzle-orm/pg-core";
-import { type Dictionary, groupBy } from "lodash";
 import { z } from "zod";
+import { groupBy } from "../utils.js";
 import { groupParentsChildrenRelations } from "./groupParentsChildrenRelations.js";
 import { fetchDatabaseRelationships } from "./queries/fetchDatabaseRelationships.js";
 import { fetchEnums } from "./queries/fetchEnums.js";
@@ -35,7 +35,7 @@ export interface IntrospectedStructureBase {
 }
 
 export interface IntrospectedStructure extends IntrospectedStructureBase {
-    sequences?: Dictionary<Sequences>;
+    sequences?: Record<string, Sequences>;
     tables: Array<
         IntrospectedStructureBase["tables"][number] &
             GroupedRelationshipsValue & {

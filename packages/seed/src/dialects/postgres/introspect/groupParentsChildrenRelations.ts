@@ -1,4 +1,4 @@
-import { groupBy } from "lodash";
+import { groupBy } from "../utils.js";
 import { type fetchDatabaseRelationships } from "./queries/fetchDatabaseRelationships.js";
 import { type AsyncFunctionSuccessType } from "./types.js";
 
