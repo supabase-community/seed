@@ -37,7 +37,6 @@ export type DataModelUniqueConstraint = {
 export type DataModelSequence = {
   identifier: string | null
   current: number
-  start: number
   increment: number
 }
 
@@ -212,15 +211,13 @@ function columnSequence(
   // If the column is an identity column we return the identity information
   // https://www.postgresqltutorial.com/postgresql-tutorial/postgresql-identity-column/
   if (column.identity) {
-    const start = column.identity.start ?? 1
-    const current = column.identity.current ?? column.identity?.start ?? 1
+    const current = column.identity.current ?? 1
     return {
       identifier: column.identity?.sequenceName
         ? // Comes from: pg_get_serial_sequence which will automatically escape the identifier if it needs to
           // Will be something like: `public."User_id_seq"`
           column.identity.sequenceName
         : null,
-      start,
       increment: column.identity?.increment ?? 1,
       current: current,
     }
@@ -246,7 +243,6 @@ function columnSequence(
         identifier: `${escapeIdentifier(
           sequenceDetails.schema
         )}.${escapeIdentifier(sequenceDetails.sequence)}`,
-        start: sequence.start,
         increment: sequence.interval,
         current: sequence.current,
       }
@@ -254,6 +250,35 @@ function columnSequence(
     return false
   }
   return false
+}
+
+export function isParentField(
+  field: DataModelField
+): field is DataModelObjectField {
+  return field.kind === 'object' && field.relationFromFields.length > 0
+}
+
+export function groupFields(fields: DataModelField[]) {
+  const groupedFields = {
+    scalars: [] as DataModelScalarField[],
+    parents: [] as DataModelObjectField[],
+    children: [] as DataModelObjectField[],
+  }
+
+  for (const field of fields) {
+    if (field.kind === 'scalar') {
+      groupedFields.scalars.push(field)
+    } else if (field.kind === 'object' && field.relationFromFields.length > 0) {
+      groupedFields.parents.push(field)
+    } else if (
+      field.kind === 'object' &&
+      field.relationFromFields.length === 0
+    ) {
+      groupedFields.children.push(field)
+    }
+  }
+
+  return groupedFields
 }
 
 export function introspectionToDataModel(
@@ -390,33 +415,4 @@ export function introspectionToDataModel(
   }
 
   return dataModel
-}
-
-export function isParentField(
-  field: DataModelField
-): field is DataModelObjectField {
-  return field.kind === 'object' && field.relationFromFields.length > 0
-}
-
-export function groupFields(fields: DataModelField[]) {
-  const groupedFields = {
-    scalars: [] as DataModelScalarField[],
-    parents: [] as DataModelObjectField[],
-    children: [] as DataModelObjectField[],
-  }
-
-  for (const field of fields) {
-    if (field.kind === 'scalar') {
-      groupedFields.scalars.push(field)
-    } else if (field.kind === 'object' && field.relationFromFields.length > 0) {
-      groupedFields.parents.push(field)
-    } else if (
-      field.kind === 'object' &&
-      field.relationFromFields.length === 0
-    ) {
-      groupedFields.children.push(field)
-    }
-  }
-
-  return groupedFields
 }

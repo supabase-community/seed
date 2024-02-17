@@ -1,5 +1,6 @@
 import { Dictionary, groupBy } from 'lodash'
 
+import type { AsyncFunctionSuccessType } from './types.js';
 import { type PgDatabase, type QueryResultHKT } from "drizzle-orm/pg-core";
 import { fetchEnums } from './queries/fetchEnums.js'
 import { fetchDatabaseRelationships } from './queries/fetchDatabaseRelationships.js'
@@ -10,9 +11,6 @@ import { z } from 'zod'
 import { fetchSequences } from './queries/fetchSequences.js'
 import { fetchUniqueConstraints } from './queries/fetchUniqueConstraints.js'
 
-type AsyncFunctionSuccessType<
-  T extends (...args: any) => Promise<unknown>,
-> = Awaited<ReturnType<T>>
 type PrimaryKeys = AsyncFunctionSuccessType<typeof fetchPrimaryKeys>
 type Constraints = Array<AsyncFunctionSuccessType<typeof fetchUniqueConstraints>[number]>
 type Tables = AsyncFunctionSuccessType<typeof fetchTablesAndColumns>
@@ -115,17 +113,15 @@ const introspectedStructureBaseSchema = z.object({
           maxLength: z.number().nullable(),
           identity: z
             .object({
-              sequenceName: z.string().optional(),
+              sequenceName: z.string(),
               generated: z.union([
                 z.literal('ALWAYS'),
                 z.literal('BY DEFAULT'),
               ]),
-              start: z.number(),
               increment: z.number(),
               current: z.number(),
             })
-            .nullable()
-            .optional(),
+            .nullable(),
           typeCategory: z.union([
             z.literal('A'),
             z.literal('B'),

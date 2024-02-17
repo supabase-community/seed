@@ -2,6 +2,7 @@ import {
   groupParentsChildrenRelations,
   fetchRelationshipsResultsType,
 } from './groupParentsChildrenRelations.js'
+import { expect, test } from "vitest";
 
 test('should return empty array if no relations for the tables', () => {
   const result = groupParentsChildrenRelations([], ['table1', 'table2'])
@@ -15,7 +16,6 @@ test('should properly group children and parents for each tables', () => {
     {
       fkTable: 'private.Enrollments',
       id: 'Enrollments_CourseID_fkey',
-
       keys: [
         {
           fkColumn: 'CourseID',
@@ -30,7 +30,6 @@ test('should properly group children and parents for each tables', () => {
     {
       fkTable: 'public.Students',
       id: 'Students_StudentCourseId_fkey',
-
       keys: [
         {
           fkColumn: 'StudentCourseId',
@@ -56,7 +55,6 @@ test('should properly group children and parents for each tables', () => {
       {
         fkTable: 'private.Enrollments',
         id: 'Enrollments_CourseID_fkey',
-
         keys: [
           {
             fkColumn: 'CourseID',
@@ -77,7 +75,6 @@ test('should properly group children and parents for each tables', () => {
       {
         fkTable: 'private.Enrollments',
         id: 'Enrollments_CourseID_fkey',
-
         keys: [
           {
             fkColumn: 'CourseID',
@@ -97,7 +94,6 @@ test('should properly group children and parents for each tables', () => {
       {
         fkTable: 'public.Students',
         id: 'Students_StudentCourseId_fkey',
-
         keys: [
           {
             fkColumn: 'StudentCourseId',
@@ -116,7 +112,6 @@ test('should properly group children and parents for each tables', () => {
       {
         fkTable: 'public.Students',
         id: 'Students_StudentCourseId_fkey',
-
         keys: [
           {
             fkColumn: 'StudentCourseId',

@@ -1,12 +1,10 @@
 import { groupBy } from 'lodash'
+import type { AsyncFunctionSuccessType } from './types.js';
+import type { fetchDatabaseRelationships } from './queries/fetchDatabaseRelationships.js'
 
-import type { AsyncFunctionSuccessType } from '~/types'
-
-import type { fetchDatabaseRelationships } from './queries/fetchDatabaseRelationships'
-
-type fetchRelationshipsResultsType = AsyncFunctionSuccessType<
+type fetchRelationshipsResultsType = Array<AsyncFunctionSuccessType<
   typeof fetchDatabaseRelationships
->
+>[number]>
 
 export const groupParentsChildrenRelations = (
   databaseRelationships: fetchRelationshipsResultsType,

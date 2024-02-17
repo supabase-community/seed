@@ -1,8 +1,9 @@
-import { IntrospectedStructure } from '../../db/introspect/introspectDatabase.js'
+import { IntrospectedStructure } from './introspectDatabase.js'
 import { introspectionToDataModel } from './dataModel.js'
-import { introspection } from '../fixtures/introspection.js'
-import { introspection as sameTableNamesDifferentSchemasIntrospection } from '../fixtures/same-table-names-different-schemas.js'
-import { introspectionWithConstraints } from '../fixtures/introspectionWithUniqueConstraints.js'
+import { introspection } from './fixtures/introspection.js'
+import { introspection as sameTableNamesDifferentSchemasIntrospection } from './fixtures/same-table-names-different-schemas.js'
+import { introspectionWithConstraints } from './fixtures/introspectionWithUniqueConstraints.js'
+import { expect, test, describe } from "vitest";
 
 describe('dataModel', () => {
   test('it correctly convert an introspected structure into a data model', async () => {
@@ -5139,7 +5140,6 @@ describe('dataModel', () => {
   test('it correctly convert an introspected structure with two enums named the same in different schemas into a data model', async () => {
     // arrange
     const introspection = {
-      schemas: ['auth', 'public'],
       enums: [
         {
           id: 'public.Status',
@@ -5226,11 +5226,6 @@ describe('dataModel', () => {
           },
         },
       ],
-      extensions: [],
-      indexes: [],
-      server: {
-        version: '15.3 (Homebrew)',
-      },
     } satisfies IntrospectedStructure
     // act
     const dataModel = introspectionToDataModel(introspection)
@@ -5326,34 +5321,15 @@ describe('dataModel', () => {
   test('it correctly extract the sequences informations from identity definitions', async () => {
     const introspection = {
       enums: [],
-      extensions: [],
-      indexes: [
-        {
-          definition:
-            'CREATE UNIQUE INDEX coach_pkey ON public.coach USING btree (id)',
-          index: 'coach_pkey',
-          indexColumns: ['id'],
-          schema: 'public',
-          table: 'coach',
-          type: 'btree',
-        },
-      ],
-      schemas: ['public'],
       sequences: {
         public: [
           {
             current: 1,
             interval: 1,
-            max: 1000,
-            min: 1,
             name: 'coach_coach_number_seq',
             schema: 'public',
-            start: 1,
           },
         ],
-      },
-      server: {
-        version: '14.9 (Homebrew)',
       },
       tables: [
         {
@@ -5381,9 +5357,9 @@ describe('dataModel', () => {
               generated: 'NEVER',
               id: 'public.coach.coach_number',
               identity: {
+                sequenceName: undefined,
                 generated: 'ALWAYS',
                 increment: 1,
-                start: 1,
                 current: 1,
               },
               maxLength: null,
@@ -5450,7 +5426,6 @@ describe('dataModel', () => {
                 current: 1,
                 identifier: null,
                 increment: 1,
-                start: 1,
               },
               type: 'int8',
             },
@@ -5463,6 +5438,7 @@ describe('dataModel', () => {
       },
     })
   })
+
   test('it correctly extract the sequences informations from default definitions', async () => {
     const introspection = {
       enums: [
@@ -5473,52 +5449,21 @@ describe('dataModel', () => {
           values: ['A', 'B'],
         },
       ],
-      extensions: [],
-      indexes: [
-        {
-          definition:
-            'CREATE UNIQUE INDEX "Table1_pkey" ON test."Table1" USING btree (id)',
-          index: 'Table1_pkey',
-          indexColumns: ['id'],
-          schema: 'test',
-          table: 'Table1',
-          type: 'btree',
-        },
-        {
-          definition:
-            'CREATE UNIQUE INDEX "Table2_pkey" ON test."Table2" USING btree (id)',
-          index: 'Table2_pkey',
-          indexColumns: ['id'],
-          schema: 'test',
-          table: 'Table2',
-          type: 'btree',
-        },
-      ],
-      schemas: ['public', 'test'],
       sequences: {
         test: [
           {
             current: 1,
             interval: 1,
-            max: 2147483647,
-            min: 1,
             name: 'Table1_id_seq',
             schema: 'test',
-            start: 1,
           },
           {
             current: 1,
             interval: 1,
-            max: 2147483647,
-            min: 1,
             name: 'Table2_id_seq',
             schema: 'test',
-            start: 1,
           },
         ],
-      },
-      server: {
-        version: '14.9 (Homebrew)',
       },
       tables: [
         {
@@ -5708,7 +5653,6 @@ describe('dataModel', () => {
                 current: 1,
                 identifier: '"test"."Table1_id_seq"',
                 increment: 1,
-                start: 1,
               },
               type: 'int4',
             },
@@ -5761,7 +5705,6 @@ describe('dataModel', () => {
                 current: 1,
                 identifier: '"test"."Table2_id_seq"',
                 increment: 1,
-                start: 1,
               },
               type: 'int4',
             },
@@ -6525,7 +6468,6 @@ describe('dataModel', () => {
                 current: 3,
                 identifier: '"public"."DatabaseProvider_id_seq"',
                 increment: 1,
-                start: 1,
               },
               type: 'int4',
             },
@@ -7182,7 +7124,6 @@ describe('dataModel', () => {
                 current: 3290,
                 identifier: '"public"."Member_id_seq"',
                 increment: 1,
-                start: 1,
               },
               type: 'int4',
             },
@@ -8315,7 +8256,6 @@ describe('dataModel', () => {
                 current: 1,
                 identifier: '"public"."PricingPlan_id_seq"',
                 increment: 1,
-                start: 1,
               },
               type: 'int4',
             },

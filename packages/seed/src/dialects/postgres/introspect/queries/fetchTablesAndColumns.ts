@@ -46,7 +46,7 @@ type SelectColumnsResult = {
   generated: 'ALWAYS' | 'NEVER'
   maxLength: number | null
   identity?: {
-    sequenceName?: string
+    sequenceName: string | undefined
     generated: 'ALWAYS' | 'BY DEFAULT'
     start: number
     increment: number
@@ -256,7 +256,9 @@ export async function fetchTablesAndColumns<T extends QueryResultHKT>(
           ...c,
           identity: c.identity
             ? {
-                ...c.identity,
+                sequenceName: c.identity.sequenceName,
+                generated: c.identity.generated,
+                increment: c.identity.increment,
                 // When a sequence is created, the current value is the start value and is available for use
                 // but when the sequence is used for the first time, the current values is the last used one not available for use
                 // so we increment it by one to get the next available value instead
@@ -265,8 +267,8 @@ export async function fetchTablesAndColumns<T extends QueryResultHKT>(
                     ? c.identity!.current
                     : c.identity!.current + 1,
               }
-            : c.identity,
+            : null,
         })),
-      }) as FetchTableAndColumnsResult
+      })
   )
 }
