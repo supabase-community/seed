@@ -175,7 +175,7 @@ export const introspectionWithConstraints: IntrospectedStructure = {
           },
         ],
       },
-      constraints: [
+      uniqueConstraints: [
         {
           tableId: "public.AccessToken",
           schema: "public",
@@ -357,7 +357,7 @@ export const introspectionWithConstraints: IntrospectedStructure = {
           },
         ],
       },
-      constraints: [
+      uniqueConstraints: [
         {
           tableId: "public.AuditLog",
           schema: "public",
@@ -581,7 +581,7 @@ export const introspectionWithConstraints: IntrospectedStructure = {
           },
         ],
       },
-      constraints: [
+      uniqueConstraints: [
         {
           tableId: "public.AwsConsumptionHistory",
           schema: "public",
@@ -675,7 +675,7 @@ export const introspectionWithConstraints: IntrospectedStructure = {
           },
         ],
       },
-      constraints: [
+      uniqueConstraints: [
         {
           tableId: "public.DatabaseProvider",
           schema: "public",
@@ -871,7 +871,7 @@ export const introspectionWithConstraints: IntrospectedStructure = {
           },
         ],
       },
-      constraints: [
+      uniqueConstraints: [
         {
           tableId: "public.DbConnection",
           schema: "public",
@@ -1144,7 +1144,7 @@ export const introspectionWithConstraints: IntrospectedStructure = {
           },
         ],
       },
-      constraints: [
+      uniqueConstraints: [
         {
           tableId: "public.ExecTask",
           schema: "public",
@@ -1326,7 +1326,7 @@ export const introspectionWithConstraints: IntrospectedStructure = {
           },
         ],
       },
-      constraints: [
+      uniqueConstraints: [
         {
           tableId: "public.InviteToken",
           schema: "public",
@@ -1494,7 +1494,7 @@ export const introspectionWithConstraints: IntrospectedStructure = {
           },
         ],
       },
-      constraints: [
+      uniqueConstraints: [
         {
           tableId: "public.Member",
           schema: "public",
@@ -1763,7 +1763,7 @@ export const introspectionWithConstraints: IntrospectedStructure = {
           },
         ],
       },
-      constraints: [
+      uniqueConstraints: [
         {
           tableId: "public.NeonConsumptionHistory",
           schema: "public",
@@ -1961,7 +1961,7 @@ export const introspectionWithConstraints: IntrospectedStructure = {
           },
         ],
       },
-      constraints: [
+      uniqueConstraints: [
         {
           tableId: "public.NeonProject",
           schema: "public",
@@ -2242,7 +2242,7 @@ export const introspectionWithConstraints: IntrospectedStructure = {
           },
         ],
       },
-      constraints: [
+      uniqueConstraints: [
         {
           tableId: "public.Organization",
           schema: "public",
@@ -2396,7 +2396,7 @@ export const introspectionWithConstraints: IntrospectedStructure = {
           },
         ],
       },
-      constraints: [
+      uniqueConstraints: [
         {
           tableId: "public.PredictionDataSet",
           schema: "public",
@@ -2580,7 +2580,7 @@ export const introspectionWithConstraints: IntrospectedStructure = {
           },
         ],
       },
-      constraints: [
+      uniqueConstraints: [
         {
           tableId: "public.PredictionJob",
           schema: "public",
@@ -2749,7 +2749,7 @@ export const introspectionWithConstraints: IntrospectedStructure = {
           },
         ],
       },
-      constraints: [
+      uniqueConstraints: [
         {
           tableId: "public.PreviewDatabase",
           schema: "public",
@@ -2918,7 +2918,7 @@ export const introspectionWithConstraints: IntrospectedStructure = {
           },
         ],
       },
-      constraints: [
+      uniqueConstraints: [
         {
           tableId: "public.PricingPlan",
           schema: "public",
@@ -3422,7 +3422,7 @@ export const introspectionWithConstraints: IntrospectedStructure = {
           },
         ],
       },
-      constraints: [
+      uniqueConstraints: [
         {
           tableId: "public.Project",
           schema: "public",
@@ -3546,7 +3546,7 @@ export const introspectionWithConstraints: IntrospectedStructure = {
           },
         ],
       },
-      constraints: [
+      uniqueConstraints: [
         {
           tableId: "public.ReleaseVersion",
           schema: "public",
@@ -3700,7 +3700,7 @@ export const introspectionWithConstraints: IntrospectedStructure = {
           },
         ],
       },
-      constraints: [
+      uniqueConstraints: [
         {
           tableId: "public.ShapePredictionOverride",
           schema: "public",
@@ -3899,7 +3899,7 @@ export const introspectionWithConstraints: IntrospectedStructure = {
           },
         ],
       },
-      constraints: [
+      uniqueConstraints: [
         {
           tableId: "public.ShapePredictionStore",
           schema: "public",
@@ -4466,7 +4466,7 @@ export const introspectionWithConstraints: IntrospectedStructure = {
           },
         ],
       },
-      constraints: [
+      uniqueConstraints: [
         {
           tableId: "public.Snapshot",
           schema: "public",
@@ -4635,7 +4635,7 @@ export const introspectionWithConstraints: IntrospectedStructure = {
           },
         ],
       },
-      constraints: [
+      uniqueConstraints: [
         {
           tableId: "public.SupabaseProject",
           schema: "public",
@@ -4923,7 +4923,7 @@ export const introspectionWithConstraints: IntrospectedStructure = {
           },
         ],
       },
-      constraints: [
+      uniqueConstraints: [
         {
           tableId: "public.Table",
           schema: "public",
@@ -5147,7 +5147,7 @@ export const introspectionWithConstraints: IntrospectedStructure = {
           },
         ],
       },
-      constraints: [
+      uniqueConstraints: [
         {
           tableId: "public.User",
           schema: "public",
@@ -5301,7 +5301,7 @@ export const introspectionWithConstraints: IntrospectedStructure = {
           },
         ],
       },
-      constraints: [
+      uniqueConstraints: [
         {
           tableId: "public._prisma_migrations",
           schema: "public",
@@ -5620,7 +5620,7 @@ export const introspectionWithConstraints: IntrospectedStructure = {
           },
         ],
       },
-      constraints: [
+      uniqueConstraints: [
         {
           tableId: "pgboss.job",
           schema: "pgboss",
@@ -5759,7 +5759,7 @@ export const introspectionWithConstraints: IntrospectedStructure = {
           },
         ],
       },
-      constraints: [
+      uniqueConstraints: [
         {
           tableId: "pgboss.schedule",
           schema: "pgboss",
@@ -5838,7 +5838,7 @@ export const introspectionWithConstraints: IntrospectedStructure = {
           },
         ],
       },
-      constraints: [
+      uniqueConstraints: [
         {
           tableId: "pgboss.version",
           schema: "pgboss",

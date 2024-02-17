@@ -247,15 +247,17 @@ export const PG_NUMBER_TYPES = new Set([
 export function groupBy<T, K extends number | string | symbol>(
   array: Array<T>,
   getKey: (item: T) => K,
-): Record<K, Array<T>> {
-  const result: Record<K, Array<T>> = {} as Record<K, Array<T>>;
+) {
+  const result: Record<K, Array<T> | undefined> = {} as Record<
+    K,
+    Array<T> | undefined
+  >;
   return array.reduce((accumulator, currentItem) => {
     const key = getKey(currentItem);
-    // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
     if (!accumulator[key]) {
       accumulator[key] = [];
     }
-    accumulator[key].push(currentItem);
+    accumulator[key]?.push(currentItem);
     return accumulator;
   }, result);
 }

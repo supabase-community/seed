@@ -68,7 +68,7 @@ export async function introspectDatabase<T extends QueryResultHKT>(
   const tablesWithRelations: IntrospectedStructure["tables"] = tablesInfos.map(
     (table) => {
       const tableRelationships = groupedRelationships.get(table.id);
-      const primaryKeys = groupedPrimaryKeys[table.id][0] ?? null;
+      const primaryKeys = groupedPrimaryKeys[table.id]?.[0] ?? null;
       const uniqueConstraints = groupedUniqueConstraints[table.id] ?? [];
       return {
         id: table.id,
@@ -88,6 +88,7 @@ export async function introspectDatabase<T extends QueryResultHKT>(
   return {
     tables: tablesWithRelations,
     enums: enums,
+    // @ts-expect-error zod we have possible undefined in groupBy type signature to enforce chekcking for value after access like group[key] but in that case we know that we have a value for each key
     sequences: sequencesGroupesBySchema,
   };
 }

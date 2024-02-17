@@ -21,8 +21,8 @@ export const groupParentsChildrenRelations = (
   const parents = groupBy(databaseRelationships, (f) => f.fkTable);
   for (const tableId of tableIds) {
     tablesRelationships.set(tableId, {
-      parents: parents[tableId],
-      children: children[tableId],
+      parents: parents[tableId] ?? [],
+      children: children[tableId] ?? [],
     });
   }
   return tablesRelationships;
