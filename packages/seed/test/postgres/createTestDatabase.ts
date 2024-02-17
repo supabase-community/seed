@@ -1,9 +1,9 @@
 import { sql } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/postgres-js";
+import { readFileSync } from "fs-extra";
+import path from "node:path";
 import postgres from "postgres";
 import { v4 } from "uuid";
-import { readFileSync } from 'fs-extra'
-import path from 'path'
 
 interface State {
   dbs: Array<{
@@ -74,10 +74,10 @@ export const defineCreateTestDb = (state: State) => {
 export const createTestDb = defineCreateTestDb({ dbs: [] });
 
 export const createSnapletTestDb = async () => {
-  const db = await createTestDb()
+  const db = await createTestDb();
   const snapletSchemaSql = readFileSync(
-    path.resolve(__dirname, './fixtures/snaplet_schema.sql')
-  )
-  await drizzle(db.client).execute(sql.raw(snapletSchemaSql.toString()))
-  return db
-}
+    path.resolve(__dirname, "./fixtures/snaplet_schema.sql"),
+  );
+  await drizzle(db.client).execute(sql.raw(snapletSchemaSql.toString()));
+  return db;
+};

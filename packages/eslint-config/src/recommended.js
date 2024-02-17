@@ -93,4 +93,5 @@ export const recommended = [
       // Disable the rule for expect.arrayContainting matcher to not cause issue
       "@typescript-eslint/no-unsafe-assignment": "off",
     },
+  }
 ];

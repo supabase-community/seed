@@ -3,9 +3,8 @@ import { sql } from "drizzle-orm";
 import { type PgDatabase, type QueryResultHKT } from "drizzle-orm/pg-core";
 import { buildSchemaExclusionClause } from "./utils.js";
 
-
-type FetchSchemasResult = {
-  schemaName: string
+interface FetchSchemasResult {
+  schemaName: string;
 }
 const FETCH_AUTHORIZED_SCHEMAS = `
   SELECT
@@ -13,10 +12,10 @@ const FETCH_AUTHORIZED_SCHEMAS = `
   FROM
     information_schema.schemata
   WHERE
-    ${buildSchemaExclusionClause('schema_name')} AND
+    ${buildSchemaExclusionClause("schema_name")} AND
     pg_catalog.has_schema_privilege(current_user, schema_name, 'USAGE')
   ORDER BY schema_name
-`
+`;
 
 export async function fetchSchemas<T extends QueryResultHKT>(
   client: PgDatabase<T>,

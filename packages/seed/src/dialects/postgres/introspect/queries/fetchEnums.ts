@@ -3,11 +3,11 @@ import { sql } from "drizzle-orm";
 import { type PgDatabase, type QueryResultHKT } from "drizzle-orm/pg-core";
 import { buildSchemaExclusionClause } from "./utils.js";
 
-type FetchEnumsResult = {
-  id: string
-  schema: string
-  name: string
-  values: string[]
+interface FetchEnumsResult {
+  id: string;
+  name: string;
+  schema: string;
+  values: Array<string>;
 }
 
 const FETCH_ENUMS = `

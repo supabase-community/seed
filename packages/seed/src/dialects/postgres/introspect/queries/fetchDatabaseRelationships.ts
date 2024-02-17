@@ -3,18 +3,18 @@ import { sql } from "drizzle-orm";
 import { type PgDatabase, type QueryResultHKT } from "drizzle-orm/pg-core";
 import { buildSchemaExclusionClause } from "./utils.js";
 
-type RelationKeyInfos = {
-  fkColumn: string
-  fkType: string
-  targetColumn: string
-  targetType: string
-  nullable: boolean
+interface RelationKeyInfos {
+  fkColumn: string;
+  fkType: string;
+  nullable: boolean;
+  targetColumn: string;
+  targetType: string;
 }
-type FetchRelationshipsInfosResult = {
-  id: string
-  fkTable: string
-  targetTable: string
-  keys: RelationKeyInfos[]
+interface FetchRelationshipsInfosResult {
+  fkTable: string;
+  id: string;
+  keys: Array<RelationKeyInfos>;
+  targetTable: string;
 }
 const FETCH_RELATIONSHIPS_INFOS = `
   SELECT
@@ -51,10 +51,10 @@ const FETCH_RELATIONSHIPS_INFOS = `
     JOIN pg_type tar_typ ON tar_att.atttypid = tar_typ.oid
     JOIN pg_namespace fk_nsp ON fk_schema_id = fk_nsp.oid
     JOIN pg_namespace tar_nsp ON target_schema_id = tar_nsp.oid
-  WHERE ${buildSchemaExclusionClause('fk_nsp.nspname')}
+  WHERE ${buildSchemaExclusionClause("fk_nsp.nspname")}
   GROUP BY "fkTable", "targetTable", sub.constraint_nsp, sub.constraint_name
   ORDER BY "fkTable", "targetTable";
-`
+`;
 
 export async function fetchDatabaseRelationships<T extends QueryResultHKT>(
   client: PgDatabase<T>,

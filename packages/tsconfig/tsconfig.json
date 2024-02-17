@@ -14,5 +14,8 @@
     "exactOptionalPropertyTypes": false,
     "noUncheckedIndexedAccess": false,
     "noEmit": false,
-  }
+  },
+  "exclude": [
+    "**/dist/*"
+  ]
 }

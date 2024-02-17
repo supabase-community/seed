@@ -4,56 +4,56 @@ import { type PgDatabase, type QueryResultHKT } from "drizzle-orm/pg-core";
 import { buildSchemaExclusionClause } from "./utils.js";
 
 export const TYPE_CATEGORY_DISPLAY_NAMES = {
-  A: 'Array',
-  B: 'Boolean',
-  C: 'Composite',
-  D: 'Date/time',
-  E: 'Enum',
-  G: 'Geometric',
-  I: 'Network address',
-  N: 'Numeric',
-  P: 'Pseudo-types',
-  R: 'Range',
-  S: 'String',
-  T: 'Timespan',
-  U: 'User-defined',
-  V: 'Bit-string',
-  X: 'unknown',
-  Z: 'Internal-use',
-} as const
+  A: "Array",
+  B: "Boolean",
+  C: "Composite",
+  D: "Date/time",
+  E: "Enum",
+  G: "Geometric",
+  I: "Network address",
+  N: "Numeric",
+  P: "Pseudo-types",
+  R: "Range",
+  S: "String",
+  T: "Timespan",
+  U: "User-defined",
+  V: "Bit-string",
+  X: "unknown",
+  Z: "Internal-use",
+} as const;
 
 export const COLUMN_CONSTRAINTS = {
-  PRIMARY_KEY: 'p',
-  FOREIGN_KEY: 'f',
-  UNIQUE: 'u',
-  CHECK_CONSTRAINT: 'c',
-  TRIGGER_CONSTRAINT: 't',
-  EXCLUSION_CONSTRAINT: 'x',
-} as const
+  PRIMARY_KEY: "p",
+  FOREIGN_KEY: "f",
+  UNIQUE: "u",
+  CHECK_CONSTRAINT: "c",
+  TRIGGER_CONSTRAINT: "t",
+  EXCLUSION_CONSTRAINT: "x",
+} as const;
 
 export type ColumnConstraintType =
-  (typeof COLUMN_CONSTRAINTS)[keyof typeof COLUMN_CONSTRAINTS]
+  (typeof COLUMN_CONSTRAINTS)[keyof typeof COLUMN_CONSTRAINTS];
 
-type SelectColumnsResult = {
-  id: string
-  name: string
-  type: string
-  typeId: string
-  table: string
-  schema: string
-  nullable: boolean
-  default: string | null
-  generated: 'ALWAYS' | 'NEVER'
-  maxLength: number | null
+interface SelectColumnsResult {
+  constraints: Array<ColumnConstraintType>;
+  default: null | string;
+  generated: "ALWAYS" | "NEVER";
+  id: string;
   identity?: {
-    sequenceName: string | undefined
-    generated: 'ALWAYS' | 'BY DEFAULT'
-    start: number
-    increment: number
-    current: number
-  } | null
-  typeCategory: keyof typeof TYPE_CATEGORY_DISPLAY_NAMES
-  constraints: ColumnConstraintType[]
+    current: number;
+    generated: "ALWAYS" | "BY DEFAULT";
+    increment: number;
+    sequenceName: string | undefined;
+    start: number;
+  } | null;
+  maxLength: null | number;
+  name: string;
+  nullable: boolean;
+  schema: string;
+  table: string;
+  type: string;
+  typeCategory: keyof typeof TYPE_CATEGORY_DISPLAY_NAMES;
+  typeId: string;
 }
 const SELECT_COLUMNS = `
   SELECT
@@ -123,17 +123,17 @@ const SELECT_COLUMNS = `
       array_dimensions.nspname = columns.table_schema AND
       array_dimensions.relname = columns.table_name AND
       array_dimensions.attname = columns.column_name
-`
+`;
 
-type SelectTablesResult = {
-  oid: string
-  tableId: string
-  tableSchema: string
-  tableName: string
-  rowEstimate: number | null
-  totalBytes: number
-  indexBytes: number
-  toastBytes: number
+interface SelectTablesResult {
+  indexBytes: number;
+  oid: string;
+  rowEstimate: null | number;
+  tableId: string;
+  tableName: string;
+  tableSchema: string;
+  toastBytes: number;
+  totalBytes: number;
 }
 const SELECT_TABLES = `
   SELECT
@@ -156,23 +156,23 @@ const SELECT_TABLES = `
     pg_total_relation_size(reltoastrelid) AS "toastBytes"
   FROM pg_class c
   INNER JOIN pg_namespace n ON n.oid = c.relnamespace
-`
+`;
 
-type FetchTableAndColumnsResult = {
-  id: SelectTablesResult['tableId']
-  name: SelectTablesResult['tableName']
-  schema: SelectTablesResult['tableSchema']
-  rows: SelectTablesResult['rowEstimate']
-  bytes: number
-  columns: Array<SelectColumnsResult>
-  partitioned: boolean
+interface FetchTableAndColumnsResult {
+  bytes: number;
+  columns: Array<SelectColumnsResult>;
+  id: SelectTablesResult["tableId"];
+  name: SelectTablesResult["tableName"];
+  partitioned: boolean;
+  rows: SelectTablesResult["rowEstimate"];
+  schema: SelectTablesResult["tableSchema"];
 }
 const FETCH_TABLES_AND_COLUMNS = `
   WITH
       constraints_data AS (
         ${SELECT_COLUMNS}
         -- Exclude all system tables
-        WHERE ${buildSchemaExclusionClause('columns.table_schema')}
+        WHERE ${buildSchemaExclusionClause("columns.table_schema")}
         -- We want to keep the order of the columns as they are in the table creation
         ORDER BY columns.ordinal_position
       ),
@@ -182,7 +182,7 @@ const FETCH_TABLES_AND_COLUMNS = `
           -- table objects
           c.relkind IN ('p', 'r') AND c.relispartition IS FALSE AND
           -- Exclude all system tables
-          ${buildSchemaExclusionClause('n.nspname')} AND
+          ${buildSchemaExclusionClause("n.nspname")} AND
           pg_catalog.has_schema_privilege(current_user, n.nspname, 'USAGE') AND
           pg_catalog.has_table_privilege(current_user, concat(quote_ident(n.nspname), '.', quote_ident(c.relname)), 'SELECT')
       ),
@@ -238,37 +238,35 @@ const FETCH_TABLES_AND_COLUMNS = `
       tables_with_bytes."rowEstimate",
       tables_with_bytes."tableBytes"
     ORDER BY tables_with_bytes."tableName";
-`
+`;
 
 export async function fetchTablesAndColumns<T extends QueryResultHKT>(
   client: PgDatabase<T>,
 ) {
   const response = (await client.execute(
     sql.raw(FETCH_TABLES_AND_COLUMNS),
-  )) as postgres.RowList<Array<{json_build_object: FetchTableAndColumnsResult}>>;
+  )) as postgres.RowList<
+    Array<{ json_build_object: FetchTableAndColumnsResult }>
+  >;
 
-
-  return response.map(
-    (r) =>
-      ({
-        ...r.json_build_object,
-        columns: r.json_build_object.columns.map((c) => ({
-          ...c,
-          identity: c.identity
-            ? {
-                sequenceName: c.identity.sequenceName,
-                generated: c.identity.generated,
-                increment: c.identity.increment,
-                // When a sequence is created, the current value is the start value and is available for use
-                // but when the sequence is used for the first time, the current values is the last used one not available for use
-                // so we increment it by one to get the next available value instead
-                current:
-                  c.identity!.start === c.identity!.current
-                    ? c.identity!.current
-                    : c.identity!.current + 1,
-              }
-            : null,
-        })),
-      })
-  )
+  return response.map((r) => ({
+    ...r.json_build_object,
+    columns: r.json_build_object.columns.map((c) => ({
+      ...c,
+      identity: c.identity
+        ? {
+            sequenceName: c.identity.sequenceName,
+            generated: c.identity.generated,
+            increment: c.identity.increment,
+            // When a sequence is created, the current value is the start value and is available for use
+            // but when the sequence is used for the first time, the current values is the last used one not available for use
+            // so we increment it by one to get the next available value instead
+            current:
+              c.identity.start === c.identity.current
+                ? c.identity.current
+                : c.identity.current + 1,
+          }
+        : null,
+    })),
+  }));
 }

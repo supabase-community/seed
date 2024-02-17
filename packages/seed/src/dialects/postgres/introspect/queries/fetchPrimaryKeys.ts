@@ -3,14 +3,14 @@ import { sql } from "drizzle-orm";
 import { type PgDatabase, type QueryResultHKT } from "drizzle-orm/pg-core";
 import { buildSchemaExclusionClause } from "./utils.js";
 
-type FetchPrimaryKeysResult = {
-  tableId: string
-  schema: string
-  table: string
-  // Simple boolean who'll allows us to always know if the primary keys we are using
+interface FetchPrimaryKeysResult {
   // are the one retrieved from the database or the one we fallback on
-  dirty: boolean
-  keys: Array<{ name: string; type: string }>
+  dirty: boolean;
+  keys: Array<{ name: string; type: string }>;
+  schema: string;
+  // Simple boolean who'll allows us to always know if the primary keys we are using
+  table: string;
+  tableId: string;
 }
 
 const FETCH_PRIMARY_KEYS = `
@@ -35,7 +35,7 @@ keys_search AS (
   LEFT JOIN pg_constraint con ON con.conrelid = c.oid AND a.attnum = ANY(con.conkey) AND con.contype = k.contype
   LEFT JOIN pg_index i ON i.indrelid = c.oid AND a.attnum = ANY (i.indkey) AND i.indisunique AND NOT i.indisprimary
   WHERE
-    ${buildSchemaExclusionClause('n.nspname')}
+    ${buildSchemaExclusionClause("n.nspname")}
     AND (
       -- First we will try to use the primary keys constraints
       (k.contype = 'p' AND con.contype = 'p')
@@ -46,7 +46,7 @@ keys_search AS (
       --  If we still find nothing, we will try to look for an UNIQUE index on non nullable column
       (k.contype = 'ui' AND a.attnotnull AND i.indisunique AND NOT i.indisprimary)
     )
-    AND ${buildSchemaExclusionClause('c.relname')}
+    AND ${buildSchemaExclusionClause("c.relname")}
   ORDER BY n.nspname, c.relname, a.attname
 ),
 selected_keys AS (
@@ -70,7 +70,7 @@ FROM
   selected_keys sk
 ORDER BY
   "schema", "table";
-`
+`;
 
 export async function fetchPrimaryKeys<T extends QueryResultHKT>(
   client: PgDatabase<T>,

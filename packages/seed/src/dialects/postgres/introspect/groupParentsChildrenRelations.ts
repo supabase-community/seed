@@ -1,31 +1,31 @@
-import { groupBy } from 'lodash'
-import type { AsyncFunctionSuccessType } from './types.js';
-import type { fetchDatabaseRelationships } from './queries/fetchDatabaseRelationships.js'
+import { groupBy } from "lodash";
+import { type fetchDatabaseRelationships } from "./queries/fetchDatabaseRelationships.js";
+import { type AsyncFunctionSuccessType } from "./types.js";
 
-type fetchRelationshipsResultsType = Array<AsyncFunctionSuccessType<
-  typeof fetchDatabaseRelationships
->[number]>
+type fetchRelationshipsResultsType = Array<
+    AsyncFunctionSuccessType<typeof fetchDatabaseRelationships>[number]
+>;
 
 export const groupParentsChildrenRelations = (
-  databaseRelationships: fetchRelationshipsResultsType,
-  tableIds: string[]
+    databaseRelationships: fetchRelationshipsResultsType,
+    tableIds: Array<string>,
 ) => {
-  const tablesRelationships = new Map<
-    string,
-    {
-      parents: fetchRelationshipsResultsType
-      children: fetchRelationshipsResultsType
+    const tablesRelationships = new Map<
+        string,
+        {
+            children: fetchRelationshipsResultsType;
+            parents: fetchRelationshipsResultsType;
+        }
+    >();
+    const children = groupBy(databaseRelationships, (f) => f.targetTable);
+    const parents = groupBy(databaseRelationships, (f) => f.fkTable);
+    for (const tableId of tableIds) {
+        tablesRelationships.set(tableId, {
+            parents: parents[tableId],
+            children: children[tableId],
+        });
     }
-  >()
-  const children = groupBy(databaseRelationships, (f) => f.targetTable)
-  const parents = groupBy(databaseRelationships, (f) => f.fkTable)
-  for (const tableId of tableIds) {
-    tablesRelationships.set(tableId, {
-      parents: parents[tableId] || [],
-      children: children[tableId] || [],
-    })
-  }
-  return tablesRelationships
-}
+    return tablesRelationships;
+};
 
-export type { fetchRelationshipsResultsType }
+export type { fetchRelationshipsResultsType };

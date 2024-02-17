@@ -5,7 +5,7 @@ import { fetchDatabaseRelationships } from "./fetchDatabaseRelationships.js";
 
 const { createTestDb } = postgres;
 
-test('should return empty array if no relations', async () => {
+test("should return empty array if no relations", async () => {
   const structure = `
     CREATE TABLE "Courses" (
         "CourseID" SERIAL PRIMARY KEY,
@@ -16,13 +16,13 @@ test('should return empty array if no relations', async () => {
         "FirstName" VARCHAR(255) NOT NULL,
         "LastName" VARCHAR(255) NOT NULL
     );
-  `
-  const { client } = await createTestDb(structure)
-  const relationships = await fetchDatabaseRelationships(drizzle(client))
-  expect(relationships.length).toEqual(0)
-})
+  `;
+  const { client } = await createTestDb(structure);
+  const relationships = await fetchDatabaseRelationships(drizzle(client));
+  expect(relationships.length).toEqual(0);
+});
 
-test('should get composite FK and basic FK', async () => {
+test("should get composite FK and basic FK", async () => {
   const structure = `
     CREATE TABLE "Courses" (
         "CourseID" SERIAL PRIMARY KEY,
@@ -48,68 +48,68 @@ test('should get composite FK and basic FK', async () => {
         PRIMARY KEY ("CourseID", "StudentID", "ExamName"),
         FOREIGN KEY ("CourseID", "StudentID") REFERENCES "Enrollments"("CourseID", "StudentID")
     );
-  `
-  const { client } = await createTestDb(structure)
-  const relationships = await fetchDatabaseRelationships(drizzle(client))
+  `;
+  const { client } = await createTestDb(structure);
+  const relationships = await fetchDatabaseRelationships(drizzle(client));
   expect(relationships).toEqual(
     expect.arrayContaining([
       {
-        fkTable: 'public.Enrollments',
-        id: 'Enrollments_CourseID_fkey',
+        fkTable: "public.Enrollments",
+        id: "Enrollments_CourseID_fkey",
 
         keys: [
           {
-            fkColumn: 'CourseID',
-            fkType: 'int4',
+            fkColumn: "CourseID",
+            fkType: "int4",
             nullable: false,
-            targetColumn: 'CourseID',
-            targetType: 'int4',
+            targetColumn: "CourseID",
+            targetType: "int4",
           },
         ],
-        targetTable: 'public.Courses',
+        targetTable: "public.Courses",
       },
       {
-        fkTable: 'public.Enrollments',
-        id: 'Enrollments_StudentID_fkey',
+        fkTable: "public.Enrollments",
+        id: "Enrollments_StudentID_fkey",
 
         keys: [
           {
-            fkColumn: 'StudentID',
-            fkType: 'int4',
+            fkColumn: "StudentID",
+            fkType: "int4",
             nullable: false,
-            targetColumn: 'StudentID',
-            targetType: 'int4',
+            targetColumn: "StudentID",
+            targetType: "int4",
           },
         ],
-        targetTable: 'public.Students',
+        targetTable: "public.Students",
       },
       {
-        fkTable: 'public.Grades',
-        id: 'Grades_CourseID_StudentID_fkey',
+        fkTable: "public.Grades",
+        id: "Grades_CourseID_StudentID_fkey",
 
         keys: [
           {
-            fkColumn: 'CourseID',
-            fkType: 'int4',
+            fkColumn: "CourseID",
+            fkType: "int4",
             nullable: false,
-            targetColumn: 'CourseID',
-            targetType: 'int4',
+            targetColumn: "CourseID",
+            targetType: "int4",
           },
           {
-            fkColumn: 'StudentID',
-            fkType: 'int4',
+            fkColumn: "StudentID",
+            fkType: "int4",
             nullable: false,
-            targetColumn: 'StudentID',
-            targetType: 'int4',
+            targetColumn: "StudentID",
+            targetType: "int4",
           },
         ],
-        targetTable: 'public.Enrollments',
+        targetTable: "public.Enrollments",
       },
-    ])
-  )
-})
+    ]),
+  );
+});
 
-test('should get FK on multiples schemas', async () => {
+test("should get FK on multiples schemas", async () => {
   const structure = `
     CREATE SCHEMA private;
     CREATE TABLE public."Courses" (
@@ -132,46 +132,46 @@ test('should get FK on multiples schemas', async () => {
         PRIMARY KEY ("CourseID"),
         FOREIGN KEY ("CourseID") REFERENCES private."Courses"("CourseID")
     );
-  `
-  const { client } = await createTestDb(structure)
-  const relationships = await fetchDatabaseRelationships(drizzle(client))
+  `;
+  const { client } = await createTestDb(structure);
+  const relationships = await fetchDatabaseRelationships(drizzle(client));
   expect(relationships).toEqual(
     expect.arrayContaining([
       {
-        fkTable: 'private.Enrollments',
-        id: 'Enrollments_CourseID_fkey',
+        fkTable: "private.Enrollments",
+        id: "Enrollments_CourseID_fkey",
 
         keys: [
           {
-            fkColumn: 'CourseID',
-            fkType: 'int4',
+            fkColumn: "CourseID",
+            fkType: "int4",
             nullable: false,
-            targetColumn: 'CourseID',
-            targetType: 'int4',
+            targetColumn: "CourseID",
+            targetType: "int4",
           },
         ],
-        targetTable: 'private.Courses',
+        targetTable: "private.Courses",
       },
       {
-        fkTable: 'public.Students',
-        id: 'Students_StudentCourseId_fkey',
+        fkTable: "public.Students",
+        id: "Students_StudentCourseId_fkey",
 
         keys: [
           {
-            fkColumn: 'StudentCourseId',
-            fkType: 'int4',
+            fkColumn: "StudentCourseId",
+            fkType: "int4",
             nullable: false,
-            targetColumn: 'CourseID',
-            targetType: 'int4',
+            targetColumn: "CourseID",
+            targetType: "int4",
           },
         ],
-        targetTable: 'public.Courses',
+        targetTable: "public.Courses",
       },
-    ])
-  )
-})
+    ]),
+  );
+});
 
-test('should get FK on multiples schemas and nullables', async () => {
+test("should get FK on multiples schemas and nullables", async () => {
   const structure = `
     CREATE SCHEMA private;
     CREATE TABLE public."Courses" (
@@ -204,78 +204,78 @@ test('should get FK on multiples schemas and nullables', async () => {
         PRIMARY KEY ("CourseID", "StudentID", "ExamName"),
         FOREIGN KEY ("CourseID", "StudentID") REFERENCES private."Enrollments"("CourseID", "StudentID")
     );
-  `
-  const { client } = await createTestDb(structure)
-  const relationships = await fetchDatabaseRelationships(drizzle(client))
+  `;
+  const { client } = await createTestDb(structure);
+  const relationships = await fetchDatabaseRelationships(drizzle(client));
   expect(relationships).toEqual(
     expect.arrayContaining([
       {
-        fkTable: 'private.Enrollments',
-        id: 'Enrollments_CourseID_fkey',
+        fkTable: "private.Enrollments",
+        id: "Enrollments_CourseID_fkey",
 
         keys: [
           {
-            fkColumn: 'CourseID',
-            fkType: 'int4',
+            fkColumn: "CourseID",
+            fkType: "int4",
             nullable: true,
-            targetColumn: 'CourseID',
-            targetType: 'int4',
+            targetColumn: "CourseID",
+            targetType: "int4",
           },
         ],
-        targetTable: 'private.Courses',
+        targetTable: "private.Courses",
       },
       {
-        fkTable: 'private.Enrollments',
-        id: 'Enrollments_StudentID_fkey',
+        fkTable: "private.Enrollments",
+        id: "Enrollments_StudentID_fkey",
 
         keys: [
           {
-            fkColumn: 'StudentID',
-            fkType: 'int4',
+            fkColumn: "StudentID",
+            fkType: "int4",
             nullable: true,
-            targetColumn: 'StudentID',
-            targetType: 'int4',
+            targetColumn: "StudentID",
+            targetType: "int4",
           },
         ],
-        targetTable: 'public.Students',
+        targetTable: "public.Students",
       },
       {
-        fkTable: 'public.Grades',
-        id: 'Grades_CourseID_StudentID_fkey',
+        fkTable: "public.Grades",
+        id: "Grades_CourseID_StudentID_fkey",
 
         keys: [
           {
-            fkColumn: 'CourseID',
-            fkType: 'int4',
+            fkColumn: "CourseID",
+            fkType: "int4",
             nullable: false,
-            targetColumn: 'CourseID',
-            targetType: 'int4',
+            targetColumn: "CourseID",
+            targetType: "int4",
           },
           {
-            fkColumn: 'StudentID',
-            fkType: 'int4',
+            fkColumn: "StudentID",
+            fkType: "int4",
             nullable: false,
-            targetColumn: 'StudentID',
-            targetType: 'int4',
+            targetColumn: "StudentID",
+            targetType: "int4",
           },
         ],
-        targetTable: 'private.Enrollments',
+        targetTable: "private.Enrollments",
       },
       {
-        fkTable: 'public.Students',
-        id: 'Students_StudentCourseId_fkey',
+        fkTable: "public.Students",
+        id: "Students_StudentCourseId_fkey",
 
         keys: [
           {
-            fkColumn: 'StudentCourseId',
-            fkType: 'int4',
+            fkColumn: "StudentCourseId",
+            fkType: "int4",
             nullable: true,
-            targetColumn: 'CourseID',
-            targetType: 'int4',
+            targetColumn: "CourseID",
+            targetType: "int4",
           },
         ],
-        targetTable: 'public.Courses',
+        targetTable: "public.Courses",
       },
-    ])
-  )
-})
+    ]),
+  );
+});

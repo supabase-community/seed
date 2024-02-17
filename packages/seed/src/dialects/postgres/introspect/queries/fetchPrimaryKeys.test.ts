@@ -1,12 +1,11 @@
 import { drizzle } from "drizzle-orm/postgres-js";
 import { expect, test } from "vitest";
 import { postgres } from "#test";
-import { fetchPrimaryKeys } from './fetchPrimaryKeys.js'
+import { fetchPrimaryKeys } from "./fetchPrimaryKeys.js";
 
 const { createTestDb } = postgres;
 
-
-test('should get basics primary keys', async () => {
+test("should get basics primary keys", async () => {
   const structure = `
     CREATE TABLE "Courses" (
         "CourseID" SERIAL PRIMARY KEY,
@@ -17,30 +16,30 @@ test('should get basics primary keys', async () => {
         "FirstName" VARCHAR(255) NOT NULL,
         "LastName" VARCHAR(255) NOT NULL
     );
-  `
-  const db = await createTestDb(structure)
-  const primaryKeys = await fetchPrimaryKeys(drizzle(db.client))
+  `;
+  const db = await createTestDb(structure);
+  const primaryKeys = await fetchPrimaryKeys(drizzle(db.client));
   expect(primaryKeys).toEqual(
     expect.arrayContaining([
       {
-        keys: [{ name: 'CourseID', type: 'int4' }],
-        schema: 'public',
-        table: 'Courses',
+        keys: [{ name: "CourseID", type: "int4" }],
+        schema: "public",
+        table: "Courses",
         dirty: false,
-        tableId: 'public.Courses',
+        tableId: "public.Courses",
       },
       {
-        keys: [{ name: 'StudentID', type: 'int4' }],
-        schema: 'public',
-        table: 'Students',
+        keys: [{ name: "StudentID", type: "int4" }],
+        schema: "public",
+        table: "Students",
         dirty: false,
-        tableId: 'public.Students',
+        tableId: "public.Students",
       },
-    ])
-  )
-})
+    ]),
+  );
+});
 
-test('should get composite primary keys', async () => {
+test("should get composite primary keys", async () => {
   const structure = `
     CREATE TABLE "Courses" (
         "CourseID" SERIAL PRIMARY KEY,
@@ -66,49 +65,49 @@ test('should get composite primary keys', async () => {
         PRIMARY KEY ("CourseID", "StudentID", "ExamName"),
         FOREIGN KEY ("CourseID", "StudentID") REFERENCES "Enrollments"("CourseID", "StudentID")
     );
-  `
-  const db = await createTestDb(structure)
-  const primaryKeys = await fetchPrimaryKeys(drizzle(db.client))
+  `;
+  const db = await createTestDb(structure);
+  const primaryKeys = await fetchPrimaryKeys(drizzle(db.client));
   expect(primaryKeys).toEqual([
     {
-      keys: [{ name: 'CourseID', type: 'int4' }],
-      schema: 'public',
-      table: 'Courses',
+      keys: [{ name: "CourseID", type: "int4" }],
+      schema: "public",
+      table: "Courses",
       dirty: false,
-      tableId: 'public.Courses',
+      tableId: "public.Courses",
     },
     {
       keys: [
-        { name: 'CourseID', type: 'int4' },
-        { name: 'StudentID', type: 'int4' },
+        { name: "CourseID", type: "int4" },
+        { name: "StudentID", type: "int4" },
       ],
-      schema: 'public',
-      table: 'Enrollments',
+      schema: "public",
+      table: "Enrollments",
       dirty: false,
-      tableId: 'public.Enrollments',
+      tableId: "public.Enrollments",
     },
     {
       keys: [
-        { name: 'CourseID', type: 'int4' },
-        { name: 'ExamName', type: 'varchar' },
-        { name: 'StudentID', type: 'int4' },
+        { name: "CourseID", type: "int4" },
+        { name: "ExamName", type: "varchar" },
+        { name: "StudentID", type: "int4" },
       ],
-      schema: 'public',
-      table: 'Grades',
+      schema: "public",
+      table: "Grades",
       dirty: false,
-      tableId: 'public.Grades',
+      tableId: "public.Grades",
     },
     {
-      keys: [{ name: 'StudentID', type: 'int4' }],
-      schema: 'public',
-      table: 'Students',
+      keys: [{ name: "StudentID", type: "int4" }],
+      schema: "public",
+      table: "Students",
       dirty: false,
-      tableId: 'public.Students',
+      tableId: "public.Students",
     },
-  ])
-})
+  ]);
+});
 
-test('should get composite primary keys on different schemas', async () => {
+test("should get composite primary keys on different schemas", async () => {
   const structure = `
     CREATE SCHEMA private;
     CREATE TABLE public."Courses" (
@@ -120,41 +119,41 @@ test('should get composite primary keys on different schemas', async () => {
         "FirstName" VARCHAR(255) NOT NULL,
         "LastName" VARCHAR(255) NOT NULL
     );
-  `
-  const db = await createTestDb(structure)
-  const primaryKeys = await fetchPrimaryKeys(drizzle(db.client))
+  `;
+  const db = await createTestDb(structure);
+  const primaryKeys = await fetchPrimaryKeys(drizzle(db.client));
   expect(primaryKeys).toEqual(
     expect.arrayContaining([
       {
-        keys: [{ name: 'StudentID', type: 'int4' }],
-        schema: 'private',
-        table: 'Students',
+        keys: [{ name: "StudentID", type: "int4" }],
+        schema: "private",
+        table: "Students",
         dirty: false,
-        tableId: 'private.Students',
+        tableId: "private.Students",
       },
       {
-        keys: [{ name: 'CourseID', type: 'int4' }],
-        schema: 'public',
-        table: 'Courses',
+        keys: [{ name: "CourseID", type: "int4" }],
+        schema: "public",
+        table: "Courses",
         dirty: false,
-        tableId: 'public.Courses',
+        tableId: "public.Courses",
       },
-    ])
-  )
-})
+    ]),
+  );
+});
 
-test('should empty array for a table without any PK', async () => {
+test("should empty array for a table without any PK", async () => {
   const structure = `
     CREATE TABLE public."Courses" (
         "CourseName" VARCHAR(255) NOT NULL
     );
-  `
-  const db = await createTestDb(structure)
-  const primaryKeys = await fetchPrimaryKeys(drizzle(db.client))
-  expect(primaryKeys).toEqual(expect.arrayContaining([]))
-})
+  `;
+  const db = await createTestDb(structure);
+  const primaryKeys = await fetchPrimaryKeys(drizzle(db.client));
+  expect(primaryKeys).toEqual(expect.arrayContaining([]));
+});
 
-test('should get non nullable unique columns as fallback', async () => {
+test("should get non nullable unique columns as fallback", async () => {
   const structure = `
     CREATE TABLE "Courses" (
         "CourseID" TEXT UNIQUE NOT NULL,
@@ -165,30 +164,30 @@ test('should get non nullable unique columns as fallback', async () => {
         "FirstName" VARCHAR(255) NOT NULL,
         "LastName" VARCHAR(255) NOT NULL
     );
-  `
-  const db = await createTestDb(structure)
-  const primaryKeys = await fetchPrimaryKeys(drizzle(db.client))
+  `;
+  const db = await createTestDb(structure);
+  const primaryKeys = await fetchPrimaryKeys(drizzle(db.client));
   expect(primaryKeys).toEqual(
     expect.arrayContaining([
       {
-        keys: [{ name: 'CourseID', type: 'text' }],
-        schema: 'public',
-        table: 'Courses',
+        keys: [{ name: "CourseID", type: "text" }],
+        schema: "public",
+        table: "Courses",
         dirty: false,
-        tableId: 'public.Courses',
+        tableId: "public.Courses",
       },
       {
-        keys: [{ name: 'StudentID', type: 'text' }],
-        schema: 'public',
-        table: 'Students',
+        keys: [{ name: "StudentID", type: "text" }],
+        schema: "public",
+        table: "Students",
         dirty: false,
-        tableId: 'public.Students',
+        tableId: "public.Students",
       },
-    ])
-  )
-})
+    ]),
+  );
+});
 
-test('should get non nullable columns who have unique index on it as fallback', async () => {
+test("should get non nullable columns who have unique index on it as fallback", async () => {
   const structure = `
     CREATE TABLE "Courses" (
         "CourseID" TEXT NOT NULL,
@@ -201,30 +200,30 @@ test('should get non nullable columns who have unique index on it as fallback', 
     );
     CREATE UNIQUE INDEX idx_courses_value ON "Courses"("CourseID");
     CREATE UNIQUE INDEX idx_student_value ON "Students"("StudentID");
-  `
-  const db = await createTestDb(structure)
-  const primaryKeys = await fetchPrimaryKeys(drizzle(db.client))
+  `;
+  const db = await createTestDb(structure);
+  const primaryKeys = await fetchPrimaryKeys(drizzle(db.client));
   expect(primaryKeys).toEqual(
     expect.arrayContaining([
       {
-        keys: [{ name: 'CourseID', type: 'text' }],
-        schema: 'public',
-        table: 'Courses',
+        keys: [{ name: "CourseID", type: "text" }],
+        schema: "public",
+        table: "Courses",
         dirty: false,
-        tableId: 'public.Courses',
+        tableId: "public.Courses",
       },
       {
-        keys: [{ name: 'StudentID', type: 'text' }],
-        schema: 'public',
-        table: 'Students',
+        keys: [{ name: "StudentID", type: "text" }],
+        schema: "public",
+        table: "Students",
         dirty: false,
-        tableId: 'public.Students',
+        tableId: "public.Students",
       },
-    ])
-  )
-})
+    ]),
+  );
+});
 
-test('should only fetch primary keys if there is some', async () => {
+test("should only fetch primary keys if there is some", async () => {
   const structure = `
     CREATE TABLE "Courses" (
         "ID" SERIAL PRIMARY KEY,
@@ -238,30 +237,30 @@ test('should only fetch primary keys if there is some', async () => {
     );
     CREATE UNIQUE INDEX idx_courses_value ON "Courses"("CourseID");
     CREATE UNIQUE INDEX idx_student_value ON "Students"("StudentID");
-  `
-  const db = await createTestDb(structure)
-  const primaryKeys = await fetchPrimaryKeys(drizzle(db.client))
+  `;
+  const db = await createTestDb(structure);
+  const primaryKeys = await fetchPrimaryKeys(drizzle(db.client));
   expect(primaryKeys).toEqual(
     expect.arrayContaining([
       {
-        keys: [{ name: 'ID', type: 'int4' }],
-        schema: 'public',
-        table: 'Courses',
+        keys: [{ name: "ID", type: "int4" }],
+        schema: "public",
+        table: "Courses",
         dirty: false,
-        tableId: 'public.Courses',
+        tableId: "public.Courses",
       },
       {
-        keys: [{ name: 'StudentID', type: 'text' }],
-        schema: 'public',
-        table: 'Students',
+        keys: [{ name: "StudentID", type: "text" }],
+        schema: "public",
+        table: "Students",
         dirty: false,
-        tableId: 'public.Students',
+        tableId: "public.Students",
       },
-    ])
-  )
-})
+    ]),
+  );
+});
 
-test('should get non nullable columns who have unique index as composite keys on it as fallback', async () => {
+test("should get non nullable columns who have unique index as composite keys on it as fallback", async () => {
   const structure = `
     CREATE TABLE "Courses" (
         "CourseID" TEXT NOT NULL,
@@ -275,33 +274,33 @@ test('should get non nullable columns who have unique index as composite keys on
     );
     CREATE UNIQUE INDEX idx_courses_value ON "Courses"("CourseID", "RoomID");
     CREATE UNIQUE INDEX idx_student_value ON "Students"("StudentID");
-  `
-  const db = await createTestDb(structure)
-  const primaryKeys = await fetchPrimaryKeys(drizzle(db.client))
+  `;
+  const db = await createTestDb(structure);
+  const primaryKeys = await fetchPrimaryKeys(drizzle(db.client));
   expect(primaryKeys).toEqual(
     expect.arrayContaining([
       {
         keys: [
-          { name: 'CourseID', type: 'text' },
-          { name: 'RoomID', type: 'text' },
+          { name: "CourseID", type: "text" },
+          { name: "RoomID", type: "text" },
         ],
-        schema: 'public',
-        table: 'Courses',
+        schema: "public",
+        table: "Courses",
         dirty: false,
-        tableId: 'public.Courses',
+        tableId: "public.Courses",
       },
       {
-        keys: [{ name: 'StudentID', type: 'text' }],
-        schema: 'public',
-        table: 'Students',
+        keys: [{ name: "StudentID", type: "text" }],
+        schema: "public",
+        table: "Students",
         dirty: false,
-        tableId: 'public.Students',
+        tableId: "public.Students",
       },
-    ])
-  )
-})
+    ]),
+  );
+});
 
-test('should work with mix between tables', async () => {
+test("should work with mix between tables", async () => {
   const structure = `
     CREATE TABLE "compositeNotNullIndex" (
         "CourseID" TEXT NOT NULL,
@@ -330,100 +329,100 @@ test('should work with mix between tables', async () => {
     );
     CREATE UNIQUE INDEX idx_compositeNotNullIndex_value ON "compositeNotNullIndex"("CourseID", "RoomID");
     CREATE UNIQUE INDEX idx_student_value ON "notNullIndex"("StudentID");
-  `
-  const db = await createTestDb(structure)
-  const primaryKeys = await fetchPrimaryKeys(drizzle(db.client))
+  `;
+  const db = await createTestDb(structure);
+  const primaryKeys = await fetchPrimaryKeys(drizzle(db.client));
   expect(primaryKeys).toEqual(
     expect.arrayContaining([
       {
         keys: [
           {
-            name: 'CourseID',
-            type: 'text',
+            name: "CourseID",
+            type: "text",
           },
           {
-            name: 'RoomID',
-            type: 'text',
+            name: "RoomID",
+            type: "text",
           },
         ],
-        schema: 'public',
-        table: 'compositeNotNullIndex',
+        schema: "public",
+        table: "compositeNotNullIndex",
         dirty: false,
-        tableId: 'public.compositeNotNullIndex',
+        tableId: "public.compositeNotNullIndex",
       },
       {
         keys: [
           {
-            name: 'CourseID',
-            type: 'int4',
+            name: "CourseID",
+            type: "int4",
           },
           {
-            name: 'StudentID',
-            type: 'int4',
+            name: "StudentID",
+            type: "int4",
           },
         ],
-        schema: 'public',
-        table: 'compositePrimaryKey',
+        schema: "public",
+        table: "compositePrimaryKey",
         dirty: false,
-        tableId: 'public.compositePrimaryKey',
+        tableId: "public.compositePrimaryKey",
       },
       {
         keys: [
           {
-            name: 'CourseID',
-            type: 'int4',
+            name: "CourseID",
+            type: "int4",
           },
           {
-            name: 'OtherID',
-            type: 'int4',
+            name: "OtherID",
+            type: "int4",
           },
         ],
-        schema: 'public',
-        table: 'compositeUniqueNonNullableColumn',
+        schema: "public",
+        table: "compositeUniqueNonNullableColumn",
         dirty: false,
-        tableId: 'public.compositeUniqueNonNullableColumn',
+        tableId: "public.compositeUniqueNonNullableColumn",
       },
       {
         keys: [
           {
-            name: 'StudentID',
-            type: 'text',
+            name: "StudentID",
+            type: "text",
           },
         ],
-        schema: 'public',
-        table: 'notNullIndex',
+        schema: "public",
+        table: "notNullIndex",
         dirty: false,
-        tableId: 'public.notNullIndex',
+        tableId: "public.notNullIndex",
       },
       {
         keys: [
           {
-            name: 'pk',
-            type: 'int4',
+            name: "pk",
+            type: "int4",
           },
         ],
-        schema: 'public',
-        table: 'primaryKey',
+        schema: "public",
+        table: "primaryKey",
         dirty: false,
-        tableId: 'public.primaryKey',
+        tableId: "public.primaryKey",
       },
       {
         keys: [
           {
-            name: 'CourseID',
-            type: 'int4',
+            name: "CourseID",
+            type: "int4",
           },
         ],
-        schema: 'public',
-        table: 'uniqueNonNullableColumn',
+        schema: "public",
+        table: "uniqueNonNullableColumn",
         dirty: false,
-        tableId: 'public.uniqueNonNullableColumn',
+        tableId: "public.uniqueNonNullableColumn",
       },
-    ])
-  )
-})
+    ]),
+  );
+});
 
-test('should work with two tables named the same in two different schemas', async () => {
+test("should work with two tables named the same in two different schemas", async () => {
   const structure = `
   CREATE SCHEMA IF NOT EXISTS supabase_functions;
   CREATE TABLE public.migrations (
@@ -435,35 +434,35 @@ test('should work with two tables named the same in two different schemas', asyn
     version text NOT NULL PRIMARY KEY,
     inserted_at timestamp with time zone DEFAULT now() NOT NULL
   );
-  `
-  const db = await createTestDb(structure)
-  const primaryKeys = await fetchPrimaryKeys(drizzle(db.client))
+  `;
+  const db = await createTestDb(structure);
+  const primaryKeys = await fetchPrimaryKeys(drizzle(db.client));
   expect(primaryKeys).toEqual(
     expect.arrayContaining([
       {
         keys: [
           {
-            name: 'id',
-            type: 'int4',
+            name: "id",
+            type: "int4",
           },
         ],
-        schema: 'public',
-        table: 'migrations',
+        schema: "public",
+        table: "migrations",
         dirty: false,
-        tableId: 'public.migrations',
+        tableId: "public.migrations",
       },
       {
         keys: [
           {
-            name: 'version',
-            type: 'text',
+            name: "version",
+            type: "text",
           },
         ],
-        schema: 'supabase_functions',
-        table: 'migrations',
+        schema: "supabase_functions",
+        table: "migrations",
         dirty: false,
-        tableId: 'supabase_functions.migrations',
+        tableId: "supabase_functions.migrations",
       },
-    ])
-  )
-})
+    ]),
+  );
+});

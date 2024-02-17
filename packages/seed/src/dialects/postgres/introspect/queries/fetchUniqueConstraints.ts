@@ -3,32 +3,32 @@ import { sql } from "drizzle-orm";
 import { type PgDatabase, type QueryResultHKT } from "drizzle-orm/pg-core";
 import { buildSchemaExclusionClause } from "./utils.js";
 
-type FetchUniqueConstraintsResult = {
+interface FetchUniqueConstraintsResult {
   /**
-   * The table id (schemaName.tableName)
+   * The columns that are part of the constraint
    */
-  tableId: string
-  /**
-   * The schema name
-   */
-  schema: string
-  /**
-   * The table name
-   */
-  table: string
+  columns: Array<string>;
   /**
    * allows us to always know if the constraint we are using
    * are the one retrieved from the database or the one we augmented via user setting or fallback
    */
-  dirty: boolean
+  dirty: boolean;
   /**
    * The constraint name
    */
-  name: string
+  name: string;
   /**
-   * The columns that are part of the constraint
+   * The schema name
    */
-  columns: Array<string>
+  schema: string;
+  /**
+   * The table name
+   */
+  table: string;
+  /**
+   * The table id (schemaName.tableName)
+   */
+  tableId: string;
 }
 
 const FETCH_UNIQUE_CONSTRAINTS = `

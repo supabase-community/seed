@@ -3,12 +3,12 @@ import { sql } from "drizzle-orm";
 import { type PgDatabase, type QueryResultHKT } from "drizzle-orm/pg-core";
 import { buildSchemaExclusionClause } from "./utils.js";
 
-type FetchSequencesResult = {
-  schema: string
-  name: string
-  start: number
-  current: number
-  interval: number
+interface FetchSequencesResult {
+  current: number;
+  interval: number;
+  name: string;
+  schema: string;
+  start: number;
 }
 
 const FETCH_SEQUENCES = `
@@ -20,8 +20,8 @@ SELECT
   increment_by AS interval
 FROM
  pg_sequences
-WHERE ${buildSchemaExclusionClause('pg_sequences.schemaname')}
-`
+WHERE ${buildSchemaExclusionClause("pg_sequences.schemaname")}
+`;
 
 export async function fetchSequences<T extends QueryResultHKT>(
   client: PgDatabase<T>,
@@ -38,5 +38,5 @@ export async function fetchSequences<T extends QueryResultHKT>(
     // so we increment it by one to get the next available value instead
     current: r.start === r.current ? Number(r.current) : Number(r.current) + 1,
     interval: Number(r.interval),
-  }))
+  }));
 }

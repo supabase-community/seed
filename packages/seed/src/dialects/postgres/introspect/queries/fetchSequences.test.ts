@@ -1,30 +1,29 @@
+import { sql } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/postgres-js";
 import { expect, test } from "vitest";
 import { postgres } from "#test";
 import { fetchSequences } from "./fetchSequences.js";
-import { sql } from "drizzle-orm";
 
 const { createTestDb } = postgres;
 
-
-test('should fetch basic sequences', async () => {
+test("should fetch basic sequences", async () => {
   const structure = `
     CREATE SEQUENCE public.seq_example INCREMENT 1 START 1;
-  `
+  `;
   const db = await createTestDb(structure);
   const { client } = db;
   const sequences = await fetchSequences(drizzle(client));
   expect(sequences).toEqual([
     {
-      schema: 'public',
-      name: 'seq_example',
+      schema: "public",
+      name: "seq_example",
       current: 1, // Current value might be '1' if not used yt
       interval: 1,
     },
-  ])
-})
+  ]);
+});
 
-test('should fetch sequences used by tables', async () => {
+test("should fetch sequences used by tables", async () => {
   const structure = `
     CREATE TABLE public.students (
       student_id SERIAL PRIMARY KEY,
@@ -35,62 +34,64 @@ test('should fetch sequences used by tables', async () => {
       title VARCHAR(100) NOT NULL
     );
     -- Assuming SERIAL creates a sequence named 'students_student_id_seq' and 'courses_course_id_seq'
-  `
+  `;
   const db = await createTestDb(structure);
   const { client } = db;
   const sequences = await fetchSequences(drizzle(client));
   expect(sequences).toEqual(
     expect.arrayContaining([
       {
-        schema: 'public',
-        name: 'students_student_id_seq', // The exact name might differ; adjust as necessary
+        schema: "public",
+        name: "students_student_id_seq", // The exact name might differ; adjust as necessary
         current: 1,
         interval: 1,
       },
       {
-        schema: 'public',
-        name: 'courses_course_id_seq', // The exact name might differ; adjust as necessary
+        schema: "public",
+        name: "courses_course_id_seq", // The exact name might differ; adjust as necessary
         current: 1,
         interval: 1,
       },
-    ])
-  )
-  await drizzle(client).execute(sql.raw(`
+    ]),
+  );
+  await drizzle(client).execute(
+    sql.raw(`
   INSERT INTO public.students (name) VALUES ('John Doe'), ('Jane Smith');
-  INSERT INTO public.courses (title) VALUES ('Mathematics'), ('Science');`))
+  INSERT INTO public.courses (title) VALUES ('Mathematics'), ('Science');`),
+  );
   const result = await fetchSequences(drizzle(client));
 
   expect(result).toEqual(
     expect.arrayContaining([
       {
-        schema: 'public',
-        name: 'students_student_id_seq', // The exact name might differ; adjust as necessary
+        schema: "public",
+        name: "students_student_id_seq", // The exact name might differ; adjust as necessary
         current: 3,
         interval: 1,
       },
       {
-        schema: 'public',
-        name: 'courses_course_id_seq', // The exact name might differ; adjust as necessary
+        schema: "public",
+        name: "courses_course_id_seq", // The exact name might differ; adjust as necessary
         current: 3,
         interval: 1,
       },
-    ])
-  )
-})
+    ]),
+  );
+});
 
-test('should handle empty result when no accessible sequences', async () => {
-  const structure = ``
+test("should handle empty result when no accessible sequences", async () => {
+  const structure = ``;
   const db = await createTestDb(structure);
   const { client } = db;
   const sequences = await fetchSequences(drizzle(client));
-  expect(sequences).toEqual([])
-})
+  expect(sequences).toEqual([]);
+});
 
-test('should fetch multiple sequences', async () => {
+test("should fetch multiple sequences", async () => {
   const structure = `
     CREATE SEQUENCE public.seq_example1 INCREMENT 1 START 1;
     CREATE SEQUENCE public.seq_example2 INCREMENT 1 START 50;
-  `
+  `;
   const db = await createTestDb(structure);
   const { client } = db;
   const sequences = await fetchSequences(drizzle(client));
@@ -99,42 +100,42 @@ test('should fetch multiple sequences', async () => {
       {
         current: 1,
         interval: 1,
-        name: 'seq_example1',
-        schema: 'public',
+        name: "seq_example1",
+        schema: "public",
       },
       {
         current: 50,
         interval: 1,
-        name: 'seq_example2',
-        schema: 'public',
+        name: "seq_example2",
+        schema: "public",
       },
-    ])
-  )
-})
+    ]),
+  );
+});
 
-test('should fetch multiple sequences across schemas', async () => {
+test("should fetch multiple sequences across schemas", async () => {
   const structure = `
     CREATE SCHEMA extra;
     CREATE SEQUENCE public.seq_public INCREMENT BY 1 START WITH 1;
     CREATE SEQUENCE extra.seq_extra INCREMENT BY 1 START WITH 1;
-  `
+  `;
   const db = await createTestDb(structure);
   const { client } = db;
   const sequences = await fetchSequences(drizzle(client));
   expect(sequences).toEqual(
     expect.arrayContaining([
       {
-        schema: 'public',
-        name: 'seq_public',
+        schema: "public",
+        name: "seq_public",
         current: 1,
         interval: 1,
       },
       {
-        schema: 'extra',
-        name: 'seq_extra',
+        schema: "extra",
+        name: "seq_extra",
         current: 1,
         interval: 1,
       },
-    ])
-  )
-})
+    ]),
+  );
+});
