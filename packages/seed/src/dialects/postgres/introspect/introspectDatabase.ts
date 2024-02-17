@@ -13,6 +13,8 @@ import { fetchUniqueConstraints } from './queries/fetchUniqueConstraints.js'
 type AsyncFunctionSuccessType<
   T extends (...args: any) => Promise<unknown>,
 > = Awaited<ReturnType<T>>
+type PrimaryKeys = AsyncFunctionSuccessType<typeof fetchPrimaryKeys>
+type Constraints = Array<AsyncFunctionSuccessType<typeof fetchUniqueConstraints>[number]>
 type Tables = AsyncFunctionSuccessType<typeof fetchTablesAndColumns>
 type Enums = Array<AsyncFunctionSuccessType<typeof fetchEnums>[number]>
 type Sequences = AsyncFunctionSuccessType<typeof fetchSequences>
@@ -37,8 +39,8 @@ export interface IntrospectedStructure extends IntrospectedStructureBase {
   tables: Array<
     IntrospectedStructureBase['tables'][number] &
       GroupedRelationshipsValue & {
-        // primaryKeys: PrimaryKeys[number] | null
-        // constraints?: Constraints
+        primaryKeys: PrimaryKeys[number] | null
+        constraints?: Constraints
       }
   >
   sequences?: Dictionary<Sequences>
@@ -230,16 +232,6 @@ const introspectedStructureBaseSchema = z.object({
 
 export const introspectedStructureSchema = z.object({
   ...introspectedStructureBaseSchema.shape,
-  indexes: z.array(
-    z.object({
-      schema: z.string(),
-      table: z.string(),
-      index: z.string(),
-      definition: z.string(),
-      type: z.string(),
-      indexColumns: z.array(z.string()),
-    })
-  ),
   sequences: z
     .record(
       z.string(),

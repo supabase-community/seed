@@ -2,7 +2,7 @@ import { afterEach } from "vitest";
 import { createTestDb } from "./createTestDatabase.js";
 import { createTestRole } from "./createTestRole.js";
 
-export { createTestDb } from "./createTestDatabase.js";
+export { createTestDb, createSnapletTestDb } from "./createTestDatabase.js";
 export { createTestRole } from "./createTestRole.js";
 
 afterEach(async () => {

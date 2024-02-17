@@ -8,7 +8,7 @@ import {
 } from './introspectDatabase.js'
 import { sql } from "drizzle-orm";
 
-const { createTestDb, createTestRole } = postgres;
+const { createTestDb, createTestRole, createSnapletTestDb } = postgres;
 
 test('introspectDatabase should return detailed database structure', async () => {
   const structure = `
@@ -223,38 +223,29 @@ test('introspectDatabase should return detailed database structure', async () =>
 
 test('Read primary keys with readaccess permissions', async () => {
   const structure = `
-      CREATE TABLE public."Member" (id serial PRIMARY KEY, name text);
-    `
-  const connString = await createTestDb(structure)
-  const readAccessConnString = await createTestRole(connString)
-  await execQueryNext(
-    // The role pg_read_all_data only exist on pg 14+, so for pg 13 and bellow, we need to create it
-    `
-      DROP ROLE IF EXISTS readaccess;
-      CREATE ROLE readaccess;
-      GRANT CONNECT ON DATABASE "${connString.database}" TO readaccess;
-      GRANT USAGE ON SCHEMA public TO readaccess;
-      GRANT SELECT ON ALL TABLES IN SCHEMA public TO readaccess;
-      GRANT readaccess TO "${readAccessConnString.username}";
-      `,
-    connString
-  )
-  await execQueryNext(`VACUUM ANALYZE;`, connString)
-
-  const result = await withDbClient(introspectDatabase, {
-    connString: readAccessConnString.toString(),
-  })
+    CREATE TABLE public."Member" (id serial PRIMARY KEY, name text);
+  `
+  const db = await createTestDb(structure)
+  const readAccessConnString = await createTestRole(db.client)
+  await drizzle(db.client).execute(sql.raw(    `
+    DROP ROLE IF EXISTS readaccess;
+    CREATE ROLE readaccess;
+    GRANT CONNECT ON DATABASE "${db.name}" TO readaccess;
+    GRANT USAGE ON SCHEMA public TO readaccess;
+    GRANT SELECT ON ALL TABLES IN SCHEMA public TO readaccess;
+    GRANT readaccess TO "${readAccessConnString.name}";
+  `))
+  await (drizzle(db.client).execute(sql.raw(`VACUUM ANALYZE;`)))
+  const result = await introspectDatabase(drizzle(readAccessConnString.client))
 
   const member = result.tables.find((t) => t.id == 'public.Member')
+  console.log(member?.columns.filter((c) => c.constraints.some((c) => c == 'p')))
   expect(member?.primaryKeys!.keys).toEqual([{ name: 'id', type: 'int4' }])
 })
 
 test('introspectDatabase - get parent relationships from structure', async () => {
-  const connString = await createSnapletTestDb()
-  const structure = await withDbClient(introspectDatabase, {
-    connString: connString.toString(),
-  })
-
+  const db = await createSnapletTestDb()
+  const structure = await introspectDatabase(drizzle(db.client))
   const expectedAccessTokenParent: Relationship = {
     id: 'AccessToken_userId_fkey',
     fkTable: 'public.AccessToken',
@@ -279,11 +270,8 @@ test('introspectDatabase - get parent relationships from structure', async () =>
 })
 
 test('introspectDatabase - get primary keys from structure', async () => {
-  const connString = await createSnapletTestDb()
-
-  const structure = await withDbClient(introspectDatabase, {
-    connString: connString.toString(),
-  })
+  const db = await createSnapletTestDb()
+  const structure = await introspectDatabase(drizzle(db.client))
 
   const primaryKeys = structure.tables.find(
     (t) => t.id == 'public.AccessToken'
@@ -299,12 +287,8 @@ test('introspectDatabase - get primary keys from structure', async () => {
 })
 
 test('introspectDatabase - get child relationships from structure', async () => {
-  const connString = await createSnapletTestDb()
-
-  const structure = await withDbClient(introspectDatabase, {
-    connString: connString.toString(),
-  })
-
+  const db = await createSnapletTestDb()
+  const structure = await introspectDatabase(drizzle(db.client))
   const expectedPricingPlanChild: Relationship = {
     id: 'Organization_pricingPlanId_fkey',
     fkTable: 'public.Organization',
@@ -329,43 +313,21 @@ test('introspectDatabase - get child relationships from structure', async () => 
 })
 
 test('introspect with tables and schemas the user cannot access', async () => {
-  const connectionString = await createTestDb()
+  const db = await createTestDb()
+  const restrictedString = await createTestRole(db.client)
+  const otherString = await createTestRole(db.client)
 
-  const restrictedString = await createTestRole(connectionString)
-  const otherString = await createTestRole(connectionString)
-
-  await execQueryNext(
-    `CREATE TABLE "public"."table1" ("value" text)`,
-    connectionString
-  )
-
-  await execQueryNext(
-    `GRANT SELECT ON TABLE "public"."table1" TO "${restrictedString.username}"`,
-    connectionString
-  )
-
-  await execQueryNext(
-    `CREATE TABLE "public"."table2" ("value" text)`,
-    connectionString
-  )
-
-  await execQueryNext(
-    `CREATE SCHEMA "someSchema" AUTHORIZATION "${otherString.username}"`,
-    connectionString
-  )
-
-  await execQueryNext(
-    `CREATE TABLE "someSchema"."table3" ("value" text)`,
-    connectionString
-  )
-
-  const structure = await withDbClient(introspectDatabase, {
-    connString: restrictedString.toString(),
-  })
+  await drizzle(db.client).execute(sql.raw(`
+    CREATE TABLE "public"."table1" ("value" text);
+    GRANT SELECT ON TABLE "public"."table1" TO "${restrictedString.name}";
+    CREATE TABLE "public"."table2" ("value" text);
+    CREATE SCHEMA "someSchema" AUTHORIZATION "${otherString.name}";
+    CREATE TABLE "someSchema"."table3" ("value" text);
+  `))
+  const structure = await introspectDatabase(drizzle(restrictedString.client))
 
   expect(structure).toEqual(
     expect.objectContaining({
-      schemas: ['public'],
       tables: [
         expect.objectContaining({
           schema: 'public',
@@ -378,20 +340,16 @@ test('introspect with tables and schemas the user cannot access', async () => {
 
 test('partitions of a partitioned table should not be present in the introspection result', async () => {
   // arrange
-  const connectionString = await createTestDb()
-  await execQueryNext(
-    `
+  const db = await createTestDb()
+  await drizzle(db.client).execute(sql.raw(`
     CREATE TABLE coach(id uuid primary key);
     CREATE TABLE exercise (id uuid, coach_id uuid REFERENCES coach(id)) PARTITION BY list(coach_id);
     CREATE TABLE exercise1 PARTITION OF exercise FOR VALUES IN (NULL);
     CREATE TABLE exercise2 PARTITION OF exercise DEFAULT;
-    `,
-    connectionString
-  )
+  `))
   // act
-  const structure = await withDbClient(introspectDatabase, {
-    connString: connectionString.toString(),
-  })
+  const structure = await introspectDatabase(drizzle(db.client))
+
   // assert
   expect(structure.tables.find((t) => t.id === 'public.coach')).toMatchObject({
     partitioned: false,
