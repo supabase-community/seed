@@ -4,31 +4,31 @@ import { type PgDatabase, type QueryResultHKT } from "drizzle-orm/pg-core";
 import { buildSchemaExclusionClause } from "./utils.js";
 
 interface FetchUniqueConstraintsResult {
-    /**
-     * The columns that are part of the constraint
-     */
-    columns: Array<string>;
-    /**
-     * allows us to always know if the constraint we are using
-     * are the one retrieved from the database or the one we augmented via user setting or fallback
-     */
-    dirty: boolean;
-    /**
-     * The constraint name
-     */
-    name: string;
-    /**
-     * The schema name
-     */
-    schema: string;
-    /**
-     * The table name
-     */
-    table: string;
-    /**
-     * The table id (schemaName.tableName)
-     */
-    tableId: string;
+  /**
+   * The columns that are part of the constraint
+   */
+  columns: Array<string>;
+  /**
+   * allows us to always know if the constraint we are using
+   * are the one retrieved from the database or the one we augmented via user setting or fallback
+   */
+  dirty: boolean;
+  /**
+   * The constraint name
+   */
+  name: string;
+  /**
+   * The schema name
+   */
+  schema: string;
+  /**
+   * The table name
+   */
+  table: string;
+  /**
+   * The table id (schemaName.tableName)
+   */
+  tableId: string;
 }
 
 const FETCH_UNIQUE_CONSTRAINTS = `
@@ -63,11 +63,11 @@ ORDER BY
 `;
 
 export async function fetchUniqueConstraints<T extends QueryResultHKT>(
-    client: PgDatabase<T>,
+  client: PgDatabase<T>,
 ) {
-    const response = (await client.execute(
-        sql.raw(FETCH_UNIQUE_CONSTRAINTS),
-    )) as postgres.RowList<Array<FetchUniqueConstraintsResult>>;
+  const response = (await client.execute(
+    sql.raw(FETCH_UNIQUE_CONSTRAINTS),
+  )) as postgres.RowList<Array<FetchUniqueConstraintsResult>>;
 
-    return response;
+  return response;
 }
