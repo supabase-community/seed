@@ -110,7 +110,7 @@ test("introspectDatabase should return detailed database structure", async () =>
         },
         rows: 0,
         schema: "test",
-        constraints: [
+        uniqueConstraints: [
           {
             dirty: false,
             name: "Table1_pkey",
@@ -201,7 +201,7 @@ test("introspectDatabase should return detailed database structure", async () =>
           table: "Table2",
           tableId: "test.Table2",
         },
-        constraints: [
+        uniqueConstraints: [
           {
             dirty: false,
             name: "Table2_pkey",
@@ -340,7 +340,7 @@ test("introspect with tables and schemas the user cannot access", async () => {
   );
 });
 
-test.only("partitions of a partitioned table should not be present in the introspection result", async () => {
+test("partitions of a partitioned table should not be present in the introspection result", async () => {
   // arrange
   const db = await createTestDb();
   await drizzle(db.client).execute(
