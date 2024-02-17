@@ -1,9 +1,9 @@
 import { describe, expect, test } from "vitest";
 import { introspectionToDataModel } from "./dataModel.js";
-import { introspection } from "./fixtures/introspection.js";
-import { introspectionWithConstraints } from "./fixtures/introspectionWithUniqueConstraints.js";
-import { introspection as sameTableNamesDifferentSchemasIntrospection } from "./fixtures/same-table-names-different-schemas.js";
-import { type IntrospectedStructure } from "./introspectDatabase.js";
+import { introspection } from "./introspect/fixtures/introspection.js";
+import { introspectionWithConstraints } from "./introspect/fixtures/introspectionWithUniqueConstraints.js";
+import { introspection as sameTableNamesDifferentSchemasIntrospection } from "./introspect/fixtures/same-table-names-different-schemas.js";
+import { type IntrospectedStructure } from "./introspect/introspectDatabase.js";
 
 describe("dataModel", () => {
   test("it correctly convert an introspected structure into a data model", () => {

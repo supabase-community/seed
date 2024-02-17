@@ -11,7 +11,7 @@ import { fetchUniqueConstraints } from "./queries/fetchUniqueConstraints.js";
 import { type AsyncFunctionSuccessType } from "./types.js";
 
 type PrimaryKeys = AsyncFunctionSuccessType<typeof fetchPrimaryKeys>;
-type Constraints = Array<
+type UniqueConstraints = Array<
     AsyncFunctionSuccessType<typeof fetchUniqueConstraints>[number]
 >;
 type Tables = AsyncFunctionSuccessType<typeof fetchTablesAndColumns>;
@@ -39,8 +39,8 @@ export interface IntrospectedStructure extends IntrospectedStructureBase {
     tables: Array<
         IntrospectedStructureBase["tables"][number] &
             GroupedRelationshipsValue & {
-                constraints?: Constraints;
                 primaryKeys: PrimaryKeys[number] | null;
+                uniqueConstraints?: UniqueConstraints;
             }
     >;
 }
@@ -52,7 +52,7 @@ export async function introspectDatabase<T extends QueryResultHKT>(
     const enums = await fetchEnums(client);
     const relationships = await fetchDatabaseRelationships(client);
     const primaryKeys = await fetchPrimaryKeys(client);
-    const constraints = await fetchUniqueConstraints(client);
+    const uniqueConstraints = await fetchUniqueConstraints(client);
     const sequences = await fetchSequences(client);
     const tableIds = tablesInfos.map((table) => table.id);
     const groupedRelationships = groupParentsChildrenRelations(
@@ -62,14 +62,17 @@ export async function introspectDatabase<T extends QueryResultHKT>(
     const sequencesGroupesBySchema = groupBy(sequences, (s) => s.schema);
     // tableId is the schema.table of the pk in our results
     const groupedPrimaryKeys = groupBy(primaryKeys, (k) => k.tableId);
-    const groupedConstraints = groupBy(constraints, (c) => c.tableId);
+    const groupedUniqueConstraints = groupBy(
+        uniqueConstraints,
+        (c) => c.tableId,
+    );
     // We build or final table structure here, augmenting the basic one with
     // relations and primary keys infos
     const tablesWithRelations: IntrospectedStructure["tables"] =
         tablesInfos.map((table) => {
             const tableRelationships = groupedRelationships.get(table.id);
             const primaryKeys = groupedPrimaryKeys[table.id][0] ?? null;
-            const constraints = groupedConstraints[table.id] ?? [];
+            const uniqueConstraints = groupedUniqueConstraints[table.id] ?? [];
             return {
                 id: table.id,
                 name: table.name,
@@ -81,7 +84,7 @@ export async function introspectDatabase<T extends QueryResultHKT>(
                 parents: tableRelationships?.parents ?? [],
                 children: tableRelationships?.children ?? [],
                 primaryKeys,
-                constraints,
+                uniqueConstraints,
             };
         });
     return {
@@ -202,7 +205,7 @@ const introspectedStructureBaseSchema = z.object({
                     ),
                 }),
             ),
-            constraints: z
+            uniqueConstraints: z
                 .array(
                     z.object({
                         tableId: z.string(),

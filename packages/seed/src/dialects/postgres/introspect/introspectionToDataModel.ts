@@ -1,70 +1,15 @@
+import {
+    type DataModel,
+    type DataModelField,
+    type DataModelModel,
+    type DataModelSequence,
+} from "#core/dataModel/types.js";
 import { escapeIdentifier } from "../utils.js";
 import {
     type IntrospectedStructure,
     type IntrospectedTableColumn,
     type Relationship,
 } from "./introspectDatabase.js";
-
-export interface DataModel {
-    enums: Record<string, DataModelEnum>;
-    models: Record<string, DataModelModel>;
-}
-
-interface DataModelEnum {
-    schemaName?: string;
-    values: Array<{ name: string }>;
-}
-
-export interface DataModelModel {
-    fields: Array<DataModelField>;
-    id: string;
-    schemaName?: string;
-    tableName: string;
-    uniqueConstraints: Array<DataModelUniqueConstraint>;
-}
-
-export interface DataModelUniqueConstraint {
-    /**
-     * The columns that are part of the constraint
-     */
-    columns: Array<string>;
-    /**
-     * The constraint name
-     */
-    name: string;
-}
-
-export interface DataModelSequence {
-    current: number;
-    identifier: null | string;
-    increment: number;
-}
-
-interface DataModelCommonFieldProps {
-    hasDefaultValue: boolean;
-    isGenerated: boolean;
-    isId: boolean;
-    isList: boolean;
-    isRequired: boolean;
-    name: string;
-    sequence: DataModelSequence | false;
-    type: string;
-}
-
-export type DataModelObjectField = DataModelCommonFieldProps & {
-    kind: "object";
-    relationFromFields: Array<string>;
-    relationName: string;
-    relationToFields: Array<string>;
-};
-
-export type DataModelScalarField = DataModelCommonFieldProps & {
-    columnName: string;
-    id: string;
-    kind: "scalar";
-};
-
-export type DataModelField = DataModelObjectField | DataModelScalarField;
 
 function getParentRelationAndFieldName({
     introspection,
@@ -123,7 +68,7 @@ function getChildRelationAndFieldName({
     return { relationName, fieldName };
 }
 
-export function getModelName(
+function getModelName(
     introspection: { tables: Array<{ name: string; schema: string }> },
     table: IntrospectedStructure["tables"][number],
 ) {
@@ -138,7 +83,7 @@ export function getModelName(
     return modelName;
 }
 
-export function getEnumName(
+function getEnumName(
     introspection: IntrospectedStructure,
     enumItem: IntrospectedStructure["enums"][number],
 ) {
@@ -256,36 +201,10 @@ function columnSequence(
     return false;
 }
 
-export function isParentField(
-    field: DataModelField,
-): field is DataModelObjectField {
-    return field.kind === "object" && field.relationFromFields.length > 0;
-}
-
-export function groupFields(fields: Array<DataModelField>) {
-    const groupedFields = {
-        scalars: [] as Array<DataModelScalarField>,
-        parents: [] as Array<DataModelObjectField>,
-        children: [] as Array<DataModelObjectField>,
-    };
-
-    for (const field of fields) {
-        if (field.kind === "scalar") {
-            groupedFields.scalars.push(field);
-        } else if (field.relationFromFields.length > 0) {
-            groupedFields.parents.push(field);
-        } else if (field.relationFromFields.length === 0) {
-            groupedFields.children.push(field);
-        }
-    }
-
-    return groupedFields;
-}
-
 export function introspectionToDataModel(
     introspection: IntrospectedStructure,
 ): DataModel {
-    const dataModel: DataModel = { models: {}, enums: {} };
+    const dataModel: DataModel = { dialect: "postgres", models: {}, enums: {} };
 
     for (const e of introspection.enums) {
         const enumName = getEnumName(introspection, e);
@@ -410,7 +329,11 @@ export function introspectionToDataModel(
             schemaName: table.schema,
             tableName: table.name,
             fields,
-            uniqueConstraints: table.constraints ?? [],
+            uniqueConstraints:
+                table.uniqueConstraints?.map((c) => ({
+                    name: c.name,
+                    fields: c.columns,
+                })) ?? [],
         };
 
         const modelName = getModelName(introspection, table);
