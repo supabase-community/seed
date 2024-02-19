@@ -106,7 +106,7 @@ type ColumnValueCallbackContext<TScalars> = {
 /**
  * helper type to get the possible values of a scalar field
  */
-type ColumnValue<T, TScalars> = T | ((ctx: ColumnValueCallbackContext<TScalars>) => T);
+type ColumnValue<T, TScalars> = T | ((ctx: ColumnValueCallbackContext<TScalars>) => T | Promise<T>);
 
 /**
  * helper type to map a record of scalars to a record of ColumnValue
