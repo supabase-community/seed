@@ -243,3 +243,21 @@ export const PG_NUMBER_TYPES = new Set([
   "int32",
   "bigint",
 ]);
+
+export function groupBy<T, K extends number | string | symbol>(
+  array: Array<T>,
+  getKey: (item: T) => K,
+) {
+  const result: Record<K, Array<T> | undefined> = {} as Record<
+    K,
+    Array<T> | undefined
+  >;
+  return array.reduce((accumulator, currentItem) => {
+    const key = getKey(currentItem);
+    if (!accumulator[key]) {
+      accumulator[key] = [];
+    }
+    accumulator[key]?.push(currentItem);
+    return accumulator;
+  }, result);
+}

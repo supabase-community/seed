@@ -96,7 +96,10 @@ export class PgStore extends StoreBase {
       for (const row of rows) {
         const insertRowValues: Array<unknown> = [];
         let updateRow:
-          | { filter: Record<string, unknown>; values: Record<string, unknown> }
+          | {
+              filter: Record<string, unknown>;
+              values: Record<string, unknown>;
+            }
           | undefined;
 
         for (const fieldName of fieldMap.keys()) {

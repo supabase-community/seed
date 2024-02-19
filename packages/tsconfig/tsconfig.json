@@ -9,9 +9,13 @@
     "customConditions": [
       "development"
     ],
+    "strictNullChecks": true,
     "emitDeclarationOnly": true,
     "exactOptionalPropertyTypes": false,
     "noUncheckedIndexedAccess": false,
     "noEmit": false,
-  }
+  },
+  "exclude": [
+    "**/dist/*"
+  ]
 }

@@ -3,4 +3,7 @@
   "compilerOptions": {
     "outDir": ".dts",
   },
+  "exclude": [
+    "**/dist/*"
+  ]
 }
