@@ -1066,4 +1066,5 @@ const maybeTruncate = (fn: TemplateFn): TemplateFn => {
   return maybeTruncateFn;
 };
 
+// @ts-expect-error we know that the values are all TemplateFn
 strings = mapValues(strings, maybeTruncate);
