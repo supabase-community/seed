@@ -46,8 +46,10 @@
     "drizzle-orm": "^0.29.3"
   },
   "dependencies": {
+    "@babel/types": "7.23.9",
     "@scaleleap/pg-format": "^1.0.0",
     "c12": "1.8.0",
+    "fastest-levenshtein": "1.0.16",
     "find-up": "7.0.0",
     "inflection": "^3.0.0",
     "quicktype-core": "^23.0.104",
