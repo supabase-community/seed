@@ -1,3 +1,5 @@
+/* eslint-disable @typescript-eslint/restrict-template-expressions */
+/* eslint-disable @typescript-eslint/no-base-to-string */
 import { mapValues } from "remeda";
 import {
   type TemplateContext,
@@ -1043,6 +1045,9 @@ export let strings: TypeTemplates = {
 const maybeTruncate = (fn: TemplateFn): TemplateFn => {
   const maybeTruncateFn = (context: TemplateContext) => {
     const result = fn(context);
+    if (result === null) {
+      return result;
+    }
 
     if (context.field.maxLength == null) {
       return result;
