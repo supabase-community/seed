@@ -1,4 +1,6 @@
-import { TypeTemplates } from '../types.js'
+/* eslint-disable @typescript-eslint/restrict-template-expressions */
+/* eslint-disable @typescript-eslint/no-base-to-string */
+import { type TypeTemplates } from "../types.js";
 
 export const bits: TypeTemplates = ({ input, field }) => `
 (() => {
@@ -9,4 +11,4 @@ export const bits: TypeTemplates = ({ input, field }) => `
   }
   return bits
 })()
-`
+`;

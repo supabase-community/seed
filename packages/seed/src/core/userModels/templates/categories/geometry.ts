@@ -1,4 +1,6 @@
-import { TypeTemplates } from '../types.js'
+/* eslint-disable @typescript-eslint/restrict-template-expressions */
+/* eslint-disable @typescript-eslint/no-base-to-string */
+import { type TypeTemplates } from "../types.js";
 
 export const line: TypeTemplates = ({ input }) => `
 (() => {
@@ -13,7 +15,7 @@ export const line: TypeTemplates = ({ input }) => `
 
   return '(' + points[0] + ', ' + points[1] + '), (' + points[2] + ', ' + points[3] + ')'
 })()
-`
+`;
 
 export const circle: TypeTemplates = ({ input }) => `
 (() => {
@@ -28,7 +30,7 @@ export const circle: TypeTemplates = ({ input }) => `
 
   return '((' + points[0] + ', ' + points[1] + ' ), ' + points[2] + ' )'
 })()
-`
+`;
 
 export const point: TypeTemplates = ({ input }) =>
-  `'(' + copycat.int(${input}, { max: 10 }) + ',' + copycat.int(${input}, { max: 10 }) + ')'`
+  `'(' + copycat.int(${input}, { max: 10 }) + ',' + copycat.int(${input}, { max: 10 }) + ')'`;

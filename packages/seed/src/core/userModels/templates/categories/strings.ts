@@ -1045,6 +1045,7 @@ export let strings: TypeTemplates = {
 const maybeTruncate = (fn: TemplateFn): TemplateFn => {
   const maybeTruncateFn = (context: TemplateContext) => {
     const result = fn(context);
+
     if (result === null) {
       return result;
     }
