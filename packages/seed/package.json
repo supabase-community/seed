@@ -47,6 +47,8 @@
   },
   "dependencies": {
     "@scaleleap/pg-format": "^1.0.0",
+    "@trpc/client": "10.45.1",
+    "@trpc/server": "10.45.1",
     "c12": "1.8.0",
     "find-up": "7.0.0",
     "inflection": "^3.0.0",
@@ -62,6 +64,7 @@
     "lint:fix": "eslint --cache . --max-warnings 0 --fix",
     "start": "node dist/cli/index.js",
     "start:dev": "tsx --conditions development src/cli/index.ts",
+    "start:server": "tsx --conditions development src/trpc/server.ts",
     "type-check": "tsc --build",
     "test": "vitest run"
   }
