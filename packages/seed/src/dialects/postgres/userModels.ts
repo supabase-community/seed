@@ -1,5 +1,3 @@
-/* eslint-disable @typescript-eslint/restrict-template-expressions */
-/* eslint-disable @typescript-eslint/no-base-to-string */
 import { bits } from "#core/userModels/templates/categories/bits.js";
 import { floats } from "#core/userModels/templates/categories/floats.js";
 import {
