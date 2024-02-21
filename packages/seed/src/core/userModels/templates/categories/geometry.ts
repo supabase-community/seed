@@ -1,5 +1,3 @@
-/* eslint-disable @typescript-eslint/restrict-template-expressions */
-/* eslint-disable @typescript-eslint/no-base-to-string */
 import { type TypeTemplates } from "../types.js";
 
 export const line: TypeTemplates = ({ input }) => `

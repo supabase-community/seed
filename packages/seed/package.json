@@ -23,6 +23,7 @@
     }
   },
   "devDependencies": {
+    "@snaplet/copycat": "4.1.0",
     "@snaplet/eslint-config": "workspace:*",
     "@snaplet/tsconfig": "workspace:*",
     "@total-typescript/ts-reset": "0.5.1",
