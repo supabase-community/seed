@@ -84,6 +84,12 @@ importers:
       '@scaleleap/pg-format':
         specifier: ^1.0.0
         version: 1.0.0
+      '@trpc/client':
+        specifier: 10.45.1
+        version: 10.45.1(@trpc/server@10.45.1)
+      '@trpc/server':
+        specifier: 10.45.1
+        version: 10.45.1
       c12:
         specifier: 1.8.0
         version: 1.8.0
@@ -1107,6 +1113,18 @@ packages:
   /@total-typescript/ts-reset@0.5.1:
     resolution: {integrity: sha512-AqlrT8YA1o7Ff5wPfMOL0pvL+1X+sw60NN6CcOCqs658emD6RfiXhF7Gu9QcfKBH7ELY2nInLhKSCWVoNL70MQ==}
     dev: true
+
+  /@trpc/client@10.45.1(@trpc/server@10.45.1):
+    resolution: {integrity: sha512-nVbAk1xpIiI64WgzXGgfxPOGgHoYvffn1IsjV1D/Ri7DL4BKuo2qtZ7UQ+OuHkzH2M8j4ikSVBDpk545fOdvpw==}
+    peerDependencies:
+      '@trpc/server': 10.45.1
+    dependencies:
+      '@trpc/server': 10.45.1
+    dev: false
+
+  /@trpc/server@10.45.1:
+    resolution: {integrity: sha512-KOzBEVaHW9IxEedUP9E50y0tYxAuvlzyjn80Bpemw4rcNbT4WtJnhkFPUY+qDJl7Crt3B/oY2qMgSxVWi9toLg==}
+    dev: false
 
   /@tsconfig/node18@18.2.2:
     resolution: {integrity: sha512-d6McJeGsuoRlwWZmVIeE8CUA27lu6jLjvv1JzqmpsytOYYbVi1tHZEnwCNVOXnj4pyLvneZlFlpXUK+X9wBWyw==}
