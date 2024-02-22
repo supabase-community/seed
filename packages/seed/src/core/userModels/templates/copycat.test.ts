@@ -75,4 +75,13 @@ describe("generateCopycatCall", () => {
       "copycat.int(input)",
     );
   });
+
+  test("does not truncate for non-string fields", () => {
+    const context = createTemplateContext();
+    context.field.maxLength = 50;
+    context.jsType = "number";
+    expect(generateCopycatCall(context, "int", ["input"])).toEqual(
+      "copycat.int(input)",
+    );
+  });
 });
