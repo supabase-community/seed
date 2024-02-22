@@ -23,6 +23,7 @@
     }
   },
   "devDependencies": {
+    "@snaplet/copycat": "4.1.0",
     "@snaplet/eslint-config": "workspace:*",
     "@snaplet/tsconfig": "workspace:*",
     "@total-typescript/ts-reset": "0.5.1",
@@ -42,14 +43,16 @@
     "vitest": "1.2.2"
   },
   "peerDependencies": {
-    "@snaplet/copycat": "^2.0.0",
+    "@snaplet/copycat": ">=2.0.0",
     "drizzle-orm": "^0.29.3"
   },
   "dependencies": {
+    "@babel/types": "7.23.9",
     "@scaleleap/pg-format": "^1.0.0",
     "@trpc/client": "10.45.1",
     "@trpc/server": "10.45.1",
     "c12": "1.8.0",
+    "fastest-levenshtein": "1.0.16",
     "find-up": "7.0.0",
     "inflection": "^3.0.0",
     "quicktype-core": "^23.0.104",

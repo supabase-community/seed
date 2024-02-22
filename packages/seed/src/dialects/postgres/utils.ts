@@ -100,7 +100,7 @@ const JS_TO_PG_TYPES = {
 type JsToPgTypes = typeof JS_TO_PG_TYPES;
 type NonNullableJsTypeName = keyof JsToPgTypes;
 type JsTypeName = "null" | NonNullableJsTypeName;
-type PgTypeName = JsToPgTypes[NonNullableJsTypeName][number];
+export type PgTypeName = JsToPgTypes[NonNullableJsTypeName][number];
 
 export const PG_TO_JS_TYPES: Record<PgTypeName, JsTypeName> =
   Object.fromEntries(

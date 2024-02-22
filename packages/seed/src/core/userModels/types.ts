@@ -18,3 +18,11 @@ export type UserModels = Record<
   string,
   { connect?: ConnectCallback; data?: UserModelsData }
 >;
+
+export type JsTypeName =
+  | "Buffer"
+  | "Json"
+  | "boolean"
+  | "null"
+  | "number"
+  | "string";
