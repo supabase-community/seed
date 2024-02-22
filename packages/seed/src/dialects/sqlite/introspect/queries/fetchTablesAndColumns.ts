@@ -1,272 +1,317 @@
-import type postgres from "postgres";
-import { sql } from "drizzle-orm";
-import { type PgDatabase, type QueryResultHKT } from "drizzle-orm/pg-core";
-import { buildSchemaExclusionClause } from "./utils.js";
+import { sortBy } from "remeda";
+// import { type SqliteClient, queryNext } from "../client.js";
 
-export const TYPE_CATEGORY_DISPLAY_NAMES = {
-  A: "Array",
-  B: "Boolean",
-  C: "Composite",
-  D: "Date/time",
-  E: "Enum",
-  G: "Geometric",
-  I: "Network address",
-  N: "Numeric",
-  P: "Pseudo-types",
-  R: "Range",
-  S: "String",
-  T: "Timespan",
-  U: "User-defined",
-  V: "Bit-string",
-  X: "unknown",
-  Z: "Internal-use",
-} as const;
+// We crawl over the types to get the common SQL types
+// so they must be ordered by
+const COMMON_SQL_TYPES = [
+  "INT2",
+  "INT8",
+  "INTEGER",
+  "INT",
+  "TINYINT",
+  "SMALLINT",
+  "MEDIUMINT",
+  "BIGINT",
+  "UNSIGNED BIG INT",
+  "CHARACTER",
+  "VARCHAR",
+  "VARYING CHARACTER",
+  "NCHAR",
+  "NATIVE CHARACTER",
+  "NVARCHAR",
+  "TEXT",
+  "CLOB",
+  "BLOB",
+  "ANY",
+  "REAL",
+  "DOUBLE PRECISION",
+  "DOUBLE",
+  "FLOAT",
+  "NUMERIC",
+  "DECIMAL",
+  "BOOLEAN",
+  "DATETIME",
+  "DATE",
+] as const;
+
+// We sort the types by length so we can match the type with the longest prefix
+const SORTED_SQL_TYPES = sortBy(COMMON_SQL_TYPES, (t) => t.length);
+
+const SQLITE_AFFINITY = ["null", "integer", "real", "text", "blob"] as const;
+export type SQLiteAffinity = (typeof SQLITE_AFFINITY)[number];
+
+export function mapCommonTypesToAffinity(
+  type: string,
+  isNullable: boolean,
+): SQLiteAffinity {
+  const upperCasedType = type.toUpperCase();
+  const commonSQLType = SORTED_SQL_TYPES.find((t) =>
+    upperCasedType.startsWith(t),
+  );
+  // If it's a common type, we return the affinity
+  switch (commonSQLType) {
+    case "INT2":
+    case "INT8":
+    case "INTEGER":
+    case "INT":
+    case "TINYINT":
+    case "SMALLINT":
+    case "MEDIUMINT":
+    case "BIGINT":
+    case "UNSIGNED BIG INT":
+    case "DECIMAL":
+      return "integer";
+    case "DOUBLE":
+    case "DOUBLE PRECISION":
+    case "FLOAT":
+    case "REAL":
+      return "real";
+    case "CHARACTER":
+    case "VARCHAR":
+    case "VARYING CHARACTER":
+    case "NCHAR":
+    case "NATIVE CHARACTER":
+    case "NVARCHAR":
+    case "TEXT":
+    case "CLOB":
+      return "text";
+    case "BLOB":
+      return "blob";
+    // If it's not a common type, we return null
+    default:
+      return isNullable ? "null" : "text";
+  }
+}
 
 export const COLUMN_CONSTRAINTS = {
   PRIMARY_KEY: "p",
   FOREIGN_KEY: "f",
   UNIQUE: "u",
-  CHECK_CONSTRAINT: "c",
-  TRIGGER_CONSTRAINT: "t",
-  EXCLUSION_CONSTRAINT: "x",
 } as const;
 
 export type ColumnConstraintType =
   (typeof COLUMN_CONSTRAINTS)[keyof typeof COLUMN_CONSTRAINTS];
 
 interface SelectColumnsResult {
+  affinity: SQLiteAffinity;
   constraints: Array<ColumnConstraintType>;
   default: null | string;
-  generated: "ALWAYS" | "NEVER";
   id: string;
-  identity?: {
-    current: number;
-    generated: "ALWAYS" | "BY DEFAULT";
-    increment: number;
-    sequenceName: string | undefined;
-    start: number;
-  } | null;
-  maxLength: null | number;
   name: string;
   nullable: boolean;
-  schema: string;
   table: string;
   type: string;
-  typeCategory: keyof typeof TYPE_CATEGORY_DISPLAY_NAMES;
-  typeId: string;
 }
-const SELECT_COLUMNS = `
-  SELECT
-    concat(columns.table_schema, '.', columns.table_name, '.', columns.column_name) AS id,
-    columns.table_schema AS schema,
-    columns.table_name AS table,
-    columns.column_name AS name,
-    columns.ordinal_position AS ordinal_position,
-    case
-      when array_dimensions.attndims > 0 then
-        right(columns.udt_name, length(columns.udt_name) - 1) || repeat('[]', array_dimensions.attndims)
-      else columns.udt_name
-    end AS type,
-    concat(columns.udt_schema, '.', columns.udt_name) as "typeId",
-    columns.is_nullable::boolean AS nullable,
-    columns.column_default AS default,
-    columns.is_generated AS generated,
-    columns.character_maximum_length as "maxLength",
-    columns.is_identity,
-    columns.identity_generation,
-    columns.identity_start::bigint,
-    columns.identity_increment::bigint,
-    types.category as "typeCategory",
-    (coalesce(constraints.constraints, '{}'))::text[] as "constraints"
-  FROM
-    information_schema.columns as columns
-    LEFT JOIN (
-      SELECT
-        n.nspname AS schema,
-        k.relname AS table,
-        array_agg(DISTINCT c.contype) as constraints,
-        a.attname as column
-      FROM pg_constraint c
-      JOIN pg_class k
-        ON k.oid = c.conrelid
-      JOIN pg_namespace n
-        ON n.oid = c.connamespace
-      CROSS JOIN LATERAL unnest(c.conkey) ak(k)
-      INNER JOIN pg_attribute a
-        ON a.attrelid = c.conrelid
-        AND a.attnum = ak.k
-      GROUP BY
-        n.nspname,
-        k.relname,
-        a.attname
-      ORDER BY n.nspname, k.relname, a.attname
-    ) as constraints ON constraints.schema = columns.table_schema AND constraints.table = columns.table_name AND constraints.column = columns.column_name
-    LEFT JOIN (
-      SELECT
-        n.nspname AS schema,
-        t.typname AS name,
-        t.typcategory AS category
-      FROM pg_namespace n
-      JOIN pg_type t ON t.typnamespace = n.oid
-    ) AS types ON columns.udt_name = types.name AND columns.udt_schema = types.schema
-    LEFT JOIN (
-      SELECT
-        n.nspname,
-        c.relname,
-        a.attname,
-        a.attndims
-      FROM pg_namespace n
-      JOIN pg_class c ON c.relnamespace = n.oid
-      JOIN pg_attribute a ON a.attrelid = c.oid
-      WHERE c.relkind IN ('p', 'r') AND c.relispartition IS FALSE AND a.attnum > 0
-    ) AS array_dimensions ON
-      array_dimensions.nspname = columns.table_schema AND
-      array_dimensions.relname = columns.table_name AND
-      array_dimensions.attname = columns.column_name
-`;
 
 interface SelectTablesResult {
-  indexBytes: number;
-  oid: string;
-  rowEstimate: null | number;
-  tableId: string;
-  tableName: string;
-  tableSchema: string;
-  toastBytes: number;
-  totalBytes: number;
+  name: string;
+  ncol: number;
+  schema: string;
+  strict: 0 | 1;
+  type: "shadow" | "table" | "view" | "virtual";
+  // Tables without rowid
+  wr: 0 | 1;
 }
-const SELECT_TABLES = `
-  SELECT
-    c.oid,
-    concat(n.nspname, '.', c.relname) AS "tableId",
-    n.nspname AS "tableSchema",
-    relname AS "tableName",
-    CASE c.relkind WHEN 'p' THEN TRUE ELSE FALSE END AS "tablePartitioned",
-    (CASE
-      WHEN c.relkind = 'p' THEN NULL -- partitioned table (we can't properly approximate the number of rows)
-      WHEN c.reltuples < 0 THEN NULL -- never vacuumed
-      -- empty table (except if the table has been vacuumed with no rows and no re-vacuumed since)
-      WHEN c.relpages = 0 THEN float8 '0'
-      ELSE c.reltuples / c.relpages END
-      * (pg_catalog.pg_relation_size(c.oid)
-      / pg_catalog.current_setting('block_size')::int)
-    )::bigint AS "rowEstimate",
-    pg_total_relation_size(c.oid) AS "totalBytes",
-    pg_indexes_size(c.oid) AS "indexBytes",
-    pg_total_relation_size(reltoastrelid) AS "toastBytes"
-  FROM pg_class c
-  INNER JOIN pg_namespace n ON n.oid = c.relnamespace
-`;
 
 interface FetchTableAndColumnsResult {
-  bytes: number;
   columns: Array<SelectColumnsResult>;
-  id: SelectTablesResult["tableId"];
-  name: SelectTablesResult["tableName"];
-  partitioned: boolean;
-  rows: SelectTablesResult["rowEstimate"];
-  schema: SelectTablesResult["tableSchema"];
+  id: SelectTablesResult["name"];
+  name: SelectTablesResult["name"];
+  strict: 0 | 1;
+  type: "table";
+  // Tables without rowid
+  wr: 0 | 1;
 }
-const FETCH_TABLES_AND_COLUMNS = `
-  WITH
-      constraints_data AS (
-        ${SELECT_COLUMNS}
-        -- Exclude all system tables
-        WHERE ${buildSchemaExclusionClause("columns.table_schema")}
-        -- We want to keep the order of the columns as they are in the table creation
-        ORDER BY columns.ordinal_position
-      ),
-      tables AS (
-        ${SELECT_TABLES}
-        WHERE
-          -- table objects
-          c.relkind IN ('p', 'r') AND c.relispartition IS FALSE AND
-          -- Exclude all system tables
-          ${buildSchemaExclusionClause("n.nspname")} AND
-          pg_catalog.has_schema_privilege(current_user, n.nspname, 'USAGE') AND
-          pg_catalog.has_table_privilege(current_user, concat(quote_ident(n.nspname), '.', quote_ident(c.relname)), 'SELECT')
-      ),
-      tables_with_bytes AS (
-        SELECT
-          *,
-          "totalBytes" - "indexBytes" - coalesce("toastBytes", 0) AS "tableBytes"
-        FROM tables
-      )
-    SELECT
-      json_build_object(
-        'id', tables_with_bytes."tableId",
-        'name', tables_with_bytes."tableName",
-        'schema', tables_with_bytes."tableSchema",
-        'partitioned', tables_with_bytes."tablePartitioned",
-        'rows', tables_with_bytes."rowEstimate",
-        'bytes', tables_with_bytes."tableBytes",
-        'columns', json_agg(
-          json_build_object(
-            'id', constraints_data.id,
-            'name', constraints_data.name,
-            'type', constraints_data.type,
-            'typeId', constraints_data."typeId",
-            'table', constraints_data.table,
-            'schema', constraints_data.schema,
-            'nullable', constraints_data.nullable,
-            'default', constraints_data.default,
-            'generated', constraints_data.generated,
-            'maxLength', constraints_data."maxLength",
-            'identity', case when constraints_data.is_identity = 'YES' then json_build_object(
-              'sequenceName', (SELECT pg_get_serial_sequence( '"' || constraints_data.schema || '"."' || constraints_data.table || '"', constraints_data.name)),
-              'generated', constraints_data.identity_generation,
-              'start', constraints_data.identity_start,
-              'increment', constraints_data.identity_increment,
-              'current', (SELECT COALESCE(last_value, start_value) AS current FROM pg_sequences WHERE sequencename = (SELECT replace((SELECT pg_get_serial_sequence( '"' || constraints_data.schema || '"."' || constraints_data.table || '"', constraints_data.name)::regclass::text), '"', '')))
-            ) else null end,
-            'typeCategory', constraints_data."typeCategory",
-            'constraints', constraints_data."constraints"
-          )
-          -- We want to keep the order of the columns as they are in the table creation (see: S-1116)
-          ORDER BY constraints_data.ordinal_position
-      )
-    )
-    FROM tables_with_bytes
-    JOIN constraints_data
-      ON tables_with_bytes."tableSchema" = constraints_data.schema
-      AND tables_with_bytes."tableName" = constraints_data.table
-    GROUP BY
-  tables_with_bytes."tableId",
-      tables_with_bytes."tableSchema",
-      tables_with_bytes."tableName",
-      tables_with_bytes."tablePartitioned",
-      tables_with_bytes."rowEstimate",
-      tables_with_bytes."tableBytes"
-    ORDER BY tables_with_bytes."tableName";
+
+export interface FetchTableAndColumnsResultRaw {
+  colCid: number;
+  colDefaultValue: null | string;
+  colName: string;
+  colNotNull: 0 | 1;
+  colPk: 0 | 1;
+  colType: string;
+  tableId: string;
+  tableName: string;
+  tableStrict: 0 | 1;
+  tableType: "table";
+  tableWr: 0 | 1;
+}
+
+export const FETCH_TABLE_COLUMNS_LIST = `
+  SELECT
+    alltables.name  as tableId,
+    alltables.name  as tableName,
+    alltables.type  as tableType,
+    tl.wr           as tableWr,
+    tl.strict       as tableStrict,
+    ti.cid	        as colCid,
+    ti.name	        as colName,
+    ti.type	        as colType,
+    ti."notnull"    as colNotNull,
+    ti.dflt_value   as colDefaultValue,
+    ti.pk           as colPk
+  FROM
+      sqlite_master AS alltables,
+      pragma_table_list(alltables.name) AS tl,
+      pragma_table_info(tl.name) AS ti
+  WHERE
+    alltables.type = 'table' AND alltables.name NOT LIKE 'sqlite_%'
+  ORDER BY
+    alltables.name, ti.cid
 `;
 
-export async function fetchTablesAndColumns<T extends QueryResultHKT>(
-  client: PgDatabase<T>,
-) {
-  const response = (await client.execute(
-    sql.raw(FETCH_TABLES_AND_COLUMNS),
-  )) as postgres.RowList<
-    Array<{ json_build_object: FetchTableAndColumnsResult }>
-  >;
-
-  return response.map((r) => ({
-    ...r.json_build_object,
-    columns: r.json_build_object.columns.map((c) => ({
-      ...c,
-      identity: c.identity
-        ? {
-            sequenceName: c.identity.sequenceName,
-            generated: c.identity.generated,
-            increment: c.identity.increment,
-            // When a sequence is created, the current value is the start value and is available for use
-            // but when the sequence is used for the first time, the current values is the last used one not available for use
-            // so we increment it by one to get the next available value instead
-            current:
-              c.identity.start === c.identity.current
-                ? c.identity.current
-                : c.identity.current + 1,
-          }
-        : null,
-    })),
-  }));
+interface FetchTableForeignKeysResultRaw {
+  fkFromColumn: string;
+  fkId: number;
+  fkSeq: number;
+  fkToColumn: string;
+  fkToTable: string;
+  tableId: string;
+  tableName: string;
 }
+
+const FETCH_TABLE_FOREIGN_KEYS = `
+SELECT
+	alltables.name  as tableId,
+	alltables.name  as tableName,
+	fk.id           as fkId,
+	fk.seq          as fkSeq,
+	fk."from"       as fkFromColumn,
+	fk."to"         as fkToColumn,
+	fk."table"      as fkToTable
+FROM
+  	sqlite_master AS alltables,
+  	pragma_foreign_key_list(alltables.name) AS fk
+WHERE
+  alltables.type = 'table' AND alltables.name NOT LIKE 'sqlite_%'
+ORDER BY
+  alltables.name, fk.id
+`;
+
+interface FetchCompositePrimaryKeysResultRaw {
+  idxColName: string;
+  tableName: string;
+}
+
+const FETCH_TABLE_COMPOSITE_PRIMARY_KEYS = `
+SELECT
+  alltables.name AS tableName,
+  indexinfos.name AS idxColName
+FROM
+  sqlite_master AS alltables,
+  pragma_index_list(alltables.name) AS indexlist,
+  pragma_index_info(indexlist.name) AS indexinfos
+WHERE
+  alltables.type = 'table' AND alltables.name NOT LIKE 'sqlite_%' AND
+  indexlist.origin = 'pk'
+ORDER BY
+	alltables.name, indexlist.name, indexinfos.seqno
+`;
+
+// export async function fetchTablesAndColumns(
+//   client: SqliteClient,
+// ): Promise<Array<FetchTableAndColumnsResult>> {
+//   const groupedResults: Record<string, FetchTableAndColumnsResult> = {};
+//   const resultsColumns = await queryNext<FetchTableAndColumnsResultRaw>(
+//     FETCH_TABLE_COLUMNS_LIST,
+//     { client },
+//   );
+//   const resultsForeignKeys = await queryNext<FetchTableForeignKeysResultRaw>(
+//     FETCH_TABLE_FOREIGN_KEYS,
+//     { client },
+//   );
+//   const resultsCompositePrimaryKeys =
+//     await queryNext<FetchCompositePrimaryKeysResultRaw>(
+//       FETCH_TABLE_COMPOSITE_PRIMARY_KEYS,
+//       { client },
+//     );
+//   const compositePrimaryKeysGroupedByTable = resultsCompositePrimaryKeys.reduce(
+//     (acc, result) => {
+//       if (!acc[result.tableName]) {
+//         acc[result.tableName] = [];
+//       }
+//       acc[result.tableName].push(result);
+//       return acc;
+//     },
+//     {} as Record<string, Array<FetchCompositePrimaryKeysResultRaw>>,
+//   );
+//   const foreignKeysGroupedByTable = resultsForeignKeys.reduce(
+//     (acc, result) => {
+//       if (!acc[result.tableId]) {
+//         acc[result.tableId] = [];
+//       }
+//       acc[result.tableId].push(result);
+//       return acc;
+//     },
+//     {} as Record<string, Array<FetchTableForeignKeysResultRaw>>,
+//   );
+
+//   for (const result of resultsColumns) {
+//     const tableId = result.tableId;
+//     const table = groupedResults[tableId];
+//     const tableForeignKeys = foreignKeysGroupedByTable[tableId] || [];
+//     const tableCompositePrimaryKeys =
+//       compositePrimaryKeysGroupedByTable[tableId] || [];
+//     if (!table) {
+//       groupedResults[tableId] = {
+//         id: result.tableId,
+//         name: result.tableName,
+//         type: result.tableType,
+//         wr: result.tableWr,
+//         strict: result.tableStrict,
+//         columns: [],
+//       };
+//     }
+//     const columnIsForeignKey = tableForeignKeys.some(
+//       (fk) => fk.fkFromColumn === result.colName,
+//     );
+//     const columnIsPrimaryKey = result.colPk
+//       ? true
+//       : tableCompositePrimaryKeys.some(
+//           (cpk) => cpk.idxColName === result.colName,
+//         );
+//     const constraints: Array<ColumnConstraintType> = [];
+//     if (columnIsForeignKey) {
+//       constraints.push(COLUMN_CONSTRAINTS.FOREIGN_KEY);
+//     }
+//     if (columnIsPrimaryKey) {
+//       constraints.push(COLUMN_CONSTRAINTS.PRIMARY_KEY);
+//     }
+//     groupedResults[tableId].columns.push({
+//       id: `${result.tableName}.${result.colName}`,
+//       name: result.colName,
+//       type: result.colType,
+//       affinity: mapCommonTypesToAffinity(
+//         result.colType,
+//         result.colNotNull === 0,
+//       ),
+//       table: result.tableName,
+//       nullable: result.colNotNull === 0,
+//       default: result.colDefaultValue,
+//       constraints,
+//     });
+//   }
+
+//   for (const tableId of Object.keys(groupedResults)) {
+//     const hasAPrimaryKey = groupedResults[tableId].columns.some((column) =>
+//       column.constraints.includes(COLUMN_CONSTRAINTS.PRIMARY_KEY),
+//     );
+//     // If there is no declared single or composite primary key, sqlite will create an automatic rowid column to use a primary key
+//     if (!hasAPrimaryKey && groupedResults[tableId].wr === 0) {
+//       const rowidColumn = {
+//         id: `${groupedResults[tableId].name}.rowid`,
+//         table: groupedResults[tableId].name,
+//         name: "rowid",
+//         type: "INTEGER",
+//         affinity: "integer" as const,
+//         nullable: false,
+//         default: null,
+//         constraints: [COLUMN_CONSTRAINTS.PRIMARY_KEY],
+//       };
+//       groupedResults[tableId].columns.unshift(rowidColumn);
+//     }
+//   }
+
+//   // We group under each table the columns
+//   return Object.values(groupedResults);
+// }

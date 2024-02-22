@@ -1,12 +1,19 @@
-import type postgres from "postgres";
+/* eslint-disable @typescript-eslint/no-non-null-assertion */
 import { sql } from "drizzle-orm";
-import { type PgDatabase, type QueryResultHKT } from "drizzle-orm/pg-core";
-import { buildSchemaExclusionClause } from "./utils.js";
+import { type BaseSQLiteDatabase } from "drizzle-orm/sqlite-core";
+import {
+  FETCH_TABLE_COLUMNS_LIST,
+  type FetchTableAndColumnsResultRaw,
+  type SQLiteAffinity,
+  mapCommonTypesToAffinity,
+} from "./fetchTablesAndColumns.js";
 
 interface RelationKeyInfos {
+  fkAffinity: SQLiteAffinity;
   fkColumn: string;
   fkType: string;
   nullable: boolean;
+  targetAffinity: SQLiteAffinity;
   targetColumn: string;
   targetType: string;
 }
@@ -16,52 +23,115 @@ interface FetchRelationshipsInfosResult {
   keys: Array<RelationKeyInfos>;
   targetTable: string;
 }
-const FETCH_RELATIONSHIPS_INFOS = `
-  SELECT
-    constraint_name AS "id",
-    concat(fk_nsp.nspname, '.', fk_table) AS "fkTable",
-    json_agg(json_build_object(
-      'fkColumn', fk_att.attname,
-      'fkType', fk_typ.typname,
-      'targetColumn', tar_att.attname,
-      'targetType', tar_typ.typname,
-      'nullable', fk_att.attnotnull = false
-    ) ORDER BY fk_att.attnum) AS "keys",
-    concat(tar_nsp.nspname, '.', target_table) AS "targetTable"
-    FROM (
-        SELECT
-            fk.oid AS fk_table_id,
-            fk.relnamespace AS fk_schema_id,
-            fk.relname AS fk_table,
-            unnest(con.conkey) as fk_column_id,
-            tar.oid AS target_table_id,
-            tar.relnamespace AS target_schema_id,
-            tar.relname AS target_table,
-            unnest(con.confkey) as target_column_id,
-            con.connamespace AS constraint_nsp,
-            con.conname AS constraint_name
-        FROM pg_constraint con
-        JOIN pg_class fk ON con.conrelid = fk.oid
-        JOIN pg_class tar ON con.confrelid = tar.oid
-        WHERE con.contype = 'f' AND fk.relispartition IS FALSE
-    ) sub
-    JOIN pg_attribute fk_att ON fk_att.attrelid = fk_table_id AND fk_att.attnum = fk_column_id
-    JOIN pg_attribute tar_att ON tar_att.attrelid = target_table_id AND tar_att.attnum = target_column_id
-    JOIN pg_type fk_typ ON fk_att.atttypid = fk_typ.oid
-    JOIN pg_type tar_typ ON tar_att.atttypid = tar_typ.oid
-    JOIN pg_namespace fk_nsp ON fk_schema_id = fk_nsp.oid
-    JOIN pg_namespace tar_nsp ON target_schema_id = tar_nsp.oid
-  WHERE ${buildSchemaExclusionClause("fk_nsp.nspname")}
-  GROUP BY "fkTable", "targetTable", sub.constraint_nsp, sub.constraint_name
-  ORDER BY "fkTable", "targetTable";
+
+interface FetchTableForeignKeysResultRaw {
+  fkFromColumn: string;
+  fkId: number;
+  fkSeq: number;
+  fkToColumn: string;
+  fkToTable: string;
+  tableId: string;
+  tableName: string;
+}
+
+const FETCH_TABLE_FOREIGN_KEYS = `
+SELECT
+	alltables.name  as tableId,
+	alltables.name  as tableName,
+	fk.id           as fkId,
+	fk.seq          as fkSeq,
+	fk."from"       as fkFromColumn,
+	fk."to"         as fkToColumn,
+	fk."table"      as fkToTable
+FROM
+  	sqlite_master AS alltables,
+  	pragma_foreign_key_list(alltables.name) AS fk
+WHERE
+  alltables.type = 'table' AND alltables.name NOT LIKE 'sqlite_%'
+ORDER BY
+  alltables.name, fk.id
 `;
 
-export async function fetchDatabaseRelationships<T extends QueryResultHKT>(
-  client: PgDatabase<T>,
+export async function fetchDatabaseRelationships<T extends "async" | "sync", R>(
+  client: BaseSQLiteDatabase<T, R>,
 ) {
-  const response = (await client.execute(
-    sql.raw(FETCH_RELATIONSHIPS_INFOS),
-  )) as postgres.RowList<Array<FetchRelationshipsInfosResult>>;
+  const results: Array<FetchRelationshipsInfosResult> = [];
+  const foreignKeysResult = await client.all<FetchTableForeignKeysResultRaw>(
+    sql.raw(FETCH_TABLE_FOREIGN_KEYS),
+  );
+  const tableColumnsInfos = await client.all<FetchTableAndColumnsResultRaw>(
+    sql.raw(FETCH_TABLE_COLUMNS_LIST),
+  );
+  const tableColumnsInfosGrouped = tableColumnsInfos.reduce<
+    Record<
+      string,
+      Array<FetchTableAndColumnsResultRaw & { affinity: SQLiteAffinity }>
+    >
+  >((acc, row) => {
+    // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
+    if (!acc[row.tableId]) {
+      acc[row.tableId] = [];
+    }
+    acc[row.tableId].push({
+      ...row,
+      affinity: mapCommonTypesToAffinity(row.colType, row.colNotNull === 0),
+    });
+    return acc;
+  }, {});
+  const groupedByTableResults = foreignKeysResult.reduce<
+    Record<string, Array<FetchTableForeignKeysResultRaw>>
+  >((acc, row) => {
+    // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
+    if (!acc[row.tableId]) {
+      acc[row.tableId] = [];
+    }
+    acc[row.tableId].push(row);
+    return acc;
+  }, {});
+  for (const tableId in groupedByTableResults) {
+    const tableForeignKeys = groupedByTableResults[tableId];
+    const groupedByFkId = tableForeignKeys.reduce<
+      Record<string, FetchRelationshipsInfosResult>
+    >((acc, row) => {
+      // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
+      if (!acc[`${row.fkId}`]) {
+        acc[`${row.fkId}`] = {
+          id: `${row.fkId}`,
+          fkTable: row.tableName,
+          targetTable: row.fkToTable,
+          keys: [],
+        };
+      }
+      const columnInfosToTable = tableColumnsInfosGrouped[row.fkToTable];
+      const columnInfosFromTable = tableColumnsInfosGrouped[row.tableName];
+      const fkToColumnInfos = columnInfosToTable.find(
+        (c) => c.colName === row.fkToColumn,
+      );
+      const fkFromColumnInfos = columnInfosFromTable.find(
+        (c) => c.colName === row.fkFromColumn,
+      );
 
-  return response;
+      acc[`${row.fkId}`].keys.push({
+        fkColumn: row.fkFromColumn,
+        fkType: fkFromColumnInfos!.colType,
+        fkAffinity: fkFromColumnInfos!.affinity,
+        targetColumn: row.fkToColumn,
+        targetType: fkToColumnInfos!.colType,
+        targetAffinity: fkToColumnInfos!.affinity,
+        nullable: fkFromColumnInfos!.colNotNull === 0,
+      });
+      return acc;
+    }, {});
+    for (const fkId in groupedByFkId) {
+      const foreignKeyInfos = groupedByFkId[fkId];
+      results.push({
+        id: `${foreignKeyInfos.fkTable}_${foreignKeyInfos.keys.map((k) => k.fkColumn).join("_")}_fkey`,
+        fkTable: foreignKeyInfos.fkTable,
+        targetTable: foreignKeyInfos.targetTable,
+        keys: foreignKeyInfos.keys,
+      });
+    }
+  }
+
+  return results;
 }
