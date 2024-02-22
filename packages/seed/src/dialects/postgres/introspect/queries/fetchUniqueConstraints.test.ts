@@ -1,12 +1,27 @@
-import { drizzle } from "drizzle-orm/postgres-js";
-import { expect, test } from "vitest";
+import { drizzle as drizzlePg } from "drizzle-orm/node-postgres";
+import { drizzle as drizzleJs } from "drizzle-orm/postgres-js";
+import { describe, expect, test } from "vitest";
 import { postgres } from "#test";
 import { fetchUniqueConstraints } from "./fetchUniqueConstraints.js";
 
-const { createTestDb } = postgres;
+const adapters = {
+  postgresJs: () => ({
+    ...postgres.postgresJs,
+    drizzle: drizzleJs,
+  }),
+  pg: () => ({
+    ...postgres.pg,
+    drizzle: drizzlePg,
+  }),
+};
 
-test("should get all unique constraints for tables primary key and unique composite and single", async () => {
-  const structure = `
+describe.each(["postgresJs", "pg"] as const)(
+  "fetchUniqueConstraints: %s",
+  (adapter) => {
+    const { drizzle, createTestDb } = adapters[adapter]();
+
+    test("should get all unique constraints for tables primary key and unique composite and single", async () => {
+      const structure = `
     CREATE TABLE "Courses" (
         "CourseID" SERIAL PRIMARY KEY,
         "CourseName" VARCHAR(255) UNIQUE NOT NULL,
@@ -33,79 +48,80 @@ test("should get all unique constraints for tables primary key and unique compos
     );
   `;
 
-  const db = await createTestDb(structure);
-  const constraints = await fetchUniqueConstraints(drizzle(db.client));
+      const db = await createTestDb(structure);
+      // @ts-expect-error dynamic drizzle import based on adapter
+      const constraints = await fetchUniqueConstraints(drizzle(db.client));
 
-  expect(constraints).toEqual([
-    {
-      tableId: "public.Courses",
-      schema: "public",
-      table: "Courses",
-      dirty: false,
-      name: "Courses_CourseName_key",
-      columns: ["CourseName"],
-    },
-    {
-      tableId: "public.Courses",
-      schema: "public",
-      table: "Courses",
-      dirty: false,
-      name: "Courses_pkey",
-      columns: ["CourseID"],
-    },
-    {
-      tableId: "public.Enrollments",
-      schema: "public",
-      table: "Enrollments",
-      dirty: false,
-      name: "Enrollments_CourseID_StudentID_key",
-      columns: ["CourseID", "StudentID"],
-    },
-    {
-      tableId: "public.Enrollments",
-      schema: "public",
-      table: "Enrollments",
-      dirty: false,
-      name: "Enrollments_pkey",
-      columns: ["EnrollmentID"],
-    },
-    {
-      tableId: "public.Students",
-      schema: "public",
-      table: "Students",
-      dirty: false,
-      name: "Students_FirstName_LastName_key",
-      columns: ["FirstName", "LastName"],
-    },
-    {
-      tableId: "public.Students",
-      schema: "public",
-      table: "Students",
-      dirty: false,
-      name: "Students_pkey",
-      columns: ["StudentID"],
-    },
-    {
-      columns: ["Test3"],
-      dirty: false,
-      name: "Test_Test3_key",
-      schema: "public",
-      table: "Test",
-      tableId: "public.Test",
-    },
-    {
-      columns: ["Test2ID", "TestID"],
-      dirty: false,
-      name: "Test_pkey",
-      schema: "public",
-      table: "Test",
-      tableId: "public.Test",
-    },
-  ]);
-});
+      expect(constraints).toEqual([
+        {
+          tableId: "public.Courses",
+          schema: "public",
+          table: "Courses",
+          dirty: false,
+          name: "Courses_CourseName_key",
+          columns: ["CourseName"],
+        },
+        {
+          tableId: "public.Courses",
+          schema: "public",
+          table: "Courses",
+          dirty: false,
+          name: "Courses_pkey",
+          columns: ["CourseID"],
+        },
+        {
+          tableId: "public.Enrollments",
+          schema: "public",
+          table: "Enrollments",
+          dirty: false,
+          name: "Enrollments_CourseID_StudentID_key",
+          columns: ["CourseID", "StudentID"],
+        },
+        {
+          tableId: "public.Enrollments",
+          schema: "public",
+          table: "Enrollments",
+          dirty: false,
+          name: "Enrollments_pkey",
+          columns: ["EnrollmentID"],
+        },
+        {
+          tableId: "public.Students",
+          schema: "public",
+          table: "Students",
+          dirty: false,
+          name: "Students_FirstName_LastName_key",
+          columns: ["FirstName", "LastName"],
+        },
+        {
+          tableId: "public.Students",
+          schema: "public",
+          table: "Students",
+          dirty: false,
+          name: "Students_pkey",
+          columns: ["StudentID"],
+        },
+        {
+          columns: ["Test3"],
+          dirty: false,
+          name: "Test_Test3_key",
+          schema: "public",
+          table: "Test",
+          tableId: "public.Test",
+        },
+        {
+          columns: ["Test2ID", "TestID"],
+          dirty: false,
+          name: "Test_pkey",
+          schema: "public",
+          table: "Test",
+          tableId: "public.Test",
+        },
+      ]);
+    });
 
-test("should get constraints from different schemas", async () => {
-  const structure = `
+    test("should get constraints from different schemas", async () => {
+      const structure = `
     CREATE SCHEMA private;
     CREATE TABLE public."Courses" (
         "CourseID" SERIAL PRIMARY KEY
@@ -115,38 +131,39 @@ test("should get constraints from different schemas", async () => {
         "FirstName" VARCHAR(255) UNIQUE NOT NULL
     );
   `;
-  const db = await createTestDb(structure);
-  const constraints = await fetchUniqueConstraints(drizzle(db.client));
-  expect(constraints).toEqual([
-    {
-      tableId: "private.Students",
-      schema: "private",
-      table: "Students",
-      dirty: false,
-      name: expect.any(String),
-      columns: ["FirstName"],
-    },
-    {
-      tableId: "private.Students",
-      schema: "private",
-      table: "Students",
-      dirty: false,
-      name: expect.any(String),
-      columns: ["StudentID"],
-    },
-    {
-      tableId: "public.Courses",
-      schema: "public",
-      table: "Courses",
-      dirty: false,
-      name: "Courses_pkey",
-      columns: ["CourseID"],
-    },
-  ]);
-});
+      const db = await createTestDb(structure);
+      // @ts-expect-error dynamic drizzle import based on adapter
+      const constraints = await fetchUniqueConstraints(drizzle(db.client));
+      expect(constraints).toEqual([
+        {
+          tableId: "private.Students",
+          schema: "private",
+          table: "Students",
+          dirty: false,
+          name: expect.any(String),
+          columns: ["FirstName"],
+        },
+        {
+          tableId: "private.Students",
+          schema: "private",
+          table: "Students",
+          dirty: false,
+          name: expect.any(String),
+          columns: ["StudentID"],
+        },
+        {
+          tableId: "public.Courses",
+          schema: "public",
+          table: "Courses",
+          dirty: false,
+          name: "Courses_pkey",
+          columns: ["CourseID"],
+        },
+      ]);
+    });
 
-test("should return empty array for tables without constraints", async () => {
-  const structure = `
+    test("should return empty array for tables without constraints", async () => {
+      const structure = `
     CREATE TABLE "Courses" (
         "CourseID" INT,
         "CourseName" VARCHAR(255)
@@ -157,7 +174,10 @@ test("should return empty array for tables without constraints", async () => {
         "LastName" VARCHAR(255)
     );
   `;
-  const db = await createTestDb(structure);
-  const constraints = await fetchUniqueConstraints(drizzle(db.client));
-  expect(constraints).toEqual([]);
-});
+      const db = await createTestDb(structure);
+      // @ts-expect-error dynamic drizzle import based on adapter
+      const constraints = await fetchUniqueConstraints(drizzle(db.client));
+      expect(constraints).toEqual([]);
+    });
+  },
+);

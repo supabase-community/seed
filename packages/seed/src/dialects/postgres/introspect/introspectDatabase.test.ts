@@ -4,7 +4,8 @@ import { expect, test } from "vitest";
 import { postgres } from "#test";
 import { type Relationship, introspectDatabase } from "./introspectDatabase.js";
 
-const { createTestDb, createTestRole, createSnapletTestDb } = postgres;
+const { createTestDb, createTestRole, createSnapletTestDb } =
+  postgres.postgresJs;
 
 test("introspectDatabase should return detailed database structure", async () => {
   const structure = `

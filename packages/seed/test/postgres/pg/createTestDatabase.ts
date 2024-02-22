@@ -1,13 +1,13 @@
 import { sql } from "drizzle-orm";
-import { drizzle } from "drizzle-orm/postgres-js";
+import { drizzle } from "drizzle-orm/node-postgres";
 import { readFileSync } from "fs-extra";
 import path from "node:path";
-import postgres from "postgres";
+import { Client } from "pg";
 import { v4 } from "uuid";
 
 interface State {
   dbs: Array<{
-    client: postgres.Sql;
+    client: Client;
     name: string;
   }>;
 }
@@ -19,13 +19,27 @@ const TEST_DATABASE_PREFIX = "testdb";
 
 export const defineCreateTestDb = (state: State) => {
   const connString = TEST_DATABASE_SERVER;
-  const serverClient = postgres(connString, { max: 1 });
+  const serverClient = new Client({ connectionString: connString });
   const serverDrizzle = drizzle(serverClient, { logger: false });
+  let clientConnected = false;
   const createTestDb = async (structure?: string) => {
+    if (!clientConnected) {
+      await serverClient.connect();
+      clientConnected = true;
+    }
     const dbName = `${TEST_DATABASE_PREFIX}${v4()}`;
-    await serverDrizzle.execute(sql.raw(`DROP DATABASE IF EXISTS "${dbName}"`));
+    await serverDrizzle.execute(
+      sql.raw(`DROP DATABASE IF EXISTS "${dbName}";`),
+    );
     await serverDrizzle.execute(sql.raw(`CREATE DATABASE "${dbName}"`));
-    const client = postgres(connString, { max: 1, database: dbName });
+    const client = new Client({
+      host: serverClient.host,
+      port: serverClient.port,
+      user: serverClient.user,
+      password: serverClient.password,
+      database: dbName,
+    });
+    await client.connect();
     const result = {
       client: client,
       name: dbName,
@@ -76,7 +90,7 @@ export const createTestDb = defineCreateTestDb({ dbs: [] });
 export const createSnapletTestDb = async () => {
   const db = await createTestDb();
   const snapletSchemaSql = readFileSync(
-    path.resolve(__dirname, "./fixtures/snaplet_schema.sql"),
+    path.resolve(__dirname, "../fixtures/snaplet_schema.sql"),
   );
   await drizzle(db.client).execute(sql.raw(snapletSchemaSql.toString()));
   return db;
