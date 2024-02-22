@@ -19,7 +19,7 @@ importers:
         version: 8.56.0
       knip:
         specifier: 5.0.1
-        version: 5.0.1(@types/node@20.11.18)(typescript@5.3.3)
+        version: 5.0.1(@types/node@20.11.19)(typescript@5.3.3)
       skott:
         specifier: 0.32.1
         version: 0.32.1
@@ -31,7 +31,7 @@ importers:
         version: 5.3.3
       vitest:
         specifier: 1.2.2
-        version: 1.2.2(@types/node@20.11.18)
+        version: 1.2.2(@types/node@20.11.19)
 
   packages/eslint-config:
     dependencies:
@@ -119,8 +119,8 @@ importers:
         version: 3.22.4
     devDependencies:
       '@snaplet/copycat':
-        specifier: 4.1.0
-        version: 4.1.0
+        specifier: 5.0.0
+        version: 5.0.0
       '@snaplet/eslint-config':
         specifier: workspace:*
         version: link:../eslint-config
@@ -1091,11 +1091,11 @@ packages:
   /@sinclair/typebox@0.27.8:
     resolution: {integrity: sha512-+Fj43pSMwJs4KRrH/938Uf+uAELIgVBmQzg/q1YG10djyfA3TnrU8N8XzqCh/okZdszqBQTZf96idMfE5lnwTA==}
 
-  /@snaplet/copycat@4.1.0:
-    resolution: {integrity: sha512-y+e2v+s49IiXvtELSM25Hw5NOcKQtpaCeHOR7kjvViA3GjtLNtr9OHdtlL5l9FTSqr5KKu8EC4yYZm07bjiCPQ==}
+  /@snaplet/copycat@5.0.0:
+    resolution: {integrity: sha512-qapZN1mwVO5v1GmUW66gXoZ8qtpsqJk+tPUb3lGtyzwYtAPifHA0uymsi/Pjv6SVvl9SQhD2Af6Bb8Eime856g==}
     dependencies:
       '@faker-js/faker': 8.4.0
-      fictional: 1.0.0
+      fictional: 2.0.0
       string-argv: 0.3.2
       uuid: 8.3.2
     dev: true
@@ -1169,6 +1169,11 @@ packages:
 
   /@types/node@20.11.18:
     resolution: {integrity: sha512-ABT5VWnnYneSBcNWYSCuR05M826RoMyMSGiFivXGx6ZUIsXb9vn4643IEwkg2zbEOSgAiSogtapN2fgc4mAPlw==}
+    dependencies:
+      undici-types: 5.26.5
+
+  /@types/node@20.11.19:
+    resolution: {integrity: sha512-7xMnVEcZFu0DikYjWOlRq7NTPETrm7teqUT2WkQjrTIkEgUyyGdWsj/Zg8bEJt5TNklzbPD1X3fqfsHw3SpapQ==}
     dependencies:
       undici-types: 5.26.5
 
@@ -2458,7 +2463,7 @@ packages:
       '@typescript-eslint/eslint-plugin': 7.0.1(@typescript-eslint/parser@7.0.1)(eslint@8.56.0)(typescript@5.3.3)
       '@typescript-eslint/utils': 6.21.0(eslint@8.56.0)(typescript@5.3.3)
       eslint: 8.56.0
-      vitest: 1.2.2(@types/node@20.11.18)
+      vitest: 1.2.2(@types/node@20.11.19)
     transitivePeerDependencies:
       - supports-color
       - typescript
@@ -2653,8 +2658,8 @@ packages:
         optional: true
     dev: true
 
-  /fictional@1.0.0:
-    resolution: {integrity: sha512-Te371TlrOeJmCbIernQfpntIO6Mp3233n4mbvrjJUWFEi2GLFumy9HfyKJu8dc+6afXqxlSYw3IXNT2a4t5aUg==}
+  /fictional@2.0.0:
+    resolution: {integrity: sha512-uK8lBK3Xdk1y36wLj30ftvt8F7DPFBolTN/739eM71w36eCwhraFl//Udpiu9s1CIYZ2qywbPpi5aHh/i+zA1A==}
     dependencies:
       decimal.js: 10.4.3
       fast-json-stable-stringify: 2.1.0
@@ -3205,7 +3210,7 @@ packages:
     engines: {node: '>=6'}
     dev: true
 
-  /knip@5.0.1(@types/node@20.11.18)(typescript@5.3.3):
+  /knip@5.0.1(@types/node@20.11.19)(typescript@5.3.3):
     resolution: {integrity: sha512-rvZbe2JIpx+3i+ZC3XpLpKPp6oII9f5w1MOMsXwS1JnuYVuNd4R2i4eon2hFds9a+pf8F10DC1Gvt1W8SIBw3A==}
     engines: {node: '>=18.6.0'}
     hasBin: true
@@ -3220,7 +3225,7 @@ packages:
       '@pnpm/logger': 5.0.0
       '@pnpm/workspace.pkgs-graph': 2.0.14(@pnpm/logger@5.0.0)
       '@snyk/github-codeowners': 1.1.0
-      '@types/node': 20.11.18
+      '@types/node': 20.11.19
       '@types/picomatch': 2.3.3
       easy-table: 1.2.0
       fast-glob: 3.3.2
@@ -4833,6 +4838,27 @@ packages:
       - sugarss
       - supports-color
       - terser
+    dev: true
+
+  /vite-node@1.2.2(@types/node@20.11.19):
+    resolution: {integrity: sha512-1as4rDTgVWJO3n1uHmUYqq7nsFgINQ9u+mRcXpjeOMJUmviqNKjcZB7UfRZrlM7MjYXMKpuWp5oGkjaFLnjawg==}
+    engines: {node: ^18.0.0 || >=20.0.0}
+    hasBin: true
+    dependencies:
+      cac: 6.7.14
+      debug: 4.3.4
+      pathe: 1.1.2
+      picocolors: 1.0.0
+      vite: 5.0.12(@types/node@20.11.19)
+    transitivePeerDependencies:
+      - '@types/node'
+      - less
+      - lightningcss
+      - sass
+      - stylus
+      - sugarss
+      - supports-color
+      - terser
 
   /vite@5.0.12(@types/node@20.11.18):
     resolution: {integrity: sha512-4hsnEkG3q0N4Tzf1+t6NdN9dg/L3BM+q8SWgbSPnJvrgH2kgdyzfVJwbR1ic69/4uMJJ/3dqDZZE5/WwqW8U1w==}
@@ -4863,6 +4889,42 @@ packages:
         optional: true
     dependencies:
       '@types/node': 20.11.18
+      esbuild: 0.19.12
+      postcss: 8.4.33
+      rollup: 4.9.6
+    optionalDependencies:
+      fsevents: 2.3.3
+    dev: true
+
+  /vite@5.0.12(@types/node@20.11.19):
+    resolution: {integrity: sha512-4hsnEkG3q0N4Tzf1+t6NdN9dg/L3BM+q8SWgbSPnJvrgH2kgdyzfVJwbR1ic69/4uMJJ/3dqDZZE5/WwqW8U1w==}
+    engines: {node: ^18.0.0 || >=20.0.0}
+    hasBin: true
+    peerDependencies:
+      '@types/node': ^18.0.0 || >=20.0.0
+      less: '*'
+      lightningcss: ^1.21.0
+      sass: '*'
+      stylus: '*'
+      sugarss: '*'
+      terser: ^5.4.0
+    peerDependenciesMeta:
+      '@types/node':
+        optional: true
+      less:
+        optional: true
+      lightningcss:
+        optional: true
+      sass:
+        optional: true
+      stylus:
+        optional: true
+      sugarss:
+        optional: true
+      terser:
+        optional: true
+    dependencies:
+      '@types/node': 20.11.19
       esbuild: 0.19.12
       postcss: 8.4.33
       rollup: 4.9.6
@@ -4915,6 +4977,63 @@ packages:
       tinypool: 0.8.2
       vite: 5.0.12(@types/node@20.11.18)
       vite-node: 1.2.2(@types/node@20.11.18)
+      why-is-node-running: 2.2.2
+    transitivePeerDependencies:
+      - less
+      - lightningcss
+      - sass
+      - stylus
+      - sugarss
+      - supports-color
+      - terser
+    dev: true
+
+  /vitest@1.2.2(@types/node@20.11.19):
+    resolution: {integrity: sha512-d5Ouvrnms3GD9USIK36KG8OZ5bEvKEkITFtnGv56HFaSlbItJuYr7hv2Lkn903+AvRAgSixiamozUVfORUekjw==}
+    engines: {node: ^18.0.0 || >=20.0.0}
+    hasBin: true
+    peerDependencies:
+      '@edge-runtime/vm': '*'
+      '@types/node': ^18.0.0 || >=20.0.0
+      '@vitest/browser': ^1.0.0
+      '@vitest/ui': ^1.0.0
+      happy-dom: '*'
+      jsdom: '*'
+    peerDependenciesMeta:
+      '@edge-runtime/vm':
+        optional: true
+      '@types/node':
+        optional: true
+      '@vitest/browser':
+        optional: true
+      '@vitest/ui':
+        optional: true
+      happy-dom:
+        optional: true
+      jsdom:
+        optional: true
+    dependencies:
+      '@types/node': 20.11.19
+      '@vitest/expect': 1.2.2
+      '@vitest/runner': 1.2.2
+      '@vitest/snapshot': 1.2.2
+      '@vitest/spy': 1.2.2
+      '@vitest/utils': 1.2.2
+      acorn-walk: 8.3.2
+      cac: 6.7.14
+      chai: 4.4.1
+      debug: 4.3.4
+      execa: 8.0.1
+      local-pkg: 0.5.0
+      magic-string: 0.30.6
+      pathe: 1.1.2
+      picocolors: 1.0.0
+      std-env: 3.7.0
+      strip-literal: 1.3.0
+      tinybench: 2.6.0
+      tinypool: 0.8.2
+      vite: 5.0.12(@types/node@20.11.19)
+      vite-node: 1.2.2(@types/node@20.11.19)
       why-is-node-running: 2.2.2
     transitivePeerDependencies:
       - less
