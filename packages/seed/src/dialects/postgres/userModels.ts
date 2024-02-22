@@ -51,8 +51,10 @@ export const SEED_PG_TEMPLATES: Templates<PgTypeName> = {
   circle: circle,
   macaddr: ({ input }) => `copycat.mac(${input})`,
   macaddr8: ({ input }) => `copycat.mac(${input})`,
-  json: ({ input }) => `{ [copycat.word(${input})]: copycat.words(${input}) }`,
-  jsonb: ({ input }) => `{ [copycat.word(${input})]: copycat.words(${input}) }`,
+  json: ({ input }) =>
+    `({ [copycat.word(${input})]: copycat.words(${input}) })`,
+  jsonb: ({ input }) =>
+    `({ [copycat.word(${input})]: copycat.words(${input}) })`,
   date: ({ input }) =>
     `copycat.dateString(${input}, { minYear: 2020 }).slice(0, 10)`,
   time: ({ input }) =>

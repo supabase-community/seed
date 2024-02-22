@@ -73,7 +73,7 @@ export const generateCopycatCall = <MethodName extends CopycatMethodName>(
     code = `${code}.toString()`;
   }
 
-  if (needsTruncating) {
+  if (needsTruncating && context.jsType === "string") {
     code = `${code}.slice(0, ${context.field.maxLength})`;
   }
 
