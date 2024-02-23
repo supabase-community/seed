@@ -1,715 +1,383 @@
-import { sql } from "drizzle-orm";
-import { drizzle } from "drizzle-orm/postgres-js";
-import { expect, test } from "vitest";
-import { postgres } from "#test";
+import { drizzle as drizzleBetterSqlite } from "drizzle-orm/better-sqlite3";
+import { describe, expect, test } from "vitest";
+import { sqlite } from "#test";
 import { fetchTablesAndColumns } from "./fetchTablesAndColumns.js";
 
-const { createTestDb } = postgres.postgresJs;
+const adapters = {
+  betterSqlite3: () => ({
+    ...sqlite.betterSqlite3,
+    drizzle: drizzleBetterSqlite,
+  }),
+};
 
-test("should fetch all tables and columns on empty db", async () => {
-  const structure = ``;
-  const db = await createTestDb(structure);
-  const tablesInfos = await fetchTablesAndColumns(drizzle(db.client));
+describe.each(["betterSqlite3"] as const)(
+  "fetchUniqueConstraints: %s",
+  (adapter) => {
+    const { drizzle, createTestDb } = adapters[adapter]();
 
-  expect(tablesInfos).toEqual([]);
-});
+    test("should fetch all tables and columns on empty db", async () => {
+      const structure = ``;
+      const { client } = await createTestDb(structure);
 
-test("should fetch all tables and columns infos", async () => {
-  const structure = `
-    CREATE TABLE "Courses" (
-        "CourseID" SERIAL PRIMARY KEY,
-        "CourseName" VARCHAR(255) NOT NULL
-    );
-    CREATE TABLE "Students" (
-        "StudentID" SERIAL PRIMARY KEY,
-        "FirstName" VARCHAR(255) NOT NULL,
-        "LastName" VARCHAR(255) NOT NULL
-    );
-  `;
-  const db = await createTestDb(structure);
-  await drizzle(db.client).execute(sql.raw(`VACUUM ANALYZE;`));
-  const tablesInfos = await fetchTablesAndColumns(drizzle(db.client));
-  expect(tablesInfos).toEqual([
-    {
-      bytes: 0,
-      partitioned: false,
-      columns: expect.arrayContaining([
-        {
-          id: "public.Courses.CourseID",
-          constraints: ["p"],
-          default: "nextval('\"Courses_CourseID_seq\"'::regclass)",
-          generated: "NEVER",
-          identity: null,
-          maxLength: null,
-          name: "CourseID",
-          nullable: false,
-          schema: "public",
-          table: "Courses",
-          type: "int4",
-          typeId: "pg_catalog.int4",
-          typeCategory: "N",
-        },
-        {
-          id: "public.Courses.CourseName",
-          constraints: [],
-          default: null,
-          generated: "NEVER",
-          identity: null,
-          maxLength: 255,
-          name: "CourseName",
-          nullable: false,
-          schema: "public",
-          table: "Courses",
-          type: "varchar",
-          typeId: "pg_catalog.varchar",
-          typeCategory: "S",
-        },
-      ]),
-      id: "public.Courses",
-      name: "Courses",
-      rows: 0,
-      schema: "public",
-    },
-    {
-      bytes: 0,
-      partitioned: false,
-      columns: expect.arrayContaining([
-        {
-          id: "public.Students.FirstName",
-          constraints: [],
-          default: null,
-          generated: "NEVER",
-          identity: null,
-          maxLength: 255,
-          name: "FirstName",
-          nullable: false,
-          schema: "public",
-          table: "Students",
-          type: "varchar",
-          typeId: "pg_catalog.varchar",
-          typeCategory: "S",
-        },
-        {
-          id: "public.Students.LastName",
-          constraints: [],
-          default: null,
-          generated: "NEVER",
-          identity: null,
-          maxLength: 255,
-          name: "LastName",
-          nullable: false,
-          schema: "public",
-          table: "Students",
-          type: "varchar",
-          typeId: "pg_catalog.varchar",
-          typeCategory: "S",
-        },
-        {
-          id: "public.Students.StudentID",
-          constraints: ["p"],
-          default: "nextval('\"Students_StudentID_seq\"'::regclass)",
-          generated: "NEVER",
-          identity: null,
-          maxLength: null,
-          name: "StudentID",
-          nullable: false,
-          schema: "public",
-          table: "Students",
-          type: "int4",
-          typeId: "pg_catalog.int4",
-          typeCategory: "N",
-        },
-      ]),
-      id: "public.Students",
-      name: "Students",
-      rows: 0,
-      schema: "public",
-    },
-  ]);
-});
+      const tablesInfos = await fetchTablesAndColumns(drizzle(client));
 
-test("look up the correct types in the case of several types of the same name in different schemas", async () => {
-  const structure = `
-    CREATE TYPE public."E" AS ENUM ('A1', 'B1');
+      expect(tablesInfos).toEqual([]);
+    });
 
-    CREATE SCHEMA other;
+    test("should fetch all tables and columns infos", async () => {
+      const structure = `
+        CREATE TABLE "Courses" (
+          "CourseID" INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
+          "CourseName" TEXT NOT NULL
+        );
+        CREATE TABLE "Students" (
+            "StudentID" INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
+            "FirstName" TEXT NOT NULL,
+            "LastName" TEXT NOT NULL
+        );
+      `;
+      const { client } = await createTestDb(structure);
 
-    CREATE TYPE other."E" AS ENUM ('A2', 'B2');
+      const tablesInfos = await fetchTablesAndColumns(drizzle(client));
+      expect(tablesInfos).toEqual([
+        {
+          columns: [
+            {
+              affinity: "integer",
+              constraints: ["p"],
+              default: null,
+              id: "Courses.CourseID",
+              name: "CourseID",
+              nullable: false,
+              table: "Courses",
+              type: "INTEGER",
+            },
+            {
+              affinity: "text",
+              constraints: [],
+              default: null,
+              id: "Courses.CourseName",
+              name: "CourseName",
+              nullable: false,
+              table: "Courses",
+              type: "TEXT",
+            },
+          ],
+          id: "Courses",
+          name: "Courses",
+          strict: 0,
+          type: "table",
+          wr: 0,
+        },
+        {
+          columns: [
+            {
+              affinity: "integer",
+              constraints: ["p"],
+              default: null,
+              id: "Students.StudentID",
+              name: "StudentID",
+              nullable: false,
+              table: "Students",
+              type: "INTEGER",
+            },
+            {
+              affinity: "text",
+              constraints: [],
+              default: null,
+              id: "Students.FirstName",
+              name: "FirstName",
+              nullable: false,
+              table: "Students",
+              type: "TEXT",
+            },
+            {
+              affinity: "text",
+              constraints: [],
+              default: null,
+              id: "Students.LastName",
+              name: "LastName",
+              nullable: false,
+              table: "Students",
+              type: "TEXT",
+            },
+          ],
+          id: "Students",
+          name: "Students",
+          strict: 0,
+          type: "table",
+          wr: 0,
+        },
+      ]);
+    });
 
-    CREATE TABLE "Foo" (
-        "e1" public."E" NOT NULL
-    );
-  `;
-  const db = await createTestDb(structure);
-  await drizzle(db.client).execute(sql.raw(`VACUUM ANALYZE;`));
-  const tablesInfos = await fetchTablesAndColumns(drizzle(db.client));
+    test("should also work for tables with composite PK", async () => {
+      const structure = `
+        CREATE TABLE "Courses" (
+          "CourseID" INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
+          "CourseName" TEXT NOT NULL
+        );
+        CREATE TABLE "Students" (
+            "StudentID" INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
+            "FirstName" TEXT NOT NULL,
+            "LastName" TEXT NOT NULL
+        );
+        CREATE TABLE "Enrollments" (
+            "CourseID" INTEGER NOT NULL,
+            "StudentID" INTEGER NOT NULL,
+            PRIMARY KEY ("CourseID", "StudentID"),
+            FOREIGN KEY ("CourseID") REFERENCES "Courses"("CourseID"),
+            FOREIGN KEY ("StudentID") REFERENCES "Students"("StudentID")
+        );
+        CREATE TABLE "Grades" (
+            "CourseID" INTEGER NOT NULL,
+            "StudentID" INTEGER NOT NULL,
+            "ExamName" TEXT NOT NULL,
+            "Grade" REAL NOT NULL,
+            PRIMARY KEY ("CourseID", "StudentID", "ExamName"),
+            FOREIGN KEY ("CourseID", "StudentID") REFERENCES "Enrollments"("CourseID", "StudentID")
+        );
+      `;
+      const { client } = await createTestDb(structure);
 
-  expect(tablesInfos).toEqual([
-    {
-      bytes: 0,
-      partitioned: false,
-      columns: [
+      const tablesInfos = await fetchTablesAndColumns(drizzle(client));
+      expect(tablesInfos).toEqual([
         {
-          id: "public.Foo.e1",
-          name: "e1",
-          type: "E",
-          typeId: "public.E",
-          table: "Foo",
-          schema: "public",
-          nullable: false,
-          default: null,
-          generated: "NEVER",
-          identity: null,
-          maxLength: null,
-          typeCategory: "E",
-          constraints: [],
+          id: "Courses",
+          name: "Courses",
+          strict: 0,
+          type: "table",
+          wr: 0,
+          columns: [
+            {
+              id: "Courses.CourseID",
+              name: "CourseID",
+              type: "INTEGER",
+              table: "Courses",
+              nullable: false,
+              default: null,
+              affinity: "integer",
+              constraints: ["p"],
+            },
+            {
+              id: "Courses.CourseName",
+              name: "CourseName",
+              type: "TEXT",
+              table: "Courses",
+              nullable: false,
+              default: null,
+              affinity: "text",
+              constraints: [],
+            },
+          ],
         },
-      ],
-      id: "public.Foo",
-      name: "Foo",
-      rows: 0,
-      schema: "public",
-    },
-  ]);
-});
+        {
+          id: "Enrollments",
+          name: "Enrollments",
+          strict: 0,
+          type: "table",
+          wr: 0,
+          columns: [
+            {
+              id: "Enrollments.CourseID",
+              name: "CourseID",
+              type: "INTEGER",
+              table: "Enrollments",
+              nullable: false,
+              default: null,
+              affinity: "integer",
+              constraints: ["f", "p"],
+            },
+            {
+              id: "Enrollments.StudentID",
+              name: "StudentID",
+              type: "INTEGER",
+              table: "Enrollments",
+              nullable: false,
+              default: null,
+              affinity: "integer",
+              constraints: ["f", "p"],
+            },
+          ],
+        },
+        {
+          id: "Grades",
+          name: "Grades",
+          strict: 0,
+          type: "table",
+          wr: 0,
+          columns: [
+            {
+              id: "Grades.CourseID",
+              name: "CourseID",
+              type: "INTEGER",
+              table: "Grades",
+              nullable: false,
+              default: null,
+              affinity: "integer",
+              constraints: ["f", "p"],
+            },
+            {
+              id: "Grades.StudentID",
+              name: "StudentID",
+              type: "INTEGER",
+              table: "Grades",
+              nullable: false,
+              default: null,
+              affinity: "integer",
+              constraints: ["f", "p"],
+            },
+            {
+              id: "Grades.ExamName",
+              name: "ExamName",
+              type: "TEXT",
+              table: "Grades",
+              nullable: false,
+              default: null,
+              affinity: "text",
+              constraints: ["p"],
+            },
+            {
+              id: "Grades.Grade",
+              name: "Grade",
+              type: "REAL",
+              table: "Grades",
+              nullable: false,
+              default: null,
+              affinity: "real",
+              constraints: [],
+            },
+          ],
+        },
+        {
+          id: "Students",
+          name: "Students",
+          strict: 0,
+          type: "table",
+          wr: 0,
+          columns: [
+            {
+              id: "Students.StudentID",
+              name: "StudentID",
+              type: "INTEGER",
+              table: "Students",
+              nullable: false,
+              default: null,
+              affinity: "integer",
+              constraints: ["p"],
+            },
+            {
+              id: "Students.FirstName",
+              name: "FirstName",
+              type: "TEXT",
+              table: "Students",
+              nullable: false,
+              default: null,
+              affinity: "text",
+              constraints: [],
+            },
+            {
+              id: "Students.LastName",
+              name: "LastName",
+              type: "TEXT",
+              table: "Students",
+              nullable: false,
+              default: null,
+              affinity: "text",
+              constraints: [],
+            },
+          ],
+        },
+      ]);
+    });
 
-test("should also work for tables with composite PK", async () => {
-  const structure = `
-    CREATE TABLE "Courses" (
-        "CourseID" SERIAL PRIMARY KEY,
-        "CourseName" VARCHAR(255) NOT NULL
-    );
-    CREATE TABLE "Students" (
-        "StudentID" SERIAL PRIMARY KEY,
-        "FirstName" VARCHAR(255) NOT NULL,
-        "LastName" VARCHAR(255) NOT NULL
-    );
-    CREATE TABLE "Enrollments" (
-        "CourseID" INT NOT NULL,
-        "StudentID" INT NOT NULL,
-        PRIMARY KEY ("CourseID", "StudentID"),
-        FOREIGN KEY ("CourseID") REFERENCES "Courses"("CourseID"),
-        FOREIGN KEY ("StudentID") REFERENCES "Students"("StudentID")
-    );
-    CREATE TABLE "Grades" (
-        "CourseID" INT NOT NULL,
-        "StudentID" INT NOT NULL,
-        "ExamName" VARCHAR(255) NOT NULL,
-        "Grade" FLOAT NOT NULL,
-        PRIMARY KEY ("CourseID", "StudentID", "ExamName"),
-        FOREIGN KEY ("CourseID", "StudentID") REFERENCES "Enrollments"("CourseID", "StudentID")
-    );
-  `;
-  const db = await createTestDb(structure);
-  await drizzle(db.client).execute(sql.raw(`VACUUM ANALYZE;`));
-  const tablesInfos = await fetchTablesAndColumns(drizzle(db.client));
-  expect(tablesInfos).toEqual([
-    {
-      id: "public.Courses",
-      name: "Courses",
-      schema: "public",
-      partitioned: false,
-      rows: 0,
-      bytes: 0,
-      columns: [
-        {
-          id: "public.Courses.CourseID",
-          name: "CourseID",
-          type: "int4",
-          typeId: "pg_catalog.int4",
-          table: "Courses",
-          schema: "public",
-          nullable: false,
-          default: "nextval('\"Courses_CourseID_seq\"'::regclass)",
-          generated: "NEVER",
-          maxLength: null,
-          identity: null,
-          typeCategory: "N",
-          constraints: ["p"],
-        },
-        {
-          id: "public.Courses.CourseName",
-          name: "CourseName",
-          type: "varchar",
-          typeId: "pg_catalog.varchar",
-          table: "Courses",
-          schema: "public",
-          nullable: false,
-          default: null,
-          generated: "NEVER",
-          maxLength: 255,
-          identity: null,
-          typeCategory: "S",
-          constraints: [],
-        },
-      ],
-    },
-    {
-      id: "public.Enrollments",
-      name: "Enrollments",
-      schema: "public",
-      partitioned: false,
-      rows: 0,
-      bytes: 0,
-      columns: [
-        {
-          id: "public.Enrollments.CourseID",
-          name: "CourseID",
-          type: "int4",
-          typeId: "pg_catalog.int4",
-          table: "Enrollments",
-          schema: "public",
-          nullable: false,
-          default: null,
-          generated: "NEVER",
-          maxLength: null,
-          identity: null,
-          typeCategory: "N",
-          constraints: ["f", "p"],
-        },
-        {
-          id: "public.Enrollments.StudentID",
-          name: "StudentID",
-          type: "int4",
-          typeId: "pg_catalog.int4",
-          table: "Enrollments",
-          schema: "public",
-          nullable: false,
-          default: null,
-          generated: "NEVER",
-          maxLength: null,
-          identity: null,
-          typeCategory: "N",
-          constraints: ["f", "p"],
-        },
-      ],
-    },
-    {
-      id: "public.Grades",
-      name: "Grades",
-      schema: "public",
-      partitioned: false,
-      rows: 0,
-      bytes: 0,
-      columns: [
-        {
-          id: "public.Grades.CourseID",
-          name: "CourseID",
-          type: "int4",
-          typeId: "pg_catalog.int4",
-          table: "Grades",
-          schema: "public",
-          nullable: false,
-          default: null,
-          generated: "NEVER",
-          maxLength: null,
-          identity: null,
-          typeCategory: "N",
-          constraints: ["f", "p"],
-        },
-        {
-          id: "public.Grades.StudentID",
-          name: "StudentID",
-          type: "int4",
-          typeId: "pg_catalog.int4",
-          table: "Grades",
-          schema: "public",
-          nullable: false,
-          default: null,
-          generated: "NEVER",
-          maxLength: null,
-          identity: null,
-          typeCategory: "N",
-          constraints: ["f", "p"],
-        },
-        {
-          id: "public.Grades.ExamName",
-          name: "ExamName",
-          type: "varchar",
-          typeId: "pg_catalog.varchar",
-          table: "Grades",
-          schema: "public",
-          nullable: false,
-          default: null,
-          generated: "NEVER",
-          maxLength: 255,
-          identity: null,
-          typeCategory: "S",
-          constraints: ["p"],
-        },
-        {
-          id: "public.Grades.Grade",
-          name: "Grade",
-          type: "float8",
-          typeId: "pg_catalog.float8",
-          table: "Grades",
-          schema: "public",
-          nullable: false,
-          default: null,
-          generated: "NEVER",
-          maxLength: null,
-          identity: null,
-          typeCategory: "N",
-          constraints: [],
-        },
-      ],
-    },
-    {
-      id: "public.Students",
-      name: "Students",
-      schema: "public",
-      partitioned: false,
-      rows: 0,
-      bytes: 0,
-      columns: [
-        {
-          id: "public.Students.StudentID",
-          name: "StudentID",
-          type: "int4",
-          typeId: "pg_catalog.int4",
-          table: "Students",
-          schema: "public",
-          nullable: false,
-          default: "nextval('\"Students_StudentID_seq\"'::regclass)",
-          generated: "NEVER",
-          maxLength: null,
-          identity: null,
-          typeCategory: "N",
-          constraints: ["p"],
-        },
-        {
-          id: "public.Students.FirstName",
-          name: "FirstName",
-          type: "varchar",
-          typeId: "pg_catalog.varchar",
-          table: "Students",
-          schema: "public",
-          nullable: false,
-          default: null,
-          generated: "NEVER",
-          maxLength: 255,
-          identity: null,
-          typeCategory: "S",
-          constraints: [],
-        },
-        {
-          id: "public.Students.LastName",
-          name: "LastName",
-          type: "varchar",
-          typeId: "pg_catalog.varchar",
-          table: "Students",
-          schema: "public",
-          nullable: false,
-          default: null,
-          generated: "NEVER",
-          maxLength: 255,
-          identity: null,
-          typeCategory: "S",
-          constraints: [],
-        },
-      ],
-    },
-  ]);
-});
+    test("should work with tables without explicit primary key", async () => {
+      const structure = `
+        CREATE TABLE "Courses" (
+          "CourseID" INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
+          "CourseName" TEXT NOT NULL
+        );
+        CREATE TABLE "Lectures" (
+            "LectureName" TEXT NOT NULL,
+            "CourseID" INTEGER,
+            FOREIGN KEY ("CourseID") REFERENCES "Courses"("CourseID")
+        );
+      `;
+      const { client } = await createTestDb(structure);
 
-test("should work on multiples schemas with nullables", async () => {
-  const structure = `
-    CREATE SCHEMA private;
-    CREATE TABLE public."Courses" (
-        "CourseID" SERIAL PRIMARY KEY,
-        "CourseName" VARCHAR(255) NOT NULL
-    );
-    CREATE TABLE public."Students" (
-        "StudentID" SERIAL PRIMARY KEY,
-        "FirstName" VARCHAR(255) NOT NULL,
-        "LastName" VARCHAR(255) NOT NULL,
-        "StudentCourseId" INT,
-        FOREIGN KEY ("StudentCourseId") REFERENCES public."Courses"("CourseID")
-    );
-    CREATE TABLE private."Courses" (
-        "CourseID" SERIAL PRIMARY KEY,
-        "CourseName" VARCHAR(255) NOT NULL
-    );
-    CREATE TABLE private."Enrollments" (
-        "CourseID" INT,
-        "StudentID" INT,
-        UNIQUE ("CourseID", "StudentID"),
-        FOREIGN KEY ("CourseID") REFERENCES private."Courses"("CourseID"),
-        FOREIGN KEY ("StudentID") REFERENCES public."Students"("StudentID")
-    );
-    CREATE TABLE public."Grades" (
-        "CourseID" INT,
-        "StudentID" INT,
-        "ExamName" VARCHAR(255),
-        "Grade" FLOAT NOT NULL,
-        PRIMARY KEY ("CourseID", "StudentID", "ExamName"),
-        FOREIGN KEY ("CourseID", "StudentID") REFERENCES private."Enrollments"("CourseID", "StudentID")
-    );
-  `;
-  const db = await createTestDb(structure);
-  await drizzle(db.client).execute(sql.raw(`VACUUM ANALYZE;`));
-  const tablesInfos = await fetchTablesAndColumns(drizzle(db.client));
+      const tablesInfos = await fetchTablesAndColumns(drizzle(client));
 
-  expect(tablesInfos).toEqual([
-    {
-      id: "private.Courses",
-      name: "Courses",
-      schema: "private",
-      partitioned: false,
-      rows: 0,
-      bytes: 0,
-      columns: [
+      expect(tablesInfos).toEqual([
         {
-          id: "private.Courses.CourseID",
-          name: "CourseID",
-          type: "int4",
-          typeId: "pg_catalog.int4",
-          table: "Courses",
-          schema: "private",
-          nullable: false,
-          default: "nextval('private.\"Courses_CourseID_seq\"'::regclass)",
-          generated: "NEVER",
-          maxLength: null,
-          identity: null,
-          typeCategory: "N",
-          constraints: ["p"],
+          columns: [
+            {
+              affinity: "integer",
+              constraints: ["p"],
+              default: null,
+              id: "Courses.CourseID",
+              name: "CourseID",
+              nullable: false,
+              table: "Courses",
+              type: "INTEGER",
+            },
+            {
+              affinity: "text",
+              constraints: [],
+              default: null,
+              id: "Courses.CourseName",
+              name: "CourseName",
+              nullable: false,
+              table: "Courses",
+              type: "TEXT",
+            },
+          ],
+          id: "Courses",
+          name: "Courses",
+          strict: 0,
+          type: "table",
+          wr: 0,
         },
         {
-          id: "private.Courses.CourseName",
-          name: "CourseName",
-          type: "varchar",
-          typeId: "pg_catalog.varchar",
-          table: "Courses",
-          schema: "private",
-          nullable: false,
-          default: null,
-          generated: "NEVER",
-          maxLength: 255,
-          identity: null,
-          typeCategory: "S",
-          constraints: [],
+          columns: [
+            // Note that the rowid column is added automatically
+            {
+              affinity: "integer",
+              constraints: ["p"],
+              default: null,
+              id: "Lectures.rowid",
+              name: "rowid",
+              nullable: false,
+              table: "Lectures",
+              type: "INTEGER",
+            },
+            {
+              affinity: "text",
+              constraints: [], // Note that there's no 'p' constraint since there's no primary key
+              default: null,
+              id: "Lectures.LectureName",
+              name: "LectureName",
+              nullable: false,
+              table: "Lectures",
+              type: "TEXT",
+            },
+            {
+              affinity: "integer",
+              constraints: ["f"],
+              default: null,
+              id: "Lectures.CourseID",
+              name: "CourseID",
+              nullable: true,
+              table: "Lectures",
+              type: "INTEGER",
+            },
+          ],
+          id: "Lectures",
+          name: "Lectures",
+          strict: 0,
+          type: "table",
+          wr: 0,
         },
-      ],
-    },
-    {
-      id: "public.Courses",
-      name: "Courses",
-      schema: "public",
-      partitioned: false,
-      rows: 0,
-      bytes: 0,
-      columns: [
-        {
-          id: "public.Courses.CourseID",
-          name: "CourseID",
-          type: "int4",
-          typeId: "pg_catalog.int4",
-          table: "Courses",
-          schema: "public",
-          nullable: false,
-          default: "nextval('\"Courses_CourseID_seq\"'::regclass)",
-          generated: "NEVER",
-          maxLength: null,
-          identity: null,
-          typeCategory: "N",
-          constraints: ["p"],
-        },
-        {
-          id: "public.Courses.CourseName",
-          name: "CourseName",
-          type: "varchar",
-          typeId: "pg_catalog.varchar",
-          table: "Courses",
-          schema: "public",
-          nullable: false,
-          default: null,
-          generated: "NEVER",
-          maxLength: 255,
-          identity: null,
-          typeCategory: "S",
-          constraints: [],
-        },
-      ],
-    },
-    {
-      id: "private.Enrollments",
-      name: "Enrollments",
-      schema: "private",
-      partitioned: false,
-      rows: 0,
-      bytes: 0,
-      columns: [
-        {
-          id: "private.Enrollments.CourseID",
-          name: "CourseID",
-          type: "int4",
-          typeId: "pg_catalog.int4",
-          table: "Enrollments",
-          schema: "private",
-          nullable: true,
-          default: null,
-          generated: "NEVER",
-          maxLength: null,
-          identity: null,
-          typeCategory: "N",
-          constraints: ["f", "u"],
-        },
-        {
-          id: "private.Enrollments.StudentID",
-          name: "StudentID",
-          type: "int4",
-          typeId: "pg_catalog.int4",
-          table: "Enrollments",
-          schema: "private",
-          nullable: true,
-          default: null,
-          generated: "NEVER",
-          maxLength: null,
-          identity: null,
-          typeCategory: "N",
-          constraints: ["f", "u"],
-        },
-      ],
-    },
-    {
-      id: "public.Grades",
-      name: "Grades",
-      schema: "public",
-      partitioned: false,
-      rows: 0,
-      bytes: 0,
-      columns: [
-        {
-          id: "public.Grades.CourseID",
-          name: "CourseID",
-          type: "int4",
-          typeId: "pg_catalog.int4",
-          table: "Grades",
-          schema: "public",
-          nullable: false,
-          default: null,
-          generated: "NEVER",
-          maxLength: null,
-          identity: null,
-          typeCategory: "N",
-          constraints: ["f", "p"],
-        },
-        {
-          id: "public.Grades.StudentID",
-          name: "StudentID",
-          type: "int4",
-          typeId: "pg_catalog.int4",
-          table: "Grades",
-          schema: "public",
-          nullable: false,
-          default: null,
-          generated: "NEVER",
-          maxLength: null,
-          identity: null,
-          typeCategory: "N",
-          constraints: ["f", "p"],
-        },
-        {
-          id: "public.Grades.ExamName",
-          name: "ExamName",
-          type: "varchar",
-          typeId: "pg_catalog.varchar",
-          table: "Grades",
-          schema: "public",
-          nullable: false,
-          default: null,
-          generated: "NEVER",
-          maxLength: 255,
-          identity: null,
-          typeCategory: "S",
-          constraints: ["p"],
-        },
-        {
-          id: "public.Grades.Grade",
-          name: "Grade",
-          type: "float8",
-          typeId: "pg_catalog.float8",
-          table: "Grades",
-          schema: "public",
-          nullable: false,
-          default: null,
-          generated: "NEVER",
-          maxLength: null,
-          identity: null,
-          typeCategory: "N",
-          constraints: [],
-        },
-      ],
-    },
-    {
-      id: "public.Students",
-      name: "Students",
-      schema: "public",
-      partitioned: false,
-      rows: 0,
-      bytes: 0,
-      columns: [
-        {
-          id: "public.Students.StudentID",
-          name: "StudentID",
-          type: "int4",
-          typeId: "pg_catalog.int4",
-          table: "Students",
-          schema: "public",
-          nullable: false,
-          default: "nextval('\"Students_StudentID_seq\"'::regclass)",
-          generated: "NEVER",
-          maxLength: null,
-          identity: null,
-          typeCategory: "N",
-          constraints: ["p"],
-        },
-        {
-          id: "public.Students.FirstName",
-          name: "FirstName",
-          type: "varchar",
-          typeId: "pg_catalog.varchar",
-          table: "Students",
-          schema: "public",
-          nullable: false,
-          default: null,
-          generated: "NEVER",
-          maxLength: 255,
-          identity: null,
-          typeCategory: "S",
-          constraints: [],
-        },
-        {
-          id: "public.Students.LastName",
-          name: "LastName",
-          type: "varchar",
-          typeId: "pg_catalog.varchar",
-          table: "Students",
-          schema: "public",
-          nullable: false,
-          default: null,
-          generated: "NEVER",
-          maxLength: 255,
-          identity: null,
-          typeCategory: "S",
-          constraints: [],
-        },
-        {
-          id: "public.Students.StudentCourseId",
-          name: "StudentCourseId",
-          type: "int4",
-          typeId: "pg_catalog.int4",
-          table: "Students",
-          schema: "public",
-          nullable: true,
-          default: null,
-          generated: "NEVER",
-          maxLength: null,
-          identity: null,
-          typeCategory: "N",
-          constraints: ["f"],
-        },
-      ],
-    },
-  ]);
-});
+      ]);
+    });
+  },
+);

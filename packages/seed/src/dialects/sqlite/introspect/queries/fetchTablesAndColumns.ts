@@ -1,6 +1,6 @@
+import { sql } from "drizzle-orm";
+import { type BaseSQLiteDatabase } from "drizzle-orm/sqlite-core";
 import { sortBy } from "remeda";
-// import { type SqliteClient, queryNext } from "../client.js";
-
 // We crawl over the types to get the common SQL types
 // so they must be ordered by
 const COMMON_SQL_TYPES = [
@@ -208,110 +208,110 @@ ORDER BY
 	alltables.name, indexlist.name, indexinfos.seqno
 `;
 
-// export async function fetchTablesAndColumns(
-//   client: SqliteClient,
-// ): Promise<Array<FetchTableAndColumnsResult>> {
-//   const groupedResults: Record<string, FetchTableAndColumnsResult> = {};
-//   const resultsColumns = await queryNext<FetchTableAndColumnsResultRaw>(
-//     FETCH_TABLE_COLUMNS_LIST,
-//     { client },
-//   );
-//   const resultsForeignKeys = await queryNext<FetchTableForeignKeysResultRaw>(
-//     FETCH_TABLE_FOREIGN_KEYS,
-//     { client },
-//   );
-//   const resultsCompositePrimaryKeys =
-//     await queryNext<FetchCompositePrimaryKeysResultRaw>(
-//       FETCH_TABLE_COMPOSITE_PRIMARY_KEYS,
-//       { client },
-//     );
-//   const compositePrimaryKeysGroupedByTable = resultsCompositePrimaryKeys.reduce(
-//     (acc, result) => {
-//       if (!acc[result.tableName]) {
-//         acc[result.tableName] = [];
-//       }
-//       acc[result.tableName].push(result);
-//       return acc;
-//     },
-//     {} as Record<string, Array<FetchCompositePrimaryKeysResultRaw>>,
-//   );
-//   const foreignKeysGroupedByTable = resultsForeignKeys.reduce(
-//     (acc, result) => {
-//       if (!acc[result.tableId]) {
-//         acc[result.tableId] = [];
-//       }
-//       acc[result.tableId].push(result);
-//       return acc;
-//     },
-//     {} as Record<string, Array<FetchTableForeignKeysResultRaw>>,
-//   );
+export async function fetchTablesAndColumns<T extends "async" | "sync", R>(
+  client: BaseSQLiteDatabase<T, R>,
+): Promise<Array<FetchTableAndColumnsResult>> {
+  const groupedResults: Record<string, FetchTableAndColumnsResult> = {};
+  const resultsColumns = await client.all<FetchTableAndColumnsResultRaw>(
+    sql.raw(FETCH_TABLE_COLUMNS_LIST),
+  );
+  const resultsForeignKeys = await client.all<FetchTableForeignKeysResultRaw>(
+    sql.raw(FETCH_TABLE_FOREIGN_KEYS),
+  );
+  const resultsCompositePrimaryKeys =
+    await client.all<FetchCompositePrimaryKeysResultRaw>(
+      sql.raw(FETCH_TABLE_COMPOSITE_PRIMARY_KEYS),
+    );
+  const compositePrimaryKeysGroupedByTable = resultsCompositePrimaryKeys.reduce<
+    Record<string, Array<FetchCompositePrimaryKeysResultRaw>>
+  >((acc, result) => {
+    // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
+    if (!acc[result.tableName]) {
+      acc[result.tableName] = [];
+    }
+    acc[result.tableName].push(result);
+    return acc;
+  }, {});
+  const foreignKeysGroupedByTable = resultsForeignKeys.reduce<
+    Record<string, Array<FetchTableForeignKeysResultRaw>>
+  >((acc, result) => {
+    // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
+    if (!acc[result.tableId]) {
+      acc[result.tableId] = [];
+    }
+    acc[result.tableId].push(result);
+    return acc;
+  }, {});
 
-//   for (const result of resultsColumns) {
-//     const tableId = result.tableId;
-//     const table = groupedResults[tableId];
-//     const tableForeignKeys = foreignKeysGroupedByTable[tableId] || [];
-//     const tableCompositePrimaryKeys =
-//       compositePrimaryKeysGroupedByTable[tableId] || [];
-//     if (!table) {
-//       groupedResults[tableId] = {
-//         id: result.tableId,
-//         name: result.tableName,
-//         type: result.tableType,
-//         wr: result.tableWr,
-//         strict: result.tableStrict,
-//         columns: [],
-//       };
-//     }
-//     const columnIsForeignKey = tableForeignKeys.some(
-//       (fk) => fk.fkFromColumn === result.colName,
-//     );
-//     const columnIsPrimaryKey = result.colPk
-//       ? true
-//       : tableCompositePrimaryKeys.some(
-//           (cpk) => cpk.idxColName === result.colName,
-//         );
-//     const constraints: Array<ColumnConstraintType> = [];
-//     if (columnIsForeignKey) {
-//       constraints.push(COLUMN_CONSTRAINTS.FOREIGN_KEY);
-//     }
-//     if (columnIsPrimaryKey) {
-//       constraints.push(COLUMN_CONSTRAINTS.PRIMARY_KEY);
-//     }
-//     groupedResults[tableId].columns.push({
-//       id: `${result.tableName}.${result.colName}`,
-//       name: result.colName,
-//       type: result.colType,
-//       affinity: mapCommonTypesToAffinity(
-//         result.colType,
-//         result.colNotNull === 0,
-//       ),
-//       table: result.tableName,
-//       nullable: result.colNotNull === 0,
-//       default: result.colDefaultValue,
-//       constraints,
-//     });
-//   }
+  for (const result of resultsColumns) {
+    const tableId = result.tableId;
+    const table = groupedResults[tableId];
+    // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
+    const tableForeignKeys = foreignKeysGroupedByTable[tableId] || [];
+    const tableCompositePrimaryKeys =
+      // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
+      compositePrimaryKeysGroupedByTable[tableId] || [];
+    // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
+    if (!table) {
+      groupedResults[tableId] = {
+        id: result.tableId,
+        name: result.tableName,
+        type: result.tableType,
+        wr: result.tableWr,
+        strict: result.tableStrict,
+        columns: [],
+      };
+    }
+    const columnIsForeignKey = tableForeignKeys.some(
+      (fk) => fk.fkFromColumn === result.colName,
+    );
+    const columnIsPrimaryKey = result.colPk
+      ? true
+      : tableCompositePrimaryKeys.some(
+          (cpk) => cpk.idxColName === result.colName,
+        );
+    const constraints: Array<ColumnConstraintType> = [];
+    if (columnIsForeignKey) {
+      constraints.push(COLUMN_CONSTRAINTS.FOREIGN_KEY);
+    }
+    if (columnIsPrimaryKey) {
+      constraints.push(COLUMN_CONSTRAINTS.PRIMARY_KEY);
+    }
+    groupedResults[tableId].columns.push({
+      id: `${result.tableName}.${result.colName}`,
+      name: result.colName,
+      type: result.colType,
+      affinity: mapCommonTypesToAffinity(
+        result.colType,
+        result.colNotNull === 0,
+      ),
+      table: result.tableName,
+      nullable: result.colNotNull === 0,
+      default: result.colDefaultValue,
+      constraints,
+    });
+  }
 
-//   for (const tableId of Object.keys(groupedResults)) {
-//     const hasAPrimaryKey = groupedResults[tableId].columns.some((column) =>
-//       column.constraints.includes(COLUMN_CONSTRAINTS.PRIMARY_KEY),
-//     );
-//     // If there is no declared single or composite primary key, sqlite will create an automatic rowid column to use a primary key
-//     if (!hasAPrimaryKey && groupedResults[tableId].wr === 0) {
-//       const rowidColumn = {
-//         id: `${groupedResults[tableId].name}.rowid`,
-//         table: groupedResults[tableId].name,
-//         name: "rowid",
-//         type: "INTEGER",
-//         affinity: "integer" as const,
-//         nullable: false,
-//         default: null,
-//         constraints: [COLUMN_CONSTRAINTS.PRIMARY_KEY],
-//       };
-//       groupedResults[tableId].columns.unshift(rowidColumn);
-//     }
-//   }
+  for (const tableId of Object.keys(groupedResults)) {
+    const hasAPrimaryKey = groupedResults[tableId].columns.some((column) =>
+      column.constraints.includes(COLUMN_CONSTRAINTS.PRIMARY_KEY),
+    );
+    // If there is no declared single or composite primary key, sqlite will create an automatic rowid column to use a primary key
+    if (!hasAPrimaryKey && groupedResults[tableId].wr === 0) {
+      const rowidColumn = {
+        id: `${groupedResults[tableId].name}.rowid`,
+        table: groupedResults[tableId].name,
+        name: "rowid",
+        type: "INTEGER",
+        affinity: "integer" as const,
+        nullable: false,
+        default: null,
+        constraints: [COLUMN_CONSTRAINTS.PRIMARY_KEY],
+      };
+      groupedResults[tableId].columns.unshift(rowidColumn);
+    }
+  }
 
-//   // We group under each table the columns
-//   return Object.values(groupedResults);
-// }
+  // We group under each table the columns
+  return Object.values(groupedResults);
+}
