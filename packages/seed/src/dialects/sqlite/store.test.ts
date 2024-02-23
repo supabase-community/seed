@@ -1,26 +1,33 @@
 import { sql } from "drizzle-orm";
-import { drizzle } from "drizzle-orm/postgres-js";
-import { type Sql } from "postgres";
+import { drizzle as drizzleBetterSqlite } from "drizzle-orm/better-sqlite3";
 import { describe, expect, test } from "vitest";
-import { postgres } from "#test";
+import { sqlite } from "#test";
 import { getDatamodel } from "./dataModel.js";
-import { PgStore } from "./store.js";
+import { SqliteStore } from "./store.js";
 
-const { createTestDb } = postgres.postgresJs;
+const adapters = {
+  betterSqlite3: () => ({
+    ...sqlite.betterSqlite3,
+    drizzle: drizzleBetterSqlite,
+  }),
+};
 
-async function execQueries(client: Sql, queries: Array<string>) {
-  const drizz = drizzle(client);
-  for (const query of queries) {
-    await drizz.execute(sql.raw(query));
+describe.each(["betterSqlite3"] as const)("store: %s", (adapter) => {
+  const { drizzle, createTestDb } = adapters[adapter]();
+
+  function execQueries(client: unknown, queries: Array<string>) {
+    // @ts-expect-error - We don't care about the type of drizzle
+    const drizz = drizzle(client);
+    for (const query of queries) {
+      drizz.run(sql.raw(query));
+    }
   }
-}
 
-describe("store", () => {
   describe("SQL -> Store -> SQL", () => {
     test("should be able to insert basic rows into table", async () => {
       const structure = `
       CREATE TABLE "test_customer" (
-        id SERIAL PRIMARY KEY NOT NULL,
+        id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
         name TEXT NOT NULL,
         email TEXT NOT NULL
       );
@@ -28,7 +35,7 @@ describe("store", () => {
       const db = await createTestDb(structure);
       const dataModel = await getDatamodel(drizzle(db.client));
 
-      const store = new PgStore(dataModel);
+      const store = new SqliteStore(dataModel);
 
       store.add("test_customer", {
         id: "2",
@@ -41,10 +48,8 @@ describe("store", () => {
         name: "Winrar Skarsgård",
         email: "win@rar.gard",
       });
-      await execQueries(db.client, [...store.toSQL()]);
-      const results = await drizzle(db.client).execute(
-        sql`SELECT * FROM test_customer`,
-      );
+      execQueries(db.client, [...store.toSQL()]);
+      const results = drizzle(db.client).all(sql`SELECT * FROM test_customer`);
       expect(results).toEqual(
         expect.arrayContaining([
           { id: 2, name: "Cadavre Exquis", email: "cadavre@ex.quis" },
@@ -55,15 +60,15 @@ describe("store", () => {
     test("should insert into columns with default value set", async () => {
       const structure = `
       CREATE TABLE "test_customer" (
-        id SERIAL PRIMARY KEY NOT NULL,
-        name TEXT DEFAULT 'default_name' NOT NULL,
+        id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
+        name TEXT DEFAULT "default_name" NOT NULL,
         email TEXT NOT NULL
       );
     `;
       const db = await createTestDb(structure);
       const dataModel = await getDatamodel(drizzle(db.client));
 
-      const store = new PgStore(dataModel);
+      const store = new SqliteStore(dataModel);
 
       store.add("test_customer", {
         email: "cadavre@ex.quis",
@@ -73,8 +78,8 @@ describe("store", () => {
         name: "Winrar Skarsgård",
         email: "win@rar.gard",
       });
-      await execQueries(db.client, [...store.toSQL()]);
-      const results = await drizzle(db.client).execute(
+      execQueries(db.client, [...store.toSQL()]);
+      const results = drizzle(db.client).all(
         sql`SELECT * FROM test_customer ORDER BY id ASC`,
       );
       expect(results).toEqual(
@@ -87,8 +92,8 @@ describe("store", () => {
     test("should insert into columns with generated column values", async () => {
       const structure = `
       CREATE TABLE "test_customer" (
-        id SERIAL PRIMARY KEY NOT NULL,
-        name TEXT DEFAULT 'default_name' NOT NULL,
+        id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
+        name TEXT DEFAULT "default_name" NOT NULL,
         email TEXT NOT NULL,
         full_details TEXT GENERATED ALWAYS AS (name || ' <' || email || '>') STORED
       );
@@ -96,7 +101,7 @@ describe("store", () => {
       const db = await createTestDb(structure);
       const dataModel = await getDatamodel(drizzle(db.client));
 
-      const store = new PgStore(dataModel);
+      const store = new SqliteStore(dataModel);
 
       // For PostgreSQL, no need to explicitly set the ID for SERIAL columns in typical use cases
       store.add("test_customer", {
@@ -108,8 +113,8 @@ describe("store", () => {
         email: "win@rar.gard",
       });
 
-      await execQueries(db.client, [...store.toSQL()]);
-      const results = await drizzle(db.client).execute(
+      execQueries(db.client, [...store.toSQL()]);
+      const results = drizzle(db.client).all(
         sql`SELECT * FROM test_customer ORDER BY id ASC`,
       );
 
@@ -134,8 +139,8 @@ describe("store", () => {
     test("should handle nullable column values correctly", async () => {
       const structure = `
       CREATE TABLE "test_customer" (
-        id SERIAL PRIMARY KEY NOT NULL,
-        name TEXT DEFAULT 'default_name' NOT NULL,
+        id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
+        name TEXT DEFAULT "default_name" NOT NULL,
         email TEXT NOT NULL,
         phone TEXT,
         full_details TEXT GENERATED ALWAYS AS (name || ' <' || email || '>' || ' Phone: ' || COALESCE(phone, 'N/A')) STORED
@@ -144,7 +149,7 @@ describe("store", () => {
       const db = await createTestDb(structure);
       const dataModel = await getDatamodel(drizzle(db.client));
 
-      const store = new PgStore(dataModel);
+      const store = new SqliteStore(dataModel);
 
       store.add("test_customer", {
         email: "unknown@no.phone",
@@ -156,8 +161,8 @@ describe("store", () => {
         phone: "+1234567890",
       });
 
-      await execQueries(db.client, [...store.toSQL()]);
-      const results = await drizzle(db.client).execute(
+      execQueries(db.client, [...store.toSQL()]);
+      const results = drizzle(db.client).all(
         sql`SELECT * FROM test_customer ORDER BY id ASC`,
       );
 
@@ -181,19 +186,20 @@ describe("store", () => {
         ]),
       );
     });
-    test("should handle relational data with nullable column values correctly in PostgreSQL", async () => {
+    test("should handle relational data with nullable column values correctly", async () => {
       const structure = `
-        CREATE TABLE test_customer (
-          id SERIAL PRIMARY KEY,
+        CREATE TABLE "test_customer" (
+          id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
           name TEXT NOT NULL,
           email TEXT UNIQUE NOT NULL
         );
 
-        CREATE TABLE test_order (
-          id SERIAL PRIMARY KEY,
+        CREATE TABLE "test_order" (
+          id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
           customer_id INTEGER NOT NULL,
           product_name TEXT NOT NULL,
           quantity INTEGER DEFAULT 1 NOT NULL,
+          order_details TEXT GENERATED ALWAYS AS (product_name || ' x' || quantity) STORED,
           FOREIGN KEY (customer_id) REFERENCES test_customer(id)
         );
       `;
@@ -201,44 +207,47 @@ describe("store", () => {
       const db = await createTestDb(structure);
       const dataModel = await getDatamodel(drizzle(db.client));
 
-      const store = new PgStore(dataModel);
+      const store = new SqliteStore(dataModel);
 
       store.add("test_customer", {
+        id: "1",
         name: "John Doe",
         email: "john@doe.email",
       });
       store.add("test_customer", {
+        id: "2",
         name: "Jane Doe",
         email: "jane@doe.email",
       });
 
-      const johnDoeId = 1;
-      const janeDoeId = 2;
-
       store.add("test_order", {
-        customer_id: johnDoeId,
+        id: "1",
+        customer_id: "1",
         product_name: "Widget",
         quantity: 3,
       });
       store.add("test_order", {
-        customer_id: janeDoeId,
+        id: "2",
+        customer_id: "2",
         product_name: "Gadget",
       });
-
-      await execQueries(db.client, [...store.toSQL()]);
-      const results = await drizzle(db.client).execute(
-        sql`SELECT test_customer.name, test_order.quantity FROM test_order JOIN test_customer ON test_customer.id = test_order.customer_id ORDER BY test_order.id ASC`,
+      const queries = store.toSQL();
+      execQueries(db.client, [...queries]);
+      const results = drizzle(db.client).all(
+        sql.raw(
+          `SELECT test_customer.name, test_order.order_details FROM test_order JOIN test_customer ON test_customer.id = test_order.customer_id`,
+        ),
       );
 
       expect(results).toEqual(
         expect.arrayContaining([
           {
             name: "John Doe",
-            quantity: 3,
+            order_details: "Widget x3",
           },
           {
             name: "Jane Doe",
-            quantity: 1,
+            order_details: "Gadget x1",
           },
         ]),
       );

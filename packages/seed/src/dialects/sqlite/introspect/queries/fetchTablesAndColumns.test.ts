@@ -11,7 +11,7 @@ const adapters = {
 };
 
 describe.each(["betterSqlite3"] as const)(
-  "fetchUniqueConstraints: %s",
+  "fetchTablesAndColumns: %s",
   (adapter) => {
     const { drizzle, createTestDb } = adapters[adapter]();
 

@@ -11,7 +11,7 @@ const adapters = {
 };
 
 describe.each(["betterSqlite3"] as const)(
-  "fetchUniqueConstraints: %s",
+  "fetchDatabaseRelationships: %s",
   (adapter) => {
     const { drizzle, createTestDb } = adapters[adapter]();
     test("should return empty array if no relations", async () => {

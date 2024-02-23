@@ -1,7 +1,7 @@
 import { sql } from "drizzle-orm";
 import { type BaseSQLiteDatabase } from "drizzle-orm/sqlite-core";
 
-interface FetchUniqueConstraintsResult {
+export interface FetchUniqueConstraintsResult {
   /**
    * The columns that are part of the constraint
    */

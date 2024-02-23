@@ -1,4 +1,3 @@
-import type postgres from "postgres";
 import { sql } from "drizzle-orm";
 import { type PgDatabase, type QueryResultHKT } from "drizzle-orm/pg-core";
 import { buildSchemaExclusionClause } from "./utils.js";
@@ -61,7 +60,7 @@ export async function fetchDatabaseRelationships<T extends QueryResultHKT>(
 ) {
   const response = (await client.execute(
     sql.raw(FETCH_RELATIONSHIPS_INFOS),
-  )) as postgres.RowList<Array<FetchRelationshipsInfosResult>>;
+  )) as Array<FetchRelationshipsInfosResult>;
 
   return response;
 }

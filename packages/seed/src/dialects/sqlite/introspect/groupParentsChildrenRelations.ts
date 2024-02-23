@@ -1,20 +1,25 @@
 import { groupBy } from "../utils.js";
-import { type fetchDatabaseRelationships } from "./queries/fetchDatabaseRelationships.js";
-import { type AsyncFunctionSuccessType } from "./types.js";
 
-type fetchRelationshipsResultsType = Array<
-  AsyncFunctionSuccessType<typeof fetchDatabaseRelationships>[number]
->;
-
-export const groupParentsChildrenRelations = (
-  databaseRelationships: fetchRelationshipsResultsType,
-  tableIds: Array<string>,
-) => {
+export function groupParentsChildrenRelations<
+  C extends {
+    fkColumn: string;
+    fkType: string;
+    nullable: boolean;
+    targetColumn: string;
+    targetType: string;
+  },
+  T extends {
+    fkTable: string;
+    id: string;
+    keys: Array<C>;
+    targetTable: string;
+  },
+>(databaseRelationships: Array<T>, tableIds: Array<string>) {
   const tablesRelationships = new Map<
     string,
     {
-      children: fetchRelationshipsResultsType;
-      parents: fetchRelationshipsResultsType;
+      children: Array<T>;
+      parents: Array<T>;
     }
   >();
   const children = groupBy(databaseRelationships, (f) => f.targetTable);
@@ -26,6 +31,4 @@ export const groupParentsChildrenRelations = (
     });
   }
   return tablesRelationships;
-};
-
-export type { fetchRelationshipsResultsType };
+}

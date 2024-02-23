@@ -1,8 +1,5 @@
 import { expect, test } from "vitest";
-import {
-  type fetchRelationshipsResultsType,
-  groupParentsChildrenRelations,
-} from "./groupParentsChildrenRelations.js";
+import { groupParentsChildrenRelations } from "./groupParentsChildrenRelations.js";
 
 test("should return empty array if no relations for the tables", () => {
   const result = groupParentsChildrenRelations([], ["table1", "table2"]);
@@ -12,7 +9,7 @@ test("should return empty array if no relations for the tables", () => {
 });
 
 test("should properly group children and parents for each tables", () => {
-  const databaseRelationships: fetchRelationshipsResultsType = [
+  const databaseRelationships = [
     {
       fkTable: "private.Enrollments",
       id: "Enrollments_CourseID_fkey",

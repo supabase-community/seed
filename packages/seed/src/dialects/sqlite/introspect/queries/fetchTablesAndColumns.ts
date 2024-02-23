@@ -3,7 +3,7 @@ import { type BaseSQLiteDatabase } from "drizzle-orm/sqlite-core";
 import { sortBy } from "remeda";
 // We crawl over the types to get the common SQL types
 // so they must be ordered by
-const COMMON_SQL_TYPES = [
+export const COMMON_SQL_TYPES = [
   "INT2",
   "INT8",
   "INTEGER",
@@ -92,7 +92,7 @@ export const COLUMN_CONSTRAINTS = {
 export type ColumnConstraintType =
   (typeof COLUMN_CONSTRAINTS)[keyof typeof COLUMN_CONSTRAINTS];
 
-interface SelectColumnsResult {
+export interface SelectColumnsResult {
   affinity: SQLiteAffinity;
   constraints: Array<ColumnConstraintType>;
   default: null | string;
@@ -103,7 +103,7 @@ interface SelectColumnsResult {
   type: string;
 }
 
-interface SelectTablesResult {
+export interface SelectTablesResult {
   name: string;
   ncol: number;
   schema: string;
@@ -113,7 +113,7 @@ interface SelectTablesResult {
   wr: 0 | 1;
 }
 
-interface FetchTableAndColumnsResult {
+export interface FetchTableAndColumnsResult {
   columns: Array<SelectColumnsResult>;
   id: SelectTablesResult["name"];
   name: SelectTablesResult["name"];
@@ -160,7 +160,7 @@ export const FETCH_TABLE_COLUMNS_LIST = `
     alltables.name, ti.cid
 `;
 
-interface FetchTableForeignKeysResultRaw {
+export interface FetchTableForeignKeysResultRaw {
   fkFromColumn: string;
   fkId: number;
   fkSeq: number;
@@ -188,7 +188,7 @@ ORDER BY
   alltables.name, fk.id
 `;
 
-interface FetchCompositePrimaryKeysResultRaw {
+export interface FetchCompositePrimaryKeysResultRaw {
   idxColName: string;
   tableName: string;
 }
