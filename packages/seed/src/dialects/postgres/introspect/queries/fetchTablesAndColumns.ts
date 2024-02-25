@@ -1,6 +1,5 @@
-import type postgres from "postgres";
-import { sql } from "drizzle-orm";
-import { type PgDatabase, type QueryResultHKT } from "drizzle-orm/pg-core";
+import { type QueryResultHKT } from "drizzle-orm/pg-core";
+import { type DrizzleDbClient } from "#core/adapters.js";
 import { buildSchemaExclusionClause } from "./utils.js";
 
 export const TYPE_CATEGORY_DISPLAY_NAMES = {
@@ -241,13 +240,11 @@ const FETCH_TABLES_AND_COLUMNS = `
 `;
 
 export async function fetchTablesAndColumns<T extends QueryResultHKT>(
-  client: PgDatabase<T>,
+  client: DrizzleDbClient<T>,
 ) {
-  const response = (await client.execute(
-    sql.raw(FETCH_TABLES_AND_COLUMNS),
-  )) as postgres.RowList<
-    Array<{ json_build_object: FetchTableAndColumnsResult }>
-  >;
+  const response = await client.query<{
+    json_build_object: FetchTableAndColumnsResult;
+  }>(FETCH_TABLES_AND_COLUMNS);
 
   return response.map((r) => ({
     ...r.json_build_object,

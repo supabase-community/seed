@@ -7,7 +7,7 @@ import { type Relationship, introspectDatabase } from "./introspectDatabase.js";
 const { createTestDb, createTestRole, createSnapletTestDb } =
   postgres.postgresJs;
 
-test("introspectDatabase should return detailed database structure", async () => {
+test.only("introspectDatabase should return detailed database structure", async () => {
   const structure = `
     CREATE SCHEMA test;
     CREATE TABLE test."Table1" (id serial PRIMARY KEY, name text);

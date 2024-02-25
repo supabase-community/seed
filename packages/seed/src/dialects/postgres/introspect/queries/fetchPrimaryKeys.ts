@@ -1,6 +1,5 @@
-import type postgres from "postgres";
-import { sql } from "drizzle-orm";
-import { type PgDatabase, type QueryResultHKT } from "drizzle-orm/pg-core";
+import { type QueryResultHKT } from "drizzle-orm/pg-core";
+import { type DrizzleDbClient } from "#core/adapters.js";
 import { buildSchemaExclusionClause } from "./utils.js";
 
 interface FetchPrimaryKeysResult {
@@ -73,11 +72,10 @@ ORDER BY
 `;
 
 export async function fetchPrimaryKeys<T extends QueryResultHKT>(
-  client: PgDatabase<T>,
+  client: DrizzleDbClient<T>,
 ) {
-  const response = (await client.execute(
-    sql.raw(FETCH_PRIMARY_KEYS),
-  )) as postgres.RowList<Array<FetchPrimaryKeysResult>>;
+  const response =
+    await client.query<FetchPrimaryKeysResult>(FETCH_PRIMARY_KEYS);
 
   return response;
 }

@@ -1,6 +1,5 @@
-import type postgres from "postgres";
-import { sql } from "drizzle-orm";
-import { type PgDatabase, type QueryResultHKT } from "drizzle-orm/pg-core";
+import { type QueryResultHKT } from "drizzle-orm/pg-core";
+import { type DrizzleDbClient } from "#core/adapters.js";
 import { buildSchemaExclusionClause } from "./utils.js";
 
 interface FetchSchemasResult {
@@ -18,11 +17,11 @@ const FETCH_AUTHORIZED_SCHEMAS = `
 `;
 
 export async function fetchSchemas<T extends QueryResultHKT>(
-  client: PgDatabase<T>,
+  client: DrizzleDbClient<T>,
 ) {
-  const response = (await client.execute(
-    sql.raw(FETCH_AUTHORIZED_SCHEMAS),
-  )) as postgres.RowList<Array<FetchSchemasResult>>;
+  const response = await client.query<FetchSchemasResult>(
+    FETCH_AUTHORIZED_SCHEMAS,
+  );
 
   return response.map((row) => row.schemaName);
 }

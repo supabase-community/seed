@@ -2,6 +2,7 @@ import { drizzle as drizzlePg } from "drizzle-orm/node-postgres";
 import { drizzle as drizzleJs } from "drizzle-orm/postgres-js";
 import { describe, expect, test } from "vitest";
 import { postgres } from "#test";
+import { createDrizzleORMPgClient } from "../../adapters.js";
 import { fetchUniqueConstraints } from "./fetchUniqueConstraints.js";
 
 const adapters = {
@@ -49,8 +50,10 @@ describe.each(["postgresJs", "pg"] as const)(
   `;
 
       const db = await createTestDb(structure);
-      // @ts-expect-error dynamic drizzle import based on adapter
-      const constraints = await fetchUniqueConstraints(drizzle(db.client));
+      const constraints = await fetchUniqueConstraints(
+        // @ts-expect-error dynamic drizzle import based on adapter
+        createDrizzleORMPgClient(drizzle(db.client)),
+      );
 
       expect(constraints).toEqual([
         {
@@ -132,8 +135,10 @@ describe.each(["postgresJs", "pg"] as const)(
     );
   `;
       const db = await createTestDb(structure);
-      // @ts-expect-error dynamic drizzle import based on adapter
-      const constraints = await fetchUniqueConstraints(drizzle(db.client));
+      const constraints = await fetchUniqueConstraints(
+        // @ts-expect-error dynamic drizzle import based on adapter
+        createDrizzleORMPgClient(drizzle(db.client)),
+      );
       expect(constraints).toEqual([
         {
           tableId: "private.Students",
@@ -175,8 +180,10 @@ describe.each(["postgresJs", "pg"] as const)(
     );
   `;
       const db = await createTestDb(structure);
-      // @ts-expect-error dynamic drizzle import based on adapter
-      const constraints = await fetchUniqueConstraints(drizzle(db.client));
+      const constraints = await fetchUniqueConstraints(
+        // @ts-expect-error dynamic drizzle import based on adapter
+        createDrizzleORMPgClient(drizzle(db.client)),
+      );
       expect(constraints).toEqual([]);
     });
   },

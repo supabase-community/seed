@@ -1,6 +1,5 @@
-import type postgres from "postgres";
-import { sql } from "drizzle-orm";
-import { type PgDatabase, type QueryResultHKT } from "drizzle-orm/pg-core";
+import { type QueryResultHKT } from "drizzle-orm/pg-core";
+import { type DrizzleDbClient } from "#core/adapters.js";
 import { buildSchemaExclusionClause } from "./utils.js";
 
 interface FetchEnumsResult {
@@ -34,11 +33,9 @@ const FETCH_ENUMS = `
 `;
 
 export async function fetchEnums<T extends QueryResultHKT>(
-  client: PgDatabase<T>,
+  client: DrizzleDbClient<T>,
 ) {
-  const response = (await client.execute(
-    sql.raw(FETCH_ENUMS),
-  )) as postgres.RowList<Array<FetchEnumsResult>>;
+  const response = await client.query<FetchEnumsResult>(FETCH_ENUMS);
 
   return response;
 }
