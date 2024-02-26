@@ -1,15 +1,13 @@
 import { type PgDatabase } from "drizzle-orm/pg-core";
 import { EOL } from "node:os";
+import { type DrizzleDbClient } from "#core/adapters.js";
 import { SeedClientBase } from "#core/client/client.js";
 import { type SeedClientOptions } from "#core/client/types.js";
 import { type DataModel } from "#core/dataModel/types.js";
 import { type Fingerprint } from "#core/fingerprint/types.js";
 import { updateDataModelSequences } from "#core/sequences/updateDataModelSequences.js";
 import { type UserModels } from "#core/userModels/types.js";
-import {
-  type DrizzleORMPgClient,
-  createDrizzleORMPgClient,
-} from "./adapters.js";
+import { createDrizzleORMPgClient } from "./adapters.js";
 import { getDatamodel } from "./dataModel.js";
 import { PgStore } from "./store.js";
 import { escapeIdentifier } from "./utils.js";
@@ -20,11 +18,11 @@ export function getSeedClient(props: {
   userModels: UserModels;
 }) {
   class PgSeedClient extends SeedClientBase {
-    readonly db: DrizzleORMPgClient;
+    readonly db: DrizzleDbClient;
     readonly dryRun: boolean;
     readonly options?: SeedClientOptions;
 
-    constructor(db: DrizzleORMPgClient, options?: SeedClientOptions) {
+    constructor(db: DrizzleDbClient, options?: SeedClientOptions) {
       super({
         ...props,
         createStore: (dataModel: DataModel) => new PgStore(dataModel),
@@ -68,6 +66,7 @@ export function getSeedClient(props: {
     }
 
     async $transaction(cb: (seed: PgSeedClient) => Promise<void>) {
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
       await cb(await createSeedClient(this.db.adapter, this.options));
     }
   }

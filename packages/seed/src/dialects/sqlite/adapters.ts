@@ -1,53 +1,52 @@
 /* eslint-disable @typescript-eslint/no-unsafe-member-access */
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { sql } from "drizzle-orm";
-import { type PgDatabase, type QueryResultHKT } from "drizzle-orm/pg-core";
+import { type BaseSQLiteDatabase } from "drizzle-orm/sqlite-core";
 import { DrizzleDbClient } from "#core/adapters.js";
 
-export class DrizzleORMPgClient extends DrizzleDbClient<
-  PgDatabase<QueryResultHKT>
+export class DrizzleORMBetterSQLiteClient extends DrizzleDbClient<
+  BaseSQLiteDatabase<"async" | "sync", unknown, any>
 > {
-  async query<K = QueryResultHKT>(
+  async query<K>(
     query: string,
     _values?: Array<any> | undefined,
   ): Promise<Array<K>> {
-    const res = await this.db.execute(sql.raw(query));
-    // @ts-expect-error cannot infer the type of the result
-    return res.rows as Array<K>;
-  }
-  async run(query: string): Promise<void> {
-    await this.db.execute(sql.raw(query));
-  }
-}
-
-export class DrizzleORMPostgresJsClient extends DrizzleDbClient<
-  PgDatabase<QueryResultHKT>
-> {
-  async query<K = QueryResultHKT>(
-    query: string,
-    _values?: Array<any> | undefined,
-  ): Promise<Array<K>> {
-    const res = await this.db.execute(sql.raw(query));
+    const res = await this.db.all(sql.raw(query));
     return res as Array<K>;
   }
   async run(query: string): Promise<void> {
-    await this.db.execute(sql.raw(query));
+    await this.db.run(sql.raw(query));
   }
 }
 
-type PgAdapterName = "NodePgSession" | "PostgresJsSession";
+export class DrizzleORMSqliteBunClient extends DrizzleDbClient<
+  BaseSQLiteDatabase<"async" | "sync", unknown, any>
+> {
+  async query<K>(
+    query: string,
+    _values?: Array<any> | undefined,
+  ): Promise<Array<K>> {
+    const res = await this.db.all(sql.raw(query));
+    return res as Array<K>;
+  }
+  async run(query: string): Promise<void> {
+    await this.db.run(sql.raw(query));
+  }
+}
 
-export function createDrizzleORMPgClient(
-  db: PgDatabase<QueryResultHKT>,
-): DrizzleORMPgClient {
+type PgAdapterName = "BetterSQLiteSession" | "SQLiteBunSession";
+
+export function createDrizzleORMSqliteClient(
+  db: BaseSQLiteDatabase<"async" | "sync", unknown, any>,
+): DrizzleORMBetterSQLiteClient {
   // @ts-expect-error - we need to use the drizzle internal adapter session name to determine the adapter
   const sessionName = db.session.constructor.name as PgAdapterName;
   switch (sessionName) {
-    case "PostgresJsSession":
-      return new DrizzleORMPostgresJsClient(db);
-    case "NodePgSession":
-      return new DrizzleORMPgClient(db);
+    case "BetterSQLiteSession":
+      return new DrizzleORMBetterSQLiteClient(db);
+    case "SQLiteBunSession":
+      return new DrizzleORMSqliteBunClient(db);
     default:
-      return new DrizzleORMPgClient(db);
+      return new DrizzleORMBetterSQLiteClient(db);
   }
 }

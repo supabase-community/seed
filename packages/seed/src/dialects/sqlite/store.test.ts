@@ -1,7 +1,8 @@
-import { sql } from "drizzle-orm";
 import { drizzle as drizzleBetterSqlite } from "drizzle-orm/better-sqlite3";
 import { describe, expect, test } from "vitest";
 import { sqlite } from "#test";
+import { type DrizzleDbClient } from "../../core/adapters.js";
+import { createDrizzleORMSqliteClient } from "./adapters.js";
 import { getDatamodel } from "./dataModel.js";
 import { SqliteStore } from "./store.js";
 
@@ -12,16 +13,14 @@ const adapters = {
   }),
 };
 
+async function execQueries(client: DrizzleDbClient, queries: Array<string>) {
+  for (const query of queries) {
+    await client.run(query);
+  }
+}
+
 describe.each(["betterSqlite3"] as const)("store: %s", (adapter) => {
   const { drizzle, createTestDb } = adapters[adapter]();
-
-  function execQueries(client: unknown, queries: Array<string>) {
-    // @ts-expect-error - We don't care about the type of drizzle
-    const drizz = drizzle(client);
-    for (const query of queries) {
-      drizz.run(sql.raw(query));
-    }
-  }
 
   describe("SQL -> Store -> SQL", () => {
     test("should be able to insert basic rows into table", async () => {
@@ -33,7 +32,8 @@ describe.each(["betterSqlite3"] as const)("store: %s", (adapter) => {
       );
       `;
       const db = await createTestDb(structure);
-      const dataModel = await getDatamodel(drizzle(db.client));
+      const orm = createDrizzleORMSqliteClient(drizzle(db.client));
+      const dataModel = await getDatamodel(orm);
 
       const store = new SqliteStore(dataModel);
 
@@ -48,8 +48,8 @@ describe.each(["betterSqlite3"] as const)("store: %s", (adapter) => {
         name: "Winrar Skarsgård",
         email: "win@rar.gard",
       });
-      execQueries(db.client, [...store.toSQL()]);
-      const results = drizzle(db.client).all(sql`SELECT * FROM test_customer`);
+      await execQueries(orm, [...store.toSQL()]);
+      const results = await orm.query(`SELECT * FROM test_customer`);
       expect(results).toEqual(
         expect.arrayContaining([
           { id: 2, name: "Cadavre Exquis", email: "cadavre@ex.quis" },
@@ -66,7 +66,8 @@ describe.each(["betterSqlite3"] as const)("store: %s", (adapter) => {
       );
     `;
       const db = await createTestDb(structure);
-      const dataModel = await getDatamodel(drizzle(db.client));
+      const orm = createDrizzleORMSqliteClient(drizzle(db.client));
+      const dataModel = await getDatamodel(orm);
 
       const store = new SqliteStore(dataModel);
 
@@ -78,9 +79,9 @@ describe.each(["betterSqlite3"] as const)("store: %s", (adapter) => {
         name: "Winrar Skarsgård",
         email: "win@rar.gard",
       });
-      execQueries(db.client, [...store.toSQL()]);
-      const results = drizzle(db.client).all(
-        sql`SELECT * FROM test_customer ORDER BY id ASC`,
+      await execQueries(orm, [...store.toSQL()]);
+      const results = await orm.query(
+        `SELECT * FROM test_customer ORDER BY id ASC`,
       );
       expect(results).toEqual(
         expect.arrayContaining([
@@ -99,7 +100,8 @@ describe.each(["betterSqlite3"] as const)("store: %s", (adapter) => {
       );
     `;
       const db = await createTestDb(structure);
-      const dataModel = await getDatamodel(drizzle(db.client));
+      const orm = createDrizzleORMSqliteClient(drizzle(db.client));
+      const dataModel = await getDatamodel(orm);
 
       const store = new SqliteStore(dataModel);
 
@@ -113,9 +115,9 @@ describe.each(["betterSqlite3"] as const)("store: %s", (adapter) => {
         email: "win@rar.gard",
       });
 
-      execQueries(db.client, [...store.toSQL()]);
-      const results = drizzle(db.client).all(
-        sql`SELECT * FROM test_customer ORDER BY id ASC`,
+      await execQueries(orm, [...store.toSQL()]);
+      const results = await orm.query(
+        `SELECT * FROM test_customer ORDER BY id ASC`,
       );
 
       // Expect the generated full_details column to concatenate name and email as specified
@@ -147,7 +149,8 @@ describe.each(["betterSqlite3"] as const)("store: %s", (adapter) => {
       );
     `;
       const db = await createTestDb(structure);
-      const dataModel = await getDatamodel(drizzle(db.client));
+      const orm = createDrizzleORMSqliteClient(drizzle(db.client));
+      const dataModel = await getDatamodel(orm);
 
       const store = new SqliteStore(dataModel);
 
@@ -161,9 +164,9 @@ describe.each(["betterSqlite3"] as const)("store: %s", (adapter) => {
         phone: "+1234567890",
       });
 
-      execQueries(db.client, [...store.toSQL()]);
-      const results = drizzle(db.client).all(
-        sql`SELECT * FROM test_customer ORDER BY id ASC`,
+      await execQueries(orm, [...store.toSQL()]);
+      const results = await orm.query(
+        `SELECT * FROM test_customer ORDER BY id ASC`,
       );
 
       expect(results).toEqual(
@@ -205,7 +208,8 @@ describe.each(["betterSqlite3"] as const)("store: %s", (adapter) => {
       `;
 
       const db = await createTestDb(structure);
-      const dataModel = await getDatamodel(drizzle(db.client));
+      const orm = createDrizzleORMSqliteClient(drizzle(db.client));
+      const dataModel = await getDatamodel(orm);
 
       const store = new SqliteStore(dataModel);
 
@@ -232,11 +236,9 @@ describe.each(["betterSqlite3"] as const)("store: %s", (adapter) => {
         product_name: "Gadget",
       });
       const queries = store.toSQL();
-      execQueries(db.client, [...queries]);
-      const results = drizzle(db.client).all(
-        sql.raw(
-          `SELECT test_customer.name, test_order.order_details FROM test_order JOIN test_customer ON test_customer.id = test_order.customer_id`,
-        ),
+      await execQueries(orm, [...queries]);
+      const results = await orm.query(
+        `SELECT test_customer.name, test_order.order_details FROM test_order JOIN test_customer ON test_customer.id = test_order.customer_id`,
       );
 
       expect(results).toEqual(

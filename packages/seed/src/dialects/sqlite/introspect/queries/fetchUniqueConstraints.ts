@@ -1,5 +1,4 @@
-import { sql } from "drizzle-orm";
-import { type BaseSQLiteDatabase } from "drizzle-orm/sqlite-core";
+import { type DrizzleDbClient } from "#core/adapters.js";
 
 export interface FetchUniqueConstraintsResult {
   /**
@@ -66,17 +65,15 @@ const FETCH_PRIMARY_KEYS_CONSTRAINTS = `
     alltables.name, colinfo.name
 `;
 
-export async function fetchUniqueConstraints<T extends "async" | "sync", R>(
-  client: BaseSQLiteDatabase<T, R>,
-) {
+export async function fetchUniqueConstraints(client: DrizzleDbClient) {
   const uniqueIndexesResponse =
-    await client.all<FetchUniqueConstraintsResultRaw>(
-      sql.raw(FETCH_UNIQUE_CONSTRAINTS),
+    await client.query<FetchUniqueConstraintsResultRaw>(
+      FETCH_UNIQUE_CONSTRAINTS,
     );
-  const primaryKeysResponse = await client.all<{
+  const primaryKeysResponse = await client.query<{
     colName: string;
     tableName: string;
-  }>(sql.raw(FETCH_PRIMARY_KEYS_CONSTRAINTS));
+  }>(FETCH_PRIMARY_KEYS_CONSTRAINTS);
 
   const groupedResults: Record<
     string,

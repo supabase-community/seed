@@ -1,5 +1,4 @@
-import { sql } from "drizzle-orm";
-import { type BaseSQLiteDatabase } from "drizzle-orm/sqlite-core";
+import { type DrizzleDbClient } from "#core/adapters.js";
 import {
   FETCH_TABLE_COLUMNS_LIST,
   type FetchTableAndColumnsResultRaw,
@@ -14,12 +13,10 @@ export interface FetchSequencesResult {
   tableId: string;
 }
 
-export async function fetchSequences<T extends "async" | "sync", R>(
-  client: BaseSQLiteDatabase<T, R>,
-) {
+export async function fetchSequences(client: DrizzleDbClient) {
   const results: Array<FetchSequencesResult> = [];
-  const tableColumnsInfos = await client.all<FetchTableAndColumnsResultRaw>(
-    sql.raw(FETCH_TABLE_COLUMNS_LIST),
+  const tableColumnsInfos = await client.query<FetchTableAndColumnsResultRaw>(
+    FETCH_TABLE_COLUMNS_LIST,
   );
   const tableColumnsInfosGrouped = tableColumnsInfos.reduce<
     Record<
@@ -44,11 +41,10 @@ export async function fetchSequences<T extends "async" | "sync", R>(
     // used as a sequence
     const pkKey =
       tablePk && tablePk.affinity === "integer" ? tablePk.colName : "rowid";
-    const maxSeqNo = await client.get<{ currentSequenceValue: number }>(
-      sql.raw(
-        `SELECT MAX(${pkKey}) + 1 as currentSequenceValue FROM ${tableId}`,
-      ),
+    const maxSeqRes = await client.query<{ currentSequenceValue: number }>(
+      `SELECT MAX(${pkKey}) + 1 as currentSequenceValue FROM ${tableId}`,
     );
+    const maxSeqNo = maxSeqRes[0];
     results.push({
       colId: pkKey,
       tableId,

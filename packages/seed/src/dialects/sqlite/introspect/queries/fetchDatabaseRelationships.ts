@@ -1,6 +1,5 @@
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
-import { sql } from "drizzle-orm";
-import { type BaseSQLiteDatabase } from "drizzle-orm/sqlite-core";
+import { type DrizzleDbClient } from "#core/adapters.js";
 import {
   FETCH_TABLE_COLUMNS_LIST,
   type FetchTableAndColumnsResultRaw,
@@ -52,15 +51,13 @@ ORDER BY
   alltables.name, fk.id
 `;
 
-export async function fetchDatabaseRelationships<T extends "async" | "sync", R>(
-  client: BaseSQLiteDatabase<T, R>,
-) {
+export async function fetchDatabaseRelationships(client: DrizzleDbClient) {
   const results: Array<FetchRelationshipsInfosResult> = [];
-  const foreignKeysResult = await client.all<FetchTableForeignKeysResultRaw>(
-    sql.raw(FETCH_TABLE_FOREIGN_KEYS),
+  const foreignKeysResult = await client.query<FetchTableForeignKeysResultRaw>(
+    FETCH_TABLE_FOREIGN_KEYS,
   );
-  const tableColumnsInfos = await client.all<FetchTableAndColumnsResultRaw>(
-    sql.raw(FETCH_TABLE_COLUMNS_LIST),
+  const tableColumnsInfos = await client.query<FetchTableAndColumnsResultRaw>(
+    FETCH_TABLE_COLUMNS_LIST,
   );
   const tableColumnsInfosGrouped = tableColumnsInfos.reduce<
     Record<

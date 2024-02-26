@@ -1,6 +1,7 @@
 import { drizzle as drizzleBetterSqlite } from "drizzle-orm/better-sqlite3";
 import { describe, expect, test } from "vitest";
 import { sqlite } from "#test";
+import { createDrizzleORMSqliteClient } from "../../adapters.js";
 import { fetchUniqueConstraints } from "./fetchUniqueConstraints.js";
 
 const adapters = {
@@ -44,7 +45,9 @@ describe.each(["betterSqlite3"] as const)(
   `;
 
       const db = await createTestDb(structure);
-      const constraints = await fetchUniqueConstraints(drizzle(db.client));
+      const constraints = await fetchUniqueConstraints(
+        createDrizzleORMSqliteClient(drizzle(db.client)),
+      );
 
       expect(constraints).toEqual([
         {
@@ -119,7 +122,9 @@ describe.each(["betterSqlite3"] as const)(
 `;
 
       const db = await createTestDb(structure);
-      const constraints = await fetchUniqueConstraints(drizzle(db.client));
+      const constraints = await fetchUniqueConstraints(
+        createDrizzleORMSqliteClient(drizzle(db.client)),
+      );
       expect(constraints).toEqual([
         {
           columns: ["TestID", "Test2ID"],
@@ -151,7 +156,9 @@ describe.each(["betterSqlite3"] as const)(
     );`;
 
       const db = await createTestDb(structure);
-      const constraints = await fetchUniqueConstraints(drizzle(db.client));
+      const constraints = await fetchUniqueConstraints(
+        createDrizzleORMSqliteClient(drizzle(db.client)),
+      );
 
       expect(constraints).toEqual([]);
     });
