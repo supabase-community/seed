@@ -2,7 +2,7 @@
 export abstract class DrizzleDbClient<T = any> {
   constructor(protected db: T) {}
   get adapter(): T {
-    return this.adapter;
+    return this.db;
   }
   abstract query<K = any>(
     query: string,
