@@ -17,7 +17,7 @@ const adapters = {
 };
 
 describe.each(["postgresJs", "pg"] as const)("fetchSchemas: %s", (adapter) => {
-  const { drizzle, createTestDb, createTestRole } = adapters[adapter]();
+  const { drizzle, createTestDb } = adapters[adapter]();
   test("should fetch only the public schema", async () => {
     const db = await createTestDb();
     const schemas = await fetchSchemas(
@@ -26,7 +26,11 @@ describe.each(["postgresJs", "pg"] as const)("fetchSchemas: %s", (adapter) => {
     );
     expect(schemas).toEqual(["public"]);
   });
+});
 
+describe.each(["postgresJs"] as const)("fetchSchemas: %s", (adapter) => {
+  const { drizzle, createTestDb, createTestRole } = adapters[adapter]();
+  // pg adapter thrown a connection error withtthe createTestRole utils
   test("should fetch all schemas where the user can read", async () => {
     const structure = `
     CREATE SCHEMA other;
@@ -34,16 +38,12 @@ describe.each(["postgresJs", "pg"] as const)("fetchSchemas: %s", (adapter) => {
   `;
     const db = await createTestDb(structure);
     const testRole = await createTestRole(db.client);
-    // @ts-expect-error dynamic drizzle import based on adapter
     const orm = createDrizzleORMPgClient(drizzle(db.client));
     await orm.run(
-      `
-    REVOKE ALL PRIVILEGES ON SCHEMA private FROM "${testRole.name}";
-    GRANT ALL PRIVILEGES ON SCHEMA other TO "${testRole.name}";
-  `,
+      `REVOKE ALL PRIVILEGES ON SCHEMA private FROM "${testRole.name}";
+      GRANT ALL PRIVILEGES ON SCHEMA other TO "${testRole.name}";`,
     );
     const schemas = await fetchSchemas(
-      // @ts-expect-error dynamic drizzle import based on adapter
       createDrizzleORMPgClient(drizzle(testRole.client)),
     );
     expect(schemas.length).toBe(2);

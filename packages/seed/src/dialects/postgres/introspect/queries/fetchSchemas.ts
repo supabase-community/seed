@@ -1,4 +1,3 @@
-import { type QueryResultHKT } from "drizzle-orm/pg-core";
 import { type DrizzleDbClient } from "#core/adapters.js";
 import { buildSchemaExclusionClause } from "./utils.js";
 
@@ -16,9 +15,7 @@ const FETCH_AUTHORIZED_SCHEMAS = `
   ORDER BY schema_name
 `;
 
-export async function fetchSchemas<T extends QueryResultHKT>(
-  client: DrizzleDbClient<T>,
-) {
+export async function fetchSchemas(client: DrizzleDbClient) {
   const response = await client.query<FetchSchemasResult>(
     FETCH_AUTHORIZED_SCHEMAS,
   );

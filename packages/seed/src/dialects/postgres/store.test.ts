@@ -1,21 +1,33 @@
-import { sql } from "drizzle-orm";
-import { drizzle } from "drizzle-orm/postgres-js";
-import { type Sql } from "postgres";
+import { drizzle as drizzlePg } from "drizzle-orm/node-postgres";
+import { drizzle as drizzleJs } from "drizzle-orm/postgres-js";
 import { describe, expect, test } from "vitest";
 import { postgres } from "#test";
+import {
+  type DrizzleORMPgClient,
+  createDrizzleORMPgClient,
+} from "./adapters.js";
 import { getDatamodel } from "./dataModel.js";
 import { PgStore } from "./store.js";
 
-const { createTestDb } = postgres.postgresJs;
+const adapters = {
+  postgresJs: () => ({
+    ...postgres.postgresJs,
+    drizzle: drizzleJs,
+  }),
+  pg: () => ({
+    ...postgres.pg,
+    drizzle: drizzlePg,
+  }),
+};
 
-async function execQueries(client: Sql, queries: Array<string>) {
-  const drizz = drizzle(client);
+async function execQueries(client: DrizzleORMPgClient, queries: Array<string>) {
   for (const query of queries) {
-    await drizz.execute(sql.raw(query));
+    await client.run(query);
   }
 }
 
-describe("store", () => {
+describe.each(["postgresJs", "pg"] as const)("store: %s", (adapter) => {
+  const { drizzle, createTestDb } = adapters[adapter]();
   describe("SQL -> Store -> SQL", () => {
     test("should be able to insert basic rows into table", async () => {
       const structure = `
@@ -26,7 +38,9 @@ describe("store", () => {
       );
       `;
       const db = await createTestDb(structure);
-      const dataModel = await getDatamodel(drizzle(db.client));
+      //@ts-expect-error - we are testing both adapters
+      const orm = createDrizzleORMPgClient(drizzle(db.client));
+      const dataModel = await getDatamodel(orm);
 
       const store = new PgStore(dataModel);
 
@@ -41,10 +55,8 @@ describe("store", () => {
         name: "Winrar Skarsgård",
         email: "win@rar.gard",
       });
-      await execQueries(db.client, [...store.toSQL()]);
-      const results = await drizzle(db.client).execute(
-        sql`SELECT * FROM test_customer`,
-      );
+      await execQueries(orm, [...store.toSQL()]);
+      const results = await orm.query(`SELECT * FROM test_customer`);
       expect(results).toEqual(
         expect.arrayContaining([
           { id: 2, name: "Cadavre Exquis", email: "cadavre@ex.quis" },
@@ -61,7 +73,9 @@ describe("store", () => {
       );
     `;
       const db = await createTestDb(structure);
-      const dataModel = await getDatamodel(drizzle(db.client));
+      //@ts-expect-error - we are testing both adapters
+      const orm = createDrizzleORMPgClient(drizzle(db.client));
+      const dataModel = await getDatamodel(orm);
 
       const store = new PgStore(dataModel);
 
@@ -73,9 +87,9 @@ describe("store", () => {
         name: "Winrar Skarsgård",
         email: "win@rar.gard",
       });
-      await execQueries(db.client, [...store.toSQL()]);
-      const results = await drizzle(db.client).execute(
-        sql`SELECT * FROM test_customer ORDER BY id ASC`,
+      await execQueries(orm, [...store.toSQL()]);
+      const results = await orm.query(
+        `SELECT * FROM test_customer ORDER BY id ASC`,
       );
       expect(results).toEqual(
         expect.arrayContaining([
@@ -94,7 +108,9 @@ describe("store", () => {
       );
     `;
       const db = await createTestDb(structure);
-      const dataModel = await getDatamodel(drizzle(db.client));
+      //@ts-expect-error - we are testing both adapters
+      const orm = createDrizzleORMPgClient(drizzle(db.client));
+      const dataModel = await getDatamodel(orm);
 
       const store = new PgStore(dataModel);
 
@@ -108,9 +124,9 @@ describe("store", () => {
         email: "win@rar.gard",
       });
 
-      await execQueries(db.client, [...store.toSQL()]);
-      const results = await drizzle(db.client).execute(
-        sql`SELECT * FROM test_customer ORDER BY id ASC`,
+      await execQueries(orm, [...store.toSQL()]);
+      const results = await orm.query(
+        `SELECT * FROM test_customer ORDER BY id ASC`,
       );
 
       // Expect the generated full_details column to concatenate name and email as specified
@@ -142,7 +158,9 @@ describe("store", () => {
       );
     `;
       const db = await createTestDb(structure);
-      const dataModel = await getDatamodel(drizzle(db.client));
+      //@ts-expect-error - we are testing both adapters
+      const orm = createDrizzleORMPgClient(drizzle(db.client));
+      const dataModel = await getDatamodel(orm);
 
       const store = new PgStore(dataModel);
 
@@ -156,9 +174,9 @@ describe("store", () => {
         phone: "+1234567890",
       });
 
-      await execQueries(db.client, [...store.toSQL()]);
-      const results = await drizzle(db.client).execute(
-        sql`SELECT * FROM test_customer ORDER BY id ASC`,
+      await execQueries(orm, [...store.toSQL()]);
+      const results = await orm.query(
+        `SELECT * FROM test_customer ORDER BY id ASC`,
       );
 
       expect(results).toEqual(
@@ -199,7 +217,9 @@ describe("store", () => {
       `;
 
       const db = await createTestDb(structure);
-      const dataModel = await getDatamodel(drizzle(db.client));
+      //@ts-expect-error - we are testing both adapters
+      const orm = createDrizzleORMPgClient(drizzle(db.client));
+      const dataModel = await getDatamodel(orm);
 
       const store = new PgStore(dataModel);
 
@@ -225,9 +245,9 @@ describe("store", () => {
         product_name: "Gadget",
       });
 
-      await execQueries(db.client, [...store.toSQL()]);
-      const results = await drizzle(db.client).execute(
-        sql`SELECT test_customer.name, test_order.quantity FROM test_order JOIN test_customer ON test_customer.id = test_order.customer_id ORDER BY test_order.id ASC`,
+      await execQueries(orm, [...store.toSQL()]);
+      const results = await orm.query(
+        `SELECT test_customer.name, test_order.quantity FROM test_order JOIN test_customer ON test_customer.id = test_order.customer_id ORDER BY test_order.id ASC`,
       );
 
       expect(results).toEqual(

@@ -1,4 +1,3 @@
-import { type QueryResultHKT } from "drizzle-orm/pg-core";
 import { type DrizzleDbClient } from "#core/adapters.js";
 import { buildSchemaExclusionClause } from "./utils.js";
 
@@ -71,9 +70,7 @@ ORDER BY
   "schema", "table";
 `;
 
-export async function fetchPrimaryKeys<T extends QueryResultHKT>(
-  client: DrizzleDbClient<T>,
-) {
+export async function fetchPrimaryKeys(client: DrizzleDbClient) {
   const response =
     await client.query<FetchPrimaryKeysResult>(FETCH_PRIMARY_KEYS);
 

@@ -1,12 +1,27 @@
-import { drizzle } from "drizzle-orm/postgres-js";
-import { expect, test } from "vitest";
+import { drizzle as drizzlePg } from "drizzle-orm/node-postgres";
+import { drizzle as drizzleJs } from "drizzle-orm/postgres-js";
+import { describe, expect, test } from "vitest";
 import { postgres } from "#test";
+import { createDrizzleORMPgClient } from "../../adapters.js";
 import { fetchPrimaryKeys } from "./fetchPrimaryKeys.js";
 
-const { createTestDb } = postgres.postgresJs;
+const adapters = {
+  postgresJs: () => ({
+    ...postgres.postgresJs,
+    drizzle: drizzleJs,
+  }),
+  pg: () => ({
+    ...postgres.pg,
+    drizzle: drizzlePg,
+  }),
+};
 
-test("should get basics primary keys", async () => {
-  const structure = `
+describe.each(["postgresJs", "pg"] as const)(
+  "fetchPrimaryKeys: %s",
+  (adapter) => {
+    const { drizzle, createTestDb } = adapters[adapter]();
+    test("should get basics primary keys", async () => {
+      const structure = `
     CREATE TABLE "Courses" (
         "CourseID" SERIAL PRIMARY KEY,
         "CourseName" VARCHAR(255) NOT NULL
@@ -17,30 +32,33 @@ test("should get basics primary keys", async () => {
         "LastName" VARCHAR(255) NOT NULL
     );
   `;
-  const db = await createTestDb(structure);
-  const primaryKeys = await fetchPrimaryKeys(drizzle(db.client));
-  expect(primaryKeys).toEqual(
-    expect.arrayContaining([
-      {
-        keys: [{ name: "CourseID", type: "int4" }],
-        schema: "public",
-        table: "Courses",
-        dirty: false,
-        tableId: "public.Courses",
-      },
-      {
-        keys: [{ name: "StudentID", type: "int4" }],
-        schema: "public",
-        table: "Students",
-        dirty: false,
-        tableId: "public.Students",
-      },
-    ]),
-  );
-});
+      const db = await createTestDb(structure);
+      const primaryKeys = await fetchPrimaryKeys(
+        // @ts-expect-error dynamic drizzle import based on adapter
+        createDrizzleORMPgClient(drizzle(db.client)),
+      );
+      expect(primaryKeys).toEqual(
+        expect.arrayContaining([
+          {
+            keys: [{ name: "CourseID", type: "int4" }],
+            schema: "public",
+            table: "Courses",
+            dirty: false,
+            tableId: "public.Courses",
+          },
+          {
+            keys: [{ name: "StudentID", type: "int4" }],
+            schema: "public",
+            table: "Students",
+            dirty: false,
+            tableId: "public.Students",
+          },
+        ]),
+      );
+    });
 
-test("should get composite primary keys", async () => {
-  const structure = `
+    test("should get composite primary keys", async () => {
+      const structure = `
     CREATE TABLE "Courses" (
         "CourseID" SERIAL PRIMARY KEY,
         "CourseName" VARCHAR(255) NOT NULL
@@ -66,49 +84,52 @@ test("should get composite primary keys", async () => {
         FOREIGN KEY ("CourseID", "StudentID") REFERENCES "Enrollments"("CourseID", "StudentID")
     );
   `;
-  const db = await createTestDb(structure);
-  const primaryKeys = await fetchPrimaryKeys(drizzle(db.client));
-  expect(primaryKeys).toEqual([
-    {
-      keys: [{ name: "CourseID", type: "int4" }],
-      schema: "public",
-      table: "Courses",
-      dirty: false,
-      tableId: "public.Courses",
-    },
-    {
-      keys: [
-        { name: "CourseID", type: "int4" },
-        { name: "StudentID", type: "int4" },
-      ],
-      schema: "public",
-      table: "Enrollments",
-      dirty: false,
-      tableId: "public.Enrollments",
-    },
-    {
-      keys: [
-        { name: "CourseID", type: "int4" },
-        { name: "ExamName", type: "varchar" },
-        { name: "StudentID", type: "int4" },
-      ],
-      schema: "public",
-      table: "Grades",
-      dirty: false,
-      tableId: "public.Grades",
-    },
-    {
-      keys: [{ name: "StudentID", type: "int4" }],
-      schema: "public",
-      table: "Students",
-      dirty: false,
-      tableId: "public.Students",
-    },
-  ]);
-});
+      const db = await createTestDb(structure);
+      const primaryKeys = await fetchPrimaryKeys(
+        // @ts-expect-error dynamic drizzle import based on adapter
+        createDrizzleORMPgClient(drizzle(db.client)),
+      );
+      expect(primaryKeys).toEqual([
+        {
+          keys: [{ name: "CourseID", type: "int4" }],
+          schema: "public",
+          table: "Courses",
+          dirty: false,
+          tableId: "public.Courses",
+        },
+        {
+          keys: [
+            { name: "CourseID", type: "int4" },
+            { name: "StudentID", type: "int4" },
+          ],
+          schema: "public",
+          table: "Enrollments",
+          dirty: false,
+          tableId: "public.Enrollments",
+        },
+        {
+          keys: [
+            { name: "CourseID", type: "int4" },
+            { name: "ExamName", type: "varchar" },
+            { name: "StudentID", type: "int4" },
+          ],
+          schema: "public",
+          table: "Grades",
+          dirty: false,
+          tableId: "public.Grades",
+        },
+        {
+          keys: [{ name: "StudentID", type: "int4" }],
+          schema: "public",
+          table: "Students",
+          dirty: false,
+          tableId: "public.Students",
+        },
+      ]);
+    });
 
-test("should get composite primary keys on different schemas", async () => {
-  const structure = `
+    test("should get composite primary keys on different schemas", async () => {
+      const structure = `
     CREATE SCHEMA private;
     CREATE TABLE public."Courses" (
         "CourseID" SERIAL PRIMARY KEY,
@@ -120,41 +141,47 @@ test("should get composite primary keys on different schemas", async () => {
         "LastName" VARCHAR(255) NOT NULL
     );
   `;
-  const db = await createTestDb(structure);
-  const primaryKeys = await fetchPrimaryKeys(drizzle(db.client));
-  expect(primaryKeys).toEqual(
-    expect.arrayContaining([
-      {
-        keys: [{ name: "StudentID", type: "int4" }],
-        schema: "private",
-        table: "Students",
-        dirty: false,
-        tableId: "private.Students",
-      },
-      {
-        keys: [{ name: "CourseID", type: "int4" }],
-        schema: "public",
-        table: "Courses",
-        dirty: false,
-        tableId: "public.Courses",
-      },
-    ]),
-  );
-});
+      const db = await createTestDb(structure);
+      const primaryKeys = await fetchPrimaryKeys(
+        // @ts-expect-error dynamic drizzle import based on adapter
+        createDrizzleORMPgClient(drizzle(db.client)),
+      );
+      expect(primaryKeys).toEqual(
+        expect.arrayContaining([
+          {
+            keys: [{ name: "StudentID", type: "int4" }],
+            schema: "private",
+            table: "Students",
+            dirty: false,
+            tableId: "private.Students",
+          },
+          {
+            keys: [{ name: "CourseID", type: "int4" }],
+            schema: "public",
+            table: "Courses",
+            dirty: false,
+            tableId: "public.Courses",
+          },
+        ]),
+      );
+    });
 
-test("should empty array for a table without any PK", async () => {
-  const structure = `
+    test("should empty array for a table without any PK", async () => {
+      const structure = `
     CREATE TABLE public."Courses" (
         "CourseName" VARCHAR(255) NOT NULL
     );
   `;
-  const db = await createTestDb(structure);
-  const primaryKeys = await fetchPrimaryKeys(drizzle(db.client));
-  expect(primaryKeys).toEqual(expect.arrayContaining([]));
-});
+      const db = await createTestDb(structure);
+      const primaryKeys = await fetchPrimaryKeys(
+        // @ts-expect-error dynamic drizzle import based on adapter
+        createDrizzleORMPgClient(drizzle(db.client)),
+      );
+      expect(primaryKeys).toEqual(expect.arrayContaining([]));
+    });
 
-test("should get non nullable unique columns as fallback", async () => {
-  const structure = `
+    test("should get non nullable unique columns as fallback", async () => {
+      const structure = `
     CREATE TABLE "Courses" (
         "CourseID" TEXT UNIQUE NOT NULL,
         "CourseName" VARCHAR(255) NOT NULL
@@ -165,30 +192,33 @@ test("should get non nullable unique columns as fallback", async () => {
         "LastName" VARCHAR(255) NOT NULL
     );
   `;
-  const db = await createTestDb(structure);
-  const primaryKeys = await fetchPrimaryKeys(drizzle(db.client));
-  expect(primaryKeys).toEqual(
-    expect.arrayContaining([
-      {
-        keys: [{ name: "CourseID", type: "text" }],
-        schema: "public",
-        table: "Courses",
-        dirty: false,
-        tableId: "public.Courses",
-      },
-      {
-        keys: [{ name: "StudentID", type: "text" }],
-        schema: "public",
-        table: "Students",
-        dirty: false,
-        tableId: "public.Students",
-      },
-    ]),
-  );
-});
+      const db = await createTestDb(structure);
+      const primaryKeys = await fetchPrimaryKeys(
+        // @ts-expect-error dynamic drizzle import based on adapter
+        createDrizzleORMPgClient(drizzle(db.client)),
+      );
+      expect(primaryKeys).toEqual(
+        expect.arrayContaining([
+          {
+            keys: [{ name: "CourseID", type: "text" }],
+            schema: "public",
+            table: "Courses",
+            dirty: false,
+            tableId: "public.Courses",
+          },
+          {
+            keys: [{ name: "StudentID", type: "text" }],
+            schema: "public",
+            table: "Students",
+            dirty: false,
+            tableId: "public.Students",
+          },
+        ]),
+      );
+    });
 
-test("should get non nullable columns who have unique index on it as fallback", async () => {
-  const structure = `
+    test("should get non nullable columns who have unique index on it as fallback", async () => {
+      const structure = `
     CREATE TABLE "Courses" (
         "CourseID" TEXT NOT NULL,
         "CourseName" VARCHAR(255) NOT NULL
@@ -201,30 +231,33 @@ test("should get non nullable columns who have unique index on it as fallback", 
     CREATE UNIQUE INDEX idx_courses_value ON "Courses"("CourseID");
     CREATE UNIQUE INDEX idx_student_value ON "Students"("StudentID");
   `;
-  const db = await createTestDb(structure);
-  const primaryKeys = await fetchPrimaryKeys(drizzle(db.client));
-  expect(primaryKeys).toEqual(
-    expect.arrayContaining([
-      {
-        keys: [{ name: "CourseID", type: "text" }],
-        schema: "public",
-        table: "Courses",
-        dirty: false,
-        tableId: "public.Courses",
-      },
-      {
-        keys: [{ name: "StudentID", type: "text" }],
-        schema: "public",
-        table: "Students",
-        dirty: false,
-        tableId: "public.Students",
-      },
-    ]),
-  );
-});
+      const db = await createTestDb(structure);
+      const primaryKeys = await fetchPrimaryKeys(
+        // @ts-expect-error dynamic drizzle import based on adapter
+        createDrizzleORMPgClient(drizzle(db.client)),
+      );
+      expect(primaryKeys).toEqual(
+        expect.arrayContaining([
+          {
+            keys: [{ name: "CourseID", type: "text" }],
+            schema: "public",
+            table: "Courses",
+            dirty: false,
+            tableId: "public.Courses",
+          },
+          {
+            keys: [{ name: "StudentID", type: "text" }],
+            schema: "public",
+            table: "Students",
+            dirty: false,
+            tableId: "public.Students",
+          },
+        ]),
+      );
+    });
 
-test("should only fetch primary keys if there is some", async () => {
-  const structure = `
+    test("should only fetch primary keys if there is some", async () => {
+      const structure = `
     CREATE TABLE "Courses" (
         "ID" SERIAL PRIMARY KEY,
         "CourseID" TEXT NOT NULL,
@@ -238,30 +271,33 @@ test("should only fetch primary keys if there is some", async () => {
     CREATE UNIQUE INDEX idx_courses_value ON "Courses"("CourseID");
     CREATE UNIQUE INDEX idx_student_value ON "Students"("StudentID");
   `;
-  const db = await createTestDb(structure);
-  const primaryKeys = await fetchPrimaryKeys(drizzle(db.client));
-  expect(primaryKeys).toEqual(
-    expect.arrayContaining([
-      {
-        keys: [{ name: "ID", type: "int4" }],
-        schema: "public",
-        table: "Courses",
-        dirty: false,
-        tableId: "public.Courses",
-      },
-      {
-        keys: [{ name: "StudentID", type: "text" }],
-        schema: "public",
-        table: "Students",
-        dirty: false,
-        tableId: "public.Students",
-      },
-    ]),
-  );
-});
+      const db = await createTestDb(structure);
+      const primaryKeys = await fetchPrimaryKeys(
+        // @ts-expect-error dynamic drizzle import based on adapter
+        createDrizzleORMPgClient(drizzle(db.client)),
+      );
+      expect(primaryKeys).toEqual(
+        expect.arrayContaining([
+          {
+            keys: [{ name: "ID", type: "int4" }],
+            schema: "public",
+            table: "Courses",
+            dirty: false,
+            tableId: "public.Courses",
+          },
+          {
+            keys: [{ name: "StudentID", type: "text" }],
+            schema: "public",
+            table: "Students",
+            dirty: false,
+            tableId: "public.Students",
+          },
+        ]),
+      );
+    });
 
-test("should get non nullable columns who have unique index as composite keys on it as fallback", async () => {
-  const structure = `
+    test("should get non nullable columns who have unique index as composite keys on it as fallback", async () => {
+      const structure = `
     CREATE TABLE "Courses" (
         "CourseID" TEXT NOT NULL,
         "RoomID" TEXT NOT NULL,
@@ -275,33 +311,36 @@ test("should get non nullable columns who have unique index as composite keys on
     CREATE UNIQUE INDEX idx_courses_value ON "Courses"("CourseID", "RoomID");
     CREATE UNIQUE INDEX idx_student_value ON "Students"("StudentID");
   `;
-  const db = await createTestDb(structure);
-  const primaryKeys = await fetchPrimaryKeys(drizzle(db.client));
-  expect(primaryKeys).toEqual(
-    expect.arrayContaining([
-      {
-        keys: [
-          { name: "CourseID", type: "text" },
-          { name: "RoomID", type: "text" },
-        ],
-        schema: "public",
-        table: "Courses",
-        dirty: false,
-        tableId: "public.Courses",
-      },
-      {
-        keys: [{ name: "StudentID", type: "text" }],
-        schema: "public",
-        table: "Students",
-        dirty: false,
-        tableId: "public.Students",
-      },
-    ]),
-  );
-});
+      const db = await createTestDb(structure);
+      const primaryKeys = await fetchPrimaryKeys(
+        // @ts-expect-error dynamic drizzle import based on adapter
+        createDrizzleORMPgClient(drizzle(db.client)),
+      );
+      expect(primaryKeys).toEqual(
+        expect.arrayContaining([
+          {
+            keys: [
+              { name: "CourseID", type: "text" },
+              { name: "RoomID", type: "text" },
+            ],
+            schema: "public",
+            table: "Courses",
+            dirty: false,
+            tableId: "public.Courses",
+          },
+          {
+            keys: [{ name: "StudentID", type: "text" }],
+            schema: "public",
+            table: "Students",
+            dirty: false,
+            tableId: "public.Students",
+          },
+        ]),
+      );
+    });
 
-test("should work with mix between tables", async () => {
-  const structure = `
+    test("should work with mix between tables", async () => {
+      const structure = `
     CREATE TABLE "compositeNotNullIndex" (
         "CourseID" TEXT NOT NULL,
         "RoomID" TEXT NOT NULL,
@@ -330,100 +369,103 @@ test("should work with mix between tables", async () => {
     CREATE UNIQUE INDEX idx_compositeNotNullIndex_value ON "compositeNotNullIndex"("CourseID", "RoomID");
     CREATE UNIQUE INDEX idx_student_value ON "notNullIndex"("StudentID");
   `;
-  const db = await createTestDb(structure);
-  const primaryKeys = await fetchPrimaryKeys(drizzle(db.client));
-  expect(primaryKeys).toEqual(
-    expect.arrayContaining([
-      {
-        keys: [
+      const db = await createTestDb(structure);
+      const primaryKeys = await fetchPrimaryKeys(
+        // @ts-expect-error dynamic drizzle import based on adapter
+        createDrizzleORMPgClient(drizzle(db.client)),
+      );
+      expect(primaryKeys).toEqual(
+        expect.arrayContaining([
           {
-            name: "CourseID",
-            type: "text",
+            keys: [
+              {
+                name: "CourseID",
+                type: "text",
+              },
+              {
+                name: "RoomID",
+                type: "text",
+              },
+            ],
+            schema: "public",
+            table: "compositeNotNullIndex",
+            dirty: false,
+            tableId: "public.compositeNotNullIndex",
           },
           {
-            name: "RoomID",
-            type: "text",
-          },
-        ],
-        schema: "public",
-        table: "compositeNotNullIndex",
-        dirty: false,
-        tableId: "public.compositeNotNullIndex",
-      },
-      {
-        keys: [
-          {
-            name: "CourseID",
-            type: "int4",
-          },
-          {
-            name: "StudentID",
-            type: "int4",
-          },
-        ],
-        schema: "public",
-        table: "compositePrimaryKey",
-        dirty: false,
-        tableId: "public.compositePrimaryKey",
-      },
-      {
-        keys: [
-          {
-            name: "CourseID",
-            type: "int4",
+            keys: [
+              {
+                name: "CourseID",
+                type: "int4",
+              },
+              {
+                name: "StudentID",
+                type: "int4",
+              },
+            ],
+            schema: "public",
+            table: "compositePrimaryKey",
+            dirty: false,
+            tableId: "public.compositePrimaryKey",
           },
           {
-            name: "OtherID",
-            type: "int4",
+            keys: [
+              {
+                name: "CourseID",
+                type: "int4",
+              },
+              {
+                name: "OtherID",
+                type: "int4",
+              },
+            ],
+            schema: "public",
+            table: "compositeUniqueNonNullableColumn",
+            dirty: false,
+            tableId: "public.compositeUniqueNonNullableColumn",
           },
-        ],
-        schema: "public",
-        table: "compositeUniqueNonNullableColumn",
-        dirty: false,
-        tableId: "public.compositeUniqueNonNullableColumn",
-      },
-      {
-        keys: [
           {
-            name: "StudentID",
-            type: "text",
+            keys: [
+              {
+                name: "StudentID",
+                type: "text",
+              },
+            ],
+            schema: "public",
+            table: "notNullIndex",
+            dirty: false,
+            tableId: "public.notNullIndex",
           },
-        ],
-        schema: "public",
-        table: "notNullIndex",
-        dirty: false,
-        tableId: "public.notNullIndex",
-      },
-      {
-        keys: [
           {
-            name: "pk",
-            type: "int4",
+            keys: [
+              {
+                name: "pk",
+                type: "int4",
+              },
+            ],
+            schema: "public",
+            table: "primaryKey",
+            dirty: false,
+            tableId: "public.primaryKey",
           },
-        ],
-        schema: "public",
-        table: "primaryKey",
-        dirty: false,
-        tableId: "public.primaryKey",
-      },
-      {
-        keys: [
           {
-            name: "CourseID",
-            type: "int4",
+            keys: [
+              {
+                name: "CourseID",
+                type: "int4",
+              },
+            ],
+            schema: "public",
+            table: "uniqueNonNullableColumn",
+            dirty: false,
+            tableId: "public.uniqueNonNullableColumn",
           },
-        ],
-        schema: "public",
-        table: "uniqueNonNullableColumn",
-        dirty: false,
-        tableId: "public.uniqueNonNullableColumn",
-      },
-    ]),
-  );
-});
+        ]),
+      );
+    });
 
-test("should work with two tables named the same in two different schemas", async () => {
-  const structure = `
+    test("should work with two tables named the same in two different schemas", async () => {
+      const structure = `
   CREATE SCHEMA IF NOT EXISTS supabase_functions;
   CREATE TABLE public.migrations (
       id integer NOT NULL PRIMARY KEY,
@@ -435,34 +477,39 @@ test("should work with two tables named the same in two different schemas", asyn
     inserted_at timestamp with time zone DEFAULT now() NOT NULL
   );
   `;
-  const db = await createTestDb(structure);
-  const primaryKeys = await fetchPrimaryKeys(drizzle(db.client));
-  expect(primaryKeys).toEqual(
-    expect.arrayContaining([
-      {
-        keys: [
+      const db = await createTestDb(structure);
+      const primaryKeys = await fetchPrimaryKeys(
+        // @ts-expect-error dynamic drizzle import based on adapter
+        createDrizzleORMPgClient(drizzle(db.client)),
+      );
+      expect(primaryKeys).toEqual(
+        expect.arrayContaining([
           {
-            name: "id",
-            type: "int4",
+            keys: [
+              {
+                name: "id",
+                type: "int4",
+              },
+            ],
+            schema: "public",
+            table: "migrations",
+            dirty: false,
+            tableId: "public.migrations",
           },
-        ],
-        schema: "public",
-        table: "migrations",
-        dirty: false,
-        tableId: "public.migrations",
-      },
-      {
-        keys: [
           {
-            name: "version",
-            type: "text",
+            keys: [
+              {
+                name: "version",
+                type: "text",
+              },
+            ],
+            schema: "supabase_functions",
+            table: "migrations",
+            dirty: false,
+            tableId: "supabase_functions.migrations",
           },
-        ],
-        schema: "supabase_functions",
-        table: "migrations",
-        dirty: false,
-        tableId: "supabase_functions.migrations",
-      },
-    ]),
-  );
-});
+        ]),
+      );
+    });
+  },
+);

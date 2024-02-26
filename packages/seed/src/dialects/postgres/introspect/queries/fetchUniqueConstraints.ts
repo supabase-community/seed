@@ -1,4 +1,3 @@
-import { type QueryResultHKT } from "drizzle-orm/pg-core";
 import { type DrizzleDbClient } from "#core/adapters.js";
 import { buildSchemaExclusionClause } from "./utils.js";
 
@@ -61,9 +60,7 @@ ORDER BY
     tc.constraint_name;
 `;
 
-export async function fetchUniqueConstraints<T extends QueryResultHKT>(
-  client: DrizzleDbClient<T>,
-) {
+export async function fetchUniqueConstraints(client: DrizzleDbClient) {
   const response = await client.query<FetchUniqueConstraintsResult>(
     FETCH_UNIQUE_CONSTRAINTS,
   );

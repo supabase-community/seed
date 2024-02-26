@@ -1,6 +1,9 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 export abstract class DrizzleDbClient<T = any> {
   constructor(protected db: T) {}
+  get adapter(): T {
+    return this.adapter;
+  }
   abstract query<K = any>(
     query: string,
     values?: Array<any>,

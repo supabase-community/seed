@@ -1,4 +1,3 @@
-import { type QueryResultHKT } from "drizzle-orm/pg-core";
 import { type DrizzleDbClient } from "#core/adapters.js";
 import { buildSchemaExclusionClause } from "./utils.js";
 
@@ -239,9 +238,7 @@ const FETCH_TABLES_AND_COLUMNS = `
     ORDER BY tables_with_bytes."tableName";
 `;
 
-export async function fetchTablesAndColumns<T extends QueryResultHKT>(
-  client: DrizzleDbClient<T>,
-) {
+export async function fetchTablesAndColumns(client: DrizzleDbClient) {
   const response = await client.query<{
     json_build_object: FetchTableAndColumnsResult;
   }>(FETCH_TABLES_AND_COLUMNS);

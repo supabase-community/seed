@@ -1,4 +1,3 @@
-import { type QueryResultHKT } from "drizzle-orm/pg-core";
 import { type DrizzleDbClient } from "#core/adapters.js";
 import { buildSchemaExclusionClause } from "./utils.js";
 
@@ -32,9 +31,7 @@ const FETCH_ENUMS = `
   ORDER BY concat(pg_namespace.nspname, '.', pg_type.typname)
 `;
 
-export async function fetchEnums<T extends QueryResultHKT>(
-  client: DrizzleDbClient<T>,
-) {
+export async function fetchEnums(client: DrizzleDbClient) {
   const response = await client.query<FetchEnumsResult>(FETCH_ENUMS);
 
   return response;

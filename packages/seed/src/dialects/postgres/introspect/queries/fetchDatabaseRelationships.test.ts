@@ -1,12 +1,28 @@
-import { drizzle } from "drizzle-orm/postgres-js";
-import { expect, test } from "vitest";
+import { drizzle as drizzlePg } from "drizzle-orm/node-postgres";
+import { drizzle as drizzleJs } from "drizzle-orm/postgres-js";
+import { describe, expect, test } from "vitest";
 import { postgres } from "#test";
+import { createDrizzleORMPgClient } from "../../adapters.js";
 import { fetchDatabaseRelationships } from "./fetchDatabaseRelationships.js";
 
-const { createTestDb } = postgres.postgresJs;
+const adapters = {
+  postgresJs: () => ({
+    ...postgres.postgresJs,
+    drizzle: drizzleJs,
+  }),
+  pg: () => ({
+    ...postgres.pg,
+    drizzle: drizzlePg,
+  }),
+};
 
-test("should return empty array if no relations", async () => {
-  const structure = `
+describe.each(["postgresJs", "pg"] as const)(
+  "fetchDatabaseRelationships: %s",
+  (adapter) => {
+    const { drizzle, createTestDb } = adapters[adapter]();
+
+    test("should return empty array if no relations", async () => {
+      const structure = `
     CREATE TABLE "Courses" (
         "CourseID" SERIAL PRIMARY KEY,
         "CourseName" VARCHAR(255) NOT NULL
@@ -17,13 +33,16 @@ test("should return empty array if no relations", async () => {
         "LastName" VARCHAR(255) NOT NULL
     );
   `;
-  const { client } = await createTestDb(structure);
-  const relationships = await fetchDatabaseRelationships(drizzle(client));
-  expect(relationships.length).toEqual(0);
-});
+      const { client } = await createTestDb(structure);
+      const relationships = await fetchDatabaseRelationships(
+        // @ts-expect-error dynamic drizzle import based on adapter
+        createDrizzleORMPgClient(drizzle(client)),
+      );
+      expect(relationships.length).toEqual(0);
+    });
 
-test("should get composite FK and basic FK", async () => {
-  const structure = `
+    test("should get composite FK and basic FK", async () => {
+      const structure = `
     CREATE TABLE "Courses" (
         "CourseID" SERIAL PRIMARY KEY,
         "CourseName" VARCHAR(255) NOT NULL
@@ -49,68 +68,71 @@ test("should get composite FK and basic FK", async () => {
         FOREIGN KEY ("CourseID", "StudentID") REFERENCES "Enrollments"("CourseID", "StudentID")
     );
   `;
-  const { client } = await createTestDb(structure);
-  const relationships = await fetchDatabaseRelationships(drizzle(client));
-  expect(relationships).toEqual(
-    expect.arrayContaining([
-      {
-        fkTable: "public.Enrollments",
-        id: "Enrollments_CourseID_fkey",
-
-        keys: [
+      const { client } = await createTestDb(structure);
+      const relationships = await fetchDatabaseRelationships(
+        // @ts-expect-error dynamic drizzle import based on adapter
+        createDrizzleORMPgClient(drizzle(client)),
+      );
+      expect(relationships).toEqual(
+        expect.arrayContaining([
           {
-            fkColumn: "CourseID",
-            fkType: "int4",
-            nullable: false,
-            targetColumn: "CourseID",
-            targetType: "int4",
-          },
-        ],
-        targetTable: "public.Courses",
-      },
-      {
-        fkTable: "public.Enrollments",
-        id: "Enrollments_StudentID_fkey",
+            fkTable: "public.Enrollments",
+            id: "Enrollments_CourseID_fkey",
 
-        keys: [
-          {
-            fkColumn: "StudentID",
-            fkType: "int4",
-            nullable: false,
-            targetColumn: "StudentID",
-            targetType: "int4",
-          },
-        ],
-        targetTable: "public.Students",
-      },
-      {
-        fkTable: "public.Grades",
-        id: "Grades_CourseID_StudentID_fkey",
-
-        keys: [
-          {
-            fkColumn: "CourseID",
-            fkType: "int4",
-            nullable: false,
-            targetColumn: "CourseID",
-            targetType: "int4",
+            keys: [
+              {
+                fkColumn: "CourseID",
+                fkType: "int4",
+                nullable: false,
+                targetColumn: "CourseID",
+                targetType: "int4",
+              },
+            ],
+            targetTable: "public.Courses",
           },
           {
-            fkColumn: "StudentID",
-            fkType: "int4",
-            nullable: false,
-            targetColumn: "StudentID",
-            targetType: "int4",
-          },
-        ],
-        targetTable: "public.Enrollments",
-      },
-    ]),
-  );
-});
+            fkTable: "public.Enrollments",
+            id: "Enrollments_StudentID_fkey",
 
-test("should get FK on multiples schemas", async () => {
-  const structure = `
+            keys: [
+              {
+                fkColumn: "StudentID",
+                fkType: "int4",
+                nullable: false,
+                targetColumn: "StudentID",
+                targetType: "int4",
+              },
+            ],
+            targetTable: "public.Students",
+          },
+          {
+            fkTable: "public.Grades",
+            id: "Grades_CourseID_StudentID_fkey",
+
+            keys: [
+              {
+                fkColumn: "CourseID",
+                fkType: "int4",
+                nullable: false,
+                targetColumn: "CourseID",
+                targetType: "int4",
+              },
+              {
+                fkColumn: "StudentID",
+                fkType: "int4",
+                nullable: false,
+                targetColumn: "StudentID",
+                targetType: "int4",
+              },
+            ],
+            targetTable: "public.Enrollments",
+          },
+        ]),
+      );
+    });
+
+    test("should get FK on multiples schemas", async () => {
+      const structure = `
     CREATE SCHEMA private;
     CREATE TABLE public."Courses" (
         "CourseID" SERIAL PRIMARY KEY,
@@ -133,46 +155,49 @@ test("should get FK on multiples schemas", async () => {
         FOREIGN KEY ("CourseID") REFERENCES private."Courses"("CourseID")
     );
   `;
-  const { client } = await createTestDb(structure);
-  const relationships = await fetchDatabaseRelationships(drizzle(client));
-  expect(relationships).toEqual(
-    expect.arrayContaining([
-      {
-        fkTable: "private.Enrollments",
-        id: "Enrollments_CourseID_fkey",
-
-        keys: [
+      const { client } = await createTestDb(structure);
+      const relationships = await fetchDatabaseRelationships(
+        // @ts-expect-error dynamic drizzle import based on adapter
+        createDrizzleORMPgClient(drizzle(client)),
+      );
+      expect(relationships).toEqual(
+        expect.arrayContaining([
           {
-            fkColumn: "CourseID",
-            fkType: "int4",
-            nullable: false,
-            targetColumn: "CourseID",
-            targetType: "int4",
-          },
-        ],
-        targetTable: "private.Courses",
-      },
-      {
-        fkTable: "public.Students",
-        id: "Students_StudentCourseId_fkey",
+            fkTable: "private.Enrollments",
+            id: "Enrollments_CourseID_fkey",
 
-        keys: [
+            keys: [
+              {
+                fkColumn: "CourseID",
+                fkType: "int4",
+                nullable: false,
+                targetColumn: "CourseID",
+                targetType: "int4",
+              },
+            ],
+            targetTable: "private.Courses",
+          },
           {
-            fkColumn: "StudentCourseId",
-            fkType: "int4",
-            nullable: false,
-            targetColumn: "CourseID",
-            targetType: "int4",
-          },
-        ],
-        targetTable: "public.Courses",
-      },
-    ]),
-  );
-});
+            fkTable: "public.Students",
+            id: "Students_StudentCourseId_fkey",
 
-test("should get FK on multiples schemas and nullables", async () => {
-  const structure = `
+            keys: [
+              {
+                fkColumn: "StudentCourseId",
+                fkType: "int4",
+                nullable: false,
+                targetColumn: "CourseID",
+                targetType: "int4",
+              },
+            ],
+            targetTable: "public.Courses",
+          },
+        ]),
+      );
+    });
+
+    test("should get FK on multiples schemas and nullables", async () => {
+      const structure = `
     CREATE SCHEMA private;
     CREATE TABLE public."Courses" (
         "CourseID" SERIAL PRIMARY KEY,
@@ -205,77 +230,82 @@ test("should get FK on multiples schemas and nullables", async () => {
         FOREIGN KEY ("CourseID", "StudentID") REFERENCES private."Enrollments"("CourseID", "StudentID")
     );
   `;
-  const { client } = await createTestDb(structure);
-  const relationships = await fetchDatabaseRelationships(drizzle(client));
-  expect(relationships).toEqual(
-    expect.arrayContaining([
-      {
-        fkTable: "private.Enrollments",
-        id: "Enrollments_CourseID_fkey",
+      const { client } = await createTestDb(structure);
+      const relationships = await fetchDatabaseRelationships(
+        // @ts-expect-error dynamic drizzle import based on adapter
+        createDrizzleORMPgClient(drizzle(client)),
+      );
+      expect(relationships).toEqual(
+        expect.arrayContaining([
+          {
+            fkTable: "private.Enrollments",
+            id: "Enrollments_CourseID_fkey",
 
-        keys: [
-          {
-            fkColumn: "CourseID",
-            fkType: "int4",
-            nullable: true,
-            targetColumn: "CourseID",
-            targetType: "int4",
+            keys: [
+              {
+                fkColumn: "CourseID",
+                fkType: "int4",
+                nullable: true,
+                targetColumn: "CourseID",
+                targetType: "int4",
+              },
+            ],
+            targetTable: "private.Courses",
           },
-        ],
-        targetTable: "private.Courses",
-      },
-      {
-        fkTable: "private.Enrollments",
-        id: "Enrollments_StudentID_fkey",
+          {
+            fkTable: "private.Enrollments",
+            id: "Enrollments_StudentID_fkey",
 
-        keys: [
-          {
-            fkColumn: "StudentID",
-            fkType: "int4",
-            nullable: true,
-            targetColumn: "StudentID",
-            targetType: "int4",
+            keys: [
+              {
+                fkColumn: "StudentID",
+                fkType: "int4",
+                nullable: true,
+                targetColumn: "StudentID",
+                targetType: "int4",
+              },
+            ],
+            targetTable: "public.Students",
           },
-        ],
-        targetTable: "public.Students",
-      },
-      {
-        fkTable: "public.Grades",
-        id: "Grades_CourseID_StudentID_fkey",
+          {
+            fkTable: "public.Grades",
+            id: "Grades_CourseID_StudentID_fkey",
 
-        keys: [
-          {
-            fkColumn: "CourseID",
-            fkType: "int4",
-            nullable: false,
-            targetColumn: "CourseID",
-            targetType: "int4",
+            keys: [
+              {
+                fkColumn: "CourseID",
+                fkType: "int4",
+                nullable: false,
+                targetColumn: "CourseID",
+                targetType: "int4",
+              },
+              {
+                fkColumn: "StudentID",
+                fkType: "int4",
+                nullable: false,
+                targetColumn: "StudentID",
+                targetType: "int4",
+              },
+            ],
+            targetTable: "private.Enrollments",
           },
           {
-            fkColumn: "StudentID",
-            fkType: "int4",
-            nullable: false,
-            targetColumn: "StudentID",
-            targetType: "int4",
-          },
-        ],
-        targetTable: "private.Enrollments",
-      },
-      {
-        fkTable: "public.Students",
-        id: "Students_StudentCourseId_fkey",
+            fkTable: "public.Students",
+            id: "Students_StudentCourseId_fkey",
 
-        keys: [
-          {
-            fkColumn: "StudentCourseId",
-            fkType: "int4",
-            nullable: true,
-            targetColumn: "CourseID",
-            targetType: "int4",
+            keys: [
+              {
+                fkColumn: "StudentCourseId",
+                fkType: "int4",
+                nullable: true,
+                targetColumn: "CourseID",
+                targetType: "int4",
+              },
+            ],
+            targetTable: "public.Courses",
           },
-        ],
-        targetTable: "public.Courses",
-      },
-    ]),
-  );
-});
+        ]),
+      );
+    });
+  },
+);

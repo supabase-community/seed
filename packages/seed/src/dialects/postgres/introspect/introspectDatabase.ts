@@ -1,4 +1,3 @@
-import { type QueryResultHKT } from "drizzle-orm/pg-core";
 import { z } from "zod";
 import { type DrizzleDbClient } from "#core/adapters.js";
 import { groupBy } from "../utils.js";
@@ -46,8 +45,8 @@ export interface IntrospectedStructure extends IntrospectedStructureBase {
   >;
 }
 
-export async function introspectDatabase<T extends QueryResultHKT>(
-  client: DrizzleDbClient<T>,
+export async function introspectDatabase(
+  client: DrizzleDbClient,
 ): Promise<IntrospectedStructure> {
   const tablesInfos = await fetchTablesAndColumns(client);
   const enums = await fetchEnums(client);
