@@ -1,42 +1,41 @@
-import { drizzle as drizzleJs } from "drizzle-orm/postgres-js";
+import { drizzle as drizzleBetterSqlite } from "drizzle-orm/better-sqlite3";
 import { describe, expect, test } from "vitest";
-import { postgres } from "#test";
-import {
-  type DrizzleORMPgClient,
-  createDrizzleORMPgClient,
-} from "./adapters.js";
+import { sqlite } from "#test";
+import { type DrizzleDbClient } from "../../core/adapters.js";
+import { createDrizzleORMSqliteClient } from "./adapters.js";
 import { getDatamodel } from "./dataModel.js";
-import { PgStore } from "./store.js";
+import { SqliteStore } from "./store.js";
 
 const adapters = {
-  postgresJs: () => ({
-    ...postgres.postgresJs,
-    drizzle: drizzleJs,
+  betterSqlite3: () => ({
+    ...sqlite.betterSqlite3,
+    drizzle: drizzleBetterSqlite,
   }),
 };
 
-async function execQueries(client: DrizzleORMPgClient, queries: Array<string>) {
+async function execQueries(client: DrizzleDbClient, queries: Array<string>) {
   for (const query of queries) {
     await client.run(query);
   }
 }
 
-describe.each(["postgresJs"] as const)("store: %s", (adapter) => {
+describe.each(["betterSqlite3"] as const)("store: %s", (adapter) => {
   const { drizzle, createTestDb } = adapters[adapter]();
+
   describe("SQL -> Store -> SQL", () => {
     test("should be able to insert basic rows into table", async () => {
       const structure = `
       CREATE TABLE "test_customer" (
-        id SERIAL PRIMARY KEY NOT NULL,
+        id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
         name TEXT NOT NULL,
         email TEXT NOT NULL
       );
       `;
       const db = await createTestDb(structure);
-      const orm = createDrizzleORMPgClient(drizzle(db.client));
+      const orm = createDrizzleORMSqliteClient(drizzle(db.client));
       const dataModel = await getDatamodel(orm);
 
-      const store = new PgStore(dataModel);
+      const store = new SqliteStore(dataModel);
 
       store.add("test_customer", {
         id: "2",
@@ -61,16 +60,16 @@ describe.each(["postgresJs"] as const)("store: %s", (adapter) => {
     test("should insert into columns with default value set", async () => {
       const structure = `
       CREATE TABLE "test_customer" (
-        id SERIAL PRIMARY KEY NOT NULL,
-        name TEXT DEFAULT 'default_name' NOT NULL,
+        id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
+        name TEXT DEFAULT "default_name" NOT NULL,
         email TEXT NOT NULL
       );
     `;
       const db = await createTestDb(structure);
-      const orm = createDrizzleORMPgClient(drizzle(db.client));
+      const orm = createDrizzleORMSqliteClient(drizzle(db.client));
       const dataModel = await getDatamodel(orm);
 
-      const store = new PgStore(dataModel);
+      const store = new SqliteStore(dataModel);
 
       store.add("test_customer", {
         email: "cadavre@ex.quis",
@@ -94,17 +93,17 @@ describe.each(["postgresJs"] as const)("store: %s", (adapter) => {
     test("should insert into columns with generated column values", async () => {
       const structure = `
       CREATE TABLE "test_customer" (
-        id SERIAL PRIMARY KEY NOT NULL,
-        name TEXT DEFAULT 'default_name' NOT NULL,
+        id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
+        name TEXT DEFAULT "default_name" NOT NULL,
         email TEXT NOT NULL,
         full_details TEXT GENERATED ALWAYS AS (name || ' <' || email || '>') STORED
       );
     `;
       const db = await createTestDb(structure);
-      const orm = createDrizzleORMPgClient(drizzle(db.client));
+      const orm = createDrizzleORMSqliteClient(drizzle(db.client));
       const dataModel = await getDatamodel(orm);
 
-      const store = new PgStore(dataModel);
+      const store = new SqliteStore(dataModel);
 
       // For PostgreSQL, no need to explicitly set the ID for SERIAL columns in typical use cases
       store.add("test_customer", {
@@ -142,18 +141,18 @@ describe.each(["postgresJs"] as const)("store: %s", (adapter) => {
     test("should handle nullable column values correctly", async () => {
       const structure = `
       CREATE TABLE "test_customer" (
-        id SERIAL PRIMARY KEY NOT NULL,
-        name TEXT DEFAULT 'default_name' NOT NULL,
+        id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
+        name TEXT DEFAULT "default_name" NOT NULL,
         email TEXT NOT NULL,
         phone TEXT,
         full_details TEXT GENERATED ALWAYS AS (name || ' <' || email || '>' || ' Phone: ' || COALESCE(phone, 'N/A')) STORED
       );
     `;
       const db = await createTestDb(structure);
-      const orm = createDrizzleORMPgClient(drizzle(db.client));
+      const orm = createDrizzleORMSqliteClient(drizzle(db.client));
       const dataModel = await getDatamodel(orm);
 
-      const store = new PgStore(dataModel);
+      const store = new SqliteStore(dataModel);
 
       store.add("test_customer", {
         email: "unknown@no.phone",
@@ -190,65 +189,67 @@ describe.each(["postgresJs"] as const)("store: %s", (adapter) => {
         ]),
       );
     });
-    test("should handle relational data with nullable column values correctly in PostgreSQL", async () => {
+    test("should handle relational data with nullable column values correctly", async () => {
       const structure = `
-        CREATE TABLE test_customer (
-          id SERIAL PRIMARY KEY,
+        CREATE TABLE "test_customer" (
+          id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
           name TEXT NOT NULL,
           email TEXT UNIQUE NOT NULL
         );
 
-        CREATE TABLE test_order (
-          id SERIAL PRIMARY KEY,
+        CREATE TABLE "test_order" (
+          id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
           customer_id INTEGER NOT NULL,
           product_name TEXT NOT NULL,
           quantity INTEGER DEFAULT 1 NOT NULL,
+          order_details TEXT GENERATED ALWAYS AS (product_name || ' x' || quantity) STORED,
           FOREIGN KEY (customer_id) REFERENCES test_customer(id)
         );
       `;
 
       const db = await createTestDb(structure);
-      const orm = createDrizzleORMPgClient(drizzle(db.client));
+      const orm = createDrizzleORMSqliteClient(drizzle(db.client));
       const dataModel = await getDatamodel(orm);
 
-      const store = new PgStore(dataModel);
+      const store = new SqliteStore(dataModel);
 
       store.add("test_customer", {
+        id: "1",
         name: "John Doe",
         email: "john@doe.email",
       });
       store.add("test_customer", {
+        id: "2",
         name: "Jane Doe",
         email: "jane@doe.email",
       });
 
-      const johnDoeId = 1;
-      const janeDoeId = 2;
-
       store.add("test_order", {
-        customer_id: johnDoeId,
+        id: "1",
+        customer_id: "1",
         product_name: "Widget",
         quantity: 3,
       });
       store.add("test_order", {
-        customer_id: janeDoeId,
+        id: "2",
+        customer_id: "2",
         product_name: "Gadget",
       });
-
-      await execQueries(orm, [...store.toSQL()]);
+      const queries = store.toSQL();
+      await execQueries(orm, [...queries]);
       const results = await orm.query(
-        `SELECT test_customer.name, test_order.quantity FROM test_order JOIN test_customer ON test_customer.id = test_order.customer_id ORDER BY test_order.id ASC`,
+        `SELECT test_customer.name, test_order.order_details FROM test_order JOIN test_customer ON test_customer.id = test_order.customer_id`,
       );
 
       expect(results).toEqual(
         expect.arrayContaining([
           {
             name: "John Doe",
-            quantity: 3,
+            order_details: "Widget x3",
           },
           {
             name: "Jane Doe",
-            quantity: 1,
+            order_details: "Gadget x1",
           },
         ]),
       );
