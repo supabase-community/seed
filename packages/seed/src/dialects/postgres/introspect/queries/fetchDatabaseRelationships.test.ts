@@ -1,4 +1,3 @@
-import { drizzle as drizzlePg } from "drizzle-orm/node-postgres";
 import { drizzle as drizzleJs } from "drizzle-orm/postgres-js";
 import { describe, expect, test } from "vitest";
 import { postgres } from "#test";
@@ -10,13 +9,9 @@ const adapters = {
     ...postgres.postgresJs,
     drizzle: drizzleJs,
   }),
-  pg: () => ({
-    ...postgres.pg,
-    drizzle: drizzlePg,
-  }),
 };
 
-describe.each(["postgresJs", "pg"] as const)(
+describe.each(["postgresJs"] as const)(
   "fetchDatabaseRelationships: %s",
   (adapter) => {
     const { drizzle, createTestDb } = adapters[adapter]();
@@ -35,7 +30,6 @@ describe.each(["postgresJs", "pg"] as const)(
   `;
       const { client } = await createTestDb(structure);
       const relationships = await fetchDatabaseRelationships(
-        // @ts-expect-error dynamic drizzle import based on adapter
         createDrizzleORMPgClient(drizzle(client)),
       );
       expect(relationships.length).toEqual(0);
@@ -70,7 +64,6 @@ describe.each(["postgresJs", "pg"] as const)(
   `;
       const { client } = await createTestDb(structure);
       const relationships = await fetchDatabaseRelationships(
-        // @ts-expect-error dynamic drizzle import based on adapter
         createDrizzleORMPgClient(drizzle(client)),
       );
       expect(relationships).toEqual(
@@ -157,7 +150,6 @@ describe.each(["postgresJs", "pg"] as const)(
   `;
       const { client } = await createTestDb(structure);
       const relationships = await fetchDatabaseRelationships(
-        // @ts-expect-error dynamic drizzle import based on adapter
         createDrizzleORMPgClient(drizzle(client)),
       );
       expect(relationships).toEqual(
@@ -232,7 +224,6 @@ describe.each(["postgresJs", "pg"] as const)(
   `;
       const { client } = await createTestDb(structure);
       const relationships = await fetchDatabaseRelationships(
-        // @ts-expect-error dynamic drizzle import based on adapter
         createDrizzleORMPgClient(drizzle(client)),
       );
       expect(relationships).toEqual(

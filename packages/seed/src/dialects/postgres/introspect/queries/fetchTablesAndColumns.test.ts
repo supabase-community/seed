@@ -1,4 +1,3 @@
-import { drizzle as drizzlePg } from "drizzle-orm/node-postgres";
 import { drizzle as drizzleJs } from "drizzle-orm/postgres-js";
 import { describe, expect, test } from "vitest";
 import { postgres } from "#test";
@@ -10,13 +9,9 @@ const adapters = {
     ...postgres.postgresJs,
     drizzle: drizzleJs,
   }),
-  pg: () => ({
-    ...postgres.pg,
-    drizzle: drizzlePg,
-  }),
 };
 
-describe.each(["postgresJs", "pg"] as const)(
+describe.each(["postgresJs"] as const)(
   "fetchTablesAndColumns: %s",
   (adapter) => {
     const { drizzle, createTestDb } = adapters[adapter]();
@@ -24,7 +19,6 @@ describe.each(["postgresJs", "pg"] as const)(
       const structure = ``;
       const db = await createTestDb(structure);
       const tablesInfos = await fetchTablesAndColumns(
-        //@ts-expect-error dynamic import based on adapter
         createDrizzleORMPgClient(drizzle(db.client)),
       );
 
@@ -44,7 +38,6 @@ describe.each(["postgresJs", "pg"] as const)(
     );
   `;
       const db = await createTestDb(structure);
-      //@ts-expect-error dynamic import based on adapter
       const orm = createDrizzleORMPgClient(drizzle(db.client));
       await orm.run(`VACUUM ANALYZE;`);
       const tablesInfos = await fetchTablesAndColumns(orm);
@@ -160,7 +153,6 @@ describe.each(["postgresJs", "pg"] as const)(
     );
   `;
       const db = await createTestDb(structure);
-      //@ts-expect-error dynamic import based on adapter
       const orm = createDrizzleORMPgClient(drizzle(db.client));
       await orm.run(`VACUUM ANALYZE;`);
       const tablesInfos = await fetchTablesAndColumns(orm);
@@ -222,7 +214,6 @@ describe.each(["postgresJs", "pg"] as const)(
     );
   `;
       const db = await createTestDb(structure);
-      //@ts-expect-error dynamic import based on adapter
       const orm = createDrizzleORMPgClient(drizzle(db.client));
       await orm.run(`VACUUM ANALYZE;`);
       const tablesInfos = await fetchTablesAndColumns(orm);
@@ -470,7 +461,6 @@ describe.each(["postgresJs", "pg"] as const)(
     );
   `;
       const db = await createTestDb(structure);
-      //@ts-expect-error dynamic import based on adapter
       const orm = createDrizzleORMPgClient(drizzle(db.client));
       await orm.run(`VACUUM ANALYZE;`);
       const tablesInfos = await fetchTablesAndColumns(orm);

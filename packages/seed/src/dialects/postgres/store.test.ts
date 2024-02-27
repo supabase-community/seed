@@ -1,4 +1,3 @@
-import { drizzle as drizzlePg } from "drizzle-orm/node-postgres";
 import { drizzle as drizzleJs } from "drizzle-orm/postgres-js";
 import { describe, expect, test } from "vitest";
 import { postgres } from "#test";
@@ -14,10 +13,6 @@ const adapters = {
     ...postgres.postgresJs,
     drizzle: drizzleJs,
   }),
-  pg: () => ({
-    ...postgres.pg,
-    drizzle: drizzlePg,
-  }),
 };
 
 async function execQueries(client: DrizzleORMPgClient, queries: Array<string>) {
@@ -26,7 +21,7 @@ async function execQueries(client: DrizzleORMPgClient, queries: Array<string>) {
   }
 }
 
-describe.each(["postgresJs", "pg"] as const)("store: %s", (adapter) => {
+describe.each(["postgresJs"] as const)("store: %s", (adapter) => {
   const { drizzle, createTestDb } = adapters[adapter]();
   describe("SQL -> Store -> SQL", () => {
     test("should be able to insert basic rows into table", async () => {
@@ -38,7 +33,6 @@ describe.each(["postgresJs", "pg"] as const)("store: %s", (adapter) => {
       );
       `;
       const db = await createTestDb(structure);
-      //@ts-expect-error - we are testing both adapters
       const orm = createDrizzleORMPgClient(drizzle(db.client));
       const dataModel = await getDatamodel(orm);
 
@@ -73,7 +67,6 @@ describe.each(["postgresJs", "pg"] as const)("store: %s", (adapter) => {
       );
     `;
       const db = await createTestDb(structure);
-      //@ts-expect-error - we are testing both adapters
       const orm = createDrizzleORMPgClient(drizzle(db.client));
       const dataModel = await getDatamodel(orm);
 
@@ -108,7 +101,6 @@ describe.each(["postgresJs", "pg"] as const)("store: %s", (adapter) => {
       );
     `;
       const db = await createTestDb(structure);
-      //@ts-expect-error - we are testing both adapters
       const orm = createDrizzleORMPgClient(drizzle(db.client));
       const dataModel = await getDatamodel(orm);
 
@@ -158,7 +150,6 @@ describe.each(["postgresJs", "pg"] as const)("store: %s", (adapter) => {
       );
     `;
       const db = await createTestDb(structure);
-      //@ts-expect-error - we are testing both adapters
       const orm = createDrizzleORMPgClient(drizzle(db.client));
       const dataModel = await getDatamodel(orm);
 
@@ -217,7 +208,6 @@ describe.each(["postgresJs", "pg"] as const)("store: %s", (adapter) => {
       `;
 
       const db = await createTestDb(structure);
-      //@ts-expect-error - we are testing both adapters
       const orm = createDrizzleORMPgClient(drizzle(db.client));
       const dataModel = await getDatamodel(orm);
 

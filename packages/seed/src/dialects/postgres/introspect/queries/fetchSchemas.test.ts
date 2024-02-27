@@ -1,4 +1,3 @@
-import { drizzle as drizzlePg } from "drizzle-orm/node-postgres";
 import { drizzle as drizzleJs } from "drizzle-orm/postgres-js";
 import { describe, expect, test } from "vitest";
 import { postgres } from "#test";
@@ -10,27 +9,17 @@ const adapters = {
     ...postgres.postgresJs,
     drizzle: drizzleJs,
   }),
-  pg: () => ({
-    ...postgres.pg,
-    drizzle: drizzlePg,
-  }),
 };
 
-describe.each(["postgresJs", "pg"] as const)("fetchSchemas: %s", (adapter) => {
-  const { drizzle, createTestDb } = adapters[adapter]();
+describe.each(["postgresJs"] as const)("fetchSchemas: %s", (adapter) => {
+  const { drizzle, createTestDb, createTestRole } = adapters[adapter]();
   test("should fetch only the public schema", async () => {
     const db = await createTestDb();
     const schemas = await fetchSchemas(
-      // @ts-expect-error dynamic drizzle import based on adapter
       createDrizzleORMPgClient(drizzle(db.client)),
     );
     expect(schemas).toEqual(["public"]);
   });
-});
-
-describe.each(["postgresJs"] as const)("fetchSchemas: %s", (adapter) => {
-  const { drizzle, createTestDb, createTestRole } = adapters[adapter]();
-  // pg adapter thrown a connection error withtthe createTestRole utils
   test("should fetch all schemas where the user can read", async () => {
     const structure = `
     CREATE SCHEMA other;

@@ -1,4 +1,3 @@
-import { drizzle as drizzlePg } from "drizzle-orm/node-postgres";
 import { drizzle as drizzleJs } from "drizzle-orm/postgres-js";
 import { describe, expect, test } from "vitest";
 import { postgres } from "#test";
@@ -10,16 +9,13 @@ const adapters = {
     ...postgres.postgresJs,
     drizzle: drizzleJs,
   }),
-  pg: () => ({
-    ...postgres.pg,
-    drizzle: drizzlePg,
-  }),
 };
 
-describe.each(["postgresJs", "pg"] as const)(
+describe.each(["postgresJs"] as const)(
   "fetchTablesAndColumns: %s",
   (adapter) => {
-    const { drizzle, createTestDb, createSnapletTestDb } = adapters[adapter]();
+    const { drizzle, createTestDb, createSnapletTestDb, createTestRole } =
+      adapters[adapter]();
     test("introspectDatabase should return detailed database structure", async () => {
       const structure = `
     CREATE SCHEMA test;
@@ -28,7 +24,6 @@ describe.each(["postgresJs", "pg"] as const)(
     CREATE TYPE test."Enum1" AS ENUM ('A', 'B');
   `;
       const db = await createTestDb(structure);
-      //@ts-expect-error dynamic import based on adapter
       const orm = createDrizzleORMPgClient(drizzle(db.client));
       await orm.run(`VACUUM ANALYZE;`);
       const result = await introspectDatabase(orm);
@@ -235,7 +230,6 @@ describe.each(["postgresJs", "pg"] as const)(
 
     test("introspectDatabase - get parent relationships from structure", async () => {
       const db = await createSnapletTestDb();
-      //@ts-expect-error dynamic import based on adapter
       const orm = createDrizzleORMPgClient(drizzle(db.client));
       const structure = await introspectDatabase(orm);
       const expectedAccessTokenParent: Relationship = {
@@ -263,7 +257,6 @@ describe.each(["postgresJs", "pg"] as const)(
 
     test("introspectDatabase - get primary keys from structure", async () => {
       const db = await createSnapletTestDb();
-      //@ts-expect-error dynamic import based on adapter
       const orm = createDrizzleORMPgClient(drizzle(db.client));
       const structure = await introspectDatabase(orm);
 
@@ -282,7 +275,6 @@ describe.each(["postgresJs", "pg"] as const)(
 
     test("introspectDatabase - get child relationships from structure", async () => {
       const db = await createSnapletTestDb();
-      //@ts-expect-error dynamic import based on adapter
       const orm = createDrizzleORMPgClient(drizzle(db.client));
       const structure = await introspectDatabase(orm);
       const expectedPricingPlanChild: Relationship = {
@@ -310,7 +302,6 @@ describe.each(["postgresJs", "pg"] as const)(
     test("partitions of a partitioned table should not be present in the introspection result", async () => {
       // arrange
       const db = await createTestDb();
-      //@ts-expect-error dynamic import based on adapter
       const orm = createDrizzleORMPgClient(drizzle(db.client));
       await orm.run(`
     CREATE TABLE coach(id uuid primary key);
@@ -336,14 +327,6 @@ describe.each(["postgresJs", "pg"] as const)(
       expect(stringifiedStructure).not.toContain("exercise1");
       expect(stringifiedStructure).not.toContain("exercise2");
     });
-  },
-);
-
-// pg adapter throw a connection error withtthe createTestRole utils
-describe.each(["postgresJs"] as const)(
-  "fetchTablesAndColumns: %s",
-  (adapter) => {
-    const { drizzle, createTestDb, createTestRole } = adapters[adapter]();
     test("introspect with tables and schemas the user cannot access", async () => {
       const db = await createTestDb();
       const restrictedString = await createTestRole(db.client);

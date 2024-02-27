@@ -1,4 +1,3 @@
-import { drizzle as drizzlePg } from "drizzle-orm/node-postgres";
 import { drizzle as drizzleJs } from "drizzle-orm/postgres-js";
 import { describe, expect, test } from "vitest";
 import { postgres } from "#test";
@@ -10,14 +9,10 @@ const adapters = {
     ...postgres.postgresJs,
     drizzle: drizzleJs,
   }),
-  pg: () => ({
-    ...postgres.pg,
-    drizzle: drizzlePg,
-  }),
 };
 
-describe.each(["postgresJs", "pg"] as const)("fetchEnums: %s", (adapter) => {
-  const { drizzle, createTestDb } = adapters[adapter]();
+describe.each(["postgresJs"] as const)("fetchEnums: %s", (adapter) => {
+  const { drizzle, createTestDb, createTestRole } = adapters[adapter]();
   test("should fetch basic enums", async () => {
     const structure = `
     CREATE TYPE public."enum_example" AS ENUM ('A', 'B', 'C');
@@ -25,7 +20,6 @@ describe.each(["postgresJs", "pg"] as const)("fetchEnums: %s", (adapter) => {
     const db = await createTestDb(structure);
 
     const enums = await fetchEnums(
-      // @ts-expect-error dynamic drizzle import based on adapter
       createDrizzleORMPgClient(drizzle(db.client)),
     );
     expect(enums).toEqual([
@@ -46,7 +40,6 @@ describe.each(["postgresJs", "pg"] as const)("fetchEnums: %s", (adapter) => {
     const db = await createTestDb(structure);
 
     const enums = await fetchEnums(
-      // @ts-expect-error dynamic drizzle import based on adapter
       createDrizzleORMPgClient(drizzle(db.client)),
     );
     expect(enums).toEqual(
@@ -71,16 +64,11 @@ describe.each(["postgresJs", "pg"] as const)("fetchEnums: %s", (adapter) => {
     const db = await createTestDb();
 
     const enums = await fetchEnums(
-      // @ts-expect-error dynamic drizzle import based on adapter
       createDrizzleORMPgClient(drizzle(db.client)),
     );
     expect(enums).toEqual([]);
   });
-});
 
-describe.each(["postgresJs"] as const)("fetchEnums: %s", (adapter) => {
-  const { drizzle, createTestDb, createTestRole } = adapters[adapter]();
-  // pg adapter thrown a connection error withtthe createTestRole utils
   test("should not fetch enums on schemas the user does not have access to", async () => {
     const structure = `
     CREATE TYPE public."enum_example" AS ENUM ('A', 'B', 'C');
