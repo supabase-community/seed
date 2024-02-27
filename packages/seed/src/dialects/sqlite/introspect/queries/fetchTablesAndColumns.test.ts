@@ -1,6 +1,7 @@
 import { drizzle as drizzleBetterSqlite } from "drizzle-orm/better-sqlite3";
 import { describe, expect, test } from "vitest";
 import { sqlite } from "#test";
+import { createDrizzleORMSqliteClient } from "../../adapters.js";
 import { fetchTablesAndColumns } from "./fetchTablesAndColumns.js";
 
 const adapters = {
@@ -19,7 +20,9 @@ describe.each(["betterSqlite3"] as const)(
       const structure = ``;
       const { client } = await createTestDb(structure);
 
-      const tablesInfos = await fetchTablesAndColumns(drizzle(client));
+      const tablesInfos = await fetchTablesAndColumns(
+        createDrizzleORMSqliteClient(drizzle(client)),
+      );
 
       expect(tablesInfos).toEqual([]);
     });
@@ -38,7 +41,9 @@ describe.each(["betterSqlite3"] as const)(
       `;
       const { client } = await createTestDb(structure);
 
-      const tablesInfos = await fetchTablesAndColumns(drizzle(client));
+      const tablesInfos = await fetchTablesAndColumns(
+        createDrizzleORMSqliteClient(drizzle(client)),
+      );
       expect(tablesInfos).toEqual([
         {
           columns: [
@@ -140,7 +145,9 @@ describe.each(["betterSqlite3"] as const)(
       `;
       const { client } = await createTestDb(structure);
 
-      const tablesInfos = await fetchTablesAndColumns(drizzle(client));
+      const tablesInfos = await fetchTablesAndColumns(
+        createDrizzleORMSqliteClient(drizzle(client)),
+      );
       expect(tablesInfos).toEqual([
         {
           id: "Courses",
@@ -305,7 +312,9 @@ describe.each(["betterSqlite3"] as const)(
       `;
       const { client } = await createTestDb(structure);
 
-      const tablesInfos = await fetchTablesAndColumns(drizzle(client));
+      const tablesInfos = await fetchTablesAndColumns(
+        createDrizzleORMSqliteClient(drizzle(client)),
+      );
 
       expect(tablesInfos).toEqual([
         {

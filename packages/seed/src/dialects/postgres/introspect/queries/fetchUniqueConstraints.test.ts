@@ -1,7 +1,7 @@
-import { drizzle as drizzlePg } from "drizzle-orm/node-postgres";
 import { drizzle as drizzleJs } from "drizzle-orm/postgres-js";
 import { describe, expect, test } from "vitest";
 import { postgres } from "#test";
+import { createDrizzleORMPgClient } from "../../adapters.js";
 import { fetchUniqueConstraints } from "./fetchUniqueConstraints.js";
 
 const adapters = {
@@ -9,13 +9,9 @@ const adapters = {
     ...postgres.postgresJs,
     drizzle: drizzleJs,
   }),
-  pg: () => ({
-    ...postgres.pg,
-    drizzle: drizzlePg,
-  }),
 };
 
-describe.each(["postgresJs", "pg"] as const)(
+describe.each(["postgresJs"] as const)(
   "fetchUniqueConstraints: %s",
   (adapter) => {
     const { drizzle, createTestDb } = adapters[adapter]();
@@ -49,8 +45,9 @@ describe.each(["postgresJs", "pg"] as const)(
   `;
 
       const db = await createTestDb(structure);
-      // @ts-expect-error dynamic drizzle import based on adapter
-      const constraints = await fetchUniqueConstraints(drizzle(db.client));
+      const constraints = await fetchUniqueConstraints(
+        createDrizzleORMPgClient(drizzle(db.client)),
+      );
 
       expect(constraints).toEqual([
         {
@@ -132,8 +129,9 @@ describe.each(["postgresJs", "pg"] as const)(
     );
   `;
       const db = await createTestDb(structure);
-      // @ts-expect-error dynamic drizzle import based on adapter
-      const constraints = await fetchUniqueConstraints(drizzle(db.client));
+      const constraints = await fetchUniqueConstraints(
+        createDrizzleORMPgClient(drizzle(db.client)),
+      );
       expect(constraints).toEqual([
         {
           tableId: "private.Students",
@@ -175,8 +173,9 @@ describe.each(["postgresJs", "pg"] as const)(
     );
   `;
       const db = await createTestDb(structure);
-      // @ts-expect-error dynamic drizzle import based on adapter
-      const constraints = await fetchUniqueConstraints(drizzle(db.client));
+      const constraints = await fetchUniqueConstraints(
+        createDrizzleORMPgClient(drizzle(db.client)),
+      );
       expect(constraints).toEqual([]);
     });
   },

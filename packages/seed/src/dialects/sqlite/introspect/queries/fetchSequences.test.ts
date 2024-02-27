@@ -2,6 +2,7 @@ import { sql } from "drizzle-orm";
 import { drizzle as drizzleBetterSqlite } from "drizzle-orm/better-sqlite3";
 import { describe, expect, test } from "vitest";
 import { sqlite } from "#test";
+import { createDrizzleORMSqliteClient } from "../../adapters.js";
 import { fetchSequences } from "./fetchSequences.js";
 
 const adapters = {
@@ -22,7 +23,9 @@ describe.each(["betterSqlite3"] as const)("fetchSequences: %s", (adapter) => {
         );
       `;
     const { client } = await createTestDb(structure);
-    const sequences = await fetchSequences(drizzle(client));
+    const sequences = await fetchSequences(
+      createDrizzleORMSqliteClient(drizzle(client)),
+    );
     expect(sequences).toEqual([
       {
         tableId: "students",
@@ -40,7 +43,9 @@ describe.each(["betterSqlite3"] as const)("fetchSequences: %s", (adapter) => {
         );
       `;
     const { client } = await createTestDb(structure);
-    const sequences = await fetchSequences(drizzle(client));
+    const sequences = await fetchSequences(
+      createDrizzleORMSqliteClient(drizzle(client)),
+    );
     expect(sequences).toEqual(
       expect.arrayContaining([
         {
@@ -57,7 +62,9 @@ describe.each(["betterSqlite3"] as const)("fetchSequences: %s", (adapter) => {
         INSERT INTO students (name) VALUES ('John Doe'), ('Jane Smith');
       `,
     );
-    expect(await fetchSequences(drizzle(client))).toEqual(
+    expect(
+      await fetchSequences(createDrizzleORMSqliteClient(drizzle(client))),
+    ).toEqual(
       expect.arrayContaining([
         {
           tableId: "students",

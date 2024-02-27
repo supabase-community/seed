@@ -1,6 +1,4 @@
-import type postgres from "postgres";
-import { sql } from "drizzle-orm";
-import { type PgDatabase, type QueryResultHKT } from "drizzle-orm/pg-core";
+import { type DrizzleDbClient } from "#core/adapters.js";
 import { buildSchemaExclusionClause } from "./utils.js";
 
 interface FetchSequencesResult {
@@ -23,12 +21,8 @@ FROM
 WHERE ${buildSchemaExclusionClause("pg_sequences.schemaname")}
 `;
 
-export async function fetchSequences<T extends QueryResultHKT>(
-  client: PgDatabase<T>,
-) {
-  const response = (await client.execute(
-    sql.raw(FETCH_SEQUENCES),
-  )) as postgres.RowList<Array<FetchSequencesResult>>;
+export async function fetchSequences(client: DrizzleDbClient) {
+  const response = await client.query<FetchSequencesResult>(FETCH_SEQUENCES);
 
   return response.map((r) => ({
     schema: r.schema,

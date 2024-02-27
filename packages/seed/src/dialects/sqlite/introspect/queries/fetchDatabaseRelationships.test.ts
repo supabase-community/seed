@@ -1,6 +1,7 @@
 import { drizzle as drizzleBetterSqlite } from "drizzle-orm/better-sqlite3";
 import { describe, expect, test } from "vitest";
 import { sqlite } from "#test";
+import { createDrizzleORMSqliteClient } from "../../adapters.js";
 import { fetchDatabaseRelationships } from "./fetchDatabaseRelationships.js";
 
 const adapters = {
@@ -27,7 +28,9 @@ describe.each(["betterSqlite3"] as const)(
         );
       `;
       const { client } = await createTestDb(structure);
-      const relationships = await fetchDatabaseRelationships(drizzle(client));
+      const relationships = await fetchDatabaseRelationships(
+        createDrizzleORMSqliteClient(drizzle(client)),
+      );
       expect(relationships.length).toEqual(0);
     });
 
@@ -59,7 +62,9 @@ describe.each(["betterSqlite3"] as const)(
         );
       `;
       const { client } = await createTestDb(structure);
-      const relationships = await fetchDatabaseRelationships(drizzle(client));
+      const relationships = await fetchDatabaseRelationships(
+        createDrizzleORMSqliteClient(drizzle(client)),
+      );
       expect(relationships).toEqual(
         expect.arrayContaining([
           {

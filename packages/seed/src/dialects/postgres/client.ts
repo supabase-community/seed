@@ -1,12 +1,13 @@
-import { sql } from "drizzle-orm";
 import { type PgDatabase } from "drizzle-orm/pg-core";
 import { EOL } from "node:os";
+import { type DrizzleDbClient } from "#core/adapters.js";
 import { SeedClientBase } from "#core/client/client.js";
 import { type SeedClientOptions } from "#core/client/types.js";
 import { type DataModel } from "#core/dataModel/types.js";
 import { type Fingerprint } from "#core/fingerprint/types.js";
 import { updateDataModelSequences } from "#core/sequences/updateDataModelSequences.js";
 import { type UserModels } from "#core/userModels/types.js";
+import { createDrizzleORMPgClient } from "./adapters.js";
 import { getDatamodel } from "./dataModel.js";
 import { PgStore } from "./store.js";
 import { escapeIdentifier } from "./utils.js";
@@ -17,13 +18,11 @@ export function getSeedClient(props: {
   userModels: UserModels;
 }) {
   class PgSeedClient extends SeedClientBase {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    readonly db: PgDatabase<any>;
+    readonly db: DrizzleDbClient;
     readonly dryRun: boolean;
     readonly options?: SeedClientOptions;
 
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    constructor(db: PgDatabase<any>, options?: SeedClientOptions) {
+    constructor(db: DrizzleDbClient, options?: SeedClientOptions) {
       super({
         ...props,
         createStore: (dataModel: DataModel) => new PgStore(dataModel),
@@ -32,7 +31,7 @@ export function getSeedClient(props: {
         },
         runStatements: async (statements: Array<string>) => {
           if (!this.dryRun) {
-            await this.db.execute(sql.raw(statements.join(";")));
+            await this.db.run(statements.join(";"));
           } else {
             console.log(statements.join(`;${EOL}`) + ";");
           }
@@ -41,6 +40,7 @@ export function getSeedClient(props: {
       });
 
       this.dryRun = options?.dryRun ?? false;
+
       this.db = db;
       this.options = options;
     }
@@ -55,7 +55,7 @@ export function getSeedClient(props: {
           )
           .join(", ");
 
-        await this.db.execute(sql.raw(`TRUNCATE ${tablesToTruncate} CASCADE`));
+        await this.db.run(`TRUNCATE ${tablesToTruncate} CASCADE`);
       }
     }
 
@@ -66,7 +66,8 @@ export function getSeedClient(props: {
     }
 
     async $transaction(cb: (seed: PgSeedClient) => Promise<void>) {
-      await cb(await createSeedClient(this.db, this.options));
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
+      await cb(await createSeedClient(this.db.adapter, this.options));
     }
   }
 
@@ -75,7 +76,9 @@ export function getSeedClient(props: {
     db: PgDatabase<any>,
     options?: SeedClientOptions,
   ) => {
-    const seed = new PgSeedClient(db, options);
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
+    const client = createDrizzleORMPgClient(db);
+    const seed = new PgSeedClient(client, options);
 
     await seed.$syncDatabase();
     seed.$reset();

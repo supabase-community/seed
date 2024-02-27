@@ -1,6 +1,5 @@
-import { sql } from "drizzle-orm";
-import { type BaseSQLiteDatabase } from "drizzle-orm/sqlite-core";
 import { sortBy } from "remeda";
+import { type DrizzleDbClient } from "#core/adapters.js";
 // We crawl over the types to get the common SQL types
 // so they must be ordered by
 export const COMMON_SQL_TYPES = [
@@ -208,19 +207,19 @@ ORDER BY
 	alltables.name, indexlist.name, indexinfos.seqno
 `;
 
-export async function fetchTablesAndColumns<T extends "async" | "sync", R>(
-  client: BaseSQLiteDatabase<T, R>,
+export async function fetchTablesAndColumns(
+  client: DrizzleDbClient,
 ): Promise<Array<FetchTableAndColumnsResult>> {
   const groupedResults: Record<string, FetchTableAndColumnsResult> = {};
-  const resultsColumns = await client.all<FetchTableAndColumnsResultRaw>(
-    sql.raw(FETCH_TABLE_COLUMNS_LIST),
+  const resultsColumns = await client.query<FetchTableAndColumnsResultRaw>(
+    FETCH_TABLE_COLUMNS_LIST,
   );
-  const resultsForeignKeys = await client.all<FetchTableForeignKeysResultRaw>(
-    sql.raw(FETCH_TABLE_FOREIGN_KEYS),
+  const resultsForeignKeys = await client.query<FetchTableForeignKeysResultRaw>(
+    FETCH_TABLE_FOREIGN_KEYS,
   );
   const resultsCompositePrimaryKeys =
-    await client.all<FetchCompositePrimaryKeysResultRaw>(
-      sql.raw(FETCH_TABLE_COMPOSITE_PRIMARY_KEYS),
+    await client.query<FetchCompositePrimaryKeysResultRaw>(
+      FETCH_TABLE_COMPOSITE_PRIMARY_KEYS,
     );
   const compositePrimaryKeysGroupedByTable = resultsCompositePrimaryKeys.reduce<
     Record<string, Array<FetchCompositePrimaryKeysResultRaw>>

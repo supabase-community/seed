@@ -1,5 +1,5 @@
-import { sql } from "drizzle-orm";
-import { type BaseSQLiteDatabase } from "drizzle-orm/sqlite-core";
+/* eslint-disable @typescript-eslint/no-unnecessary-condition */
+import { type DrizzleDbClient } from "#core/adapters.js";
 import {
   FETCH_TABLE_COLUMNS_LIST,
   type FetchTableAndColumnsResultRaw,
@@ -60,30 +60,27 @@ SELECT
 		alltables.name, colinfo.name
 `;
 
-export async function fetchPrimaryKeys<T extends "async" | "sync", R>(
-  client: BaseSQLiteDatabase<T, R>,
-) {
+export async function fetchPrimaryKeys(client: DrizzleDbClient) {
   const results: Array<FetchPrimaryKeysResult> = [];
   const compositePrimaryKeysIndexes =
-    await client.all<FetchCompositePrimaryKeysResultRaw>(
-      sql.raw(FETCH_PRIMARY_COMPOSITE_PRIMARY_KEYS),
+    await client.query<FetchCompositePrimaryKeysResultRaw>(
+      FETCH_PRIMARY_COMPOSITE_PRIMARY_KEYS,
     );
-  const tableColumnsInfos = await client.all<FetchTableAndColumnsResultRaw>(
-    sql.raw(FETCH_TABLE_COLUMNS_LIST),
+  const tableColumnsInfos = await client.query<FetchTableAndColumnsResultRaw>(
+    FETCH_TABLE_COLUMNS_LIST,
   );
-  const primaryKeysResponse = await client.all<{
+  const primaryKeysResponse = await client.query<{
     colName: string;
     colNotNull: 0 | 1;
     colType: string;
     tableName: string;
-  }>(sql.raw(FETCH_PRIMARY_KEYS_CONSTRAINTS));
+  }>(FETCH_PRIMARY_KEYS_CONSTRAINTS);
   const groupedTableColumnsInfos = tableColumnsInfos.reduce<
     Record<
       string,
       Array<FetchTableAndColumnsResultRaw & { affinity: SQLiteAffinity }>
     >
   >((acc, row) => {
-    // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
     if (!acc[row.tableId]) {
       acc[row.tableId] = [];
     }
@@ -96,7 +93,6 @@ export async function fetchPrimaryKeys<T extends "async" | "sync", R>(
   const groupedCompositePrimaryKeys = compositePrimaryKeysIndexes.reduce<
     Record<string, Array<FetchCompositePrimaryKeysResultRaw>>
   >((acc, result) => {
-    // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
     if (!acc[result.tableName]) {
       acc[result.tableName] = [];
     }
@@ -114,7 +110,6 @@ export async function fetchPrimaryKeys<T extends "async" | "sync", R>(
       }
     >
   >((acc, result) => {
-    // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
     if (!acc[result.tableName]) {
       acc[result.tableName] = {
         tableName: result.tableName,
@@ -130,7 +125,7 @@ export async function fetchPrimaryKeys<T extends "async" | "sync", R>(
   }, {});
   for (const tableName in groupedTableColumnsInfos) {
     const tableColumns = groupedTableColumnsInfos[tableName];
-    // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
+
     if (groupedCompositePrimaryKeys[tableName]) {
       const compositePkColumns = groupedCompositePrimaryKeys[tableName];
       results.push({
@@ -149,7 +144,6 @@ export async function fetchPrimaryKeys<T extends "async" | "sync", R>(
         }),
       });
       // If the table has a primary key, we use it
-      // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
     } else if (groupedPrimaryKeys[tableName]) {
       const primaryKey = groupedPrimaryKeys[tableName];
       results.push({

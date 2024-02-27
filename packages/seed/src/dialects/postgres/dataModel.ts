@@ -1,11 +1,9 @@
-import { type PgDatabase, type QueryResultHKT } from "drizzle-orm/pg-core";
+import { type DrizzleDbClient } from "#core/adapters.js";
 import { type DataModel } from "#core/dataModel/types.js";
 import { introspectDatabase } from "./introspect/introspectDatabase.js";
 import { introspectionToDataModel } from "./introspect/introspectionToDataModel.js";
 
-export async function getDatamodel<T extends QueryResultHKT>(
-  _db: PgDatabase<T>,
-): Promise<DataModel> {
+export async function getDatamodel(_db: DrizzleDbClient): Promise<DataModel> {
   const introspection = await introspectDatabase(_db);
   const dataModel = introspectionToDataModel(introspection);
   return dataModel;

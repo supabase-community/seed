@@ -1,5 +1,4 @@
-import { sql } from "drizzle-orm";
-import { type PgDatabase, type QueryResultHKT } from "drizzle-orm/pg-core";
+import { type DrizzleDbClient } from "#core/adapters.js";
 import { buildSchemaExclusionClause } from "./utils.js";
 
 interface RelationKeyInfos {
@@ -55,12 +54,10 @@ const FETCH_RELATIONSHIPS_INFOS = `
   ORDER BY "fkTable", "targetTable";
 `;
 
-export async function fetchDatabaseRelationships<T extends QueryResultHKT>(
-  client: PgDatabase<T>,
-) {
-  const response = (await client.execute(
-    sql.raw(FETCH_RELATIONSHIPS_INFOS),
-  )) as Array<FetchRelationshipsInfosResult>;
+export async function fetchDatabaseRelationships(client: DrizzleDbClient) {
+  const response = await client.query<FetchRelationshipsInfosResult>(
+    FETCH_RELATIONSHIPS_INFOS,
+  );
 
   return response;
 }
