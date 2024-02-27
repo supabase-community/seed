@@ -1,6 +1,4 @@
-import type postgres from "postgres";
-import { sql } from "drizzle-orm";
-import { type PgDatabase, type QueryResultHKT } from "drizzle-orm/pg-core";
+import { type DrizzleDbClient } from "#core/adapters.js";
 import { buildSchemaExclusionClause } from "./utils.js";
 
 interface FetchUniqueConstraintsResult {
@@ -62,12 +60,10 @@ ORDER BY
     tc.constraint_name;
 `;
 
-export async function fetchUniqueConstraints<T extends QueryResultHKT>(
-  client: PgDatabase<T>,
-) {
-  const response = (await client.execute(
-    sql.raw(FETCH_UNIQUE_CONSTRAINTS),
-  )) as postgres.RowList<Array<FetchUniqueConstraintsResult>>;
+export async function fetchUniqueConstraints(client: DrizzleDbClient) {
+  const response = await client.query<FetchUniqueConstraintsResult>(
+    FETCH_UNIQUE_CONSTRAINTS,
+  );
 
   return response;
 }

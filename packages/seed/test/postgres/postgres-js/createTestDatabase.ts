@@ -76,7 +76,7 @@ export const createTestDb = defineCreateTestDb({ dbs: [] });
 export const createSnapletTestDb = async () => {
   const db = await createTestDb();
   const snapletSchemaSql = readFileSync(
-    path.resolve(__dirname, "./fixtures/snaplet_schema.sql"),
+    path.resolve(__dirname, "../fixtures/snaplet_schema.sql"),
   );
   await drizzle(db.client).execute(sql.raw(snapletSchemaSql.toString()));
   return db;

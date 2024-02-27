@@ -25,7 +25,10 @@ async function pgIntrospect(connectionString: string) {
   const { drizzle } = await import("drizzle-orm/postgres-js");
   const db = drizzle(client);
   const { getDatamodel } = await import("#dialects/postgres/dataModel.js");
-  const dataModel = await getDatamodel(db);
+  const { createDrizzleORMPgClient } = await import(
+    "#dialects/postgres/adapters.js"
+  );
+  const dataModel = await getDatamodel(createDrizzleORMPgClient(db));
   await setDataModelConfig(dataModel);
 }
 

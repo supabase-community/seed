@@ -1,6 +1,4 @@
-import type postgres from "postgres";
-import { sql } from "drizzle-orm";
-import { type PgDatabase, type QueryResultHKT } from "drizzle-orm/pg-core";
+import { type DrizzleDbClient } from "#core/adapters.js";
 import { buildSchemaExclusionClause } from "./utils.js";
 
 interface FetchSchemasResult {
@@ -17,12 +15,10 @@ const FETCH_AUTHORIZED_SCHEMAS = `
   ORDER BY schema_name
 `;
 
-export async function fetchSchemas<T extends QueryResultHKT>(
-  client: PgDatabase<T>,
-) {
-  const response = (await client.execute(
-    sql.raw(FETCH_AUTHORIZED_SCHEMAS),
-  )) as postgres.RowList<Array<FetchSchemasResult>>;
+export async function fetchSchemas(client: DrizzleDbClient) {
+  const response = await client.query<FetchSchemasResult>(
+    FETCH_AUTHORIZED_SCHEMAS,
+  );
 
   return response.map((row) => row.schemaName);
 }
