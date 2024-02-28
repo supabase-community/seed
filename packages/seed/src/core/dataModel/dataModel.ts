@@ -1,5 +1,5 @@
 import { getDataModelConfig } from "#config/dataModelConfig.js";
-import { getSnapletConfig } from "#config/snapletConfig/snapletConfig.js";
+import { getSnapletConfig } from "../../config/seedConfig/snapletConfig.js";
 import { getAliasedDataModel } from "./aliases.js";
 import {
   type DataModel,
@@ -64,5 +64,5 @@ export async function getDataModel() {
 
   const snapletConfig = await getSnapletConfig();
 
-  return getAliasedDataModel(dataModelConfig, snapletConfig.seed?.alias);
+  return getAliasedDataModel(dataModelConfig, snapletConfig?.alias);
 }

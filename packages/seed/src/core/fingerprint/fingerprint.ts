@@ -7,7 +7,7 @@ import {
 } from "quicktype-core";
 import { mergeDeep } from "remeda";
 import { getFingerprintConfig } from "#config/fingerprintConfig.js";
-import { getSnapletConfig } from "#config/snapletConfig/snapletConfig.js";
+import { getSnapletConfig } from "../../config/seedConfig/snapletConfig.js";
 import {
   type FingerprintField,
   type FingerprintJsonField,

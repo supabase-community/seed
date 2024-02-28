@@ -377,7 +377,8 @@ ${(
   await Promise.all(
     Object.values(fields.scalars).map(async (f) => {
       const isOptional = f.isGenerated || (f.isRequired && f.hasDefaultValue);
-      const fingerprintField = fingerprint[modelName][f.name];
+      // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
+      const fingerprintField = fingerprint[modelName]?.[f.name];
       // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
       if (fingerprintField) {
         if (isJson(f.type) && isJsonField(fingerprintField)) {
