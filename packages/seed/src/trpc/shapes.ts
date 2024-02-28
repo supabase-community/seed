@@ -211,3 +211,10 @@ export interface TableShapePredictions {
   schemaName: string;
   tableName: string;
 }
+
+export interface StartPredictionsColumn {
+  columnName: string;
+  pgType: string;
+  schemaName: string;
+  tableName: string;
+}
