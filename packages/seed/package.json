@@ -5,7 +5,10 @@
   "sideEffects": false,
   "bin": "./dist/cli/index.js",
   "imports": {
-    "#*": "./src/*",
+    "#*": {
+      "development": "./src/*",
+      "default": "./dist/*"
+    },
     "#test": "./test/index.js"
   },
   "exports": {

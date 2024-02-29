@@ -29,7 +29,9 @@ export function generateCommand(program: Argv) {
   );
 }
 
-const getTemplates = async (dataModel: DataModel): Promise<Templates> => {
+const getTemplates = async (
+  dataModel: DataModel,
+): Promise<Templates> => {
   switch (dataModel.dialect) {
     case "postgres":
       return (await import("#dialects/postgres/userModels.js"))

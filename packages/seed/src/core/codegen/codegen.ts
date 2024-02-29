@@ -1,5 +1,6 @@
 import { findUp } from "find-up";
-import { mkdirp, writeFile } from "fs-extra";
+import { mkdirp } from "fs-extra/esm";
+import { writeFile } from "node:fs/promises";
 import path from "node:path";
 import { type DataModel } from "#core/dataModel/types.js";
 import { type Fingerprint } from "#core/fingerprint/types.js";

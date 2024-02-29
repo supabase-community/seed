@@ -1,4 +1,10 @@
-import { Draft06 } from "json-schema-library";
+import JsonSchemaLibrary from "json-schema-library";
+
+// context(justinvdm, 29 Feb 2024): Otherwise we get:
+// SyntaxError: Named export 'Draft06' not found. The requested module 'json-schema-library' is a
+// CommonJS module, which may not support all module.exports as named exports.
+// eslint-disable-next-line import/no-named-as-default-member
+const { Draft06 } = JsonSchemaLibrary;
 
 type JsonSchema = Record<string, unknown>;
 
