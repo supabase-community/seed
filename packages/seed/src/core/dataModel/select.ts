@@ -80,7 +80,7 @@ export function checkParentRelations(
   }
 }
 
-export function filterOutChildrenRelations(
+function filterOutChildrenRelations(
   includedTableIds: Set<string>,
   models: DataModel["models"],
 ) {

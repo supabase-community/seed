@@ -189,7 +189,7 @@ describe.each(["betterSqlite3"] as const)("store: %s", (adapter) => {
         ]),
       );
     });
-    test.only("should handle relational data with nullable column values correctly", async () => {
+    test("should handle relational data with nullable column values correctly", async () => {
       const structure = `
         CREATE TABLE "test_customer" (
           id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,

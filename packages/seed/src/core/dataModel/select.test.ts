@@ -1,6 +1,7 @@
 import { readFileSync } from "fs-extra";
 import path from "node:path";
 import { describe, expect, test } from "vitest";
+import { SELECT_WILDCARD_STRING } from "../../config/seedConfig/selectConfig.js";
 import { computeIncludedTables, getSelectFilteredDataModel } from "./select.js";
 import { type DataModel } from "./types.js";
 
@@ -14,9 +15,9 @@ describe("computeIncludedTables", () => {
       "public._table5",
     ];
     const selectConfig = {
-      "public.*": false,
+      [`public${SELECT_WILDCARD_STRING}`]: false,
       "public.table1": true,
-      "public._.*": false,
+      [`public._${SELECT_WILDCARD_STRING}`]: false,
     };
     const result = computeIncludedTables(tableIds, selectConfig);
     expect(result).toEqual(["public.table1"]);
@@ -31,7 +32,7 @@ describe("computeIncludedTables", () => {
     ];
     const selectConfig = {
       "public.table1": true,
-      "public._.*": false,
+      [`public._${SELECT_WILDCARD_STRING}`]: false,
     };
     const result = computeIncludedTables(tableIds, selectConfig);
     expect(result).toEqual(["public.table1", "public.table2", "public.table3"]);
@@ -46,7 +47,7 @@ describe("computeIncludedTables", () => {
     ];
     const selectConfig = {
       "public.table1": false,
-      "public._.*": false,
+      [`public._${SELECT_WILDCARD_STRING}`]: false,
     };
     const result = computeIncludedTables(tableIds, selectConfig);
     expect(result).toEqual(["public.table2", "public.table3"]);
@@ -61,8 +62,8 @@ describe("computeIncludedTables", () => {
     ];
     const selectConfig = {
       "public.table1": false,
-      "public._.*": false,
-      "public._prisma.*": true,
+      [`public._${SELECT_WILDCARD_STRING}`]: false,
+      [`public._prisma${SELECT_WILDCARD_STRING}`]: true,
     };
     const result = computeIncludedTables(tableIds, selectConfig);
     expect(result).toEqual([

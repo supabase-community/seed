@@ -1,5 +1,5 @@
 import { getDataModelConfig } from "#config/dataModelConfig.js";
-import { getSnapletSeedConfig } from "../../config/seedConfig/snapletSeedConfig.js";
+import { getSnapletSeedConfig } from "../../config/seedConfig/seedConfig.js";
 import { getAliasedDataModel } from "./aliases.js";
 import { getSelectFilteredDataModel } from "./select.js";
 import {
@@ -46,7 +46,7 @@ export async function getDataModel() {
 
   const filteredDataModel = getSelectFilteredDataModel(
     dataModelConfig,
-    snapletConfig?.select,
+    snapletConfig.select,
   );
-  return getAliasedDataModel(filteredDataModel, snapletConfig?.alias);
+  return getAliasedDataModel(filteredDataModel, snapletConfig.alias);
 }

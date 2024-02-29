@@ -1,4 +1,5 @@
 import { EOL } from "node:os";
+import { SELECT_WILDCARD_STRING } from "../../config/seedConfig/selectConfig.js";
 import { type DataModel, type DataModelField } from "../dataModel/types.js";
 import { escapeKey } from "../utils.js";
 
@@ -23,8 +24,8 @@ function generateSelectTypes(dataModel: DataModel): string {
       [P in K]?: T;
   };`,
     tableIds.length > 0
-      ? `type TablesOptions = \n${tableIds.map((id) => `\t"${id}"`).join(" |\n")}\ntype SelectOptions = TablesOptions | \`\${string}.*\``
-      : "type SelectOptions = `${string}.*`",
+      ? `type TablesOptions = \n${tableIds.map((id) => `\t"${id}"`).join(" |\n")}\ntype SelectOptions = TablesOptions | \`\${string}${SELECT_WILDCARD_STRING}\``
+      : `type SelectOptions = \`\${string}${SELECT_WILDCARD_STRING}\``,
     `type SelectConfig = PartialRecord<SelectOptions, boolean>`,
     `//#endregion`,
   ].join("\n");

@@ -1,5 +1,7 @@
 import * as z from "zod";
 
+export const SELECT_WILDCARD_STRING = ".*" as const;
+
 // Select config must be something like:
 // {
 //   select: {
