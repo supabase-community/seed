@@ -6,7 +6,9 @@ import { type DataModel } from "#core/dataModel/types.js";
 export async function getDataModelConfig() {
   let dataModelConfig: DataModel | null = null;
 
-  const dotSnapletPath = await findUp(".snaplet");
+  const dotSnapletPath = await findUp(".snaplet", {
+    type: "directory",
+  });
 
   if (dotSnapletPath) {
     const dataModelConfigPath = join(dotSnapletPath, "dataModel.json");
@@ -21,7 +23,9 @@ export async function getDataModelConfig() {
 }
 
 export async function setDataModelConfig(dataModelConfig: DataModel) {
-  let dotSnapletPath = await findUp(".snaplet");
+  let dotSnapletPath = await findUp(".snaplet", {
+    type: "directory",
+  });
 
   if (!dotSnapletPath) {
     dotSnapletPath = join(process.cwd(), ".snaplet");

@@ -1,8 +1,6 @@
 import { type Argv } from "yargs";
 import { spinner } from "#cli/lib/spinner.js";
-import { getSnapletConfig } from "#config/snapletConfig/snapletConfig.js";
 import { type CodegenContext } from "#core/codegen/codegen.js";
-import { getAliasedDataModel } from "#core/dataModel/aliases.js";
 import { getDataModel } from "#core/dataModel/dataModel.js";
 import { type DataModel } from "#core/dataModel/types.js";
 import { getFingerprint } from "#core/fingerprint/fingerprint.js";
@@ -29,9 +27,7 @@ export function generateCommand(program: Argv) {
   );
 }
 
-const getTemplates = async (
-  dataModel: DataModel,
-): Promise<Templates> => {
+const getTemplates = async (dataModel: DataModel): Promise<Templates> => {
   switch (dataModel.dialect) {
     case "postgres":
       return (await import("#dialects/postgres/userModels.js"))
@@ -49,13 +45,10 @@ async function computeCodegenContext(props: {
 }): Promise<CodegenContext> {
   const { outputDir } = props;
 
-  const config = await getSnapletConfig();
-
   // todo(justinvdm, 28 Feb 2024):
   // https://linear.app/snaplet/issue/S-1902/npx-snapletseed-generate-account-for-select-config
 
-  let dataModel = await getDataModel();
-  dataModel = getAliasedDataModel(dataModel, config.seed?.alias);
+  const dataModel = await getDataModel();
 
   let shapePredictions: Array<TableShapePredictions> = [];
   let shapeExamples: Array<{ examples: Array<string>; shape: string }> = [];
