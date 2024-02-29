@@ -30,6 +30,8 @@ const FILES = {
   INDEX: {
     name: "index.js",
     template() {
+      // todo(justinvdm, 28 Feb 2024): Generate ESM
+      // https://linear.app/snaplet/issue/S-1907/npx-snapletseed-generate-generate-esm-assets
       return `
 Object.defineProperty(exports, "__esModule", { value: true })
 

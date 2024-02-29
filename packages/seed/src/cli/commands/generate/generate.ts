@@ -22,7 +22,9 @@ export function generateCommand(program: Argv) {
     async (args) => {
       const { generateAssets } = await import("#core/codegen/codegen.js");
       const context = await computeCodegenContext({ outputDir: args.output });
-      console.log(generateAssets(context));
+      await generateAssets(context);
+
+      console.log("Done!");
     },
   );
 }
@@ -54,11 +56,11 @@ async function computeCodegenContext(props: {
   let shapeExamples: Array<{ examples: Array<string>; shape: string }> = [];
 
   if (!process.env["SNAPLET_DISABLE_SHAPE_PREDICTION"]) {
-    spinner.info("Predicting data labels...");
+    spinner.start("Predicting data labels...");
     shapePredictions = await fetchShapePredictions(dataModel);
     spinner.succeed();
 
-    spinner.info("Loading label examples...");
+    spinner.start("Loading label examples...");
     shapeExamples = await fetchShapeExamples(shapePredictions);
     spinner.succeed();
   }
