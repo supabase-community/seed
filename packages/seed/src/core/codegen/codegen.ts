@@ -50,7 +50,9 @@ exports.createSeedClient = getSeedClient({ dataModel, userModels })
       // todo(justinvdm, 28 February 2024):
       // https://linear.app/snaplet/issue/S-1895/npx-snapletseed-generate-generate-types
       //return generateClientTypes({});
-      return "";
+      return `
+export declare const createSeedClient: (...args: any) => any
+`;
     },
   },
   DATA_MODEL: {

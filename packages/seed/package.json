@@ -14,19 +14,23 @@
   "exports": {
     ".": {
       "development": "./src/index.ts",
-      "default": "./dist/index.js"
+      "default": "./dist/index.js",
+      "types": "./dist/index.d.ts"
     },
     "./config": {
       "development": "./src/config.ts",
-      "default": "./dist/config.js"
+      "default": "./dist/config.js",
+      "types": "./dist/config.d.ts"
     },
     "./cli": {
       "development": "./src/cli/index.ts",
-      "default": "./dist/cli/index.js"
+      "default": "./dist/cli/index.js",
+      "types": "./dist/cli/index.d.ts"
     },
     "./pg": {
       "development": "./src/adapters/pg/client.ts",
-      "default": "./dist/adapters/pg/client.js"
+      "default": "./dist/adapters/pg/client.js",
+      "types": "./dist/adapters/pg/client.d.ts"
     }
   },
   "devDependencies": {
