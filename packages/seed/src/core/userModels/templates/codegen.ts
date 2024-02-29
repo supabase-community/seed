@@ -1,4 +1,4 @@
-import { type Shape } from "./shapes.js";
+import { type Shape } from "#trpc/shapes.js";
 import {
   type TemplateContext,
   type TemplateFn,

@@ -193,6 +193,8 @@ export const GenerateShapes = [
   "RATING",
   "AGE",
   "ENVIRONMENT_VARIABLE",
+  "LATITUDE",
+  "LONGITUDE",
 ] as const;
 
 export type Shape = (typeof GenerateShapes)[number];

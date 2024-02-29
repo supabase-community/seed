@@ -3,13 +3,10 @@ import vm from "node:vm";
 import { type TemplateContext } from "./types.js";
 
 export const createTemplateContext = (): TemplateContext => ({
-  field: {
-    name: "field",
-    type: "text",
-  },
+  type: "text",
   shape: "EMAIL",
-  jsType: "string",
   input: "input",
+  maxLength: null,
 });
 
 export const runTemplateCode = (context: TemplateContext, code: string) => {
