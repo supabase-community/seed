@@ -8,10 +8,7 @@ let headers: Record<string, string> | undefined;
 export const trpc = createTRPCProxyClient<CLIRouter>({
   links: [
     httpBatchLink({
-      url:
-        process.env["NODE_ENV"] === "production"
-          ? "https://api.snaplet.dev/cli"
-          : "http://localhost:8911",
+      url: `${process.env["SNAPLET_API_HOSTNAME"] ?? "https://api.snaplet.dev"}/cli`,
       headers: async () => {
         return (headers ??= {
           authorization: `Bearer ${(await getSystemConfig()).accessToken}`,

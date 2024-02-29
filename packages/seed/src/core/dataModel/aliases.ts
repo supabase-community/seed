@@ -326,7 +326,7 @@ export function applyAliasesToDataModel(
           // TODO: maybe change the shape of uniqueConstraints to be more consistent with fields
           return {
             ...constraint,
-            columns: constraint.fields.map((column) => fields[column]),
+            fields: constraint.fields.map((column) => fields[column]),
           };
         }),
       };

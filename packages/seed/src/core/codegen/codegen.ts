@@ -23,7 +23,7 @@ const FILES = {
     template() {
       return `{
   "name": "__snaplet",
-  "module": true,
+  "type": "module",
   "exports": {
     "default": "./index.js",
     "types": "./index.d.ts"
@@ -47,7 +47,7 @@ import { userModels } from "./${FILES.USER_MODELS.name}";
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 
-const dataModel = JSON.parse(readFileSync(path.join(__dirname, "${FILES.DATA_MODEL.name}")));
+const dataModel = JSON.parse(readFileSync(join(__dirname, "${FILES.DATA_MODEL.name}")));
 
 export const createSeedClient = getSeedClient({ dataModel, userModels });
 `;
@@ -73,7 +73,7 @@ export declare const createSeedClient: (...args: any) => any
     },
   },
   USER_MODELS: {
-    name: "modelDefaults.js",
+    name: "userModels.js",
     template(context: CodegenContext) {
       return generateUserModels(context);
     },

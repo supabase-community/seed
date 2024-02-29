@@ -55,7 +55,7 @@ const generateDefaultForField = (props: {
     return null;
   }
 
-  if (shape && fieldShapeExamples !== null) {
+  if (shape && fieldShapeExamples != null && fieldShapeExamples.length > 0) {
     if (field.maxLength) {
       return `({ seed }) => copycat.oneOfString(seed, getExamples('${shape}'), { limit: ${JSON.stringify(field.maxLength)} })`;
     } else {
@@ -202,10 +202,10 @@ import { copycat } from "@snaplet/copycat"
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 
-const shapeExamples = JSON.parse(readFileSync(path.join(__dirname, "shapeExamples.json")));
+const shapeExamples = JSON.parse(readFileSync(join(__dirname, "shapeExamples.json")));
 
 const getExamples = (shape) => shapeExamples.find((e) => e.shape === shape)?.examples ?? [];
 
-export const modelDefaults = ${stringifiedDefaults};
+export const userModels = ${stringifiedDefaults};
 `;
 };
