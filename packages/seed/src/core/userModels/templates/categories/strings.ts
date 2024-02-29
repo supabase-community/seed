@@ -6588,7 +6588,9 @@ export const strings: TypeTemplates = {
   }),
   RATING: copycatTemplate("int", { options: { min: 1, max: 5 } }),
   ENVIRONMENT_VARIABLE: copycatTemplate("word"),
-  LATITUDE: copycatTemplate("int", { options: { min: -90, max: 90 } }),
-  LONGITUDE: copycatTemplate("int", { options: { min: -90, max: 90 } }),
+  LOCATION_LATITUDE: copycatTemplate("int", { options: { min: -90, max: 90 } }),
+  LOCATION_LONGITUDE: copycatTemplate("int", {
+    options: { min: -90, max: 90 },
+  }),
   __DEFAULT: copycatTemplate("sentence"),
 };

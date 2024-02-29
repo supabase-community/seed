@@ -6,8 +6,12 @@ export const integers = (bytes: number): TypeTemplates => {
     INDEX: copycatTemplate("int", {
       options: { min: 1, max: Math.pow(bytes, 8) - 1 },
     }),
-    LATITUDE: copycatTemplate("int", { options: { min: -90, max: 90 } }),
-    LONGITUDE: copycatTemplate("int", { options: { min: -90, max: 90 } }),
+    LOCATION_LATITUDE: copycatTemplate("int", {
+      options: { min: -90, max: 90 },
+    }),
+    LOCATION_LONGITUDE: copycatTemplate("int", {
+      options: { min: -90, max: 90 },
+    }),
     __DEFAULT: copycatTemplate("int", {
       options: { min: 0, max: Math.pow(bytes, 8) - 1 },
     }),
