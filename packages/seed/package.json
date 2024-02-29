@@ -3,7 +3,7 @@
   "type": "module",
   "version": "1.0.0",
   "sideEffects": false,
-  "bin": "./dist/cli/index.js",
+  "bin": "./bin/cli.js",
   "imports": {
     "#*": {
       "development": "./src/*",

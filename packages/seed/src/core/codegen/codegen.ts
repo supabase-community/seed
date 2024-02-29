@@ -35,7 +35,7 @@ const FILES = {
       return `
 Object.defineProperty(exports, "__esModule", { value: true })
 
-const { getSeedClient } = require("@snaplet/seed/dialects/postgres")
+const { getSeedClient } = require("@snaplet/seed/pg")
 
 const dataModel = require("./${FILES.DATA_MODEL.name}")
 const { userModels } = require("./${FILES.USER_MODELS.name}")
@@ -76,7 +76,7 @@ const findPackageDirPath = async () => {
       "@snaplet/seed could not find a package.json for your project. We use this to decide where to generate assets. Either add a package.json for your project, or use the --output option when using `npx @snaplet/seed generate`",
     );
   }
-  return path.resolve(path.dirname(packagePath), "node_modules", ".snaplet");
+  return path.resolve(path.dirname(packagePath), "node_modules", "__snaplet");
 };
 
 export const generateAssets = async (context: CodegenContext) => {
