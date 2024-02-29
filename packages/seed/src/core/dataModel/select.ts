@@ -1,4 +1,7 @@
-import { type SelectConfig } from "../../config/seedConfig/selectConfig.js";
+import {
+  SELECT_WILDCARD_STRING,
+  type SelectConfig,
+} from "../../config/seedConfig/selectConfig.js";
 import { SnapletError } from "../utils.js";
 import { type DataModel, type DataModelObjectField } from "./types.js";
 import { groupFields } from "./utils.js";
@@ -8,10 +11,14 @@ export function computeIncludedTables(
   selectConfig: SelectConfig,
 ) {
   const wildcardSelect = Object.fromEntries(
-    Object.entries(selectConfig).filter(([key]) => key.endsWith(".*")),
+    Object.entries(selectConfig).filter(([key]) =>
+      key.endsWith(SELECT_WILDCARD_STRING),
+    ),
   );
   const strictSelect = Object.fromEntries(
-    Object.entries(selectConfig).filter(([key]) => !key.endsWith(".*")),
+    Object.entries(selectConfig).filter(
+      ([key]) => !key.endsWith(SELECT_WILDCARD_STRING),
+    ),
   );
   const wildcardMatchers = Object.keys(wildcardSelect).map((key) =>
     // We remve the .* from the key to match the tableIds with startsWith
@@ -35,7 +42,7 @@ export function computeIncludedTables(
     // If we have a most specific wildcard matcher we return its value
     // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
     if (mostSpecificWildcard !== undefined) {
-      return wildcardSelect[`${mostSpecificWildcard}.*`];
+      return wildcardSelect[`${mostSpecificWildcard}${SELECT_WILDCARD_STRING}`];
     }
     // If we don't have a most specific wildcard matcher we return true
     // to include the table by default
