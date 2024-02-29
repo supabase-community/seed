@@ -21,8 +21,8 @@ export function computeIncludedTables(
     ),
   );
   const wildcardMatchers = Object.keys(wildcardSelect).map((key) =>
-    // We remve the .* from the key to match the tableIds with startsWith
-    key.slice(0, -2),
+    // We remve the * from the key to match the tableIds with startsWith
+    key.slice(0, -SELECT_WILDCARD_STRING.length),
   );
   return tableIds.filter((tableId) => {
     const tableStrictSelect = strictSelect[tableId];
