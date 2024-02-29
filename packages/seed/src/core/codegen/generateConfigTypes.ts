@@ -1,4 +1,5 @@
 import { EOL } from "node:os";
+import { SELECT_WILDCARD_STRING } from "../../config/seedConfig/selectConfig.js";
 import { type DataModel, type DataModelField } from "../dataModel/types.js";
 import { escapeKey } from "../utils.js";
 
@@ -11,20 +12,23 @@ type ComputeFingerprintFieldTypeName = (
   | "FingerprintRelationField"
   | null;
 
-export function generateConfigTypes(props: {
-  computeFingerprintFieldTypeName: ComputeFingerprintFieldTypeName;
-  dataModel: DataModel;
-  rawDataModel?: DataModel;
-}) {
-  const {
-    dataModel,
-    rawDataModel = dataModel,
-    computeFingerprintFieldTypeName,
-  } = props;
+function generateSelectTypes(dataModel: DataModel): string {
+  const tableIdsSet = new Set<string>();
+  for (const model of Object.values(dataModel.models)) {
+    tableIdsSet.add(model.id);
+  }
+  const tableIds = Array.from(tableIdsSet);
   return [
-    generateAliasTypes(rawDataModel),
-    generateFingerprintTypes({ dataModel, computeFingerprintFieldTypeName }),
-  ].join(EOL);
+    `//#region types`,
+    `type PartialRecord<K extends keyof unknown, T> = {
+      [P in K]?: T;
+  };`,
+    tableIds.length > 0
+      ? `type TablesOptions = \n${tableIds.map((id) => `\t"${id}"`).join(" |\n")}\ntype SelectOptions = TablesOptions | \`\${string}${SELECT_WILDCARD_STRING}\``
+      : `type SelectOptions = \`\${string}${SELECT_WILDCARD_STRING}\``,
+    `type SelectConfig = PartialRecord<SelectOptions, boolean>`,
+    `//#endregion`,
+  ].join("\n");
 }
 
 function generateAliasTypes(dataModel: DataModel) {
@@ -112,4 +116,47 @@ ${dataModel.models[modelName].fields
   return [relationField, jsonField, dateField, numberField, fingerprint].join(
     EOL,
   );
+}
+
+function generateDefineConfigTypes() {
+  return `
+type TypedConfig = {
+  /**
+   * Parameter to customize fields and relationships names.
+   * {@link https://docs.snaplet.dev/core-concepts/seed}
+   */
+  alias?: import("./snaplet-client").Alias;
+  /**
+   * Parameter to customize the fingerprinting.
+   * {@link https://docs.snaplet.dev/core-concepts/seed}
+   */
+  fingerprint?: import("./snaplet-client").Fingerprint;
+  /**
+   * Parameter to configure the inclusion/exclusion of schemas and tables from the seeds.
+   * {@link https://docs.snaplet.dev/reference/configuration#select}
+   */
+    select?: SelectConfig;
+  };
+
+  export function defineConfig(
+    config: TypedConfig
+  ): TypedConfig;`;
+}
+
+export function generateConfigTypes(props: {
+  computeFingerprintFieldTypeName: ComputeFingerprintFieldTypeName;
+  dataModel: DataModel;
+  rawDataModel?: DataModel;
+}) {
+  const {
+    dataModel,
+    rawDataModel = dataModel,
+    computeFingerprintFieldTypeName,
+  } = props;
+  return [
+    generateAliasTypes(rawDataModel),
+    generateFingerprintTypes({ dataModel, computeFingerprintFieldTypeName }),
+    generateSelectTypes(dataModel),
+    generateDefineConfigTypes(),
+  ].join(EOL);
 }

@@ -1,1 +1,1 @@
-export { defineConfig } from "#config/snapletConfig/defineConfig.js";
+export { defineConfig } from "./config/seedConfig/defineConfig.js";
