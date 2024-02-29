@@ -11,6 +11,36 @@ import {
   type Relationship,
 } from "./introspectDatabase.js";
 
+function getModelName(
+  introspection: { tables: Array<{ name: string; schema: string }> },
+  table: IntrospectedStructure["tables"][number],
+) {
+  const tableIsInMultipleSchemas = introspection.tables.some(
+    (t) => t.name === table.name && t.schema !== table.schema,
+  );
+
+  const modelName = tableIsInMultipleSchemas
+    ? `${table.schema}_${table.name}`
+    : table.name;
+
+  return modelName;
+}
+
+function getEnumName(
+  introspection: IntrospectedStructure,
+  enumItem: IntrospectedStructure["enums"][number],
+) {
+  const enumIsInMultipleSchemas = introspection.enums.some(
+    (e) => e.name === enumItem.name && e.schema !== enumItem.schema,
+  );
+
+  const enumName = enumIsInMultipleSchemas
+    ? `${enumItem.schema}_${enumItem.name}`
+    : enumItem.name;
+
+  return enumName;
+}
+
 function getParentRelationAndFieldName({
   introspection,
   table,
@@ -65,36 +95,6 @@ function getChildRelationAndFieldName({
     ? `${childModelName}_${relationName}`
     : childModelName;
   return { relationName, fieldName };
-}
-
-function getModelName(
-  introspection: { tables: Array<{ name: string; schema: string }> },
-  table: IntrospectedStructure["tables"][number],
-) {
-  const tableIsInMultipleSchemas = introspection.tables.some(
-    (t) => t.name === table.name && t.schema !== table.schema,
-  );
-
-  const modelName = tableIsInMultipleSchemas
-    ? `${table.schema}_${table.name}`
-    : table.name;
-
-  return modelName;
-}
-
-function getEnumName(
-  introspection: IntrospectedStructure,
-  enumItem: IntrospectedStructure["enums"][number],
-) {
-  const enumIsInMultipleSchemas = introspection.enums.some(
-    (e) => e.name === enumItem.name && e.schema !== enumItem.schema,
-  );
-
-  const enumName = enumIsInMultipleSchemas
-    ? `${enumItem.schema}_${enumItem.name}`
-    : enumItem.name;
-
-  return enumName;
 }
 
 const computeEnumType = (

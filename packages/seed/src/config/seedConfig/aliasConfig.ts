@@ -1,5 +1,4 @@
 import * as z from "zod";
-import { fingerprintConfigSchema } from "../fingerprintConfig.js";
 
 type JsonPrimitive = boolean | null | number | string;
 type Nested<V> = { [s: string]: Nested<V> | V } | Array<Nested<V> | V> | V;
@@ -25,7 +24,7 @@ const objectFieldSchema = z.intersection(
 
 const oppositeBaseNameMapSchema = z.record(z.string(), z.string());
 
-const seedConfigAliasSchema = z.object({
+export const aliasConfigSchema = z.object({
   inflection: z
     .union([
       z.object({
@@ -60,9 +59,4 @@ const seedConfigAliasSchema = z.object({
       }),
     )
     .optional(),
-});
-
-export const seedConfigSchema = z.object({
-  alias: seedConfigAliasSchema.optional(),
-  fingerprint: fingerprintConfigSchema.optional(),
 });

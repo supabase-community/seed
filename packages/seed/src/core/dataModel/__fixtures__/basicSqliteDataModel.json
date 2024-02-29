@@ -1,0 +1,150 @@
+{
+  "dialect": "sqlite",
+  "models": {
+    "test_customer": {
+      "id": "test_customer",
+      "tableName": "test_customer",
+      "fields": [
+        {
+          "id": "test_customer.id",
+          "name": "id",
+          "columnName": "id",
+          "type": "integer",
+          "isRequired": true,
+          "kind": "scalar",
+          "isList": false,
+          "isGenerated": false,
+          "sequence": {
+            "identifier": "test_customer_id_seq",
+            "increment": 1,
+            "current": 1
+          },
+          "hasDefaultValue": false,
+          "isId": true
+        },
+        {
+          "id": "test_customer.name",
+          "name": "name",
+          "columnName": "name",
+          "type": "text",
+          "isRequired": true,
+          "kind": "scalar",
+          "isList": false,
+          "isGenerated": false,
+          "sequence": false,
+          "hasDefaultValue": false,
+          "isId": false
+        },
+        {
+          "id": "test_customer.email",
+          "name": "email",
+          "columnName": "email",
+          "type": "text",
+          "isRequired": true,
+          "kind": "scalar",
+          "isList": false,
+          "isGenerated": false,
+          "sequence": false,
+          "hasDefaultValue": false,
+          "isId": false
+        },
+        {
+          "name": "test_order",
+          "type": "test_order",
+          "isRequired": false,
+          "kind": "object",
+          "relationName": "test_orderTotest_customer",
+          "relationFromFields": [],
+          "relationToFields": [],
+          "isList": true,
+          "isId": false,
+          "isGenerated": false,
+          "sequence": false,
+          "hasDefaultValue": false
+        }
+      ],
+      "uniqueConstraints": [
+        { "name": "test_customer_email_key", "fields": ["email"] },
+        { "name": "test_customer_pkey", "fields": ["id"] }
+      ]
+    },
+    "test_order": {
+      "id": "test_order",
+      "tableName": "test_order",
+      "fields": [
+        {
+          "id": "test_order.id",
+          "name": "id",
+          "columnName": "id",
+          "type": "integer",
+          "isRequired": true,
+          "kind": "scalar",
+          "isList": false,
+          "isGenerated": false,
+          "sequence": {
+            "identifier": "test_order_id_seq",
+            "increment": 1,
+            "current": 1
+          },
+          "hasDefaultValue": false,
+          "isId": true
+        },
+        {
+          "id": "test_order.customer_id",
+          "name": "customer_id",
+          "columnName": "customer_id",
+          "type": "integer",
+          "isRequired": true,
+          "kind": "scalar",
+          "isList": false,
+          "isGenerated": false,
+          "sequence": false,
+          "hasDefaultValue": false,
+          "isId": false
+        },
+        {
+          "id": "test_order.product_name",
+          "name": "product_name",
+          "columnName": "product_name",
+          "type": "text",
+          "isRequired": true,
+          "kind": "scalar",
+          "isList": false,
+          "isGenerated": false,
+          "sequence": false,
+          "hasDefaultValue": false,
+          "isId": false
+        },
+        {
+          "id": "test_order.quantity",
+          "name": "quantity",
+          "columnName": "quantity",
+          "type": "integer",
+          "isRequired": true,
+          "kind": "scalar",
+          "isList": false,
+          "isGenerated": false,
+          "sequence": false,
+          "hasDefaultValue": true,
+          "isId": false
+        },
+        {
+          "name": "test_customer",
+          "type": "test_customer",
+          "isRequired": true,
+          "kind": "object",
+          "relationName": "test_orderTotest_customer",
+          "relationFromFields": ["customer_id"],
+          "relationToFields": ["id"],
+          "isList": false,
+          "isId": false,
+          "isGenerated": false,
+          "sequence": false,
+          "hasDefaultValue": false
+        }
+      ],
+      "uniqueConstraints": [{ "name": "test_order_pkey", "fields": ["id"] }]
+    }
+  },
+  "enums": {}
+}

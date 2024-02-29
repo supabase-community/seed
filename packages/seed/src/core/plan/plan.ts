@@ -2,12 +2,12 @@ import { copycat } from "@snaplet/copycat";
 import { type ClientState } from "../client/types.js";
 import { serializeModelValues, serializeValue } from "../data/data.js";
 import { type Json } from "../data/types.js";
-import { groupFields } from "../dataModel/dataModel.js";
 import {
   type DataModel,
   type DataModelObjectField,
   type DataModelScalarField,
 } from "../dataModel/types.js";
+import { groupFields } from "../dataModel/utils.js";
 import { isOptionsField } from "../fingerprint/fingerprint.js";
 import {
   type Fingerprint,
