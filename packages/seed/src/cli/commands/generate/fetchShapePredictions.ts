@@ -60,7 +60,7 @@ export const fetchShapePredictions = async (
       await new Promise((resolve) => setTimeout(resolve, 5000));
     }
   }
-  act?.info("Fetching predictions...");
+  spinner.info("Fetching predictions...");
   // Batch 100 columns at a time to avoid hitting the max query size
   const batchSize = 100;
   for (

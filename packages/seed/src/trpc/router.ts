@@ -30,7 +30,9 @@ export const cliRouter = router({
         }),
       )
       .mutation(() => {
-        return [] as Array<TableShapePredictions>;
+        return {
+          tableShapePredictions: [] as Array<TableShapePredictions>,
+        };
       }),
     startPredictionJobRoute: publicProcedure
       .input(
@@ -62,12 +64,26 @@ export const cliRouter = router({
       )
       .query(() => {
         return {
-          status: "COMPLETED" as const,
+          status: "COMPLETED" as "COMPLETED" | "IN_PROGRESS",
           progress: {
             current: 1,
             total: 1,
             message: "finished" as string | undefined,
           },
+        };
+      }),
+    seedShapeRoute: publicProcedure
+      .input(
+        z.object({
+          shapes: z.array(z.string()),
+        }),
+      )
+      .mutation(() => {
+        return {
+          result: [] as Array<{
+            examples: Array<string>;
+            shape: string;
+          }>,
         };
       }),
   }),

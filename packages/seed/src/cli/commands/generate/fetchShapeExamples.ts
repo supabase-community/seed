@@ -1,3 +1,6 @@
+import { trpc } from "#trpc/client.js";
+import { type TableShapePredictions } from "#trpc/shapes.js";
+
 export const fetchShapeExamples = async (
   shapePredictions: Array<TableShapePredictions>,
 ) => {
@@ -14,5 +17,6 @@ export const fetchShapeExamples = async (
   const response = await trpc.predictions.seedShapeRoute.mutate({
     shapes: Array.from(shapes),
   });
+
   return response.result;
 };

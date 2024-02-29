@@ -9,6 +9,7 @@ import { mergeDeep } from "remeda";
 import { getFingerprintConfig } from "#config/fingerprintConfig.js";
 import { getSnapletConfig } from "#config/snapletConfig/snapletConfig.js";
 import {
+  type Fingerprint,
   type FingerprintField,
   type FingerprintJsonField,
   type FingerprintOptionsField,
@@ -28,7 +29,7 @@ export function isOptionsField(
 /**
  * @public will be used during code generation
  */
-export async function getFingerprint() {
+export async function getFingerprint(): Promise<Fingerprint> {
   const snapletConfig = await getSnapletConfig();
   const fingerprintConfig = await getFingerprintConfig();
 
