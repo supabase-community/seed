@@ -9,3 +9,5 @@ import * as z from "zod";
 //   }
 // }
 export const selectConfigSchema = z.record(z.string(), z.boolean());
+
+export type SelectConfig = z.infer<typeof selectConfigSchema>;

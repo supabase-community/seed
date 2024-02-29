@@ -54,6 +54,7 @@ export function escapeKey(key: string): string {
 
 export const ERROR_CODES = {
   SEED_ALIAS_MODEL_NAME_CONFLICTS: 9300,
+  SEED_SELECT_RELATIONSHIP_ERROR: 9301,
 };
 
 type CodeType = keyof typeof ERROR_CODES;
@@ -63,11 +64,45 @@ export interface AliasModelNameConflict {
   models: Map<string, DataModelModel>;
 }
 
+export interface SeedSelectRelationshipError {
+  relationName: string;
+  relationToTable: string;
+}
+
 interface Data extends Record<CodeType, unknown> {
   SEED_ALIAS_MODEL_NAME_CONFLICTS: {
     conflicts: Array<AliasModelNameConflict>;
   };
+  SEED_SELECT_RELATIONSHIP_ERROR: {
+    errors: Array<SeedSelectRelationshipError>;
+  };
 }
+
+// Define a mapping from error codes to functions that return string representations of the errors.
+const errorToStringMappings: {
+  [K in CodeType]: (data: Data[K]) => string;
+} = {
+  SEED_ALIAS_MODEL_NAME_CONFLICTS: (data) => {
+    const conflictDetails = data.conflicts
+      .map((conflict) => {
+        const models = Array.from(conflict.models.entries())
+          .map(([modelName, model]) => `${modelName}: ${model.id}`)
+          .join(", ");
+        return `Alias Name: ${conflict.aliasName}, Models: { ${models} }`;
+      })
+      .join("; ");
+    return `Details: [${conflictDetails}]`;
+  },
+  SEED_SELECT_RELATIONSHIP_ERROR: (data) => {
+    const errorDetails = data.errors
+      .map(
+        (error) =>
+          `\n- Relation Name: ${error.relationName}, Relation To Table: ${error.relationToTable}\n`,
+      )
+      .join("; ");
+    return `Select configuration cause constraint relationship error\nDetails: ${errorDetails}`;
+  },
+};
 
 export interface SnapletErrorBase<Code extends CodeType = CodeType> {
   readonly _tag: string;
@@ -92,5 +127,15 @@ export class SnapletError<Code extends CodeType = CodeType>
 
     this.code = code;
     this.data = data;
+  }
+
+  override toString(): string {
+    const formatter = errorToStringMappings[this.code];
+    // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
+    if (formatter) {
+      return `SnapletError: ${SnapletError.Codes[this.code]}\n${formatter(this.data)}`;
+    } else {
+      return `Unknown error code: ${this.code}`;
+    }
   }
 }

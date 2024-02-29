@@ -1,11 +1,11 @@
 import { EOL } from "node:os";
-import { groupFields } from "../dataModel/dataModel.js";
 import {
   type DataModel,
   type DataModelModel,
   type DataModelObjectField,
   type DataModelScalarField,
 } from "../dataModel/types.js";
+import { groupFields } from "../dataModel/utils.js";
 import {
   isJsonField,
   jsonSchemaToTypescriptType,

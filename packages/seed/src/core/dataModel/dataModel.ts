@@ -1,32 +1,12 @@
 import { getDataModelConfig } from "#config/dataModelConfig.js";
-import { getSnapletConfig } from "../../config/seedConfig/snapletConfig.js";
+import { getSnapletSeedConfig } from "../../config/seedConfig/snapletSeedConfig.js";
 import { getAliasedDataModel } from "./aliases.js";
+import { getSelectFilteredDataModel } from "./select.js";
 import {
   type DataModel,
   type DataModelField,
   type DataModelObjectField,
-  type DataModelScalarField,
 } from "./types.js";
-
-export function groupFields(fields: Array<DataModelField>) {
-  const groupedFields = {
-    scalars: [] as Array<DataModelScalarField>,
-    parents: [] as Array<DataModelObjectField>,
-    children: [] as Array<DataModelObjectField>,
-  };
-
-  for (const field of fields) {
-    if (field.kind === "scalar") {
-      groupedFields.scalars.push(field);
-    } else if (field.relationFromFields.length > 0) {
-      groupedFields.parents.push(field);
-    } else if (field.relationFromFields.length === 0) {
-      groupedFields.children.push(field);
-    }
-  }
-
-  return groupedFields;
-}
 
 export function isParentField(
   field: DataModelField,
@@ -62,7 +42,11 @@ export async function getDataModel() {
     );
   }
 
-  const snapletConfig = await getSnapletConfig();
+  const snapletConfig = await getSnapletSeedConfig();
 
-  return getAliasedDataModel(dataModelConfig, snapletConfig?.alias);
+  const filteredDataModel = getSelectFilteredDataModel(
+    dataModelConfig,
+    snapletConfig?.select,
+  );
+  return getAliasedDataModel(filteredDataModel, snapletConfig?.alias);
 }

@@ -7,7 +7,7 @@ import {
 } from "quicktype-core";
 import { mergeDeep } from "remeda";
 import { getFingerprintConfig } from "#config/fingerprintConfig.js";
-import { getSnapletConfig } from "../../config/seedConfig/snapletConfig.js";
+import { getSnapletSeedConfig } from "../../config/seedConfig/snapletSeedConfig.js";
 import {
   type FingerprintField,
   type FingerprintJsonField,
@@ -29,10 +29,10 @@ export function isOptionsField(
  * @public will be used during code generation
  */
 export async function getFingerprint() {
-  const snapletConfig = await getSnapletConfig();
+  const snapletConfig = await getSnapletSeedConfig();
   const fingerprintConfig = await getFingerprintConfig();
 
-  return mergeDeep(fingerprintConfig, snapletConfig.seed?.fingerprint ?? {});
+  return mergeDeep(fingerprintConfig, snapletConfig?.fingerprint ?? {});
 }
 
 export async function jsonSchemaToTypescriptType(
