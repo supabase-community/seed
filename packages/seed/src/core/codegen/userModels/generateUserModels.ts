@@ -193,13 +193,19 @@ export const generateUserModels = (context: CodegenContext) => {
       "  ",
     ) ?? "";
   return `
-Object.defineProperty(exports, "__esModule", { value: true })
+import { readFileSync } from "node:fs";
+import { dirname, join } from "node:path";
+import { fileURLToPath } from "node:url";
 
-const { copycat } = require('@snaplet/copycat')
-const shapeExamples = require('./shapeExamples.json')
+import { copycat } from "@snaplet/copycat"
 
-const getExamples = (shape) => shapeExamples.find((e) => e.shape === shape)?.examples ?? []
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
 
-exports.modelDefaults = ${stringifiedDefaults}
+const shapeExamples = JSON.parse(readFileSync(path.join(__dirname, "shapeExamples.json")));
+
+const getExamples = (shape) => shapeExamples.find((e) => e.shape === shape)?.examples ?? [];
+
+export const modelDefaults = ${stringifiedDefaults};
 `;
 };

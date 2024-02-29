@@ -23,24 +23,33 @@ const FILES = {
     template() {
       return `{
   "name": "__snaplet",
-  "main": "index.js"
+  "module": true,
+  "exports": {
+    "default": "./index.js",
+    "types": "./index.d.ts"
+  }
 }`;
     },
   },
   INDEX: {
     name: "index.js",
-    template() {
+    template({ dataModel }: CodegenContext) {
       // todo(justinvdm, 28 Feb 2024): Generate ESM
       // https://linear.app/snaplet/issue/S-1907/npx-snapletseed-generate-generate-esm-assets
       return `
-Object.defineProperty(exports, "__esModule", { value: true })
+import { readFileSync } from "node:fs";
+import { dirname, join } from "node:path";
+import { fileURLToPath } from "node:url";
 
-const { getSeedClient } = require("@snaplet/seed/pg")
+import { getSeedClient } from "@snaplet/seed/dialects/${dataModel.dialect}/client";
+import { userModels } from "./${FILES.USER_MODELS.name}";
 
-const dataModel = require("./${FILES.DATA_MODEL.name}")
-const { userModels } = require("./${FILES.USER_MODELS.name}")
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
 
-exports.createSeedClient = getSeedClient({ dataModel, userModels })
+const dataModel = JSON.parse(readFileSync(path.join(__dirname, "${FILES.DATA_MODEL.name}")));
+
+export const createSeedClient = getSeedClient({ dataModel, userModels });
 `;
     },
   },
@@ -67,6 +76,12 @@ export declare const createSeedClient: (...args: any) => any
     name: "modelDefaults.js",
     template(context: CodegenContext) {
       return generateUserModels(context);
+    },
+  },
+  SHAPE_EXAMPLES: {
+    name: "shapeExamples.json",
+    template({ shapeExamples }: CodegenContext) {
+      return JSON.stringify(shapeExamples);
     },
   },
 } as const;

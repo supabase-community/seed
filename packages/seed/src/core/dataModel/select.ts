@@ -113,11 +113,13 @@ export function getSelectFilteredDataModel(
   dataModel: DataModel,
   selectConfig?: SelectConfig,
 ) {
+  if (!selectConfig) {
+    return dataModel;
+  }
+
   const tableIds = Object.values(dataModel.models).map((model) => model.id);
 
-  const includedTables = new Set(
-    computeIncludedTables(tableIds, selectConfig ?? {}),
-  );
+  const includedTables = new Set(computeIncludedTables(tableIds, selectConfig));
   // Check that the select doesn't break the relationships constraints
   // will throw an error if the select is invalid
   checkParentRelations(includedTables, dataModel.models);

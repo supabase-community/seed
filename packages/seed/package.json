@@ -4,6 +4,7 @@
   "version": "1.0.0",
   "sideEffects": false,
   "bin": "./bin/cli.js",
+  "types": "./dist/index.d.ts",
   "imports": {
     "#*": {
       "development": "./src/*",
@@ -27,10 +28,10 @@
       "default": "./dist/cli/index.js",
       "types": "./dist/cli/index.d.ts"
     },
-    "./pg": {
-      "development": "./src/adapters/pg/client.ts",
-      "default": "./dist/adapters/pg/client.js",
-      "types": "./dist/adapters/pg/client.d.ts"
+    "./dialects/*": {
+      "development": "./src/dialects/*.ts",
+      "default": "./dist/dialects/*.js",
+      "types": "./dist/dialects/*.d.ts"
     }
   },
   "devDependencies": {
