@@ -34,8 +34,6 @@ const FILES = {
   INDEX: {
     name: "index.js",
     template({ dataModel }: CodegenContext) {
-      // todo(justinvdm, 28 Feb 2024): Generate ESM
-      // https://linear.app/snaplet/issue/S-1907/npx-snapletseed-generate-generate-esm-assets
       return `
 import { readFileSync } from "node:fs";
 import { dirname, join } from "node:path";
