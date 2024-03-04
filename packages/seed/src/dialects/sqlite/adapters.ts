@@ -1,7 +1,6 @@
+/* eslint-disable @typescript-eslint/no-unsafe-member-access */
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { is, sql } from "drizzle-orm";
-import { BetterSQLiteSession } from "drizzle-orm/better-sqlite3";
-import { SQLiteBunSession } from "drizzle-orm/bun-sqlite";
+import { sql } from "drizzle-orm";
 import { type BaseSQLiteDatabase } from "drizzle-orm/sqlite-core";
 import { DrizzleDbClient } from "#core/adapters.js";
 
@@ -35,17 +34,19 @@ export class DrizzleORMSqliteBunClient extends DrizzleDbClient<
   }
 }
 
+type PgAdapterName = "BetterSQLiteSession" | "SQLiteBunSession";
+
 export function createDrizzleORMSqliteClient(
   db: BaseSQLiteDatabase<"async" | "sync", unknown, any>,
-): DrizzleDbClient {
+): DrizzleORMBetterSQLiteClient {
   // @ts-expect-error - we need to use the drizzle internal adapter session name to determine the adapter
-  // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-  const session = db.session;
-  if (is(session, BetterSQLiteSession)) {
-    return new DrizzleORMBetterSQLiteClient(db);
+  const sessionName = db.session.constructor.name as PgAdapterName;
+  switch (sessionName) {
+    case "BetterSQLiteSession":
+      return new DrizzleORMBetterSQLiteClient(db);
+    case "SQLiteBunSession":
+      return new DrizzleORMSqliteBunClient(db);
+    default:
+      return new DrizzleORMBetterSQLiteClient(db);
   }
-  if (is(session, SQLiteBunSession)) {
-    return new DrizzleORMSqliteBunClient(db);
-  }
-  return new DrizzleORMBetterSQLiteClient(db);
 }
