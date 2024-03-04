@@ -1,6 +1,6 @@
 import { copycat } from "@snaplet/copycat";
 import { EOL } from "node:os";
-import { clone, intersection, sortBy } from "remeda";
+import { intersection, sortBy } from "remeda";
 import { serializeValue } from "../data/data.js";
 import { isParentField } from "../dataModel/dataModel.js";
 import {
@@ -245,7 +245,7 @@ async function cartesianProduct(
   }
 
   // each level (field) works with its own copy of the connectStores
-  const connectStores = clone(props.connectStores);
+  const connectStores = { ...props.connectStores };
 
   for (let i = 0; i < iterations; i++) {
     if (isParentField(field) && props.connectStore) {
