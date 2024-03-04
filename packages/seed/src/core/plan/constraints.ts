@@ -91,7 +91,7 @@ export async function checkConstraints(
 
   for (const constraint of sortedConstraints) {
     // We skip the constraint if it contains null values
-    // todo: handle "nulls not distinct" in the future when we support it
+    // todo: once we have the info for "nulls not distinct" in the dataModel, we will be able to conditionnally skip the constraint
     if (constraint.fields.some((c) => props.modelData[c] === null)) {
       continue;
     }
@@ -245,6 +245,7 @@ async function cartesianProduct(
   }
 
   // each level (field) works with its own copy of the connectStores
+  // we will mutate the connectStores to remove the candidates that were already tried
   const connectStores = { ...props.connectStores };
 
   for (let i = 0; i < iterations; i++) {
@@ -252,6 +253,7 @@ async function cartesianProduct(
       // process parent field
       const connectStore = connectStores[field.type];
 
+      // If there is no more models to connect to, early exit
       if (connectStore.length === 0) {
         return false;
       }
