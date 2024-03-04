@@ -2,9 +2,9 @@ import { type Argv } from "yargs";
 import { spinner } from "#cli/lib/spinner.js";
 import { type CodegenContext } from "#core/codegen/codegen.js";
 import { getDataModel } from "#core/dataModel/dataModel.js";
+import { getDialect } from "#core/dialect/getDialect.js";
 import { getFingerprint } from "#core/fingerprint/fingerprint.js";
 import { type TableShapePredictions } from "#trpc/shapes.js";
-import { getDialect } from "../../../core/dialect/getDialect.js";
 import { fetchShapeExamples } from "./fetchShapeExamples.js";
 import { fetchShapePredictions } from "./fetchShapePredictions.js";
 
