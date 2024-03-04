@@ -39,7 +39,7 @@ import { readFileSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 
-uimport { getSeedClient } from "@snaplet/seed/dialects/${dataModel.dialect}/client";
+import { getSeedClient } from "@snaplet/seed/dialects/${dataModel.dialect}/client";
 import { userModels } from "./${FILES.USER_MODELS.name}";
 
 const __filename = fileURLToPath(import.meta.url);
