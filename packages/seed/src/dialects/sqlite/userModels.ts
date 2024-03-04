@@ -10,7 +10,7 @@ import { strings } from "#core/userModels/templates/categories/strings.js";
 import { type Templates } from "#core/userModels/templates/types.js";
 import { type PgTypeName } from "./utils.js";
 
-export const SEED_PG_TEMPLATES: Templates<PgTypeName> = {
+export const SEED_SQLITE_TEMPLATES: Templates<PgTypeName> = {
   smallint: integers(2),
   smallserial: integers(2),
   serial2: integers(2),

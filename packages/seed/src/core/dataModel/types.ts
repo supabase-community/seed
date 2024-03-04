@@ -41,6 +41,9 @@ export type DataModelScalarField = DataModelCommonFieldProps & {
   columnName: string;
   id: string;
   kind: "scalar";
+  // todo(justinvdm, 28 February 2024):
+  // https://linear.app/snaplet/issue/S-1900/add-maxlength-to-datamodel
+  maxLength?: null | number;
 };
 
 interface DataModelCommonFieldProps {

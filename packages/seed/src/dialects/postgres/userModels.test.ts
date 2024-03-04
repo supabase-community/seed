@@ -33,37 +33,37 @@ describe("SEED_PG_TEMPLATES", () => {
         "bigint": {
           "INDEX": {
             "success": true,
-            "value": "14749868",
+            "value": 14749868,
           },
-          "LATITUDE": {
+          "LOCATION_LATITUDE": {
             "success": true,
-            "value": "49",
+            "value": 49,
           },
-          "LONGITUDE": {
+          "LOCATION_LONGITUDE": {
             "success": true,
-            "value": "49",
+            "value": 49,
           },
           "__DEFAULT": {
             "success": true,
-            "value": "13162868",
+            "value": 13162868,
           },
         },
         "bigserial": {
           "INDEX": {
             "success": true,
-            "value": "14749868",
+            "value": 14749868,
           },
-          "LATITUDE": {
+          "LOCATION_LATITUDE": {
             "success": true,
-            "value": "49",
+            "value": 49,
           },
-          "LONGITUDE": {
+          "LOCATION_LONGITUDE": {
             "success": true,
-            "value": "49",
+            "value": 49,
           },
           "__DEFAULT": {
             "success": true,
-            "value": "13162868",
+            "value": 13162868,
           },
         },
         "bit": {
@@ -385,10 +385,6 @@ describe("SEED_PG_TEMPLATES", () => {
             "success": true,
             "value": "2020-05-21T04:57:14.000Z",
           },
-          "DATE_OF_BIRTH": {
-            "success": true,
-            "value": "1992-05-21T04:57:14.000Z",
-          },
           "DRINKS": {
             "success": true,
             "value": "Screwdriver",
@@ -445,10 +441,6 @@ describe("SEED_PG_TEMPLATES", () => {
             "success": true,
             "value": "invoice",
           },
-          "FIRST_NAME": {
-            "success": true,
-            "value": "Louisa",
-          },
           "FOOD": {
             "success": true,
             "value": "Feta Cheese with Honey",
@@ -456,10 +448,6 @@ describe("SEED_PG_TEMPLATES", () => {
           "FULL_ADDRESS": {
             "success": true,
             "value": "21 Jast Tunnel, Goodyear 6456, Republic of Korea",
-          },
-          "FULL_NAME": {
-            "success": true,
-            "value": "Jeremie Hyatt",
           },
           "GENDER": {
             "success": true,
@@ -650,14 +638,6 @@ describe("SEED_PG_TEMPLATES", () => {
             "success": true,
             "value": "226.204.203.201",
           },
-          "LAST_NAME": {
-            "success": true,
-            "value": "Smith",
-          },
-          "LATITUDE": {
-            "success": true,
-            "value": "-27.59292054693725",
-          },
           "LICENSE_PLATE": {
             "success": true,
             "value": "EB82YFH",
@@ -670,13 +650,17 @@ describe("SEED_PG_TEMPLATES", () => {
             "success": true,
             "value": "Northeast",
           },
+          "LOCATION_LATITUDE": {
+            "success": true,
+            "value": "49",
+          },
+          "LOCATION_LONGITUDE": {
+            "success": true,
+            "value": "49",
+          },
           "LOCATION_NEARBY_G_P_S_COORDINATE": {
             "success": true,
             "value": "75.2319,-81.2788",
-          },
-          "LONGITUDE": {
-            "success": true,
-            "value": "-27.59292054693725",
           },
           "MAC_ADDRESS": {
             "success": true,
@@ -705,10 +689,6 @@ describe("SEED_PG_TEMPLATES", () => {
           "MUSIC_SONG_NAME": {
             "success": true,
             "value": "Let's Stay Together",
-          },
-          "NUMBER": {
-            "success": true,
-            "value": "3122849997445492",
           },
           "PASSWORD": {
             "success": true,
@@ -765,10 +745,6 @@ describe("SEED_PG_TEMPLATES", () => {
           "PERSON_ZODIAC_SIGN": {
             "success": true,
             "value": "Cancer",
-          },
-          "PHONE": {
-            "success": true,
-            "value": "+122889997445492",
           },
           "PHONE_IMEI": {
             "success": true,
@@ -885,10 +861,6 @@ describe("SEED_PG_TEMPLATES", () => {
           "TOKEN": {
             "success": true,
             "value": "968bab84-2c06-50d5-9538-d1f5c43b1b01",
-          },
-          "URL": {
-            "success": true,
-            "value": "https://forceful-custody.info",
           },
           "USERNAME": {
             "success": true,
@@ -1234,10 +1206,6 @@ describe("SEED_PG_TEMPLATES", () => {
             "success": true,
             "value": "2020-05-21T04:57:14.000Z",
           },
-          "DATE_OF_BIRTH": {
-            "success": true,
-            "value": "1992-05-21T04:57:14.000Z",
-          },
           "DRINKS": {
             "success": true,
             "value": "Screwdriver",
@@ -1294,10 +1262,6 @@ describe("SEED_PG_TEMPLATES", () => {
             "success": true,
             "value": "invoice",
           },
-          "FIRST_NAME": {
-            "success": true,
-            "value": "Louisa",
-          },
           "FOOD": {
             "success": true,
             "value": "Feta Cheese with Honey",
@@ -1305,10 +1269,6 @@ describe("SEED_PG_TEMPLATES", () => {
           "FULL_ADDRESS": {
             "success": true,
             "value": "21 Jast Tunnel, Goodyear 6456, Republic of Korea",
-          },
-          "FULL_NAME": {
-            "success": true,
-            "value": "Jeremie Hyatt",
           },
           "GENDER": {
             "success": true,
@@ -1499,14 +1459,6 @@ describe("SEED_PG_TEMPLATES", () => {
             "success": true,
             "value": "226.204.203.201",
           },
-          "LAST_NAME": {
-            "success": true,
-            "value": "Smith",
-          },
-          "LATITUDE": {
-            "success": true,
-            "value": "-27.59292054693725",
-          },
           "LICENSE_PLATE": {
             "success": true,
             "value": "EB82YFH",
@@ -1519,13 +1471,17 @@ describe("SEED_PG_TEMPLATES", () => {
             "success": true,
             "value": "Northeast",
           },
+          "LOCATION_LATITUDE": {
+            "success": true,
+            "value": "49",
+          },
+          "LOCATION_LONGITUDE": {
+            "success": true,
+            "value": "49",
+          },
           "LOCATION_NEARBY_G_P_S_COORDINATE": {
             "success": true,
             "value": "75.2319,-81.2788",
-          },
-          "LONGITUDE": {
-            "success": true,
-            "value": "-27.59292054693725",
           },
           "MAC_ADDRESS": {
             "success": true,
@@ -1554,10 +1510,6 @@ describe("SEED_PG_TEMPLATES", () => {
           "MUSIC_SONG_NAME": {
             "success": true,
             "value": "Let's Stay Together",
-          },
-          "NUMBER": {
-            "success": true,
-            "value": "3122849997445492",
           },
           "PASSWORD": {
             "success": true,
@@ -1614,10 +1566,6 @@ describe("SEED_PG_TEMPLATES", () => {
           "PERSON_ZODIAC_SIGN": {
             "success": true,
             "value": "Cancer",
-          },
-          "PHONE": {
-            "success": true,
-            "value": "+122889997445492",
           },
           "PHONE_IMEI": {
             "success": true,
@@ -1734,10 +1682,6 @@ describe("SEED_PG_TEMPLATES", () => {
           "TOKEN": {
             "success": true,
             "value": "968bab84-2c06-50d5-9538-d1f5c43b1b01",
-          },
-          "URL": {
-            "success": true,
-            "value": "https://forceful-custody.info",
           },
           "USERNAME": {
             "success": true,
@@ -2077,10 +2021,6 @@ describe("SEED_PG_TEMPLATES", () => {
             "success": true,
             "value": "2020-05-21T04:57:14.000Z",
           },
-          "DATE_OF_BIRTH": {
-            "success": true,
-            "value": "1992-05-21T04:57:14.000Z",
-          },
           "DRINKS": {
             "success": true,
             "value": "Screwdriver",
@@ -2137,10 +2077,6 @@ describe("SEED_PG_TEMPLATES", () => {
             "success": true,
             "value": "invoice",
           },
-          "FIRST_NAME": {
-            "success": true,
-            "value": "Louisa",
-          },
           "FOOD": {
             "success": true,
             "value": "Feta Cheese with Honey",
@@ -2148,10 +2084,6 @@ describe("SEED_PG_TEMPLATES", () => {
           "FULL_ADDRESS": {
             "success": true,
             "value": "21 Jast Tunnel, Goodyear 6456, Republic of Korea",
-          },
-          "FULL_NAME": {
-            "success": true,
-            "value": "Jeremie Hyatt",
           },
           "GENDER": {
             "success": true,
@@ -2342,14 +2274,6 @@ describe("SEED_PG_TEMPLATES", () => {
             "success": true,
             "value": "226.204.203.201",
           },
-          "LAST_NAME": {
-            "success": true,
-            "value": "Smith",
-          },
-          "LATITUDE": {
-            "success": true,
-            "value": "-27.59292054693725",
-          },
           "LICENSE_PLATE": {
             "success": true,
             "value": "EB82YFH",
@@ -2362,13 +2286,17 @@ describe("SEED_PG_TEMPLATES", () => {
             "success": true,
             "value": "Northeast",
           },
+          "LOCATION_LATITUDE": {
+            "success": true,
+            "value": "49",
+          },
+          "LOCATION_LONGITUDE": {
+            "success": true,
+            "value": "49",
+          },
           "LOCATION_NEARBY_G_P_S_COORDINATE": {
             "success": true,
             "value": "75.2319,-81.2788",
-          },
-          "LONGITUDE": {
-            "success": true,
-            "value": "-27.59292054693725",
           },
           "MAC_ADDRESS": {
             "success": true,
@@ -2397,10 +2325,6 @@ describe("SEED_PG_TEMPLATES", () => {
           "MUSIC_SONG_NAME": {
             "success": true,
             "value": "Let's Stay Together",
-          },
-          "NUMBER": {
-            "success": true,
-            "value": "3122849997445492",
           },
           "PASSWORD": {
             "success": true,
@@ -2457,10 +2381,6 @@ describe("SEED_PG_TEMPLATES", () => {
           "PERSON_ZODIAC_SIGN": {
             "success": true,
             "value": "Cancer",
-          },
-          "PHONE": {
-            "success": true,
-            "value": "+122889997445492",
           },
           "PHONE_IMEI": {
             "success": true,
@@ -2577,10 +2497,6 @@ describe("SEED_PG_TEMPLATES", () => {
           "TOKEN": {
             "success": true,
             "value": "968bab84-2c06-50d5-9538-d1f5c43b1b01",
-          },
-          "URL": {
-            "success": true,
-            "value": "https://forceful-custody.info",
           },
           "USERNAME": {
             "success": true,
@@ -2932,10 +2848,6 @@ describe("SEED_PG_TEMPLATES", () => {
             "success": true,
             "value": "2020-05-21T04:57:14.000Z",
           },
-          "DATE_OF_BIRTH": {
-            "success": true,
-            "value": "1992-05-21T04:57:14.000Z",
-          },
           "DRINKS": {
             "success": true,
             "value": "Screwdriver",
@@ -2992,10 +2904,6 @@ describe("SEED_PG_TEMPLATES", () => {
             "success": true,
             "value": "invoice",
           },
-          "FIRST_NAME": {
-            "success": true,
-            "value": "Louisa",
-          },
           "FOOD": {
             "success": true,
             "value": "Feta Cheese with Honey",
@@ -3003,10 +2911,6 @@ describe("SEED_PG_TEMPLATES", () => {
           "FULL_ADDRESS": {
             "success": true,
             "value": "21 Jast Tunnel, Goodyear 6456, Republic of Korea",
-          },
-          "FULL_NAME": {
-            "success": true,
-            "value": "Jeremie Hyatt",
           },
           "GENDER": {
             "success": true,
@@ -3197,14 +3101,6 @@ describe("SEED_PG_TEMPLATES", () => {
             "success": true,
             "value": "226.204.203.201",
           },
-          "LAST_NAME": {
-            "success": true,
-            "value": "Smith",
-          },
-          "LATITUDE": {
-            "success": true,
-            "value": "-27.59292054693725",
-          },
           "LICENSE_PLATE": {
             "success": true,
             "value": "EB82YFH",
@@ -3217,13 +3113,17 @@ describe("SEED_PG_TEMPLATES", () => {
             "success": true,
             "value": "Northeast",
           },
+          "LOCATION_LATITUDE": {
+            "success": true,
+            "value": "49",
+          },
+          "LOCATION_LONGITUDE": {
+            "success": true,
+            "value": "49",
+          },
           "LOCATION_NEARBY_G_P_S_COORDINATE": {
             "success": true,
             "value": "75.2319,-81.2788",
-          },
-          "LONGITUDE": {
-            "success": true,
-            "value": "-27.59292054693725",
           },
           "MAC_ADDRESS": {
             "success": true,
@@ -3252,10 +3152,6 @@ describe("SEED_PG_TEMPLATES", () => {
           "MUSIC_SONG_NAME": {
             "success": true,
             "value": "Let's Stay Together",
-          },
-          "NUMBER": {
-            "success": true,
-            "value": "3122849997445492",
           },
           "PASSWORD": {
             "success": true,
@@ -3312,10 +3208,6 @@ describe("SEED_PG_TEMPLATES", () => {
           "PERSON_ZODIAC_SIGN": {
             "success": true,
             "value": "Cancer",
-          },
-          "PHONE": {
-            "success": true,
-            "value": "+122889997445492",
           },
           "PHONE_IMEI": {
             "success": true,
@@ -3433,10 +3325,6 @@ describe("SEED_PG_TEMPLATES", () => {
             "success": true,
             "value": "968bab84-2c06-50d5-9538-d1f5c43b1b01",
           },
-          "URL": {
-            "success": true,
-            "value": "https://forceful-custody.info",
-          },
           "USERNAME": {
             "success": true,
             "value": "photosynthesize-pun14710",
@@ -3493,59 +3381,59 @@ describe("SEED_PG_TEMPLATES", () => {
           },
         },
         "decimal": {
-          "LATITUDE": {
+          "LOCATION_LATITUDE": {
             "success": true,
-            "value": "-27.59292054693725",
+            "value": 49,
           },
-          "LONGITUDE": {
+          "LOCATION_LONGITUDE": {
             "success": true,
-            "value": "-27.59292054693725",
+            "value": 49,
           },
           "__DEFAULT": {
             "success": true,
-            "value": "5.547295951383355",
+            "value": 5.547295951383355,
           },
         },
         "double precision": {
-          "LATITUDE": {
+          "LOCATION_LATITUDE": {
             "success": true,
-            "value": "-27.59292054693725",
+            "value": 49,
           },
-          "LONGITUDE": {
+          "LOCATION_LONGITUDE": {
             "success": true,
-            "value": "-27.59292054693725",
+            "value": 49,
           },
           "__DEFAULT": {
             "success": true,
-            "value": "88.75673522213368",
+            "value": 88.75673522213368,
           },
         },
         "float4": {
-          "LATITUDE": {
+          "LOCATION_LATITUDE": {
             "success": true,
-            "value": "-27.59292054693725",
+            "value": 49,
           },
-          "LONGITUDE": {
+          "LOCATION_LONGITUDE": {
             "success": true,
-            "value": "-27.59292054693725",
+            "value": 49,
           },
           "__DEFAULT": {
             "success": true,
-            "value": "5.547295951383355",
+            "value": 5.547295951383355,
           },
         },
         "float8": {
-          "LATITUDE": {
+          "LOCATION_LATITUDE": {
             "success": true,
-            "value": "-27.59292054693725",
+            "value": 49,
           },
-          "LONGITUDE": {
+          "LOCATION_LONGITUDE": {
             "success": true,
-            "value": "-27.59292054693725",
+            "value": 49,
           },
           "__DEFAULT": {
             "success": true,
-            "value": "88.75673522213368",
+            "value": 88.75673522213368,
           },
         },
         "inet": {
@@ -3557,127 +3445,127 @@ describe("SEED_PG_TEMPLATES", () => {
         "int": {
           "INDEX": {
             "success": true,
-            "value": "7808",
+            "value": 7808,
           },
-          "LATITUDE": {
+          "LOCATION_LATITUDE": {
             "success": true,
-            "value": "49",
+            "value": 49,
           },
-          "LONGITUDE": {
+          "LOCATION_LONGITUDE": {
             "success": true,
-            "value": "49",
+            "value": 49,
           },
           "__DEFAULT": {
             "success": true,
-            "value": "55668",
+            "value": 55668,
           },
         },
         "int16": {
           "INDEX": {
             "success": true,
-            "value": "14749868",
+            "value": 14749868,
           },
-          "LATITUDE": {
+          "LOCATION_LATITUDE": {
             "success": true,
-            "value": "49",
+            "value": 49,
           },
-          "LONGITUDE": {
+          "LOCATION_LONGITUDE": {
             "success": true,
-            "value": "49",
+            "value": 49,
           },
           "__DEFAULT": {
             "success": true,
-            "value": "13162868",
+            "value": 13162868,
           },
         },
         "int2": {
           "INDEX": {
             "success": true,
-            "value": "158",
+            "value": 158,
           },
-          "LATITUDE": {
+          "LOCATION_LATITUDE": {
             "success": true,
-            "value": "49",
+            "value": 49,
           },
-          "LONGITUDE": {
+          "LOCATION_LONGITUDE": {
             "success": true,
-            "value": "49",
+            "value": 49,
           },
           "__DEFAULT": {
             "success": true,
-            "value": "116",
+            "value": 116,
           },
         },
         "int32": {
           "INDEX": {
             "success": true,
-            "value": "14749868",
+            "value": 14749868,
           },
-          "LATITUDE": {
+          "LOCATION_LATITUDE": {
             "success": true,
-            "value": "49",
+            "value": 49,
           },
-          "LONGITUDE": {
+          "LOCATION_LONGITUDE": {
             "success": true,
-            "value": "49",
+            "value": 49,
           },
           "__DEFAULT": {
             "success": true,
-            "value": "13162868",
+            "value": 13162868,
           },
         },
         "int4": {
           "INDEX": {
             "success": true,
-            "value": "7808",
+            "value": 7808,
           },
-          "LATITUDE": {
+          "LOCATION_LATITUDE": {
             "success": true,
-            "value": "49",
+            "value": 49,
           },
-          "LONGITUDE": {
+          "LOCATION_LONGITUDE": {
             "success": true,
-            "value": "49",
+            "value": 49,
           },
           "__DEFAULT": {
             "success": true,
-            "value": "55668",
+            "value": 55668,
           },
         },
         "int8": {
           "INDEX": {
             "success": true,
-            "value": "14749868",
+            "value": 14749868,
           },
-          "LATITUDE": {
+          "LOCATION_LATITUDE": {
             "success": true,
-            "value": "49",
+            "value": 49,
           },
-          "LONGITUDE": {
+          "LOCATION_LONGITUDE": {
             "success": true,
-            "value": "49",
+            "value": 49,
           },
           "__DEFAULT": {
             "success": true,
-            "value": "13162868",
+            "value": 13162868,
           },
         },
         "integer": {
           "INDEX": {
             "success": true,
-            "value": "7808",
+            "value": 7808,
           },
-          "LATITUDE": {
+          "LOCATION_LATITUDE": {
             "success": true,
-            "value": "49",
+            "value": 49,
           },
-          "LONGITUDE": {
+          "LOCATION_LONGITUDE": {
             "success": true,
-            "value": "49",
+            "value": 49,
           },
           "__DEFAULT": {
             "success": true,
-            "value": "55668",
+            "value": 55668,
           },
         },
         "interval": {
@@ -3727,31 +3615,31 @@ describe("SEED_PG_TEMPLATES", () => {
           },
         },
         "money": {
-          "LATITUDE": {
+          "LOCATION_LATITUDE": {
             "success": true,
-            "value": "-27.59292054693725",
+            "value": 49,
           },
-          "LONGITUDE": {
+          "LOCATION_LONGITUDE": {
             "success": true,
-            "value": "-27.59292054693725",
+            "value": 49,
           },
           "__DEFAULT": {
             "success": true,
-            "value": "88.75673522213368",
+            "value": 88.75673522213368,
           },
         },
         "numeric": {
-          "LATITUDE": {
+          "LOCATION_LATITUDE": {
             "success": true,
-            "value": "-27.59292054693725",
+            "value": 49,
           },
-          "LONGITUDE": {
+          "LOCATION_LONGITUDE": {
             "success": true,
-            "value": "-27.59292054693725",
+            "value": 49,
           },
           "__DEFAULT": {
             "success": true,
-            "value": "5.547295951383355",
+            "value": 5.547295951383355,
           },
         },
         "path": {
@@ -3773,125 +3661,125 @@ describe("SEED_PG_TEMPLATES", () => {
           },
         },
         "real": {
-          "LATITUDE": {
+          "LOCATION_LATITUDE": {
             "success": true,
-            "value": "-27.59292054693725",
+            "value": 49,
           },
-          "LONGITUDE": {
+          "LOCATION_LONGITUDE": {
             "success": true,
-            "value": "-27.59292054693725",
+            "value": 49,
           },
           "__DEFAULT": {
             "success": true,
-            "value": "5.547295951383355",
+            "value": 5.547295951383355,
           },
         },
         "serial": {
           "INDEX": {
             "success": true,
-            "value": "7808",
+            "value": 7808,
           },
-          "LATITUDE": {
+          "LOCATION_LATITUDE": {
             "success": true,
-            "value": "49",
+            "value": 49,
           },
-          "LONGITUDE": {
+          "LOCATION_LONGITUDE": {
             "success": true,
-            "value": "49",
+            "value": 49,
           },
           "__DEFAULT": {
             "success": true,
-            "value": "55668",
+            "value": 55668,
           },
         },
         "serial2": {
           "INDEX": {
             "success": true,
-            "value": "158",
+            "value": 158,
           },
-          "LATITUDE": {
+          "LOCATION_LATITUDE": {
             "success": true,
-            "value": "49",
+            "value": 49,
           },
-          "LONGITUDE": {
+          "LOCATION_LONGITUDE": {
             "success": true,
-            "value": "49",
+            "value": 49,
           },
           "__DEFAULT": {
             "success": true,
-            "value": "116",
+            "value": 116,
           },
         },
         "serial4": {
           "INDEX": {
             "success": true,
-            "value": "7808",
+            "value": 7808,
           },
-          "LATITUDE": {
+          "LOCATION_LATITUDE": {
             "success": true,
-            "value": "49",
+            "value": 49,
           },
-          "LONGITUDE": {
+          "LOCATION_LONGITUDE": {
             "success": true,
-            "value": "49",
+            "value": 49,
           },
           "__DEFAULT": {
             "success": true,
-            "value": "55668",
+            "value": 55668,
           },
         },
         "serial8": {
           "INDEX": {
             "success": true,
-            "value": "14749868",
+            "value": 14749868,
           },
-          "LATITUDE": {
+          "LOCATION_LATITUDE": {
             "success": true,
-            "value": "49",
+            "value": 49,
           },
-          "LONGITUDE": {
+          "LOCATION_LONGITUDE": {
             "success": true,
-            "value": "49",
+            "value": 49,
           },
           "__DEFAULT": {
             "success": true,
-            "value": "13162868",
+            "value": 13162868,
           },
         },
         "smallint": {
           "INDEX": {
             "success": true,
-            "value": "158",
+            "value": 158,
           },
-          "LATITUDE": {
+          "LOCATION_LATITUDE": {
             "success": true,
-            "value": "49",
+            "value": 49,
           },
-          "LONGITUDE": {
+          "LOCATION_LONGITUDE": {
             "success": true,
-            "value": "49",
+            "value": 49,
           },
           "__DEFAULT": {
             "success": true,
-            "value": "116",
+            "value": 116,
           },
         },
         "smallserial": {
           "INDEX": {
             "success": true,
-            "value": "158",
+            "value": 158,
           },
-          "LATITUDE": {
+          "LOCATION_LATITUDE": {
             "success": true,
-            "value": "49",
+            "value": 49,
           },
-          "LONGITUDE": {
+          "LOCATION_LONGITUDE": {
             "success": true,
-            "value": "49",
+            "value": 49,
           },
           "__DEFAULT": {
             "success": true,
-            "value": "116",
+            "value": 116,
           },
         },
         "text": {
@@ -4183,10 +4071,6 @@ describe("SEED_PG_TEMPLATES", () => {
             "success": true,
             "value": "2020-05-21T04:57:14.000Z",
           },
-          "DATE_OF_BIRTH": {
-            "success": true,
-            "value": "1992-05-21T04:57:14.000Z",
-          },
           "DRINKS": {
             "success": true,
             "value": "Screwdriver",
@@ -4243,10 +4127,6 @@ describe("SEED_PG_TEMPLATES", () => {
             "success": true,
             "value": "invoice",
           },
-          "FIRST_NAME": {
-            "success": true,
-            "value": "Louisa",
-          },
           "FOOD": {
             "success": true,
             "value": "Feta Cheese with Honey",
@@ -4254,10 +4134,6 @@ describe("SEED_PG_TEMPLATES", () => {
           "FULL_ADDRESS": {
             "success": true,
             "value": "21 Jast Tunnel, Goodyear 6456, Republic of Korea",
-          },
-          "FULL_NAME": {
-            "success": true,
-            "value": "Jeremie Hyatt",
           },
           "GENDER": {
             "success": true,
@@ -4448,14 +4324,6 @@ describe("SEED_PG_TEMPLATES", () => {
             "success": true,
             "value": "226.204.203.201",
           },
-          "LAST_NAME": {
-            "success": true,
-            "value": "Smith",
-          },
-          "LATITUDE": {
-            "success": true,
-            "value": "-27.59292054693725",
-          },
           "LICENSE_PLATE": {
             "success": true,
             "value": "EB82YFH",
@@ -4468,13 +4336,17 @@ describe("SEED_PG_TEMPLATES", () => {
             "success": true,
             "value": "Northeast",
           },
+          "LOCATION_LATITUDE": {
+            "success": true,
+            "value": "49",
+          },
+          "LOCATION_LONGITUDE": {
+            "success": true,
+            "value": "49",
+          },
           "LOCATION_NEARBY_G_P_S_COORDINATE": {
             "success": true,
             "value": "75.2319,-81.2788",
-          },
-          "LONGITUDE": {
-            "success": true,
-            "value": "-27.59292054693725",
           },
           "MAC_ADDRESS": {
             "success": true,
@@ -4503,10 +4375,6 @@ describe("SEED_PG_TEMPLATES", () => {
           "MUSIC_SONG_NAME": {
             "success": true,
             "value": "Let's Stay Together",
-          },
-          "NUMBER": {
-            "success": true,
-            "value": "3122849997445492",
           },
           "PASSWORD": {
             "success": true,
@@ -4563,10 +4431,6 @@ describe("SEED_PG_TEMPLATES", () => {
           "PERSON_ZODIAC_SIGN": {
             "success": true,
             "value": "Cancer",
-          },
-          "PHONE": {
-            "success": true,
-            "value": "+122889997445492",
           },
           "PHONE_IMEI": {
             "success": true,
@@ -4683,10 +4547,6 @@ describe("SEED_PG_TEMPLATES", () => {
           "TOKEN": {
             "success": true,
             "value": "968bab84-2c06-50d5-9538-d1f5c43b1b01",
-          },
-          "URL": {
-            "success": true,
-            "value": "https://forceful-custody.info",
           },
           "USERNAME": {
             "success": true,
@@ -5068,10 +4928,6 @@ describe("SEED_PG_TEMPLATES", () => {
             "success": true,
             "value": "2020-05-21T04:57:14.000Z",
           },
-          "DATE_OF_BIRTH": {
-            "success": true,
-            "value": "1992-05-21T04:57:14.000Z",
-          },
           "DRINKS": {
             "success": true,
             "value": "Screwdriver",
@@ -5128,10 +4984,6 @@ describe("SEED_PG_TEMPLATES", () => {
             "success": true,
             "value": "invoice",
           },
-          "FIRST_NAME": {
-            "success": true,
-            "value": "Louisa",
-          },
           "FOOD": {
             "success": true,
             "value": "Feta Cheese with Honey",
@@ -5139,10 +4991,6 @@ describe("SEED_PG_TEMPLATES", () => {
           "FULL_ADDRESS": {
             "success": true,
             "value": "21 Jast Tunnel, Goodyear 6456, Republic of Korea",
-          },
-          "FULL_NAME": {
-            "success": true,
-            "value": "Jeremie Hyatt",
           },
           "GENDER": {
             "success": true,
@@ -5333,14 +5181,6 @@ describe("SEED_PG_TEMPLATES", () => {
             "success": true,
             "value": "226.204.203.201",
           },
-          "LAST_NAME": {
-            "success": true,
-            "value": "Smith",
-          },
-          "LATITUDE": {
-            "success": true,
-            "value": "-27.59292054693725",
-          },
           "LICENSE_PLATE": {
             "success": true,
             "value": "EB82YFH",
@@ -5353,13 +5193,17 @@ describe("SEED_PG_TEMPLATES", () => {
             "success": true,
             "value": "Northeast",
           },
+          "LOCATION_LATITUDE": {
+            "success": true,
+            "value": "49",
+          },
+          "LOCATION_LONGITUDE": {
+            "success": true,
+            "value": "49",
+          },
           "LOCATION_NEARBY_G_P_S_COORDINATE": {
             "success": true,
             "value": "75.2319,-81.2788",
-          },
-          "LONGITUDE": {
-            "success": true,
-            "value": "-27.59292054693725",
           },
           "MAC_ADDRESS": {
             "success": true,
@@ -5388,10 +5232,6 @@ describe("SEED_PG_TEMPLATES", () => {
           "MUSIC_SONG_NAME": {
             "success": true,
             "value": "Let's Stay Together",
-          },
-          "NUMBER": {
-            "success": true,
-            "value": "3122849997445492",
           },
           "PASSWORD": {
             "success": true,
@@ -5448,10 +5288,6 @@ describe("SEED_PG_TEMPLATES", () => {
           "PERSON_ZODIAC_SIGN": {
             "success": true,
             "value": "Cancer",
-          },
-          "PHONE": {
-            "success": true,
-            "value": "+122889997445492",
           },
           "PHONE_IMEI": {
             "success": true,
@@ -5568,10 +5404,6 @@ describe("SEED_PG_TEMPLATES", () => {
           "TOKEN": {
             "success": true,
             "value": "968bab84-2c06-50d5-9538-d1f5c43b1b01",
-          },
-          "URL": {
-            "success": true,
-            "value": "https://forceful-custody.info",
           },
           "USERNAME": {
             "success": true,

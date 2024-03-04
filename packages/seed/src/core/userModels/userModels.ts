@@ -17,12 +17,12 @@ export function mergeUserModels(
   const userModels2Keys = Object.keys(userModels2);
 
   userModels1Keys.forEach((modelName) => {
+    const userModel1 = userModels1[modelName] ?? {};
+    const userModel2 = userModels2[modelName] ?? {};
+
     mergedUserModels[modelName] = {
-      data: mergeUserModelsData(
-        userModels1[modelName].data ?? {},
-        userModels2[modelName].data ?? {},
-      ),
-      connect: userModels2[modelName].connect ?? userModels1[modelName].connect,
+      data: mergeUserModelsData(userModel1.data ?? {}, userModel2.data ?? {}),
+      connect: userModel2.connect ?? userModel1.connect,
     };
   });
 

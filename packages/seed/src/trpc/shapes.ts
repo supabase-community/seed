@@ -193,87 +193,11 @@ export const GenerateShapes = [
   "RATING",
   "AGE",
   "ENVIRONMENT_VARIABLE",
+  "LATITUDE",
+  "LONGITUDE",
 ] as const;
 
-export type ShapeGenerate = (typeof GenerateShapes)[number];
-
-export const SHAPE_CANDIDATES = {
-  UUID: ["id", "uuid", "uuidv4", "identifier"],
-  INDEX: ["id", "index", "key"],
-  NUMBER: [
-    "account number",
-    "invoice number",
-    "order number",
-    "number",
-    "version",
-    "amount",
-  ],
-  FULL_NAME: ["name", "title"],
-  FIRST_NAME: ["first name"],
-  LAST_NAME: ["last name"],
-  DESCRIPTION: ["description", "text", "body", "content"],
-  DATE: [
-    "date",
-    "expire",
-    "created at",
-    "updated at",
-    "expiry",
-    "expiry date",
-    "time",
-  ],
-  DATE_OF_BIRTH: ["date of birth", "dob", "birthday"],
-  GENDER: ["gender"],
-  STREET_ADDRESS: ["street"],
-  FULL_ADDRESS: ["address"],
-  CITY: ["city", "town"],
-  COUNTRY: ["country", "county"],
-  STATE: ["province", "state"],
-  ZIP_CODE: ["postal code", "zip code"],
-  COUNTRY_CODE: ["country code"],
-  LATITUDE: ["latitude"],
-  LONGITUDE: ["longitude"],
-  LOCATION: ["location", "coordinates"],
-  TIMEZONE: ["timezone", "tz"],
-  PHONE: ["imei", "imsi", "mobile number", "msisdn", "phone", "phone number"],
-  EMAIL: ["email"],
-  PASSWORD: ["password"],
-  USERNAME: ["login", "username"],
-  TOKEN: ["token", "sub"],
-  USER_AGENT: ["user agent"],
-  IP_ADDRESS: ["ip", "ip address"],
-  MAC_ADDRESS: ["mac", "mac address"],
-  STATUS: ["status"],
-  LOGS: ["logs"],
-  EMPLOYER_IDENTIFICATION_NUMBER: ["ein", "employer identification number"],
-  AGE: ["age"],
-  BANK_ACCOUNT_NUMBER_FULL: ["bank account number", "iban"],
-  BANK_ACCOUNT_NUMBER_LAST4: ["bank account last 4"],
-  BANK_ROUTING_FULL: ["bank routing number"],
-  BANK_ROUTING_LAST4: ["bank routing last 4"],
-  CHECKSUM: ["checksum"],
-  CREDIT_DEBIT_NUMBER: ["credit card number", "debit card number"],
-  CREDIT_DEBIT_EXPIRY: ["credit card expiry", "debit card expiry"],
-  CREDIT_DEBIT_CVV: ["credit card cvv", "debit card cvv"],
-  CURRENCY: ["currency"],
-  DRIVER_ID: ["driver id", "driver license id"],
-  HASH: ["hash"],
-  LICENSE_PLATE: ["vehicle license plate"],
-  META_DATA: ["meta data", "metadata"],
-  NATIONAL_IDENTIFICATION_NUMBER: ["national identification number", "nin"],
-  OTHER_NAME: ["device name", "alias"],
-  PIN: ["pin"],
-  SEARCH_VECTOR: ["search vector", "search"],
-  SSN_FULL: ["social security number", "ssn"],
-  SSN_LAST4: ["social security last 4", "ssn last 4"],
-  SWIFT_CODE: ["swift code", "swift", "bic"],
-  TAX_AMOUNT: ["tax amount"],
-  TAX_CODE: ["tax code"],
-  TAX_IDENTIFICATION_NUMBER: ["tax identification number", "tin"],
-  URL: ["url", "uri", "link"],
-  VEHICLE_IDENTIFICATION_NUMBER: ["vehicle identification number", "vin"],
-};
-
-export type Shape = keyof typeof SHAPE_CANDIDATES;
+export type Shape = (typeof GenerateShapes)[number];
 
 export interface PredictedShape {
   column: string;
@@ -281,11 +205,18 @@ export interface PredictedShape {
   confidenceContext?: number;
   context?: ShapeContext;
   input: string;
-  shape?: Shape | ShapeGenerate;
+  shape?: Shape;
 }
 
 export interface TableShapePredictions {
   predictions: Array<PredictedShape>;
+  schemaName: string;
+  tableName: string;
+}
+
+export interface StartPredictionsColumn {
+  columnName: string;
+  pgType: string;
   schemaName: string;
   tableName: string;
 }

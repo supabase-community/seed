@@ -21,6 +21,7 @@ type Last<Items extends Array<unknown>> = Items extends [
 
 interface CopycatTemplateOptions<MethodName extends CopycatMethodName> {
   args?: Array<Json>;
+  isString?: boolean;
   options?: Partial<CopycatMethodOptions<MethodName>>;
 }
 
@@ -45,16 +46,19 @@ export const generateCopycatCall = <MethodName extends CopycatMethodName>(
   context: TemplateContext,
   methodName: MethodName,
   inputs: Array<string>,
+  isString: boolean,
   extraOptions?: Partial<CopycatMethodOptions<MethodName>>,
 ): string => {
   const args = [...inputs.map((input) => String(input))];
-  const options = { ...(extraOptions ?? {}) };
+  const options: Partial<CopycatMethodOptions<MethodName>> = {
+    ...(extraOptions ?? {}),
+  };
 
   let needsTruncating = false;
 
-  if (context.field.maxLength != null) {
+  if (context.maxLength != null) {
     if (COPYCAT_METHODS_SUPPORTING_LIMIT_SET.has(methodName)) {
-      (options as { limit?: number }).limit = context.field.maxLength;
+      (options as { limit?: number }).limit = context.maxLength;
     } else {
       needsTruncating = true;
     }
@@ -66,15 +70,12 @@ export const generateCopycatCall = <MethodName extends CopycatMethodName>(
 
   let code = `copycat.${methodName}(${args.join(", ")})`;
 
-  if (
-    context.jsType === "string" &&
-    COPYCAT_METHODS_RETURNING_NON_STRINGS_SET.has(methodName)
-  ) {
+  if (isString && COPYCAT_METHODS_RETURNING_NON_STRINGS_SET.has(methodName)) {
     code = `${code}.toString()`;
   }
 
-  if (needsTruncating && context.jsType === "string") {
-    code = `${code}.slice(0, ${context.field.maxLength})`;
+  if (needsTruncating && isString) {
+    code = `${code}.slice(0, ${context.maxLength})`;
   }
 
   return code;
@@ -93,8 +94,18 @@ export const copycatTemplate = <MethodName extends CopycatMethodName>(
       context,
       methodName,
       [context.input, ...serializedArgs],
+      options?.isString ?? false,
       options?.options,
     );
 
   return templateFn;
 };
+
+export const copycatStringTemplate = <MethodName extends CopycatMethodName>(
+  methodName: MethodName,
+  options?: CopycatTemplateOptions<MethodName>,
+): TemplateFn =>
+  copycatTemplate(methodName, {
+    isString: true,
+    ...options,
+  });

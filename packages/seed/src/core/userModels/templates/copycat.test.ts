@@ -37,25 +37,25 @@ describe("copycatTemplate", () => {
 describe("generateCopycatCall", () => {
   test("uses `limit` option for max length fields if copycat method supports it", () => {
     const context = createTemplateContext();
-    context.field.maxLength = 50;
-    expect(generateCopycatCall(context, "email", ["input"])).toEqual(
+    context.maxLength = 50;
+    expect(generateCopycatCall(context, "email", ["input"], true)).toEqual(
       'copycat.email(input, {"limit":50})',
     );
   });
 
   test("uses truncation for max length fields if copycat method does not support `limit` option", () => {
     const context = createTemplateContext();
-    context.field.maxLength = 50;
-    expect(generateCopycatCall(context, "dateString", ["input"])).toEqual(
+    context.maxLength = 50;
+    expect(generateCopycatCall(context, "dateString", ["input"], true)).toEqual(
       "copycat.dateString(input).slice(0, 50)",
     );
   });
 
   test("supports providing extra options", () => {
     const context = createTemplateContext();
-    context.field.maxLength = 50;
+    context.maxLength = 50;
     expect(
-      generateCopycatCall(context, "email", ["input"], {
+      generateCopycatCall(context, "email", ["input"], true, {
         domain: "example.org",
       }),
     ).toEqual('copycat.email(input, {"domain":"example.org","limit":50})');
@@ -63,24 +63,22 @@ describe("generateCopycatCall", () => {
 
   test("stringifies non-string results for string fields", () => {
     const context = createTemplateContext();
-    expect(generateCopycatCall(context, "int", ["input"])).toEqual(
+    expect(generateCopycatCall(context, "int", ["input"], true)).toEqual(
       "copycat.int(input).toString()",
     );
   });
 
   test("does not stringify non-string results for non-string fields", () => {
     const context = createTemplateContext();
-    context.jsType = "number";
-    expect(generateCopycatCall(context, "int", ["input"])).toEqual(
+    expect(generateCopycatCall(context, "int", ["input"], false)).toEqual(
       "copycat.int(input)",
     );
   });
 
   test("does not truncate for non-string fields", () => {
     const context = createTemplateContext();
-    context.field.maxLength = 50;
-    context.jsType = "number";
-    expect(generateCopycatCall(context, "int", ["input"])).toEqual(
+    context.maxLength = 50;
+    expect(generateCopycatCall(context, "int", ["input"], false)).toEqual(
       "copycat.int(input)",
     );
   });

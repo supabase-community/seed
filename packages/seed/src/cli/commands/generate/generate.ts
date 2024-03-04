@@ -1,4 +1,13 @@
 import { type Argv } from "yargs";
+import { spinner } from "#cli/lib/spinner.js";
+import { type CodegenContext } from "#core/codegen/codegen.js";
+import { getDataModel } from "#core/dataModel/dataModel.js";
+import { type DataModel } from "#core/dataModel/types.js";
+import { getFingerprint } from "#core/fingerprint/fingerprint.js";
+import { type Templates } from "#core/userModels/templates/types.js";
+import { type TableShapePredictions } from "#trpc/shapes.js";
+import { fetchShapeExamples } from "./fetchShapeExamples.js";
+import { fetchShapePredictions } from "./fetchShapePredictions.js";
 
 export function generateCommand(program: Argv) {
   return program.command(
@@ -10,9 +19,58 @@ export function generateCommand(program: Argv) {
         describe: "A custom directory path to output the generated assets to",
         type: "string",
       }),
-    async (_args) => {
+    async (args) => {
       const { generateAssets } = await import("#core/codegen/codegen.js");
-      console.log(generateAssets());
+      const context = await computeCodegenContext({ outputDir: args.output });
+      await generateAssets(context);
+
+      console.log("Done!");
     },
   );
+}
+
+const getTemplates = async (dataModel: DataModel): Promise<Templates> => {
+  switch (dataModel.dialect) {
+    case "postgres":
+      return (await import("#dialects/postgres/userModels.js"))
+        .SEED_PG_TEMPLATES;
+    case "sqlite":
+      return (await import("#dialects/sqlite/userModels.js"))
+        .SEED_SQLITE_TEMPLATES;
+    default:
+      return {};
+  }
+};
+
+async function computeCodegenContext(props: {
+  outputDir: string | undefined;
+}): Promise<CodegenContext> {
+  const { outputDir } = props;
+
+  // todo(justinvdm, 28 Feb 2024):
+  // https://linear.app/snaplet/issue/S-1902/npx-snapletseed-generate-account-for-select-config
+
+  const dataModel = await getDataModel();
+
+  let shapePredictions: Array<TableShapePredictions> = [];
+  let shapeExamples: Array<{ examples: Array<string>; shape: string }> = [];
+
+  if (!process.env["SNAPLET_DISABLE_SHAPE_PREDICTION"]) {
+    spinner.start("Predicting data labels...");
+    shapePredictions = await fetchShapePredictions(dataModel);
+    spinner.succeed();
+
+    spinner.start("Loading label examples...");
+    shapeExamples = await fetchShapeExamples(shapePredictions);
+    spinner.succeed();
+  }
+
+  return {
+    fingerprint: await getFingerprint(),
+    dataModel,
+    outputDir,
+    shapePredictions,
+    shapeExamples,
+    templates: await getTemplates(dataModel),
+  };
 }

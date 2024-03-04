@@ -3,23 +3,35 @@
   "type": "module",
   "version": "1.0.0",
   "sideEffects": false,
-  "bin": "./dist/cli/index.js",
+  "bin": "./bin/cli.js",
+  "types": "./dist/index.d.ts",
   "imports": {
-    "#*": "./src/*",
+    "#*": {
+      "development": "./src/*",
+      "default": "./dist/*"
+    },
     "#test": "./test/index.js"
   },
   "exports": {
     ".": {
       "development": "./src/index.ts",
-      "default": "./dist/index.js"
+      "default": "./dist/index.js",
+      "types": "./dist/index.d.ts"
+    },
+    "./config": {
+      "development": "./src/config.ts",
+      "default": "./dist/config.js",
+      "types": "./dist/config.d.ts"
     },
     "./cli": {
       "development": "./src/cli/index.ts",
-      "default": "./dist/cli/index.js"
+      "default": "./dist/cli/index.js",
+      "types": "./dist/cli/index.d.ts"
     },
-    "./pg": {
-      "development": "./src/adapters/pg/client.ts",
-      "default": "./dist/adapters/pg/client.js"
+    "./dialects/*": {
+      "development": "./src/dialects/*.ts",
+      "default": "./dist/dialects/*.js",
+      "types": "./dist/dialects/*.d.ts"
     }
   },
   "devDependencies": {
@@ -55,9 +67,12 @@
     "@trpc/client": "10.45.1",
     "@trpc/server": "10.45.1",
     "c12": "1.8.0",
-    "fastest-levenshtein": "1.0.16",
     "find-up": "7.0.0",
     "inflection": "^3.0.0",
+    "javascript-stringify": "2.1.0",
+    "json-schema-library": "9.1.3",
+    "ora": "8.0.1",
+    "pg": "8.11.3",
     "quicktype-core": "^23.0.104",
     "remeda": "^1.41.0",
     "yargs": "^17.7.2",

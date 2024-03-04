@@ -304,10 +304,6 @@ describe("strings", () => {
           "success": true,
           "value": "2020-05-21T04:57:14.000Z",
         },
-        "DATE_OF_BIRTH": {
-          "success": true,
-          "value": "1992-05-21T04:57:14.000Z",
-        },
         "DRINKS": {
           "success": true,
           "value": "Screwdriver",
@@ -364,10 +360,6 @@ describe("strings", () => {
           "success": true,
           "value": "invoice",
         },
-        "FIRST_NAME": {
-          "success": true,
-          "value": "Louisa",
-        },
         "FOOD": {
           "success": true,
           "value": "Feta Cheese with Honey",
@@ -375,10 +367,6 @@ describe("strings", () => {
         "FULL_ADDRESS": {
           "success": true,
           "value": "21 Jast Tunnel, Goodyear 6456, Republic of Korea",
-        },
-        "FULL_NAME": {
-          "success": true,
-          "value": "Jeremie Hyatt",
         },
         "GENDER": {
           "success": true,
@@ -569,14 +557,6 @@ describe("strings", () => {
           "success": true,
           "value": "226.204.203.201",
         },
-        "LAST_NAME": {
-          "success": true,
-          "value": "Smith",
-        },
-        "LATITUDE": {
-          "success": true,
-          "value": "-27.59292054693725",
-        },
         "LICENSE_PLATE": {
           "success": true,
           "value": "EB82YFH",
@@ -589,13 +569,17 @@ describe("strings", () => {
           "success": true,
           "value": "Northeast",
         },
+        "LOCATION_LATITUDE": {
+          "success": true,
+          "value": "49",
+        },
+        "LOCATION_LONGITUDE": {
+          "success": true,
+          "value": "49",
+        },
         "LOCATION_NEARBY_G_P_S_COORDINATE": {
           "success": true,
           "value": "75.2319,-81.2788",
-        },
-        "LONGITUDE": {
-          "success": true,
-          "value": "-27.59292054693725",
         },
         "MAC_ADDRESS": {
           "success": true,
@@ -624,10 +608,6 @@ describe("strings", () => {
         "MUSIC_SONG_NAME": {
           "success": true,
           "value": "Let's Stay Together",
-        },
-        "NUMBER": {
-          "success": true,
-          "value": "3122849997445492",
         },
         "PASSWORD": {
           "success": true,
@@ -684,10 +664,6 @@ describe("strings", () => {
         "PERSON_ZODIAC_SIGN": {
           "success": true,
           "value": "Cancer",
-        },
-        "PHONE": {
-          "success": true,
-          "value": "+122889997445492",
         },
         "PHONE_IMEI": {
           "success": true,
@@ -804,10 +780,6 @@ describe("strings", () => {
         "TOKEN": {
           "success": true,
           "value": "968bab84-2c06-50d5-9538-d1f5c43b1b01",
-        },
-        "URL": {
-          "success": true,
-          "value": "https://forceful-custody.info",
         },
         "USERNAME": {
           "success": true,
