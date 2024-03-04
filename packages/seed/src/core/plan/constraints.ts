@@ -90,6 +90,12 @@ export async function checkConstraints(
   const sortedConstraints = sortBy(filteredConstraints, (c) => c.fields.length);
 
   for (const constraint of sortedConstraints) {
+    // We skip the constraint if it contains null values
+    // todo: once we have the info for "nulls not distinct" in the dataModel, we will be able to conditionnally skip the constraint
+    if (constraint.fields.some((c) => props.modelData[c] === null)) {
+      continue;
+    }
+
     const hash = getHash(
       // eslint-disable-next-line @typescript-eslint/no-base-to-string, @typescript-eslint/no-non-null-assertion
       constraint.fields.map((f) => props.modelData[f]!.toString()),
@@ -99,15 +105,24 @@ export async function checkConstraints(
 
     // constraint is violated, we try to fix it
     if (constraintStore.has(hash)) {
+      // We keep track of the parent fields relations columns so if they're part of the primary key
+      // we can distinguish them from the scalar fields
+      const parentsFieldsColumns: Array<string> = [];
       // We can only retry parent relation fields with a fallback connect function
-      const parentFieldsToRetry = props.parentFields.filter(
-        (p) =>
+      const parentFieldsToRetry = props.parentFields.filter((p) => {
+        if (
           intersection(p.relationFromFields, constraint.fields).length > 0 &&
           intersection(p.relationFromFields, processedFields).length === 0 &&
           props.inputsData[p.name] === undefined &&
           // @ts-expect-error check if the connect function is tagged as fallback
-          props.userModels[p.type].connect?.fallback,
-      );
+          props.userModels[p.type].connect?.fallback
+        ) {
+          parentsFieldsColumns.push(...p.relationFromFields);
+          return true;
+        }
+        return false;
+      });
+      const parentFieldsColumnsSet = new Set(parentsFieldsColumns);
       // We can only retry scalar fields with generateFn function
       const scalarFieldsToRetry = props.scalarFields.filter((f) => {
         const scalarField = props.inputsData[f.name] as ScalarField;
@@ -117,6 +132,7 @@ export async function checkConstraints(
             : scalarField;
 
         return (
+          !parentFieldsColumnsSet.has(f.name) &&
           constraint.fields.includes(f.name) &&
           !processedFields.includes(f.name) &&
           typeof generateFn === "function"
@@ -131,9 +147,17 @@ export async function checkConstraints(
           return acc;
         }, {});
       let constraintData = getConstraintData();
+      const connectStores = parentFieldsToRetry
+        .map((f) => f.type)
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        .reduce<Record<string, Array<any>>>((acc, type) => {
+          // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+          acc[type] = props.connectStore![type];
+          return acc;
+        }, {});
       // we want to attempt every combination of connections first
       let conflictFixed = await cartesianProduct({
-        connectStores: {},
+        connectStores,
         fields: parentFieldsToRetry,
         level: 0,
         constraintData,
@@ -142,12 +166,13 @@ export async function checkConstraints(
         ...props,
       });
 
-      if (!conflictFixed) {
+      // if we couldn't fix the constraint with parent fields, we try with scalar fields if there is something to try
+      if (!conflictFixed && scalarFieldsToRetry.length > 0) {
         // we reset the constraint data
         constraintData = getConstraintData();
         // we now try every combination of connections and scalar fields
         conflictFixed = await cartesianProduct({
-          connectStores: {},
+          connectStores,
           fields: [...parentFieldsToRetry, ...scalarFieldsToRetry],
           level: 0,
           constraintData,
@@ -214,16 +239,25 @@ async function cartesianProduct(
 
   const SCALAR_MAX_ATTEMPTS = 50;
   let iterations = SCALAR_MAX_ATTEMPTS;
+
   if (isParentField(field) && props.connectStore) {
     iterations = props.connectStore[field.type].length;
   }
+
+  // each level (field) works with its own copy of the connectStores
+  // we will mutate the connectStores to remove the candidates that were already tried
+  const connectStores = { ...props.connectStores };
+
   for (let i = 0; i < iterations; i++) {
     if (isParentField(field) && props.connectStore) {
       // process parent field
-      let connectStore =
-        field.type in props.connectStores
-          ? props.connectStores[field.type]
-          : [...props.connectStore[field.type]];
+      const connectStore = connectStores[field.type];
+
+      // If there is no more models to connect to, early exit
+      if (connectStore.length === 0) {
+        return false;
+      }
+
       const candidate = copycat.oneOf(
         `${props.modelSeed}/${field.name}`,
         connectStore,
@@ -243,8 +277,8 @@ async function cartesianProduct(
         return true;
       }
 
-      // remove the candidate from the connect store
-      props.connectStores[field.type] = connectStore.filter(
+      // remove the candidate from the connect stores
+      connectStores[field.type] = connectStore.filter(
         (p) => !field.relationToFields.every((f) => p[f] === candidate[f]),
       );
     } else {
