@@ -65,8 +65,6 @@ export declare const createSeedClient: (...args: any) => any
   DATA_MODEL: {
     name: "dataModel.json",
     template({ dataModel }: CodegenContext) {
-      // todo(justinvdm, 28 February 2024): Aliases
-      // https://linear.app/snaplet/issue/S-1896/npx-snapletseed-generate-apply-aliasing-to-data-model
       return JSON.stringify(dataModel);
     },
   },
