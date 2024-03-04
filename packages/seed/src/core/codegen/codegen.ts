@@ -3,18 +3,18 @@ import { mkdirp } from "fs-extra/esm";
 import { writeFile } from "node:fs/promises";
 import path from "node:path";
 import { type DataModel } from "#core/dataModel/types.js";
+import { type Dialect } from "#core/dialect/types.js";
 import { type Fingerprint } from "#core/fingerprint/types.js";
 import { type TableShapePredictions } from "#trpc/shapes.js";
-import { type Templates } from "../userModels/templates/types.js";
 import { generateUserModels } from "./userModels/generateUserModels.js";
 
 export interface CodegenContext {
   dataModel: DataModel;
+  dialect: Dialect;
   fingerprint: Fingerprint;
   outputDir?: string;
   shapeExamples: Array<{ examples: Array<string>; shape: string }>;
   shapePredictions: Array<TableShapePredictions>;
-  templates: Templates;
 }
 
 const FILES = {
@@ -39,7 +39,7 @@ import { readFileSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 
-import { getSeedClient } from "@snaplet/seed/dialects/${dataModel.dialect}/client";
+uimport { getSeedClient } from "@snaplet/seed/dialects/${dataModel.dialect}/client";
 import { userModels } from "./${FILES.USER_MODELS.name}";
 
 const __filename = fileURLToPath(import.meta.url);
@@ -53,13 +53,8 @@ export const createSeedClient = getSeedClient({ dataModel, userModels });
   },
   TYPEDEFS: {
     name: "index.d.ts",
-    template() {
-      // todo(justinvdm, 28 February 2024):
-      // https://linear.app/snaplet/issue/S-1895/npx-snapletseed-generate-generate-types
-      //return generateClientTypes({});
-      return `
-export declare const createSeedClient: (...args: any) => any
-`;
+    template({ dialect, dataModel, fingerprint }: CodegenContext) {
+      return dialect.generateClientTypes({ dataModel, fingerprint });
     },
   },
   DATA_MODEL: {
@@ -98,6 +93,6 @@ export const generateAssets = async (context: CodegenContext) => {
 
   for (const file of Object.values(FILES)) {
     const filePath = path.join(packageDirPath, file.name);
-    await writeFile(filePath, file.template(context));
+    await writeFile(filePath, await file.template(context));
   }
 };

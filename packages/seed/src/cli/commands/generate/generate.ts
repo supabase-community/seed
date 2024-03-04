@@ -2,10 +2,9 @@ import { type Argv } from "yargs";
 import { spinner } from "#cli/lib/spinner.js";
 import { type CodegenContext } from "#core/codegen/codegen.js";
 import { getDataModel } from "#core/dataModel/dataModel.js";
-import { type DataModel } from "#core/dataModel/types.js";
 import { getFingerprint } from "#core/fingerprint/fingerprint.js";
-import { type Templates } from "#core/userModels/templates/types.js";
 import { type TableShapePredictions } from "#trpc/shapes.js";
+import { getDialect } from "../../../core/dialect/getDialect.js";
 import { fetchShapeExamples } from "./fetchShapeExamples.js";
 import { fetchShapePredictions } from "./fetchShapePredictions.js";
 
@@ -28,19 +27,6 @@ export function generateCommand(program: Argv) {
     },
   );
 }
-
-const getTemplates = async (dataModel: DataModel): Promise<Templates> => {
-  switch (dataModel.dialect) {
-    case "postgres":
-      return (await import("#dialects/postgres/userModels.js"))
-        .SEED_PG_TEMPLATES;
-    case "sqlite":
-      return (await import("#dialects/sqlite/userModels.js"))
-        .SEED_SQLITE_TEMPLATES;
-    default:
-      return {};
-  }
-};
 
 async function computeCodegenContext(props: {
   outputDir: string | undefined;
@@ -71,6 +57,6 @@ async function computeCodegenContext(props: {
     outputDir,
     shapePredictions,
     shapeExamples,
-    templates: await getTemplates(dataModel),
+    dialect: await getDialect(dataModel.dialect),
   };
 }
