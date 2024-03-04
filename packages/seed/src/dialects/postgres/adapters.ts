@@ -1,8 +1,7 @@
+/* eslint-disable @typescript-eslint/no-unsafe-member-access */
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { is, sql } from "drizzle-orm";
-import { NodePgSession } from "drizzle-orm/node-postgres";
+import { sql } from "drizzle-orm";
 import { type PgDatabase, type QueryResultHKT } from "drizzle-orm/pg-core";
-import { PostgresJsSession } from "drizzle-orm/postgres-js";
 import { DrizzleDbClient } from "#core/adapters.js";
 
 export class DrizzleORMPgClient extends DrizzleDbClient<
@@ -36,17 +35,19 @@ export class DrizzleORMPostgresJsClient extends DrizzleDbClient<
   }
 }
 
+type PgAdapterName = "NodePgSession" | "PostgresJsSession";
+
 export function createDrizzleORMPgClient(
   db: PgDatabase<QueryResultHKT>,
-): DrizzleDbClient {
+): DrizzleORMPgClient {
   // @ts-expect-error - we need to use the drizzle internal adapter session name to determine the adapter
-  // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-  const session = db.session;
-  if (is(session, PostgresJsSession)) {
-    return new DrizzleORMPostgresJsClient(db);
+  const sessionName = db.session.constructor.name as PgAdapterName;
+  switch (sessionName) {
+    case "PostgresJsSession":
+      return new DrizzleORMPostgresJsClient(db);
+    case "NodePgSession":
+      return new DrizzleORMPgClient(db);
+    default:
+      return new DrizzleORMPgClient(db);
   }
-  if (is(session, NodePgSession)) {
-    return new DrizzleORMPgClient(db);
-  }
-  return new DrizzleORMPgClient(db);
 }
