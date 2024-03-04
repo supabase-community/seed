@@ -6,10 +6,10 @@ import {
   type DataModelModel,
   type DataModelScalarField,
 } from "#core/dataModel/types.js";
+import { type Dialect } from "#core/dialect/types.js";
 import { isJsonField } from "#core/fingerprint/fingerprint.js";
 import { type Fingerprint } from "#core/fingerprint/types.js";
 import { generateCodeFromTemplate } from "#core/userModels/templates/codegen.js";
-import { type Templates } from "#core/userModels/templates/types.js";
 import { type UserModels } from "#core/userModels/types.js";
 import { type Shape, type TableShapePredictions } from "#trpc/shapes.js";
 import { generateJsonField } from "./generateJsonField.js";
@@ -23,20 +23,14 @@ const findEnumType = (dataModel: DataModel, field: DataModelField) =>
 
 const generateDefaultForField = (props: {
   dataModel: DataModel;
+  dialect: Dialect;
   field: DataModelField;
   fieldShapeExamples: Array<string> | null;
   fingerprint: Fingerprint[string][string] | null;
   shape: Shape | null;
-  templates: Templates;
 }) => {
-  const {
-    field,
-    dataModel,
-    shape,
-    fingerprint,
-    fieldShapeExamples,
-    templates,
-  } = props;
+  const { field, dataModel, shape, fingerprint, fieldShapeExamples, dialect } =
+    props;
 
   const matchEnum = findEnumType(dataModel, field);
 
@@ -68,20 +62,20 @@ const generateDefaultForField = (props: {
     field.type,
     field.maxLength ?? null,
     shape,
-    templates,
+    dialect,
   );
   return `({ seed, options }) => { return ${code} }`;
 };
 
 const generateDefaultsForModel = (props: {
   dataModel: DataModel;
+  dialect: Dialect;
   fingerprint: Fingerprint[string] | null;
   model: DataModelModel;
   shapeExamples: Array<{ examples: Array<string>; shape: string }>;
   shapePredictions: TableShapePredictions | null;
-  templates: Templates;
 }) => {
-  const { fingerprint, model, dataModel, shapePredictions, templates } = props;
+  const { fingerprint, model, dataModel, shapePredictions, dialect } = props;
 
   const fields: { data: NonNullable<UserModels[string]["data"]> } = {
     data: {},
@@ -124,7 +118,7 @@ const generateDefaultsForModel = (props: {
         shape,
         fieldShapeExamples,
         fingerprint: fieldFingerprint,
-        templates,
+        dialect,
       });
     }
   }
@@ -133,12 +127,12 @@ const generateDefaultsForModel = (props: {
 
 export const generateDefaultsForModels = (props: {
   dataModel: DataModel;
+  dialect: Dialect;
   fingerprint: Fingerprint;
   shapeExamples: Array<{ examples: Array<string>; shape: string }>;
   shapePredictions: Array<TableShapePredictions>;
-  templates: Templates;
 }) => {
-  const { fingerprint, dataModel, shapePredictions, templates } = props;
+  const { fingerprint, dataModel, shapePredictions, dialect } = props;
   const models: UserModels = {};
 
   for (const [modelName, model] of Object.entries(dataModel.models)) {
@@ -157,7 +151,7 @@ export const generateDefaultsForModels = (props: {
       shapePredictions: modelShapePredictions,
       shapeExamples: props.shapeExamples,
       fingerprint: modelFingerprint,
-      templates,
+      dialect,
     });
   }
 
@@ -165,7 +159,7 @@ export const generateDefaultsForModels = (props: {
 };
 
 export const generateUserModels = (context: CodegenContext) => {
-  const { fingerprint, dataModel, shapePredictions, shapeExamples, templates } =
+  const { fingerprint, dataModel, shapePredictions, shapeExamples, dialect } =
     context;
 
   const defaults = generateDefaultsForModels({
@@ -173,7 +167,7 @@ export const generateUserModels = (context: CodegenContext) => {
     shapePredictions,
     shapeExamples,
     fingerprint,
-    templates,
+    dialect,
   });
 
   const stringifiedDefaults =

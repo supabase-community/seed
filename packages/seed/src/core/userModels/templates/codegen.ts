@@ -1,9 +1,9 @@
+import { type Dialect } from "#core/dialect/types.js";
 import { type Shape } from "#trpc/shapes.js";
 import {
   type TemplateContext,
   type TemplateFn,
   type TemplateInput,
-  type Templates,
 } from "./types.js";
 
 export const generateCodeFromTemplate = <Type extends string>(
@@ -11,7 +11,7 @@ export const generateCodeFromTemplate = <Type extends string>(
   type: Type,
   maxLength: null | number,
   shape: Shape | null,
-  templates: Templates<Type>,
+  dialect: Dialect,
 ) => {
   const context: TemplateContext = {
     input,
@@ -23,7 +23,7 @@ export const generateCodeFromTemplate = <Type extends string>(
   // todo(justinvdm, 28 Feb 2024): Bring back array support
   // https://linear.app/snaplet/issue/S-1901/bring-back-array-support-for-templates
 
-  const shapeTemplates = templates[type];
+  const shapeTemplates = dialect.templates[type];
 
   if (shapeTemplates == null) {
     return null;
