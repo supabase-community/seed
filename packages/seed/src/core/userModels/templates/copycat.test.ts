@@ -82,4 +82,48 @@ describe("generateCopycatCall", () => {
       "copycat.int(input)",
     );
   });
+
+  test("generates options when both optionsInput and extra options are given", () => {
+    const context = createTemplateContext();
+    context.extras = { optionsInput: "opts" };
+
+    expect(
+      generateCopycatCall(context, "email", ["input"], true, {
+        domain: "example.org",
+      }),
+    ).toEqual('copycat.email(input, { ...{"domain":"example.org"}, ...opts })');
+  });
+
+  test("generates options when optionsInput is given and limit is relevant", () => {
+    const context = createTemplateContext();
+    context.maxLength = 50;
+    context.extras = { optionsInput: "opts" };
+
+    expect(generateCopycatCall(context, "email", ["input"], true)).toEqual(
+      'copycat.email(input, { ...{"limit":50}, ...opts })',
+    );
+  });
+
+  test("generates options when all of optionsInput, extra options and limit is relevant", () => {
+    const context = createTemplateContext();
+    context.maxLength = 50;
+    context.extras = { optionsInput: "opts" };
+
+    expect(
+      generateCopycatCall(context, "email", ["input"], true, {
+        domain: "example.org",
+      }),
+    ).toEqual(
+      'copycat.email(input, { ...{"domain":"example.org","limit":50}, ...opts })',
+    );
+  });
+
+  test("generates options when optionsInput given but no other options are relevant", () => {
+    const context = createTemplateContext();
+    context.extras = { optionsInput: "opts" };
+
+    expect(generateCopycatCall(context, "email", ["input"], true)).toEqual(
+      "copycat.email(input, opts)",
+    );
+  });
 });

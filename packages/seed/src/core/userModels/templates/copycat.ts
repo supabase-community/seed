@@ -42,30 +42,49 @@ const COPYCAT_METHODS_RETURNING_NON_STRINGS_SET = new Set<CopycatMethodName>([
   "oneOf",
 ]);
 
-export const generateCopycatCall = <MethodName extends CopycatMethodName>(
-  context: TemplateContext,
+export const generateCopycatCall = <
+  MethodName extends CopycatMethodName,
+  Type extends string,
+  Extras extends { optionsInput?: "options" },
+>(
+  context: TemplateContext<Type, Extras>,
   methodName: MethodName,
   inputs: Array<string>,
   isString: boolean,
   extraOptions?: Partial<CopycatMethodOptions<MethodName>>,
 ): string => {
   const args = [...inputs.map((input) => String(input))];
+
+  const { maxLength, extras } = context;
+  const { optionsInput } = extras ?? {};
+
   const options: Partial<CopycatMethodOptions<MethodName>> = {
     ...(extraOptions ?? {}),
   };
 
   let needsTruncating = false;
 
-  if (context.maxLength != null) {
+  if (maxLength != null) {
     if (COPYCAT_METHODS_SUPPORTING_LIMIT_SET.has(methodName)) {
-      (options as { limit?: number }).limit = context.maxLength;
+      (options as { limit?: number }).limit = maxLength;
     } else {
       needsTruncating = true;
     }
   }
 
-  if (Object.keys(options).length > 0) {
-    args.push(JSON.stringify(options));
+  const hasOwnOptions = Object.keys(options).length > 0;
+  let optionsArg: null | string = null;
+
+  if (optionsInput != null && hasOwnOptions) {
+    optionsArg = `{ ...${JSON.stringify(options)}, ...${optionsInput} }`;
+  } else if (optionsInput == null && hasOwnOptions) {
+    optionsArg = JSON.stringify(options);
+  } else if (optionsInput != null && !hasOwnOptions) {
+    optionsArg = optionsInput;
+  }
+
+  if (optionsArg != null) {
+    args.push(optionsArg);
   }
 
   let code = `copycat.${methodName}(${args.join(", ")})`;

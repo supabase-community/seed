@@ -1,7 +1,11 @@
 import { type Shape } from "#trpc/shapes.js";
 import { type ShapeExtra } from "./shapeExtra.js";
 
-export interface TemplateContext<Type extends string = string> {
+export interface TemplateContext<
+  Type extends string = string,
+  Extras extends Record<string, unknown> = Record<string, unknown>,
+> {
+  extras?: Extras;
   input: TemplateInput;
   maxLength: null | number;
   shape: Shape | null;

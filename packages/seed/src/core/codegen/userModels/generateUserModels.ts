@@ -57,13 +57,15 @@ const generateDefaultForField = (props: {
     }
   }
 
-  const code = generateCodeFromTemplate(
-    "seed",
-    field.type,
-    field.maxLength ?? null,
+  const code = generateCodeFromTemplate({
+    input: "seed",
+    type: field.type,
+    maxLength: field.maxLength ?? null,
     shape,
-    dialect.templates,
-  );
+    templates: dialect.templates,
+    extras: { optionsInput: "options" },
+  });
+
   return `({ seed, options }) => { return ${code} }`;
 };
 
