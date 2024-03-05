@@ -62,7 +62,7 @@ const generateDefaultForField = (props: {
     field.type,
     field.maxLength ?? null,
     shape,
-    dialect,
+    dialect.templates,
   );
   return `({ seed, options }) => { return ${code} }`;
 };
