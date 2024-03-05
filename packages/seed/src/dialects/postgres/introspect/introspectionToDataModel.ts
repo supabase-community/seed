@@ -243,6 +243,7 @@ export function introspectionToDataModel(
         sequence,
         hasDefaultValue: column.default !== null,
         isId: Boolean(primaryKeysColumnsNames.get(column.name)),
+        maxLength: column.maxLength,
       };
       fields.push(field);
     }
