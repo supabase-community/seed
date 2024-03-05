@@ -39,7 +39,7 @@ type PgAdapterName = "NodePgSession" | "PostgresJsSession";
 
 export function createDrizzleORMPgClient(
   db: PgDatabase<QueryResultHKT>,
-): DrizzleORMPgClient {
+): DrizzleDbClient {
   // @ts-expect-error - we need to use the drizzle internal adapter session name to determine the adapter
   const sessionName = db.session.constructor.name as PgAdapterName;
   switch (sessionName) {
