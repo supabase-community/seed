@@ -34,13 +34,13 @@ export class DrizzleORMSqliteBunClient extends DrizzleDbClient<
   }
 }
 
-type PgAdapterName = "BetterSQLiteSession" | "SQLiteBunSession";
+type SQLiteAdapterName = "BetterSQLiteSession" | "SQLiteBunSession";
 
 export function createDrizzleORMSqliteClient(
   db: BaseSQLiteDatabase<"async" | "sync", unknown, any>,
-): DrizzleORMBetterSQLiteClient {
+): DrizzleDbClient {
   // @ts-expect-error - we need to use the drizzle internal adapter session name to determine the adapter
-  const sessionName = db.session.constructor.name as PgAdapterName;
+  const sessionName = db.session.constructor.name as SQLiteAdapterName;
   switch (sessionName) {
     case "BetterSQLiteSession":
       return new DrizzleORMBetterSQLiteClient(db);
