@@ -15,6 +15,16 @@ export const unpackNestedType = <Type extends string>(
   return [primitive as Type, rest.length];
 };
 
+function encloseValueInArray(value: string, dimensions: number) {
+  if (dimensions === 0) {
+    return value;
+  }
+
+  return Array(dimensions)
+    .fill(undefined)
+    .reduce<string>((acc) => `[${acc}]`, value);
+}
+
 export const generateCodeFromTemplate = <Type extends string>(
   input: TemplateInput,
   wrappedType: NestedType | Type,
@@ -57,13 +67,3 @@ export const generateCodeFromTemplate = <Type extends string>(
 
   return result != null ? encloseValueInArray(result, dimensions) : null;
 };
-
-function encloseValueInArray(value: string, dimensions: number) {
-  if (dimensions === 0) {
-    return value;
-  }
-
-  return Array(dimensions)
-    .fill(undefined)
-    .reduce<string>((acc) => `[${acc}]`, value);
-}
