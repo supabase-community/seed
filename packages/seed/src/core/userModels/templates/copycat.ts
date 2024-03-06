@@ -23,6 +23,7 @@ interface CopycatTemplateOptions<MethodName extends CopycatMethodName> {
   args?: Array<Json>;
   isString?: boolean;
   options?: Partial<CopycatMethodOptions<MethodName>>;
+  wrap?: (code: string) => string;
 }
 
 const COPYCAT_METHODS_SUPPORTING_LIMIT_SET = new Set<CopycatMethodName>([
@@ -42,13 +43,16 @@ const COPYCAT_METHODS_RETURNING_NON_STRINGS_SET = new Set<CopycatMethodName>([
   "oneOf",
 ]);
 
-export const generateCopycatCall = <MethodName extends CopycatMethodName>(
-  context: TemplateContext,
-  methodName: MethodName,
-  inputs: Array<string>,
-  isString: boolean,
-  extraOptions?: Partial<CopycatMethodOptions<MethodName>>,
-): string => {
+export const generateCopycatCall = <
+  MethodName extends CopycatMethodName,
+>(props: {
+  context: TemplateContext;
+  extraOptions?: Partial<CopycatMethodOptions<MethodName>>;
+  inputs: Array<string>;
+  isString: boolean;
+  methodName: MethodName;
+}): string => {
+  const { context, methodName, inputs, isString, extraOptions } = props;
   const args = [...inputs.map((input) => String(input))];
 
   const { maxLength, optionsInput } = context;
@@ -99,18 +103,22 @@ export const copycatTemplate = <MethodName extends CopycatMethodName>(
   methodName: MethodName,
   options?: CopycatTemplateOptions<MethodName>,
 ): TemplateFn => {
+  const { wrap } = options ?? {};
   const serializedArgs = (options?.args ?? []).map((arg) =>
     JSON.stringify(arg),
   );
 
-  const templateFn: TemplateFn = (context) =>
-    generateCopycatCall(
+  const templateFn: TemplateFn = (context) => {
+    const code = generateCopycatCall({
       context,
       methodName,
-      [context.input, ...serializedArgs],
-      options?.isString ?? false,
-      options?.options,
-    );
+      inputs: [context.input, ...serializedArgs],
+      isString: options?.isString ?? false,
+      extraOptions: options?.options,
+    });
+
+    return wrap ? wrap(code) : code;
+  };
 
   return templateFn;
 };
