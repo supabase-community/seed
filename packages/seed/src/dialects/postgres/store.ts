@@ -1,4 +1,5 @@
 import { format } from "@scaleleap/pg-format";
+import { EOL } from "node:os";
 import { type Json } from "#core/data/types.js";
 import {
   type DataModel,
@@ -86,6 +87,7 @@ function createStatement(ctx: {
       ] as [string, ModelData]);
     }
 
+    // if the parent is not set or null, we can skip it
     // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
     if (parentIdFields.every(([, v]) => v === null || v === undefined)) {
       continue;
@@ -105,7 +107,11 @@ function createStatement(ctx: {
     // if the row is pending, we have a circular dependency
     if (ctx.pending[parent.type].includes(parentRowId)) {
       throw new Error(
-        `Circular dependency detected for model ${parent.type} for row ${JSON.stringify(parentRow)}`,
+        [
+          `Circular dependency detected for model ${parent.type} for row ${JSON.stringify(parentRow)}`,
+          `Pending context:`,
+          JSON.stringify(ctx.pending),
+        ].join(EOL),
       );
     }
 
