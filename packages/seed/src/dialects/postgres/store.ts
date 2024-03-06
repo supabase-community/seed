@@ -106,11 +106,22 @@ function createStatement(ctx: {
     const parentRow = ctx.store[parent.type][parentRowIndex];
     // if the row is pending, we have a circular dependency
     if (ctx.pending[parent.type].includes(parentRowId)) {
+      if (!parent.isRequired) {
+        // for each parent's column, set them to NULL at insertion time
+        // generate an update statement for later with the parent's id
+      }
       throw new Error(
         [
           `Circular dependency detected for model ${parent.type} for row ${JSON.stringify(parentRow)}`,
           `Pending context:`,
-          JSON.stringify(ctx.pending),
+          JSON.stringify(
+            ctx.pending[parent.type].map(
+              (r) =>
+                ctx.store[parent.type][
+                  Number(r.replace(`${parent.type}-`, ""))
+                ],
+            ),
+          ),
         ].join(EOL),
       );
     }

@@ -253,5 +253,50 @@ describe.each(["postgresJs"] as const)("store: %s", (adapter) => {
         ]),
       );
     });
+    test.only("should handle circular references", async () => {
+      const structure = `
+        create table customer (
+          id serial primary key,
+          name text not null,
+          referrer_id integer references customer(id)
+        );
+      `;
+
+      const db = await createTestDb(structure);
+      const orm = createDrizzleORMPgClient(drizzle(db.client));
+      const dataModel = await getDatamodel(orm);
+
+      const store = new PgStore(dataModel);
+
+      store.add("customer", {
+        id: 1,
+        name: "John Doe",
+        referrer_id: 2,
+      });
+
+      store.add("customer", {
+        id: 2,
+        name: "Jane Doe",
+        referrer_id: 1,
+      });
+
+      await execQueries(orm, [...store.toSQL()]);
+      const results = await orm.query(`select * from customer order by id asc`);
+      console.log(results);
+      expect(results).toEqual(
+        expect.arrayContaining([
+          {
+            id: 1,
+            name: "John Doe",
+            referrer_id: 2,
+          },
+          {
+            id: 2,
+            name: "Jane Doe",
+            referrer_id: 1,
+          },
+        ]),
+      );
+    });
   });
 });
