@@ -63,7 +63,7 @@ const generateDefaultForField = (props: {
     maxLength: field.maxLength ?? null,
     shape,
     templates: dialect.templates,
-    extras: { optionsInput: "options" },
+    optionsInput: "options",
   });
 
   return `({ seed, options }) => { return ${code} }`;

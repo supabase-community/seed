@@ -9,6 +9,7 @@ describe("generateCodeFromTemplate", () => {
         type: "text",
         maxLength: null,
         shape: "PERSON_FIRST_NAME",
+        optionsInput: null,
         templates: {
           text: {
             PERSON_FIRST_NAME: () => '"bar"',
@@ -26,6 +27,7 @@ describe("generateCodeFromTemplate", () => {
         type: "text",
         maxLength: null,
         shape: "PERSON_FIRST_NAME",
+        optionsInput: null,
         templates: {
           text: {
             __DEFAULT: () => '"baz"',
@@ -42,6 +44,7 @@ describe("generateCodeFromTemplate", () => {
         type: "text",
         maxLength: null,
         shape: null,
+        optionsInput: null,
         templates: {
           text: {
             PERSON_FIRST_NAME: () => '"bar"',
@@ -59,6 +62,7 @@ describe("generateCodeFromTemplate", () => {
         type: "text[]",
         maxLength: null,
         shape: null,
+        optionsInput: null,
         templates: {
           text: {
             __DEFAULT: () => '"bar"',
@@ -73,6 +77,7 @@ describe("generateCodeFromTemplate", () => {
         type: "text[][]",
         maxLength: null,
         shape: null,
+        optionsInput: null,
         templates: {
           text: {
             __DEFAULT: () => '"bar"',

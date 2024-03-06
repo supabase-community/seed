@@ -25,13 +25,10 @@ function encloseValueInArray(value: string, dimensions: number) {
     .reduce<string>((acc) => `[${acc}]`, value);
 }
 
-export const generateCodeFromTemplate = <
-  Type extends string,
-  Extras extends Record<string, unknown>,
->(props: {
-  extras?: Extras;
+export const generateCodeFromTemplate = <Type extends string>(props: {
   input: TemplateInput;
   maxLength: null | number;
+  optionsInput: null | string;
   shape: Shape | null;
   templates: Templates;
   type: NestedType | Type;
@@ -42,17 +39,17 @@ export const generateCodeFromTemplate = <
     shape,
     templates,
     type: wrappedType,
-    extras,
+    optionsInput,
   } = props;
 
   const [type, dimensions] = unpackNestedType<Type>(wrappedType);
 
-  const context: TemplateContext<Type, Extras> = {
+  const context: TemplateContext<Type> = {
     input,
     type,
     maxLength,
     shape,
-    extras,
+    optionsInput,
   };
 
   let result: null | string = null;

@@ -42,12 +42,8 @@ const COPYCAT_METHODS_RETURNING_NON_STRINGS_SET = new Set<CopycatMethodName>([
   "oneOf",
 ]);
 
-export const generateCopycatCall = <
-  MethodName extends CopycatMethodName,
-  Type extends string,
-  Extras extends { optionsInput?: "options" },
->(
-  context: TemplateContext<Type, Extras>,
+export const generateCopycatCall = <MethodName extends CopycatMethodName>(
+  context: TemplateContext,
   methodName: MethodName,
   inputs: Array<string>,
   isString: boolean,
@@ -55,8 +51,7 @@ export const generateCopycatCall = <
 ): string => {
   const args = [...inputs.map((input) => String(input))];
 
-  const { maxLength, extras } = context;
-  const { optionsInput } = extras ?? {};
+  const { maxLength, optionsInput } = context;
 
   const options: Partial<CopycatMethodOptions<MethodName>> = {
     ...(extraOptions ?? {}),
