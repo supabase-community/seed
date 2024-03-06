@@ -4,6 +4,7 @@ import { type ShapeExtra } from "./shapeExtra.js";
 export interface TemplateContext<Type extends string = string> {
   input: TemplateInput;
   maxLength: null | number;
+  optionsInput: null | string;
   shape: Shape | null;
   type: Type;
 }

@@ -4,10 +4,17 @@ import { generateCodeFromTemplate } from "./codegen.js";
 describe("generateCodeFromTemplate", () => {
   test("generates code from template", () => {
     expect(
-      generateCodeFromTemplate("foo", "text", null, "PERSON_FIRST_NAME", {
-        text: {
-          PERSON_FIRST_NAME: () => '"bar"',
-          __DEFAULT: () => '"baz"',
+      generateCodeFromTemplate({
+        input: "foo",
+        type: "text",
+        maxLength: null,
+        shape: "PERSON_FIRST_NAME",
+        optionsInput: null,
+        templates: {
+          text: {
+            PERSON_FIRST_NAME: () => '"bar"',
+            __DEFAULT: () => '"baz"',
+          },
         },
       }),
     ).toEqual('"bar"');
@@ -15,9 +22,16 @@ describe("generateCodeFromTemplate", () => {
 
   test("uses default template if there is no matching shape", () => {
     expect(
-      generateCodeFromTemplate("foo", "text", null, "PERSON_FIRST_NAME", {
-        text: {
-          __DEFAULT: () => '"baz"',
+      generateCodeFromTemplate({
+        input: "foo",
+        type: "text",
+        maxLength: null,
+        shape: "PERSON_FIRST_NAME",
+        optionsInput: null,
+        templates: {
+          text: {
+            __DEFAULT: () => '"baz"',
+          },
         },
       }),
     ).toEqual('"baz"');
@@ -25,10 +39,17 @@ describe("generateCodeFromTemplate", () => {
 
   test("uses default template if there is no shape", () => {
     expect(
-      generateCodeFromTemplate("foo", "text", null, null, {
-        text: {
-          PERSON_FIRST_NAME: () => '"bar"',
-          __DEFAULT: () => '"baz"',
+      generateCodeFromTemplate({
+        input: "foo",
+        type: "text",
+        maxLength: null,
+        shape: null,
+        optionsInput: null,
+        templates: {
+          text: {
+            PERSON_FIRST_NAME: () => '"bar"',
+            __DEFAULT: () => '"baz"',
+          },
         },
       }),
     ).toEqual('"baz"');
@@ -36,17 +57,31 @@ describe("generateCodeFromTemplate", () => {
 
   test("supports array types", () => {
     expect(
-      generateCodeFromTemplate("foo", "text[]", null, null, {
-        text: {
-          __DEFAULT: () => '"bar"',
+      generateCodeFromTemplate({
+        input: "foo",
+        type: "text[]",
+        maxLength: null,
+        shape: null,
+        optionsInput: null,
+        templates: {
+          text: {
+            __DEFAULT: () => '"bar"',
+          },
         },
       }),
     ).toEqual('["bar"]');
 
     expect(
-      generateCodeFromTemplate("foo", "text[][]", null, null, {
-        text: {
-          __DEFAULT: () => '"bar"',
+      generateCodeFromTemplate({
+        input: "foo",
+        type: "text[][]",
+        maxLength: null,
+        shape: null,
+        optionsInput: null,
+        templates: {
+          text: {
+            __DEFAULT: () => '"bar"',
+          },
         },
       }),
     ).toEqual('[["bar"]]');
