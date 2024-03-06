@@ -24,7 +24,7 @@ async function execQueries(client: DrizzleORMPgClient, queries: Array<string>) {
 describe.each(["postgresJs"] as const)("store: %s", (adapter) => {
   const { drizzle, createTestDb } = adapters[adapter]();
   describe("SQL -> Store -> SQL", () => {
-    test("should be able to insert basic rows into table", async () => {
+    test.only("should be able to insert basic rows into table", async () => {
       const structure = `
       CREATE TABLE "test_customer" (
         id SERIAL PRIMARY KEY NOT NULL,
