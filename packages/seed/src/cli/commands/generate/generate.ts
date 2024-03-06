@@ -37,13 +37,16 @@ async function computeCodegenContext(props: {
   // https://linear.app/snaplet/issue/S-1902/npx-snapletseed-generate-account-for-select-config
 
   const dataModel = await getDataModel();
-
+  const dialect = await getDialect(dataModel.dialect);
   let shapePredictions: Array<TableShapePredictions> = [];
   let shapeExamples: Array<{ examples: Array<string>; shape: string }> = [];
 
   if (!process.env["SNAPLET_DISABLE_SHAPE_PREDICTION"]) {
     spinner.start("Predicting data labels...");
-    shapePredictions = await fetchShapePredictions(dataModel);
+    shapePredictions = await fetchShapePredictions({
+      determineShapeFromType: dialect.determineShapeFromType,
+      dataModel,
+    });
     spinner.succeed();
 
     spinner.start("Loading label examples...");
@@ -57,6 +60,6 @@ async function computeCodegenContext(props: {
     outputDir,
     shapePredictions,
     shapeExamples,
-    dialect: await getDialect(dataModel.dialect),
+    dialect,
   };
 }
