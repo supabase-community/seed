@@ -197,7 +197,7 @@ export const GenerateShapes = [
   "LONGITUDE",
 ] as const;
 
-export type Shape = (typeof GenerateShapes)[number];
+export type Shape = "__DEFAULT" | (typeof GenerateShapes)[number];
 
 export interface PredictedShape {
   column: string;

@@ -1,14 +1,18 @@
 import { spinner } from "#cli/lib/spinner.js";
+import { shouldGenerateFieldValue } from "#core/dataModel/shouldGenerateFieldValue.js";
 import { type DataModel } from "#core/dataModel/types.js";
+import { type DetermineShapeFromType } from "#core/dialect/types.js";
 import { trpc } from "#trpc/client.js";
 import {
   type StartPredictionsColumn,
   type TableShapePredictions,
 } from "#trpc/shapes.js";
 
-export const fetchShapePredictions = async (
-  dataModel: DataModel,
-): Promise<Array<TableShapePredictions>> => {
+export const fetchShapePredictions = async (props: {
+  dataModel: DataModel;
+  determineShapeFromType: DetermineShapeFromType;
+}): Promise<Array<TableShapePredictions>> => {
+  const { determineShapeFromType, dataModel } = props;
   spinner.info(`Predicting data labels...`);
   const allColumns: Array<StartPredictionsColumn> = [];
   const shapePredictions: Array<TableShapePredictions> = [];
@@ -18,12 +22,23 @@ export const fetchShapePredictions = async (
     // for anyways
     // https://linear.app/snaplet/issue/S-1897/npx-snapletseed-generate-per-dialect-shape-logic
 
-    const columns = model.fields.map((f) => ({
-      schemaName: model.schemaName ?? "",
-      tableName: model.tableName,
-      columnName: f.name,
-      pgType: f.type,
-    }));
+    const columns = model.fields
+      .map((field) => {
+        if (
+          !shouldGenerateFieldValue(field) ||
+          determineShapeFromType(field.type) !== null
+        ) {
+          return null;
+        }
+
+        return {
+          schemaName: model.schemaName ?? "",
+          tableName: model.tableName,
+          columnName: field.name,
+          pgType: field.type,
+        };
+      })
+      .filter(Boolean);
 
     allColumns.push(...columns);
   }
