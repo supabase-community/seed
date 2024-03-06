@@ -78,7 +78,7 @@ export class PgStore extends StoreBase {
         });
       }
     }
-    console.log(statements);
+
     return [...statements, ...sequenceFixerStatements];
   }
 }
@@ -159,7 +159,7 @@ function createStatement(ctx: {
   ]
     .filter((s) => Boolean(s))
     .join(" ");
-  console.log({ row: ctx.row });
+
   const insertableFields = scalars.filter((f) => !(f.isGenerated && !f.isId));
   const insertStatement = format(
     insertStatementTemplate,
