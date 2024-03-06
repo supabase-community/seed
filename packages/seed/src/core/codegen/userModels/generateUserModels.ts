@@ -12,6 +12,7 @@ import { type Fingerprint } from "#core/fingerprint/types.js";
 import { generateCodeFromTemplate } from "#core/userModels/templates/codegen.js";
 import { type UserModels } from "#core/userModels/types.js";
 import { type Shape, type TableShapePredictions } from "#trpc/shapes.js";
+import { shouldGenerateFieldValue } from "../../dataModel/shouldGenerateFieldValue.js";
 import { generateJsonField } from "./generateJsonField.js";
 
 export const SHAPE_PREDICTION_CONFIDENCE_THRESHOLD = 0.65;
@@ -88,30 +89,32 @@ const generateDefaultsForModel = (props: {
   ) as Array<DataModelScalarField>;
 
   for (const field of scalarFields) {
-    const prediction = shapePredictions?.predictions.find((prediction) => {
-      return (
-        prediction.column === field.columnName &&
-        prediction.shape != null &&
-        prediction.confidence != null &&
-        prediction.confidence > SHAPE_PREDICTION_CONFIDENCE_THRESHOLD
-      );
-    });
-
+    let shape = dialect.determineShapeFromType(field.type);
     let fieldShapeExamples = null;
-    let shape: Shape | null = null;
 
-    if (prediction) {
-      shape = prediction.shape ?? null;
+    if (shape == null) {
+      const prediction = shapePredictions?.predictions.find((prediction) => {
+        return (
+          prediction.column === field.columnName &&
+          prediction.shape != null &&
+          prediction.confidence != null &&
+          prediction.confidence > SHAPE_PREDICTION_CONFIDENCE_THRESHOLD
+        );
+      });
+
+      if (prediction) {
+        shape = prediction.shape ?? null;
+      }
+    }
+
+    if (shape != null) {
       fieldShapeExamples =
-        props.shapeExamples.find((e) => e.shape === prediction.shape)
-          ?.examples ?? null;
+        props.shapeExamples.find((e) => e.shape === shape)?.examples ?? null;
     }
 
     const fieldFingerprint = fingerprint?.[field.name] ?? null;
 
-    // If the field is both a sequence and id, its default value must be null
-    // so we can overide it with the sequence generator in the plan
-    if (field.isId && field.sequence) {
+    if (!shouldGenerateFieldValue(field)) {
       fields.data[field.name] = null;
     } else {
       fields.data[field.name] = generateDefaultForField({

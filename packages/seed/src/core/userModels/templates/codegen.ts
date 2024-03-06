@@ -1,3 +1,5 @@
+import { type NestedType } from "#core/dialect/types.js";
+import { unpackNestedType } from "#core/dialect/unpackNestedType.js";
 import { type Shape } from "#trpc/shapes.js";
 import {
   type TemplateContext,
@@ -5,15 +7,6 @@ import {
   type TemplateInput,
   type Templates,
 } from "./types.js";
-
-type NestedType = string;
-
-export const unpackNestedType = <Type extends string>(
-  type: NestedType | Type,
-): [Type, number] => {
-  const [primitive, ...rest] = type.split("[]");
-  return [primitive as Type, rest.length];
-};
 
 function encloseValueInArray(value: string, dimensions: number) {
   if (dimensions === 0) {

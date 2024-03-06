@@ -4,5 +4,6 @@ import { SEED_SQLITE_TEMPLATES } from "./userModels.js";
 
 export const dialect: Dialect = {
   generateClientTypes,
+  determineShapeFromType: () => null,
   templates: SEED_SQLITE_TEMPLATES,
 };
