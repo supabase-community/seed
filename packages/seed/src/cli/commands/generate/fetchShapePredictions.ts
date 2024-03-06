@@ -25,6 +25,7 @@ export const fetchShapePredictions = async (props: {
     const columns = model.fields
       .map((field) => {
         if (
+          field.kind !== "scalar" ||
           !shouldGenerateFieldValue(field) ||
           determineShapeFromType(field.type) !== null
         ) {
@@ -34,7 +35,7 @@ export const fetchShapePredictions = async (props: {
         return {
           schemaName: model.schemaName ?? "",
           tableName: model.tableName,
-          columnName: field.name,
+          columnName: field.columnName,
           pgType: field.type,
         };
       })
