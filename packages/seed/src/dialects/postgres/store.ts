@@ -93,7 +93,6 @@ function createStatement(ctx: {
   statements: Array<string>;
   store: Store["_store"];
 }) {
-  const SQL_DEFAULT_SYMBOL = "$$DEFAULT$$";
   const model = ctx.dataModel.models[ctx.modelName];
 
   // check if the row has already been inserted
@@ -105,7 +104,7 @@ function createStatement(ctx: {
   // mark the row as pending
   ctx.pending[ctx.modelName].push(ctx.rowId);
 
-  const { scalars, parents } = groupFields(model.fields);
+  const { parents } = groupFields(model.fields);
 
   for (const parent of parents) {
     const parentIdFields = [] as Array<[string, ModelData]>;
@@ -149,6 +148,20 @@ function createStatement(ctx: {
   }
 
   // create the statement for the current model
+  const insertStatement = createInsertStatement(model, ctx.row);
+
+  ctx.statements.push(insertStatement);
+
+  // remove the row from pending and add it to inserted
+  ctx.pending[ctx.modelName] = ctx.pending[ctx.modelName].filter(
+    (r) => r !== ctx.rowId,
+  );
+  ctx.inserted[ctx.modelName].push(ctx.rowId);
+}
+
+function createInsertStatement(model: DataModelModel, row: ModelData) {
+  const SQL_DEFAULT_SYMBOL = "$$DEFAULT$$";
+  // create the statement for the current model
   const isGeneratedId =
     model.fields.filter((f) => f.isGenerated && f.isId).length > 0;
 
@@ -160,25 +173,22 @@ function createStatement(ctx: {
     .filter((s) => Boolean(s))
     .join(" ");
 
-  const insertableFields = scalars.filter((f) => !(f.isGenerated && !f.isId));
+  const insertableFields = model.fields.filter(
+    (f) => f.kind === "scalar" && !(f.isGenerated && !f.isId),
+  ) as Array<DataModelScalarField>;
+
   const insertStatement = format(
     insertStatementTemplate,
     model.schemaName,
     model.tableName,
     insertableFields.map((f) => f.columnName),
     insertableFields.map((f) => {
-      if (f.hasDefaultValue && ctx.row[f.name] === undefined) {
+      if (f.hasDefaultValue && row[f.name] === undefined) {
         return SQL_DEFAULT_SYMBOL;
       }
-      return serializeToSQL(f.type, ctx.row[f.name] as Json);
+      return serializeToSQL(f.type, row[f.name] as Json);
     }),
   ).replaceAll(`'${SQL_DEFAULT_SYMBOL}'`, "DEFAULT");
 
-  ctx.statements.push(insertStatement);
-
-  // remove the row from pending and add it to inserted
-  ctx.pending[ctx.modelName] = ctx.pending[ctx.modelName].filter(
-    (r) => r !== ctx.rowId,
-  );
-  ctx.inserted[ctx.modelName].push(ctx.rowId);
+  return insertStatement;
 }
