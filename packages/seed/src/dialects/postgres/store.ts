@@ -25,6 +25,7 @@ export class PgStore extends StoreBase {
       ),
     );
     const statements: Array<string> = [];
+
     const sortedModels = sortModels(this.dataModel);
     for (const entry of sortedModels) {
       const model = entry.node as DataModelModel & { modelName: string };
@@ -32,39 +33,9 @@ export class PgStore extends StoreBase {
       if (rows.length === 0) {
         continue;
       }
-      const fieldMap = new Map(
-        model.fields
-          .filter((f) => f.kind === "scalar" && !(f.isGenerated && !f.isId))
-          .map((f) => [f.name, f as DataModelScalarField]),
-      );
-      const fieldToColumnMap = new Map(
-        Array.from(fieldMap.values()).map((f) => [f.name, f.columnName]),
-      );
 
-      const sequenceFields = model.fields.filter((f) => f.sequence);
-      // If we inserted new rows with sequences, we need to update the database sequence value to the max value of the inserted rows
-      for (const sequenceField of sequenceFields) {
-        const tableName = model.tableName;
-        const schemaName = model.schemaName;
-        const fieldColumn = fieldToColumnMap.get(sequenceField.name);
-        if (
-          fieldColumn &&
-          sequenceField.sequence &&
-          schemaName &&
-          tableName &&
-          sequenceField.sequence.identifier
-        ) {
-          const sequenceIdentifier = sequenceField.sequence.identifier;
-          const sequenceFixerStatement = `SELECT setval(${escapeLiteral(
-            sequenceIdentifier,
-          )}::regclass, (SELECT MAX(${escapeIdentifier(
-            fieldColumn,
-          )}) FROM ${escapeIdentifier(schemaName)}.${escapeIdentifier(
-            tableName,
-          )}))`;
-          sequenceFixerStatements.push(sequenceFixerStatement);
-        }
-      }
+      sequenceFixerStatements.push(...getSequenceFixerStatements(model));
+
       for (const [i] of rows.entries()) {
         createStatement({
           modelName: model.modelName,
@@ -148,7 +119,7 @@ function createStatement(ctx: {
   }
 
   // create the statement for the current model
-  const insertStatement = createInsertStatement(model, ctx.row);
+  const insertStatement = getInsertStatement(model, ctx.row);
 
   ctx.statements.push(insertStatement);
 
@@ -159,7 +130,47 @@ function createStatement(ctx: {
   ctx.inserted[ctx.modelName].push(ctx.rowId);
 }
 
-function createInsertStatement(model: DataModelModel, row: ModelData) {
+function getSequenceFixerStatements(model: DataModelModel) {
+  const statements: Array<string> = [];
+
+  const fieldMap = new Map(
+    model.fields
+      .filter((f) => f.kind === "scalar" && !(f.isGenerated && !f.isId))
+      .map((f) => [f.name, f as DataModelScalarField]),
+  );
+  const fieldToColumnMap = new Map(
+    Array.from(fieldMap.values()).map((f) => [f.name, f.columnName]),
+  );
+  const sequenceFields = model.fields.filter((f) => f.sequence);
+  // If we inserted new rows with sequences, we need to update the database sequence value to the max value of the inserted rows
+  for (const sequenceField of sequenceFields) {
+    const tableName = model.tableName;
+    const schemaName = model.schemaName;
+    const fieldColumn = fieldToColumnMap.get(sequenceField.name);
+
+    if (
+      fieldColumn &&
+      sequenceField.sequence &&
+      schemaName &&
+      tableName &&
+      sequenceField.sequence.identifier
+    ) {
+      const sequenceIdentifier = sequenceField.sequence.identifier;
+      const sequenceFixerStatement = `SELECT setval(${escapeLiteral(
+        sequenceIdentifier,
+      )}::regclass, (SELECT MAX(${escapeIdentifier(
+        fieldColumn,
+      )}) FROM ${escapeIdentifier(schemaName)}.${escapeIdentifier(
+        tableName,
+      )}))`;
+      statements.push(sequenceFixerStatement);
+    }
+  }
+
+  return statements;
+}
+
+function getInsertStatement(model: DataModelModel, row: ModelData) {
   const SQL_DEFAULT_SYMBOL = "$$DEFAULT$$";
   // create the statement for the current model
   const isGeneratedId =
