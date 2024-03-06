@@ -7,6 +7,7 @@ export const createTemplateContext = (): TemplateContext => ({
   shape: "EMAIL",
   input: "input",
   maxLength: null,
+  optionsInput: null,
 });
 
 export const runTemplateCode = (context: TemplateContext, code: string) => {

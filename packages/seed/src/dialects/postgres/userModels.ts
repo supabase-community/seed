@@ -8,6 +8,7 @@ import {
 import { integers } from "#core/userModels/templates/categories/integers.js";
 import { strings } from "#core/userModels/templates/categories/strings.js";
 import { type Templates } from "#core/userModels/templates/types.js";
+import { copycatTemplate } from "../../core/userModels/templates/copycat.js";
 import { type PgTypeName } from "./utils.js";
 
 export const SEED_PG_TEMPLATES: Templates<PgTypeName> = {
@@ -55,12 +56,20 @@ export const SEED_PG_TEMPLATES: Templates<PgTypeName> = {
     `({ [copycat.word(${input})]: copycat.words(${input}) })`,
   jsonb: ({ input }) =>
     `({ [copycat.word(${input})]: copycat.words(${input}) })`,
-  date: ({ input }) =>
-    `copycat.dateString(${input}, { minYear: 2020 }).slice(0, 10)`,
-  time: ({ input }) =>
-    `copycat.dateString(${input}, { minYear: 2020 }).slice(11, 19)`,
-  timestamp: ({ input }) => `copycat.dateString(${input}, { minYear: 2020 })`,
-  timestamptz: ({ input }) => `copycat.dateString(${input}, { minYear: 2020 })`,
+  date: copycatTemplate("dateString", {
+    options: { minYear: 2020 },
+    wrap: (code) => `${code}.slice(0, 10)`,
+  }),
+  time: copycatTemplate("dateString", {
+    options: { minYear: 2020 },
+    wrap: (code) => `${code}.slice(11, 19)`,
+  }),
+  timestamp: copycatTemplate("dateString", {
+    options: { minYear: 2020 },
+  }),
+  timestamptz: copycatTemplate("dateString", {
+    options: { minYear: 2020 },
+  }),
   interval: ({ input }) => `copycat.int(${input}, { max: 10 })`,
   tsquery: ({ input }) => `copycat.word(${input})`,
   tsvector: ({ input }) => `copycat.word(${input})`,

@@ -18,23 +18,31 @@ function encloseValueInArray(value: string, dimensions: number) {
     .reduce<string>((acc) => `[${acc}]`, value);
 }
 
-export const generateCodeFromTemplate = <Type extends string>(
-  input: TemplateInput,
-  wrappedType: NestedType | Type,
-  maxLength: null | number,
-  shape: Shape | null,
-  templates: Templates,
-) => {
-  // todo(justinvdm, 28 Feb 2024): Bring back array support
-  // https://linear.app/snaplet/issue/S-1901/bring-back-array-support-for-templates
+export const generateCodeFromTemplate = <Type extends string>(props: {
+  input: TemplateInput;
+  maxLength: null | number;
+  optionsInput: null | string;
+  shape: Shape | null;
+  templates: Templates;
+  type: NestedType | Type;
+}) => {
+  const {
+    input,
+    maxLength,
+    shape,
+    templates,
+    type: wrappedType,
+    optionsInput,
+  } = props;
 
   const [type, dimensions] = unpackNestedType<Type>(wrappedType);
 
-  const context: TemplateContext = {
+  const context: TemplateContext<Type> = {
     input,
     type,
     maxLength,
     shape,
+    optionsInput,
   };
 
   let result: null | string = null;
