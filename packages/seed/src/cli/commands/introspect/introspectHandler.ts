@@ -1,7 +1,9 @@
+import { spinner } from "#cli/lib/spinner.js";
 import { setDataModelConfig } from "#config/dataModelConfig.js";
 
 export async function introspectHandler(args: { connectionString: string }) {
   const protocol = new URL(args.connectionString).protocol.slice(0, -1);
+  spinner.start("Introspecting...");
 
   if (protocol === "postgres" || protocol === "postgresql") {
     await pgIntrospect(args.connectionString);
@@ -14,6 +16,9 @@ export async function introspectHandler(args: { connectionString: string }) {
   } else {
     throw new Error(`Unsupported protocol: ${protocol}`);
   }
+
+  spinner.succeed();
+  console.log("Done!");
 }
 
 async function pgIntrospect(connectionString: string) {
@@ -30,6 +35,7 @@ async function pgIntrospect(connectionString: string) {
   );
   const dataModel = await getDatamodel(createDrizzleORMPgClient(db));
   await setDataModelConfig(dataModel);
+  await client.end();
 }
 
 async function assertPackage(pkg: string) {
