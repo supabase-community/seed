@@ -13,6 +13,9 @@ import { type Store, StoreBase } from "#core/store/store.js";
 import { sortModels } from "#core/store/topologicalSort.js";
 import { escapeIdentifier, escapeLiteral, serializeToSQL } from "./utils.js";
 
+// constant used to represent the default value in the SQL statements
+const SQL_DEFAULT_SYMBOL = "$$DEFAULT$$";
+
 export class PgStore extends StoreBase {
   toSQL() {
     const sequenceFixerStatements: Array<string> = [];
@@ -209,29 +212,14 @@ function getStatements(
   row: ModelData,
   updatableParents: Array<DataModelObjectField>,
 ) {
-  const SQL_DEFAULT_SYMBOL = "$$DEFAULT$$";
-  // create the statement for the current model
-  const isGeneratedId =
-    model.fields.filter((f) => f.isGenerated && f.isId).length > 0;
-
-  const insertStatementTemplate = [
-    "INSERT INTO %I.%I (%I)",
-    isGeneratedId ? "OVERRIDING SYSTEM VALUE" : undefined,
-    "VALUES (%L)",
-  ]
-    .filter((s) => Boolean(s))
-    .join(" ");
-
   const insertableFields = model.fields.filter(
     (f) => f.kind === "scalar" && !(f.isGenerated && !f.isId),
   ) as Array<DataModelScalarField>;
 
-  const insertStatement = format(
-    insertStatementTemplate,
-    model.schemaName,
-    model.tableName,
-    insertableFields.map((f) => f.columnName),
-    insertableFields.map((f) => {
+  const insertStatement = serializeInsertStatement({
+    model,
+    columns: insertableFields.map((f) => f.columnName),
+    values: insertableFields.map((f) => {
       // check if the field is part of the updatable parents
       if (updatableParents.some((p) => p.relationFromFields.includes(f.name))) {
         return null;
@@ -241,7 +229,7 @@ function getStatements(
       }
       return serializeToSQL(f.type, row[f.name] as Json);
     }),
-  ).replaceAll(`'${SQL_DEFAULT_SYMBOL}'`, "DEFAULT");
+  });
 
   let updateStatement = null;
   if (updatableParents.length > 0) {
@@ -265,17 +253,54 @@ function getStatements(
         const idValue = row[f.name];
         return [idColumn, idValue] as [string, Json | undefined];
       });
-    updateStatement = [
-      // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-      `UPDATE ${ident(model.schemaName!)}.${ident(model.tableName)}`,
-      `SET ${updateData
-        .map(([c, v]) => `${ident(c)} = ${literal(v)}`)
-        .join(", ")}`,
-      `WHERE ${filterData
-        .map(([c, v]) => `${ident(c)} = ${literal(v)}`)
-        .join(" AND ")}`,
-    ].join(" ");
+    updateStatement = serializeUpdateStatement({
+      model,
+      filterData,
+      updateData,
+    });
   }
 
   return { insertStatement, updateStatement };
+}
+
+function serializeInsertStatement(props: {
+  columns: Array<string>;
+  model: DataModelModel;
+  values: Array<Json>;
+}) {
+  const isGeneratedId =
+    props.model.fields.filter((f) => f.isGenerated && f.isId).length > 0;
+
+  const insertStatementTemplate = [
+    "INSERT INTO %I.%I (%I)",
+    isGeneratedId ? "OVERRIDING SYSTEM VALUE" : undefined,
+    "VALUES (%L)",
+  ]
+    .filter((s) => Boolean(s))
+    .join(" ");
+
+  return format(
+    insertStatementTemplate,
+    props.model.schemaName,
+    props.model.tableName,
+    props.columns,
+    props.values,
+  ).replaceAll(`'${SQL_DEFAULT_SYMBOL}'`, "DEFAULT");
+}
+
+function serializeUpdateStatement(props: {
+  filterData: Array<[string, Json | undefined]>;
+  model: DataModelModel;
+  updateData: Array<[string, Json | undefined]>;
+}) {
+  return [
+    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+    `UPDATE ${ident(props.model.schemaName!)}.${ident(props.model.tableName)}`,
+    `SET ${props.updateData
+      .map(([c, v]) => `${ident(c)} = ${literal(v)}`)
+      .join(", ")}`,
+    `WHERE ${props.filterData
+      .map(([c, v]) => `${ident(c)} = ${literal(v)}`)
+      .join(" AND ")}`,
+  ].join(" ");
 }
