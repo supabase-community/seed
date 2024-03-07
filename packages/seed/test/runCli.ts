@@ -25,9 +25,7 @@ interface RunCliOptions {
 
 export async function runCLI(args: Array<string>, options: RunCliOptions = {}) {
   const { env: envOverrides = {}, cwd } = options;
-  const config = path.resolve(ROOT_DIR, "./vitest.config.ts");
   const entrypointTS = path.resolve(ROOT_DIR, "./src/cli/index.ts");
-  const cliCommand = `vite-node -c ${config} ${entrypointTS} --`;
 
   const { SNAPLET_ACCESS_TOKEN = "__test " } = process.env;
 
@@ -43,7 +41,7 @@ export async function runCLI(args: Array<string>, options: RunCliOptions = {}) {
     [
       "",
       "==================================",
-      `${c.bold("Running snaplet cli:")} ${cliCommand}`,
+      c.bold("Running cli:"),
       `${c.bold("args:")} ${args.join(" ")}`,
       `${c.bold("test:")} ${expect.getState().currentTestName}`,
       Object.keys(envOverrides).length
@@ -56,7 +54,7 @@ export async function runCLI(args: Array<string>, options: RunCliOptions = {}) {
       .join("\n"),
   );
 
-  const result = execa(cliCommand, args, {
+  const result = execa("tsx", [entrypointTS, ...args], {
     shell: SHELL,
     stderr: "pipe",
     stdout: "pipe",
@@ -67,9 +65,11 @@ export async function runCLI(args: Array<string>, options: RunCliOptions = {}) {
     },
     ...options,
   });
+
   result.stdout?.on("data", (chunk: Buffer) => {
     debugCliOutput(chunk.toString().trim());
   });
+
   result.stderr?.on("data", (chunk: Buffer) => {
     debugCliOutput(chunk.toString().trim());
   });

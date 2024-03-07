@@ -26,9 +26,13 @@ export const defineCreateTestDb = (state: State) => {
     await serverDrizzle.execute(sql.raw(`DROP DATABASE IF EXISTS "${dbName}"`));
     await serverDrizzle.execute(sql.raw(`CREATE DATABASE "${dbName}"`));
     const client = postgres(connString, { max: 1, database: dbName });
+    const url = new URL(connString);
+    url.pathname = `/${dbName}`;
+
     const result = {
       client: client,
       name: dbName,
+      connectionString: url.toString(),
     };
     state.dbs.push(result);
     if (structure) {

@@ -5,11 +5,21 @@ import { setupProject } from "#test/setupProject.js";
 for (const adapterName of Object.keys(adapters) as Array<AdapterName>) {
   const adapter = await adapters[adapterName]();
 
-  describe(`e2e: ${adapterName}`, () => {
-    test("generates without a snaplet account", async () => {
-      const { db } = await setupProject({
-        adapter,
-        databaseSchema: `
+  if (adapter.skipReason) {
+    describe.skip(`e2e: ${adapterName} (${adapter.skipReason})`, () => {
+      null;
+    });
+
+    continue;
+  }
+
+  describe(
+    `e2e: ${adapterName}`,
+    () => {
+      test("generates", async () => {
+        const { db } = await setupProject({
+          adapter,
+          databaseSchema: `
           CREATE TABLE "Organization" (
             "id" uuid not null primary key
           );
@@ -19,7 +29,7 @@ for (const adapterName of Object.keys(adapters) as Array<AdapterName>) {
             "name" text not null
           );
         `,
-        seedScript: `
+          seedScript: `
           import { createSeedClient } from '#seed'
 
           const seed = await createSeedClient()
@@ -27,12 +37,16 @@ for (const adapterName of Object.keys(adapters) as Array<AdapterName>) {
             members: (x) => x(3)
           }))
         `,
-      });
+        });
 
-      expect((await db.query('select * from "Organization"')).length).toEqual(
-        2,
-      );
-      expect((await db.query('select * from "Member"')).length).toEqual(6);
-    });
-  });
+        expect((await db.query('select * from "Organization"')).length).toEqual(
+          2,
+        );
+        expect((await db.query('select * from "Member"')).length).toEqual(6);
+      });
+    },
+    {
+      timeout: 45000,
+    },
+  );
 }

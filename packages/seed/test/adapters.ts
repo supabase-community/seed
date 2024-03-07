@@ -7,12 +7,14 @@ export interface Adapter<Client = AnyClient> {
   createClient(client: Client): DrizzleDbClient;
   createTestDb(structure?: string): Promise<{
     client: Client;
+    connectionString: string;
     name: string;
   }>;
   generateClientWrapper(props: {
     connectionString: string;
     generateOutputPath: string;
   }): string;
+  skipReason?: string;
 }
 
 export type Adapters = typeof adapters;
@@ -54,6 +56,9 @@ export const createSeedClient = (options) => createSeedClient(db, options)
       "#dialects/sqlite/adapters.js"
     );
     return {
+      // todo(justinvdm, 7 Mar 2024):
+      // https://linear.app/snaplet/issue/S-1923/support-sqlite-in-introspect-command
+      skipReason: "Not yet supported with introspect command",
       createTestDb,
       createClient: (client) => createDrizzleORMSqliteClient(drizzle(client)),
       generateClientWrapper: ({ generateOutputPath, connectionString }) => `

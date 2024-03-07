@@ -2,6 +2,7 @@ import { spinner } from "#cli/lib/spinner.js";
 import { setDataModelConfig } from "#config/dataModelConfig.js";
 
 export async function introspectHandler(args: { connectionString: string }) {
+  console.log("###", args.connectionString);
   const protocol = new URL(args.connectionString).protocol.slice(0, -1);
   spinner.start("Introspecting...");
 

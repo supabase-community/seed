@@ -16,7 +16,7 @@ export async function setupProject(props: {
 }) {
   const { adapter } = props;
 
-  const { client, name: connectionString } = await adapter.createTestDb(
+  const { client, connectionString } = await adapter.createTestDb(
     props.databaseSchema ?? "",
   );
 

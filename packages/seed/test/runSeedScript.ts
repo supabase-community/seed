@@ -7,8 +7,6 @@ import { expect } from "vitest";
 import { type Adapter } from "./adapters.js";
 import { testDebug } from "./debug.js";
 
-const ROOT_DIR = path.resolve(__dirname, "..");
-
 const debugScriptRun = testDebug.extend("runSeedcript");
 const debugScriptOutput = debugScriptRun.extend("output");
 
@@ -78,9 +76,7 @@ export const runSeedScript = async ({
   await writeFile(scriptPath, script);
 
   try {
-    const viteConfigPath = path.resolve(ROOT_DIR, "./vitest.config.ts");
-
-    const result = execa("vite-node", ["-c", viteConfigPath, scriptPath], {
+    const result = execa("tsx", [scriptPath], {
       stderr: "pipe",
       stdout: "pipe",
       env: {
