@@ -90,8 +90,9 @@ jobs:
         uses: ./.github/actions/setup
 
       - name: Run dev API in background
+        cwd: ./packages/seed
         run: |
-          yarn start:server &
+          pnpm start:server &
           npx wait-on -d 5000 -i 2000 -t 20000 http://localhost:3000 --log --verbose
         shell: bash
 
