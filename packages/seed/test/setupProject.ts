@@ -30,6 +30,11 @@ export async function setupProject(props: {
 
   const generateOutputPath = "./seed";
 
+  await runCLI(["introspect", "--connection-string", connectionString], {
+    cwd,
+    env: props.env,
+  });
+
   await runCLI(["generate", "--output", generateOutputPath], {
     cwd,
     env: props.env,
