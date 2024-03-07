@@ -1,18 +1,18 @@
 import { stringify } from "javascript-stringify";
-import { type CodegenContext } from "#core/codegen/codegen.js";
+import { type Shape, type TableShapePredictions } from "#trpc/shapes.js";
+import { type CodegenContext } from "../../codegen/codegen.js";
+import { shouldGenerateFieldValue } from "../../dataModel/shouldGenerateFieldValue.js";
 import {
   type DataModel,
   type DataModelField,
   type DataModelModel,
   type DataModelScalarField,
-} from "#core/dataModel/types.js";
-import { type Dialect } from "#core/dialect/types.js";
-import { isJsonField } from "#core/fingerprint/fingerprint.js";
-import { type Fingerprint } from "#core/fingerprint/types.js";
-import { generateCodeFromTemplate } from "#core/userModels/templates/codegen.js";
-import { type UserModels } from "#core/userModels/types.js";
-import { type Shape, type TableShapePredictions } from "#trpc/shapes.js";
-import { shouldGenerateFieldValue } from "../../dataModel/shouldGenerateFieldValue.js";
+} from "../../dataModel/types.js";
+import { type Dialect } from "../../dialect/types.js";
+import { isJsonField } from "../../fingerprint/fingerprint.js";
+import { type Fingerprint } from "../../fingerprint/types.js";
+import { generateCodeFromTemplate } from "../../userModels/templates/codegen.js";
+import { type UserModels } from "../../userModels/types.js";
 import { generateJsonField } from "./generateJsonField.js";
 
 export const SHAPE_PREDICTION_CONFIDENCE_THRESHOLD = 0.65;

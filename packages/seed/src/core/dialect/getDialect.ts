@@ -1,4 +1,4 @@
-import { type DataModel } from "#core/dataModel/types.js";
+import { type DataModel } from "../dataModel/types.js";
 import { type Dialect } from "./types.js";
 
 export const getDialect = async (

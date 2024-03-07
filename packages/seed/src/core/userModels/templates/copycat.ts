@@ -1,5 +1,5 @@
 import { type copycat } from "@snaplet/copycat";
-import { type Json } from "#core/data/types.js";
+import { type Json } from "../../data/types.js";
 import { type TemplateContext, type TemplateFn } from "./types.js";
 
 type Copycat = typeof copycat;

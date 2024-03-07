@@ -1,11 +1,11 @@
 import { EOL } from "node:os";
-import { groupFields } from "#core/dataModel/utils.js";
 import {
   type DataModel,
   type DataModelModel,
   type DataModelObjectField,
   type DataModelScalarField,
 } from "../dataModel/types.js";
+import { groupFields } from "../dataModel/utils.js";
 import { type ModelData } from "../plan/types.js";
 import { sortModels } from "./topologicalSort.js";
 

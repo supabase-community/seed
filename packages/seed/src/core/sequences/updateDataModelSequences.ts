@@ -4,7 +4,7 @@ import {
   type DataModelField,
   type DataModelModel,
   type DataModelScalarField,
-} from "#core/dataModel/types.js";
+} from "../dataModel/types.js";
 
 export function updateDataModelSequences(
   currentDataModel: DataModel,
