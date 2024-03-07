@@ -1,12 +1,12 @@
 import { describe, expect, test } from "vitest";
-import { type AdapterName, adapters } from "#test/adapters.js";
+import { type Dialect, adapters } from "#test/adapters.js";
 import { setupProject } from "#test/setupProject.js";
 
-for (const adapterName of Object.keys(adapters) as Array<AdapterName>) {
-  const adapter = await adapters[adapterName]();
+for (const dialect of Object.keys(adapters) as Array<Dialect>) {
+  const adapter = await adapters[dialect]();
 
   if (adapter.skipReason) {
-    describe.skip(`e2e: ${adapterName} (${adapter.skipReason})`, () => {
+    describe.skip(`e2e: ${dialect} (${adapter.skipReason})`, () => {
       null;
     });
 
@@ -14,7 +14,7 @@ for (const adapterName of Object.keys(adapters) as Array<AdapterName>) {
   }
 
   describe(
-    `e2e: ${adapterName}`,
+    `e2e: ${dialect}`,
     () => {
       test("generates", async () => {
         const { db } = await setupProject({

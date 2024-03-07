@@ -23,15 +23,15 @@ const resolveDepPath = (name: string) => require.resolve(name);
 
 export type Adapters = typeof adapters;
 
-export type AdapterName = keyof Adapters;
+export type Dialect = keyof Adapters;
 
 export type AnyClient =
-  Awaited<ReturnType<Adapters[AdapterName]>> extends Adapter<infer Client>
+  Awaited<ReturnType<Adapters[Dialect]>> extends Adapter<infer Client>
     ? Client
     : never;
 
 export const adapters = {
-  async postgresJs(): Promise<Adapter<postgresJs.Sql>> {
+  async postgres(): Promise<Adapter<postgresJs.Sql>> {
     const { createTestDb } = (await import("#test/postgres/index.js"))
       .postgresJs;
     const { drizzle } = await import("drizzle-orm/postgres-js");
@@ -55,7 +55,7 @@ export const createSeedClient = (options) => baseCreateSeedClient(db, options)
 `,
     };
   },
-  async betterSqlite3(): Promise<Adapter<import("better-sqlite3").Database>> {
+  async sqlite(): Promise<Adapter<import("better-sqlite3").Database>> {
     const { createTestDb } = (await import("#test/sqlite/index.js"))
       .betterSqlite3;
     const { drizzle } = await import("drizzle-orm/better-sqlite3");
