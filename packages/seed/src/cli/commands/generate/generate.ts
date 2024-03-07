@@ -33,9 +33,6 @@ async function computeCodegenContext(props: {
 }): Promise<CodegenContext> {
   const { outputDir } = props;
 
-  // todo(justinvdm, 28 Feb 2024):
-  // https://linear.app/snaplet/issue/S-1902/npx-snapletseed-generate-account-for-select-config
-
   const dataModel = await getDataModel();
   const dialect = await getDialect(dataModel.dialect);
   let shapePredictions: Array<TableShapePredictions> = [];
