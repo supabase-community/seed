@@ -1,13 +1,14 @@
 import c from "ansi-colors";
 import { execa } from "execa";
-import { remove, writeFile } from "fs-extra";
+import { mkdirp, remove, symlink, writeFile } from "fs-extra";
 import path from "node:path";
 import tmp from "tmp-promise";
 import { expect } from "vitest";
 import { type Adapter } from "./adapters.js";
+import { ROOT_DIR } from "./constants.js";
 import { testDebug } from "./debug.js";
 
-const debugScriptRun = testDebug.extend("runSeedcript");
+const debugScriptRun = testDebug.extend("runSeedScript");
 const debugScriptOutput = debugScriptRun.extend("output");
 
 interface RunScriptProps {
@@ -47,12 +48,22 @@ export const runSeedScript = async ({
   const scriptName = `script${++scriptId}`;
 
   const scriptPath = path.join(cwd, `${scriptName}.ts`);
-
   const clientWrapperRelativePath = "./__seed.js";
-
   const clientWrapperPath = path.join(cwd, clientWrapperRelativePath);
-
   const pkgPath = path.join(cwd, "package.json");
+  const snapletScopeDestPath = path.join(cwd, "node_modules", "@snaplet");
+  const seedDestPath = path.join(snapletScopeDestPath, "seed");
+  const copycatDestPath = path.join(snapletScopeDestPath, "copycat");
+  const copycatSrcPath = path.join(
+    ROOT_DIR,
+    "node_modules",
+    "@snaplet",
+    "copycat",
+  );
+
+  await mkdirp(snapletScopeDestPath);
+  await symlink(ROOT_DIR, seedDestPath);
+  await symlink(copycatSrcPath, copycatDestPath);
 
   await writeFile(
     pkgPath,
@@ -81,6 +92,7 @@ export const runSeedScript = async ({
       stdout: "pipe",
       env: {
         DEBUG_COLORS: "1",
+        NODE_PATH: path.join(ROOT_DIR, "node_modules"),
         ...env,
       },
     });

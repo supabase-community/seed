@@ -1,20 +1,15 @@
 import c from "ansi-colors";
 import { execa } from "execa";
 import path from "node:path";
-import { fileURLToPath } from "node:url";
 import { inspect } from "node:util";
 import { expect } from "vitest";
+import { ROOT_DIR } from "./constants.js";
 import { testDebug } from "./debug.js";
-
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
 
 const debugCliRun = testDebug.extend("runSnapletCli");
 const debugCliOutput = debugCliRun.extend("output");
 // for the output we want to totally disable all prefix including namespace
 debugCliOutput.namespace = "";
-
-const ROOT_DIR = path.resolve(__dirname, "..");
 
 const SHELL = "/bin/bash";
 

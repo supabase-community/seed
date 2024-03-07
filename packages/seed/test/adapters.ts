@@ -17,6 +17,10 @@ export interface Adapter<Client = AnyClient> {
   skipReason?: string;
 }
 
+// todo(justinvdm, 7 Mar 2024): Ideally we could use import.meta.resolve,
+// but I that ends up with a __vite_ssr_import_meta__.resolve is not a function
+const resolveDepPath = (name: string) => require.resolve(name);
+
 export type Adapters = typeof adapters;
 
 export type AdapterName = keyof Adapters;
@@ -38,8 +42,8 @@ export const adapters = {
       createTestDb,
       createClient: (client) => createDrizzleORMPgClient(drizzle(client)),
       generateClientWrapper: ({ generateOutputPath, connectionString }) => `
-import postgres from "postres";
-import { drizzle } from "drizzle-orm/postgres-js";
+import postgres from "${resolveDepPath("postgres")}";
+import { drizzle } from "${resolveDepPath("drizzle-orm/postgres-js")}";
 import { createSeedClient as baseCreateSeedClient } from "${generateOutputPath}";
 
 const db = drizzle(postgres("${connectionString}"));
@@ -62,8 +66,8 @@ export const createSeedClient = (options) => createSeedClient(db, options)
       createTestDb,
       createClient: (client) => createDrizzleORMSqliteClient(drizzle(client)),
       generateClientWrapper: ({ generateOutputPath, connectionString }) => `
-import Database from "better-sqlite3";
-import { drizzle } from "drizzle-orm/better-sqlite3";
+import Database from "${resolveDepPath("better-sqlite3")}";
+import { drizzle } from "${resolveDepPath("drizzle-orm/better-sqlite3")}";
 import { createSeedClient as baseCreateSeedClient } from "${generateOutputPath}";
 
 const db = drizzle(new Database("${connectionString}"));
