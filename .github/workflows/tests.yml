@@ -89,7 +89,16 @@ jobs:
       - name: Setup
         uses: ./.github/actions/setup
 
+      - name: Run dev API in background
+        run: |
+          yarn start:server &
+          npx wait-on -d 5000 -i 2000 -t 20000 http://localhost:3000 --log --verbose
+        shell: bash
+
       - name: Run unit and integration tests
         run: pnpm test
         env:
           TEST_DATABASE_SERVER: postgresql://postgres:postgres@localhost:5432/postgres
+
+      - name: Run e2e tests
+        run: pnpm test:e2e
