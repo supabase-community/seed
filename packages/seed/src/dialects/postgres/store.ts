@@ -16,14 +16,14 @@ import { escapeIdentifier, escapeLiteral, serializeToSQL } from "./utils.js";
 export class PgStore extends StoreBase {
   toSQL() {
     const sequenceFixerStatements: Array<string> = [];
-    const inserted: Record<string, Array<string>> = Object.fromEntries(
+    const inserted: Record<string, Array<number>> = Object.fromEntries(
       Object.keys(this.dataModel.models).map(
-        (modelName) => [modelName, []] as [string, Array<string>],
+        (modelName) => [modelName, []] as [string, Array<number>],
       ),
     );
-    const pending: Record<string, Array<string>> = Object.fromEntries(
+    const pending: Record<string, Array<number>> = Object.fromEntries(
       Object.keys(this.dataModel.models).map(
-        (modelName) => [modelName, []] as [string, Array<string>],
+        (modelName) => [modelName, []] as [string, Array<number>],
       ),
     );
     const insertStatements: Array<string> = [];
@@ -42,7 +42,7 @@ export class PgStore extends StoreBase {
       for (const [i] of rows.entries()) {
         createStatements({
           modelName: model.modelName,
-          rowId: `${model.modelName}-${i}`,
+          rowId: i,
           row: rows[i],
           dataModel: this.dataModel,
           inserted,
@@ -65,11 +65,11 @@ export class PgStore extends StoreBase {
 function createStatements(ctx: {
   dataModel: DataModel;
   insertStatements: Array<string>;
-  inserted: Record<string, Array<string>>;
+  inserted: Record<string, Array<number>>;
   modelName: string;
-  pending: Record<string, Array<string>>;
+  pending: Record<string, Array<number>>;
   row: ModelData;
-  rowId: string;
+  rowId: number;
   store: Store["_store"];
   updateStatements: Array<string>;
 }) {
@@ -103,17 +103,16 @@ function createStatements(ctx: {
       continue;
     }
 
-    const parentRowIndex = ctx.store[parent.type].findIndex((r) =>
+    const parentRowId = ctx.store[parent.type].findIndex((r) =>
       parentIdFields.every(([k, v]) => r[k] === v),
     );
 
     // external data, no need to create a statement
-    if (parentRowIndex === -1) {
+    if (parentRowId === -1) {
       continue;
     }
 
-    const parentRowId = `${parent.type}-${parentRowIndex}`;
-    const parentRow = ctx.store[parent.type][parentRowIndex];
+    const parentRow = ctx.store[parent.type][parentRowId];
     // if the row is pending, we have a circular dependency
     // we know that the parent will be created earlier in the pending chain, so we can skip this one
     // and set the parent's id to NULL at insertion time
@@ -126,10 +125,7 @@ function createStatements(ctx: {
             `Pending context:`,
             JSON.stringify(
               ctx.pending[parent.type].map(
-                (r) =>
-                  ctx.store[parent.type][
-                    Number(r.replace(`${parent.type}-`, ""))
-                  ],
+                () => ctx.store[parent.type][parentRowId],
               ),
             ),
           ].join(EOL),
