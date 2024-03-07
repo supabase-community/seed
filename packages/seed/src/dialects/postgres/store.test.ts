@@ -253,7 +253,7 @@ describe.each(["postgresJs"] as const)("store: %s", (adapter) => {
         ]),
       );
     });
-    test.only("should handle circular references", async () => {
+    test("should handle circular references", async () => {
       const structure = `
         create table customer (
           id serial primary key,
@@ -282,7 +282,7 @@ describe.each(["postgresJs"] as const)("store: %s", (adapter) => {
 
       await execQueries(orm, [...store.toSQL()]);
       const results = await orm.query(`select * from customer order by id asc`);
-      console.log(results);
+
       expect(results).toEqual(
         expect.arrayContaining([
           {

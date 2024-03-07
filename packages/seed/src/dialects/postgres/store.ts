@@ -1,9 +1,10 @@
-import { format } from "@scaleleap/pg-format";
+import { format, ident, literal } from "@scaleleap/pg-format";
 import { EOL } from "node:os";
 import { type Json } from "#core/data/types.js";
 import {
   type DataModel,
   type DataModelModel,
+  type DataModelObjectField,
   type DataModelScalarField,
 } from "#core/dataModel/types.js";
 import { groupFields } from "#core/dataModel/utils.js";
@@ -25,7 +26,8 @@ export class PgStore extends StoreBase {
         (modelName) => [modelName, []] as [string, Array<string>],
       ),
     );
-    const statements: Array<string> = [];
+    const insertStatements: Array<string> = [];
+    const updateStatements: Array<string> = [];
 
     const sortedModels = sortModels(this.dataModel);
     for (const entry of sortedModels) {
@@ -38,32 +40,38 @@ export class PgStore extends StoreBase {
       sequenceFixerStatements.push(...getSequenceFixerStatements(model));
 
       for (const [i] of rows.entries()) {
-        createStatement({
+        createStatements({
           modelName: model.modelName,
           rowId: `${model.modelName}-${i}`,
           row: rows[i],
           dataModel: this.dataModel,
           inserted,
           pending,
-          statements,
+          insertStatements,
+          updateStatements,
           store: this._store,
         });
       }
     }
 
-    return [...statements, ...sequenceFixerStatements];
+    return [
+      ...insertStatements,
+      ...updateStatements,
+      ...sequenceFixerStatements,
+    ];
   }
 }
 
-function createStatement(ctx: {
+function createStatements(ctx: {
   dataModel: DataModel;
+  insertStatements: Array<string>;
   inserted: Record<string, Array<string>>;
   modelName: string;
   pending: Record<string, Array<string>>;
   row: ModelData;
   rowId: string;
-  statements: Array<string>;
   store: Store["_store"];
+  updateStatements: Array<string>;
 }) {
   const model = ctx.dataModel.models[ctx.modelName];
 
@@ -77,6 +85,8 @@ function createStatement(ctx: {
   ctx.pending[ctx.modelName].push(ctx.rowId);
 
   const { parents } = groupFields(model.fields);
+
+  const updatableParents = [] as Array<DataModelObjectField>;
 
   for (const parent of parents) {
     const parentIdFields = [] as Array<[string, ModelData]>;
@@ -105,29 +115,33 @@ function createStatement(ctx: {
     const parentRowId = `${parent.type}-${parentRowIndex}`;
     const parentRow = ctx.store[parent.type][parentRowIndex];
     // if the row is pending, we have a circular dependency
+    // we know that the parent will be created earlier in the pending chain, so we can skip this one
+    // and set the parent's id to NULL at insertion time
+    // do we need to keep track of the exact chain of parents?
     if (ctx.pending[parent.type].includes(parentRowId)) {
-      if (!parent.isRequired) {
-        // for each parent's column, set them to NULL at insertion time
-        // generate an update statement for later with the parent's id
-      }
-      throw new Error(
-        [
-          `Circular dependency detected for model ${parent.type} for row ${JSON.stringify(parentRow)}`,
-          `Pending context:`,
-          JSON.stringify(
-            ctx.pending[parent.type].map(
-              (r) =>
-                ctx.store[parent.type][
-                  Number(r.replace(`${parent.type}-`, ""))
-                ],
+      if (parent.isRequired) {
+        throw new Error(
+          [
+            `Circular dependency detected for model ${parent.type} for row ${JSON.stringify(parentRow)}`,
+            `Pending context:`,
+            JSON.stringify(
+              ctx.pending[parent.type].map(
+                (r) =>
+                  ctx.store[parent.type][
+                    Number(r.replace(`${parent.type}-`, ""))
+                  ],
+              ),
             ),
-          ),
-        ].join(EOL),
-      );
+          ].join(EOL),
+        );
+      } else {
+        updatableParents.push(parent);
+        continue;
+      }
     }
 
     // create the parent statement
-    createStatement({
+    createStatements({
       ...ctx,
       modelName: parent.type,
       row: parentRow,
@@ -135,10 +149,17 @@ function createStatement(ctx: {
     });
   }
 
-  // create the statement for the current model
-  const insertStatement = getInsertStatement(model, ctx.row);
+  // create the statements for the current model
+  const { insertStatement, updateStatement } = getStatements(
+    model,
+    ctx.row,
+    updatableParents,
+  );
 
-  ctx.statements.push(insertStatement);
+  ctx.insertStatements.push(insertStatement);
+  if (updateStatement !== null) {
+    ctx.updateStatements.push(updateStatement);
+  }
 
   // remove the row from pending and add it to inserted
   ctx.pending[ctx.modelName] = ctx.pending[ctx.modelName].filter(
@@ -187,7 +208,11 @@ function getSequenceFixerStatements(model: DataModelModel) {
   return statements;
 }
 
-function getInsertStatement(model: DataModelModel, row: ModelData) {
+function getStatements(
+  model: DataModelModel,
+  row: ModelData,
+  updatableParents: Array<DataModelObjectField>,
+) {
   const SQL_DEFAULT_SYMBOL = "$$DEFAULT$$";
   // create the statement for the current model
   const isGeneratedId =
@@ -211,6 +236,10 @@ function getInsertStatement(model: DataModelModel, row: ModelData) {
     model.tableName,
     insertableFields.map((f) => f.columnName),
     insertableFields.map((f) => {
+      // check if the field is part of the updatable parents
+      if (updatableParents.some((p) => p.relationFromFields.includes(f.name))) {
+        return null;
+      }
       if (f.hasDefaultValue && row[f.name] === undefined) {
         return SQL_DEFAULT_SYMBOL;
       }
@@ -218,5 +247,39 @@ function getInsertStatement(model: DataModelModel, row: ModelData) {
     }),
   ).replaceAll(`'${SQL_DEFAULT_SYMBOL}'`, "DEFAULT");
 
-  return insertStatement;
+  let updateStatement = null;
+  if (updatableParents.length > 0) {
+    const updateData = updatableParents.flatMap((p) => {
+      return p.relationFromFields.map((f) => {
+        const column = (
+          model.fields.find((field) => field.name === f) as DataModelScalarField
+        ).columnName;
+        const value = row[f];
+        return [column, value] as [string, Json | undefined];
+      });
+    });
+    const filterData = model.fields
+      .filter((f) => f.isId)
+      .map((f) => {
+        const idColumn = (
+          model.fields.find(
+            (field) => field.name === f.name,
+          ) as DataModelScalarField
+        ).columnName;
+        const idValue = row[f.name];
+        return [idColumn, idValue] as [string, Json | undefined];
+      });
+    updateStatement = [
+      // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+      `UPDATE ${ident(model.schemaName!)}.${ident(model.tableName)}`,
+      `SET ${updateData
+        .map(([c, v]) => `${ident(c)} = ${literal(v)}`)
+        .join(", ")}`,
+      `WHERE ${filterData
+        .map(([c, v]) => `${ident(c)} = ${literal(v)}`)
+        .join(" AND ")}`,
+    ].join(" ");
+  }
+
+  return { insertStatement, updateStatement };
 }
