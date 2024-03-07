@@ -1,11 +1,11 @@
 import { describe, expect, test } from "vitest";
-import { type Dialect, adaptersByDialect } from "#test/adaptersByDialect.js";
+import { AdapterName, adapters } from "#test/adapters.js";
 import { setupProject } from "#test/setupProject.js";
 
-for (const dialect of Object.keys(adaptersByDialect) as Array<Dialect>) {
-  const adapter = await adaptersByDialect[dialect]();
+for (const adapterName of Object.keys(adapters) as Array<AdapterName>) {
+  const adapter = await adapters[adapterName]();
 
-  describe(dialect, () => {
+  describe(adapterName, () => {
     test("generates without a snaplet account", async () => {
       const { db } = await setupProject({
         adapter,

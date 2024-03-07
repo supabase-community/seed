@@ -5,13 +5,17 @@ import { remove, writeFile } from "fs-extra";
 import path from "node:path";
 import { testDebug } from "./debug.js";
 import { expect } from 'vitest';
+import { type Adapter } from './adapters.js';
 
 const ROOT_DIR = path.resolve(__dirname, "..");
 
 const debugScriptRun = testDebug.extend("runSnapletCli");
 const debugScriptOutput = debugScriptRun.extend("output");
 
-interface RunScriptOptions {
+interface RunScriptProps {
+  script: string
+  adapter: Adapter
+  connectionString: string
   cwd?: string
   generateOutputPath?: string
   env?: Record<string, string>;
@@ -19,12 +23,11 @@ interface RunScriptOptions {
 
 let scriptId = 0
 
-export const runScript = async (
-  script: string,
-  { generateOutputPath, cwd, env = {} }: RunScriptOptions = {},
+export const runSeedScript = async (
+  { script, adapter, generateOutputPath, connectionString, cwd, env = {} }: RunScriptProps
 ) => {
   cwd ??= (await tmp.dir()).path
-  generateOutputPath ??= './seed'
+  generateOutputPath ??= './__generateOutput'
 
   debugScriptRun(
     [
@@ -44,7 +47,14 @@ export const runScript = async (
 
   const scriptPath = path.join(
     cwd,
-    `${scriptName}.mts`,
+    `${scriptName}.ts`,
+  );
+
+  const clientWrapperRelativePath = './__seed.js'
+
+  const clientWrapperPath = path.join(
+    cwd,
+    clientWrapperRelativePath
   );
 
   const pkgPath = path.join(
@@ -56,8 +66,13 @@ export const runScript = async (
     name: scriptName,
     type: "module",
     imports: {
-      '#seed': path.join(generateOutputPath, 'index.js'), 
+      '#seed': clientWrapperRelativePath, 
     }
+  }))
+
+  await writeFile(clientWrapperPath, adapter.generateClientWrapper({
+    generateOutputPath,
+    connectionString
   }))
 
   await writeFile(scriptPath, script);

@@ -1,7 +1,7 @@
-import { type Adapter } from "./adaptersByDialect.js";
+import { type Adapter } from "./adapters.js";
 import tmp from 'tmp-promise'
 import path from "node:path";
-import { runScript } from './runScript.js';
+import { runSeedScript as baseRunSeedScript } from './runSeedScript.js';
 import { runCLI } from './runCli.js';
 import { writeFile } from "fs-extra";
 
@@ -14,11 +14,13 @@ export async function setupProject(props: {
   seedScript?: string;
   snapletConfig?: null | string;
 }) {
-  const { client, name: connectionString } = await props.adapter.createTestDb(
+  const { adapter } = props
+
+  const { client, name: connectionString } = await adapter.createTestDb(
     props.databaseSchema ?? "",
   );
 
-  const db = props.adapter.createClient(client)
+  const db = adapter.createClient(client)
 
   const cwd = props.cwd ??= (await tmp.dir()).path
 
@@ -26,7 +28,7 @@ export async function setupProject(props: {
     await writeFile(path.join(cwd, 'seed.config.ts'), props.snapletConfig);
   }
 
-const generateOutputPath = './seed';
+  const generateOutputPath = './seed';
 
   await runCLI(["generate", "--output", generateOutputPath], {
     cwd,
@@ -37,14 +39,15 @@ const generateOutputPath = './seed';
     script: string,
     options?: { env?: Record<string, string> }
   ) => {
-    const runScriptResult = await runScript(script, {
+    const runScriptResult = await baseRunSeedScript({
+      script,
+      adapter,
       cwd,
+      connectionString,
       generateOutputPath,
-      env: {
-        SNAPLET_TARGET_DATABASE_URL: connectionString.toString(),
-        ...options?.env,
-      },
+      env: options?.env,
     })
+
     return runScriptResult
   }
 
