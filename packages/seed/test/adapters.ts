@@ -46,7 +46,10 @@ import postgres from "${resolveDepPath("postgres")}";
 import { drizzle } from "${resolveDepPath("drizzle-orm/postgres-js")}";
 import { createSeedClient as baseCreateSeedClient } from "${generateOutputPath}";
 
-const db = drizzle(postgres("${connectionString}"));
+const client = postgres("${connectionString}")
+const db = drizzle(client);
+
+export const end = () => client.end()
 
 export const createSeedClient = (options) => baseCreateSeedClient(db, options)
 `,
@@ -70,7 +73,11 @@ import Database from "${resolveDepPath("better-sqlite3")}";
 import { drizzle } from "${resolveDepPath("drizzle-orm/better-sqlite3")}";
 import { createSeedClient as baseCreateSeedClient } from "${generateOutputPath}";
 
-const db = drizzle(new Database("${connectionString}"));
+const client = new Database("${connectionString}")
+
+const db = drizzle(client);
+
+export const end = () => client.close()
 
 export const createSeedClient = (options) => baseCreateSeedClient(db, options)
 `,

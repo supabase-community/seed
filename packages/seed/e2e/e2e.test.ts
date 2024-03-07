@@ -30,12 +30,14 @@ for (const adapterName of Object.keys(adapters) as Array<AdapterName>) {
           );
         `,
           seedScript: `
-          import { createSeedClient } from '#seed'
+          import { createSeedClient, end } from '#seed'
 
           const seed = await createSeedClient()
           await seed.organizations((x) => x(2, {
             members: (x) => x(3)
           }))
+
+          await end()
         `,
         });
 

@@ -6,7 +6,7 @@ import { expect } from "vitest";
 import { ROOT_DIR } from "./constants.js";
 import { testDebug } from "./debug.js";
 
-const debugCliRun = testDebug.extend("runSnapletCli");
+const debugCliRun = testDebug.extend("runCli");
 const debugCliOutput = debugCliRun.extend("output");
 // for the output we want to totally disable all prefix including namespace
 debugCliOutput.namespace = "";
