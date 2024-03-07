@@ -43,9 +43,7 @@ export const runSeedScript = async ({
       `${c.bold("script:")} ${script}`,
       "==================================",
       "",
-    ]
-      .filter((v) => v != null)
-      .join("\n"),
+    ].join("\n"),
   );
 
   const scriptName = `script${++scriptId}`;
@@ -90,10 +88,10 @@ export const runSeedScript = async ({
         ...env,
       },
     });
-    result.stdout?.on("data", (chunk) => {
+    result.stdout?.on("data", (chunk: Buffer) => {
       debugScriptOutput(chunk.toString().trim());
     });
-    result.stderr?.on("data", (chunk) => {
+    result.stderr?.on("data", (chunk: Buffer) => {
       debugScriptOutput(chunk.toString().trim());
     });
 

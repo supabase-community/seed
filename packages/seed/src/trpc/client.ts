@@ -11,7 +11,7 @@ export const trpc = createTRPCProxyClient<CLIRouter>({
       url: `${process.env["SNAPLET_API_HOSTNAME"] ?? "https://api.snaplet.dev"}/cli`,
       headers: async () => {
         return (headers ??= {
-          authorization: `Bearer ${(process.env["SNAPLET_ACCESS_TOKEN"] ?? (await getSystemConfig()).accessToken)}`,
+          authorization: `Bearer ${process.env["SNAPLET_ACCESS_TOKEN"] ?? (await getSystemConfig()).accessToken}`,
           "user-agent": `Snaplet Seed / ${await getVersion()}`,
         });
       },

@@ -1,11 +1,11 @@
 import { describe, expect, test } from "vitest";
-import { AdapterName, adapters } from "#test/adapters.js";
+import { type AdapterName, adapters } from "#test/adapters.js";
 import { setupProject } from "#test/setupProject.js";
 
 for (const adapterName of Object.keys(adapters) as Array<AdapterName>) {
   const adapter = await adapters[adapterName]();
 
-  describe(adapterName, () => {
+  describe(`e2e: ${adapterName}`, () => {
     test("generates without a snaplet account", async () => {
       const { db } = await setupProject({
         adapter,
@@ -29,7 +29,9 @@ for (const adapterName of Object.keys(adapters) as Array<AdapterName>) {
         `,
       });
 
-      expect((await db.query('select * from "Organization"')).length).toEqual(2);
+      expect((await db.query('select * from "Organization"')).length).toEqual(
+        2,
+      );
       expect((await db.query('select * from "Member"')).length).toEqual(6);
     });
   });
