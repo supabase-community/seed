@@ -94,7 +94,6 @@ jobs:
         run: |
           pnpm start:server &
           npx wait-on -d 5000 -i 2000 -t 20000 http://localhost:3000 --log --verbose
-        shell: bash
 
       - name: Run unit and integration tests
         run: pnpm test
