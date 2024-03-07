@@ -254,5 +254,50 @@ describe.each(["betterSqlite3"] as const)("store: %s", (adapter) => {
         ]),
       );
     });
+    test("should handle circular references", async () => {
+      const structure = `
+        create table customer (
+          id integer primary key autoincrement not null,
+          name text not null,
+          referrer_id integer references customer(id)
+        );
+      `;
+
+      const db = await createTestDb(structure);
+      const orm = createDrizzleORMSqliteClient(drizzle(db.client));
+      const dataModel = await getDatamodel(orm);
+
+      const store = new SqliteStore(dataModel);
+
+      store.add("customer", {
+        id: 1,
+        name: "John Doe",
+        referrer_id: 2,
+      });
+
+      store.add("customer", {
+        id: 2,
+        name: "Jane Doe",
+        referrer_id: 1,
+      });
+
+      await execQueries(orm, [...store.toSQL()]);
+      const results = await orm.query(`select * from customer order by id asc`);
+
+      expect(results).toEqual(
+        expect.arrayContaining([
+          {
+            id: 1,
+            name: "John Doe",
+            referrer_id: 2,
+          },
+          {
+            id: 2,
+            name: "Jane Doe",
+            referrer_id: 1,
+          },
+        ]),
+      );
+    });
   });
 });
