@@ -22,13 +22,13 @@ export async function runCLI(args: Array<string>, options: RunCliOptions = {}) {
   const { env: envOverrides = {}, cwd } = options;
   const entrypointTS = path.resolve(ROOT_DIR, "./src/cli/index.ts");
 
-  const { SNAPLET_ACCESS_TOKEN = "__test " } = process.env;
+  const { SNAPLET_ACCESS_TOKEN = "__test" } = process.env;
 
   const env = {
     SNAPLET_DISABLE_TELEMETRY: "1",
     NODE_ENV: "development",
-    SNAPLET_API_HOSTNAME: "http://localhost:3000",
     SNAPLET_ACCESS_TOKEN,
+    SNAPLET_API_URL: "http://localhost:3000",
     ...envOverrides,
   };
 
@@ -49,18 +49,20 @@ export async function runCLI(args: Array<string>, options: RunCliOptions = {}) {
       .join("\n"),
   );
 
-  const result = execa("tsx", [entrypointTS, ...args], {
-    shell: SHELL,
-    stderr: "pipe",
-    stdout: "pipe",
-    cwd,
-    env: {
-      SNAPLET_API_URL: "http://localhost:3000",
-      ...env,
-      DEBUG_COLORS: "1",
+  const result = execa(
+    "tsx",
+    ["--conditions=development", entrypointTS, ...args],
+    {
+      shell: SHELL,
+      stderr: "pipe",
+      stdout: "pipe",
+      cwd,
+      env: {
+        ...env,
+        DEBUG_COLORS: "1",
+      },
     },
-    ...options,
-  });
+  );
 
   result.stdout?.on("data", (chunk: Buffer) => {
     debugCliOutput(chunk.toString().trim());

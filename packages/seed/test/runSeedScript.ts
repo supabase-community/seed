@@ -87,9 +87,10 @@ export const runSeedScript = async ({
   await writeFile(scriptPath, script);
 
   try {
-    const result = execa("tsx", [scriptPath], {
+    const result = execa("tsx", ["--conditions=development", scriptPath], {
       stderr: "pipe",
       stdout: "pipe",
+      extendEnv: true,
       env: {
         DEBUG_COLORS: "1",
         NODE_PATH: path.join(ROOT_DIR, "node_modules"),
