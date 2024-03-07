@@ -48,7 +48,7 @@ import { createSeedClient as baseCreateSeedClient } from "${generateOutputPath}"
 
 const db = drizzle(postgres("${connectionString}"));
 
-export const createSeedClient = (options) => createSeedClient(db, options)
+export const createSeedClient = (options) => baseCreateSeedClient(db, options)
 `,
     };
   },
@@ -72,7 +72,7 @@ import { createSeedClient as baseCreateSeedClient } from "${generateOutputPath}"
 
 const db = drizzle(new Database("${connectionString}"));
 
-export const createSeedClient = (options) => createSeedClient(db, options)
+export const createSeedClient = (options) => baseCreateSeedClient(db, options)
 `,
     };
   },
