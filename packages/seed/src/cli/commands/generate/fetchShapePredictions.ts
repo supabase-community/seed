@@ -18,10 +18,6 @@ export const fetchShapePredictions = async (props: {
   const shapePredictions: Array<TableShapePredictions> = [];
 
   for (const model of Object.values(dataModel.models)) {
-    // todo(justinvdm, 28 Feb 2024): Avoid calling api with fields we would have not used the result
-    // for anyways
-    // https://linear.app/snaplet/issue/S-1897/npx-snapletseed-generate-per-dialect-shape-logic
-
     const columns = model.fields
       .map((field) => {
         if (
