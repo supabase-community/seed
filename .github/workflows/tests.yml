@@ -21,6 +21,7 @@ defaults:
 env:
   TURBO_TEAM: ${{ vars.TURBO_TEAM }}
   TURBO_TOKEN: ${{ secrets.TURBO_TOKEN }}
+  PG_TEST_DATABASE_SERVER: postgresql://postgres:postgres@localhost:5432/postgres
 
 jobs:
   test-type-check:
@@ -97,8 +98,6 @@ jobs:
 
       - name: Run unit and integration tests
         run: pnpm test
-        env:
-          TEST_DATABASE_SERVER: postgresql://postgres:postgres@localhost:5432/postgres
 
       - name: Run e2e tests
         run: pnpm test:e2e

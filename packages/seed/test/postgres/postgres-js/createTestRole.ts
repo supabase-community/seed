@@ -11,7 +11,7 @@ interface State {
 }
 
 const TEST_DATABASE_SERVER =
-  process.env["TEST_DATABASE_SERVER"] ??
+  process.env["PG_TEST_DATABASE_SERVER"] ??
   "postgres://postgres@localhost/postgres";
 const TEST_ROLE_PREFIX = "testrole";
 
