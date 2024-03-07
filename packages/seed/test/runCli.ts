@@ -3,8 +3,8 @@ import { execa } from "execa";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { inspect } from "node:util";
+import { expect } from "vitest";
 import { testDebug } from "./debug.js";
-import { expect } from 'vitest';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -19,21 +19,17 @@ const ROOT_DIR = path.resolve(__dirname, "..");
 const SHELL = "/bin/bash";
 
 interface RunCliOptions {
-  cwd?: string
-  env?: Partial<NodeJS.ProcessEnv>
+  cwd?: string;
+  env?: Partial<NodeJS.ProcessEnv>;
 }
 
-export async function runCLI(
-  args: Array<string>,
-  options: RunCliOptions = {},
-) {
-  const { env: envOverrides = {}, cwd } = options 
-  const config = path.resolve(ROOT_DIR, "./vite.config.ts");
-  const entrypointTS = path.resolve(ROOT_DIR, "./src/index.ts");
+export async function runCLI(args: Array<string>, options: RunCliOptions = {}) {
+  const { env: envOverrides = {}, cwd } = options;
+  const config = path.resolve(ROOT_DIR, "./vitest.config.ts");
+  const entrypointTS = path.resolve(ROOT_DIR, "./src/cli/index.ts");
   const cliCommand = `vite-node -c ${config} ${entrypointTS} --`;
 
-  const { SNAPLET_ACCESS_TOKEN = '__test '} =
-    process.env;
+  const { SNAPLET_ACCESS_TOKEN = "__test " } = process.env;
 
   const env = {
     SNAPLET_DISABLE_TELEMETRY: "1",
@@ -65,11 +61,18 @@ export async function runCLI(
     stderr: "pipe",
     stdout: "pipe",
     cwd,
-    env: { ...env, DEBUG_COLORS: "1" },
+    env: {
+      ...env,
+      DEBUG_COLORS: "1",
+    },
     ...options,
   });
-  result.stdout?.on("data", (chunk: Buffer) => debugCliOutput(chunk.toString().trim()));
-  result.stderr?.on("data", (chunk: Buffer) => debugCliOutput(chunk.toString().trim()));
+  result.stdout?.on("data", (chunk: Buffer) => {
+    debugCliOutput(chunk.toString().trim());
+  });
+  result.stderr?.on("data", (chunk: Buffer) => {
+    debugCliOutput(chunk.toString().trim());
+  });
 
   return result;
 }

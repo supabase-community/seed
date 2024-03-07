@@ -1,34 +1,34 @@
-import { type Adapter } from "./adapters.js";
-import tmp from 'tmp-promise'
-import path from "node:path";
-import { runSeedScript as baseRunSeedScript } from './runSeedScript.js';
-import { runCLI } from './runCli.js';
 import { writeFile } from "fs-extra";
+import path from "node:path";
+import tmp from "tmp-promise";
+import { type Adapter } from "./adapters.js";
+import { runCLI } from "./runCli.js";
+import { runSeedScript as baseRunSeedScript } from "./runSeedScript.js";
 
 export async function setupProject(props: {
   adapter: Adapter;
   connectionString?: string;
+  cwd?: string;
   databaseSchema?: string;
   env?: Record<string, string>;
-  cwd?: string
   seedScript?: string;
   snapletConfig?: null | string;
 }) {
-  const { adapter } = props
+  const { adapter } = props;
 
   const { client, name: connectionString } = await adapter.createTestDb(
     props.databaseSchema ?? "",
   );
 
-  const db = adapter.createClient(client)
+  const db = adapter.createClient(client);
 
-  const cwd = props.cwd ??= (await tmp.dir()).path
+  const cwd = (props.cwd ??= (await tmp.dir()).path);
 
   if (props.snapletConfig) {
-    await writeFile(path.join(cwd, 'seed.config.ts'), props.snapletConfig);
+    await writeFile(path.join(cwd, "seed.config.ts"), props.snapletConfig);
   }
 
-  const generateOutputPath = './seed';
+  const generateOutputPath = "./seed";
 
   await runCLI(["generate", "--output", generateOutputPath], {
     cwd,
@@ -37,7 +37,7 @@ export async function setupProject(props: {
 
   const runSeedScript = async (
     script: string,
-    options?: { env?: Record<string, string> }
+    options?: { env?: Record<string, string> },
   ) => {
     const runScriptResult = await baseRunSeedScript({
       script,
@@ -46,15 +46,15 @@ export async function setupProject(props: {
       connectionString,
       generateOutputPath,
       env: options?.env,
-    })
+    });
 
-    return runScriptResult
-  }
+    return runScriptResult;
+  };
 
-  let stdout = ''
+  let stdout = "";
   if (props.seedScript) {
-    const runScriptResult = await runSeedScript(props.seedScript)
-    stdout = runScriptResult.stdout
+    const runScriptResult = await runSeedScript(props.seedScript);
+    stdout = runScriptResult.stdout;
   }
 
   return {
@@ -62,6 +62,6 @@ export async function setupProject(props: {
     db,
     cwd,
     stdout,
-    runSeedScript
+    runSeedScript,
   };
 }

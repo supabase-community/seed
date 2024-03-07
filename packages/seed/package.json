@@ -41,6 +41,7 @@
     "@snaplet/tsconfig": "workspace:*",
     "@total-typescript/ts-reset": "0.5.1",
     "@types/better-sqlite3": "7.6.9",
+    "@types/debug": "4.1.12",
     "@types/fs-extra": "11.0.4",
     "@types/node": "20.11.18",
     "@types/pg": "8.11.0",
