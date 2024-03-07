@@ -55,6 +55,7 @@ export async function runCLI(args: Array<string>, options: RunCliOptions = {}) {
     stdout: "pipe",
     cwd,
     env: {
+      SNAPLET_API_URL: "http://localhost:3000",
       ...env,
       DEBUG_COLORS: "1",
     },
