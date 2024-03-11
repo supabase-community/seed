@@ -253,7 +253,7 @@ describe.each(["postgresJs"] as const)("store: %s", (adapter) => {
         ]),
       );
     });
-    test("should handle circular references", async () => {
+    test("should handle auto circular references", async () => {
       const structure = `
         create table customer (
           id serial primary key,
@@ -294,6 +294,109 @@ describe.each(["postgresJs"] as const)("store: %s", (adapter) => {
             id: 2,
             name: "Jane Doe",
             referrer_id: 1,
+          },
+        ]),
+      );
+    });
+    test("should handle complex circular references", async () => {
+      const structure = `
+        create table customer (
+          id serial primary key,
+          name text not null,
+          last_order_id integer
+        );
+
+        create table product (
+          id serial primary key,
+          name text not null,
+          first_order_id integer
+        );
+
+        create table "order" (
+          id serial primary key,
+          customer_id integer not null,
+          product_id integer not null,
+          quantity integer not null,
+          CONSTRAINT fk_customer
+            FOREIGN KEY(customer_id)
+            REFERENCES customer(id),
+          CONSTRAINT fk_product
+            FOREIGN KEY(product_id)
+            REFERENCES product(id)
+        );
+        -- Add constraints to customer and product tables
+        alter table customer add constraint fk_last_order
+          foreign key (last_order_id) references "order"(id);
+    
+        alter table product add constraint fk_first_order
+          foreign key (first_order_id) references "order"(id);
+      `;
+
+      const db = await createTestDb(structure);
+      const orm = createDrizzleORMPgClient(drizzle(db.client));
+      const dataModel = await getDatamodel(orm);
+
+      const store = new PgStore(dataModel);
+
+      // Assume IDs are auto-generated correctly and linked properly
+      store.add("product", {
+        id: 1,
+        name: "Gadget",
+        first_order_id: 1, // This will be updated later after creating the order
+      });
+
+      store.add("customer", {
+        id: 1,
+        name: "John Doe",
+        last_order_id: 1, // This will be updated later after creating the order
+      });
+
+      store.add("order", {
+        id: 1,
+        customer_id: 1,
+        product_id: 1,
+        quantity: 10,
+      });
+
+      await execQueries(orm, [...store.toSQL()]);
+
+      const customerResults = await orm.query(
+        `select * from customer order by id asc`,
+      );
+      const orderResults = await orm.query(
+        `select * from order order by id asc`,
+      );
+      const productResults = await orm.query(
+        `select * from product order by id asc`,
+      );
+
+      expect(customerResults).toEqual(
+        expect.arrayContaining([
+          {
+            id: 1,
+            name: "John Doe",
+            last_order_id: 1,
+          },
+        ]),
+      );
+
+      expect(orderResults).toEqual(
+        expect.arrayContaining([
+          {
+            id: 1,
+            customer_id: 1,
+            product_id: 1,
+            quantity: 10,
+          },
+        ]),
+      );
+
+      expect(productResults).toEqual(
+        expect.arrayContaining([
+          {
+            id: 1,
+            name: "Gadget",
+            first_order_id: 1,
           },
         ]),
       );
