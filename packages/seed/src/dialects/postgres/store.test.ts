@@ -547,7 +547,7 @@ describe.each(["postgresJs"] as const)("store: %s", (adapter) => {
         ]),
       );
     });
-    test("should work with one single nullable FK in the circular loop", async () => {
+    test("should work with one single nullable FK table in the circular loop", async () => {
       const structure = `
         create table customer (
           id serial primary key,
@@ -649,7 +649,81 @@ describe.each(["postgresJs"] as const)("store: %s", (adapter) => {
         ]),
       );
     });
-    test.skip("should error on non nullables complex circular references", async () => {
+    test("should handle join table relationships", async () => {
+      const structure = `
+        CREATE TABLE authors (
+          id SERIAL PRIMARY KEY,
+          name TEXT NOT NULL
+        );
+    
+        CREATE TABLE books (
+          id SERIAL PRIMARY KEY,
+          title TEXT NOT NULL
+        );
+    
+        CREATE TABLE author_books (
+          author_id INTEGER NOT NULL,
+          book_id INTEGER NOT NULL,
+          PRIMARY KEY (author_id, book_id),
+          FOREIGN KEY (author_id) REFERENCES authors(id),
+          FOREIGN KEY (book_id) REFERENCES books(id)
+        );
+      `;
+
+      const db = await createTestDb(structure);
+      const orm = createDrizzleORMPgClient(drizzle(db.client));
+      const dataModel = await getDatamodel(orm);
+
+      const store = new PgStore(dataModel);
+
+      const authorId1 = 1;
+      const authorId2 = 2;
+      const bookId1 = 1;
+      const bookId2 = 2;
+      // Insert authors
+      store.add("authors", { name: "Author One" });
+      store.add("authors", { name: "Author Two" });
+
+      // Insert books
+      store.add("books", { title: "Book One" });
+      store.add("books", { title: "Book Two" });
+
+      // Establish many-to-many relationships through author_books
+      store.add("author_books", {
+        author_id: authorId1,
+        book_id: bookId1,
+      });
+      store.add("author_books", {
+        author_id: authorId1,
+        book_id: bookId2,
+      });
+      store.add("author_books", {
+        author_id: authorId2,
+        book_id: bookId1,
+      });
+
+      await execQueries(orm, [...store.toSQL()]);
+
+      // Verify the relationships
+      const results = await orm.query(`
+        SELECT a.name, b.title
+        FROM author_books ab
+        JOIN authors a ON ab.author_id = a.id
+        JOIN books b ON ab.book_id = b.id
+      `);
+
+      // Assertions to verify the join table relationships
+      // This assumes your testing framework has an expect function and that
+      // you're familiar with its assertion syntax. Adjust accordingly.
+      expect(results).toEqual(
+        expect.arrayContaining([
+          { name: "Author One", title: "Book One" },
+          { name: "Author One", title: "Book Two" },
+          { name: "Author Two", title: "Book One" },
+        ]),
+      );
+    });
+    test("should error on non nullables complex circular references", async () => {
       const structure = `
         create table customer (
           id serial primary key,
