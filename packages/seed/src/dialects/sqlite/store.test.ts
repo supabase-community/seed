@@ -434,13 +434,13 @@ describe.each(["betterSqlite3"] as const)("store: %s", (adapter) => {
       store.add("product", {
         id: 1,
         name: "Gadget",
-        first_order_id: 1, // This will be updated later after creating the order
+        first_order_id: 1,
       });
 
       store.add("customer", {
         id: 1,
         name: "John Doe",
-        last_order_id: 1, // This will be updated later after creating the order
+        last_order_id: 1,
       });
 
       store.add("order", {
