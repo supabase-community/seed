@@ -396,5 +396,63 @@ describe.each(["betterSqlite3"] as const)("store: %s", (adapter) => {
         ]),
       );
     });
+    test("should error on non nullables complex circular references", async () => {
+      const structure = `
+        create table customer (
+          id INTEGER PRIMARY KEY AUTOINCREMENT,
+          name TEXT NOT NULL,
+          last_order_id INTEGER NOT NULL,
+          FOREIGN KEY(last_order_id) REFERENCES "order"(id)
+        );
+
+        create table product (
+          id INTEGER PRIMARY KEY AUTOINCREMENT,
+          name TEXT NOT NULL,
+          first_order_id INTEGER NOT NULL,
+          FOREIGN KEY(first_order_id) REFERENCES "order"(id)
+        );
+
+        create table "order" (
+          id INTEGER PRIMARY KEY AUTOINCREMENT,
+          customer_id INTEGER NOT NULL,
+          product_id INTEGER NOT NULL,
+          quantity INTEGER NOT NULL,
+          FOREIGN KEY(customer_id) REFERENCES customer(id),
+          FOREIGN KEY(product_id) REFERENCES product(id)
+        );
+
+        PRAGMA foreign_keys = ON;
+      `;
+
+      const db = await createTestDb(structure);
+      const orm = createDrizzleORMSqliteClient(drizzle(db.client));
+      const dataModel = await getDatamodel(orm);
+
+      const store = new SqliteStore(dataModel);
+
+      // Assume IDs are auto-generated correctly and linked properly
+      store.add("product", {
+        id: 1,
+        name: "Gadget",
+        first_order_id: 1, // This will be updated later after creating the order
+      });
+
+      store.add("customer", {
+        id: 1,
+        name: "John Doe",
+        last_order_id: 1, // This will be updated later after creating the order
+      });
+
+      store.add("order", {
+        id: 1,
+        customer_id: 1,
+        product_id: 1,
+        quantity: 10,
+      });
+
+      expect(() => store.toSQL()).toThrowError(
+        `Node product forms circular dependency: product -> order -> product`,
+      );
+    });
   });
 });
