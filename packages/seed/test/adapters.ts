@@ -12,14 +12,10 @@ export interface Adapter<Client = AnyClient> {
   }>;
   generateClientWrapper(props: {
     connectionString: string;
-    generateOutputPath: string;
+    generateOutputIndexPath: string;
   }): string;
   skipReason?: string;
 }
-
-// todo(justinvdm, 7 Mar 2024): Ideally we could use import.meta.resolve,
-// but I that ends up with a __vite_ssr_import_meta__.resolve is not a function
-const resolveDepPath = (name: string) => require.resolve(name);
 
 export type Adapters = typeof adapters;
 
@@ -41,17 +37,20 @@ export const adapters = {
     return {
       createTestDb,
       createClient: (client) => createDrizzleORMPgClient(drizzle(client)),
-      generateClientWrapper: ({ generateOutputPath, connectionString }) => `
-import postgres from "${resolveDepPath("postgres")}";
-import { drizzle } from "${resolveDepPath("drizzle-orm/postgres-js")}";
-import { createSeedClient as baseCreateSeedClient } from "${generateOutputPath}";
+      generateClientWrapper: ({
+        generateOutputIndexPath,
+        connectionString,
+      }) => `
+import postgres from "postgres";
+import { drizzle } from "drizzle-orm/postgres-js";
+import { createSeedClient as baseCreateSeedClient } from "${generateOutputIndexPath}";
 
 const client = postgres("${connectionString}")
 const db = drizzle(client);
 
 export const end = () => client.end()
 
-export const createSeedClient = (options) => baseCreateSeedClient(db, options)
+export const createSeedClient = (options?: Parameters<typeof baseCreateSeedClient>[1]) => baseCreateSeedClient(db, options)
 `,
     };
   },
@@ -68,10 +67,13 @@ export const createSeedClient = (options) => baseCreateSeedClient(db, options)
       skipReason: "Not yet supported with introspect command",
       createTestDb,
       createClient: (client) => createDrizzleORMSqliteClient(drizzle(client)),
-      generateClientWrapper: ({ generateOutputPath, connectionString }) => `
-import Database from "${resolveDepPath("better-sqlite3")}";
-import { drizzle } from "${resolveDepPath("drizzle-orm/better-sqlite3")}";
-import { createSeedClient as baseCreateSeedClient } from "${generateOutputPath}";
+      generateClientWrapper: ({
+        generateOutputIndexPath,
+        connectionString,
+      }) => `
+import Database from "better-sqlite3";
+import { drizzle } from "drizzle-orm/better-sqlite3";
+import { createSeedClient as baseCreateSeedClient } from "${generateOutputIndexPath}";
 
 const client = new Database("${connectionString}")
 

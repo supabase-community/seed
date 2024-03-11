@@ -1,7 +1,8 @@
-import { writeFile } from "fs-extra";
+import { mkdirp, writeFile } from "fs-extra";
 import path from "node:path";
 import tmp from "tmp-promise";
 import { type Adapter } from "./adapters.js";
+import { TMP_DIR } from "./constants.js";
 import { runCLI } from "./runCli.js";
 import { runSeedScript as baseRunSeedScript } from "./runSeedScript.js";
 
@@ -22,13 +23,20 @@ export async function setupProject(props: {
 
   const db = adapter.createClient(client);
 
-  const cwd = (props.cwd ??= (await tmp.dir()).path);
+  await mkdirp(TMP_DIR);
+
+  const cwd = (props.cwd ??= (
+    await tmp.dir({
+      tmpdir: TMP_DIR,
+    })
+  ).path);
 
   if (props.snapletConfig) {
     await writeFile(path.join(cwd, "seed.config.ts"), props.snapletConfig);
   }
 
   const generateOutputPath = "./seed";
+  const generateOutputIndexPath = "./seed/index.js";
 
   await runCLI(["introspect", "--connection-string", connectionString], {
     cwd,
@@ -49,7 +57,7 @@ export async function setupProject(props: {
       adapter,
       cwd,
       connectionString,
-      generateOutputPath,
+      generateOutputIndexPath,
       env: options?.env,
     });
 

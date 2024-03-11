@@ -179,3 +179,5 @@ devenv.local.nix
 
 # Types for VS Code
 .dts
+
+.tmp
