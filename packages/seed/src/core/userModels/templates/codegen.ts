@@ -1,6 +1,6 @@
-import { type NestedType } from "#core/dialect/types.js";
-import { unpackNestedType } from "#core/dialect/unpackNestedType.js";
 import { type Shape } from "#trpc/shapes.js";
+import { type NestedType } from "../../dialect/types.js";
+import { unpackNestedType } from "../../dialect/unpackNestedType.js";
 import {
   type TemplateContext,
   type TemplateFn,

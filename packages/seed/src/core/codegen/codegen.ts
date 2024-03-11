@@ -2,10 +2,10 @@ import { findUp } from "find-up";
 import { mkdirp } from "fs-extra/esm";
 import { writeFile } from "node:fs/promises";
 import path from "node:path";
-import { type DataModel } from "#core/dataModel/types.js";
-import { type Dialect } from "#core/dialect/types.js";
-import { type Fingerprint } from "#core/fingerprint/types.js";
 import { type TableShapePredictions } from "#trpc/shapes.js";
+import { type DataModel } from "../dataModel/types.js";
+import { type Dialect } from "../dialect/types.js";
+import { type Fingerprint } from "../fingerprint/types.js";
 import { generateUserModels } from "./userModels/generateUserModels.js";
 
 export interface CodegenContext {

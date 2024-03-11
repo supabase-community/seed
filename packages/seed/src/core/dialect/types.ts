@@ -1,7 +1,7 @@
-import { type DataModel } from "#core/dataModel/types.js";
-import { type Fingerprint } from "#core/fingerprint/types.js";
-import { type Templates } from "#core/userModels/templates/types.js";
 import { type Shape } from "#trpc/shapes.js";
+import { type DataModel } from "../dataModel/types.js";
+import { type Fingerprint } from "../fingerprint/types.js";
+import { type Templates } from "../userModels/templates/types.js";
 
 export type NestedType = string;
 

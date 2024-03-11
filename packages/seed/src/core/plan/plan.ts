@@ -1,8 +1,8 @@
 import { copycat } from "@snaplet/copycat";
-import { shouldGenerateFieldValue } from "#core/dataModel/shouldGenerateFieldValue.js";
 import { type ClientState } from "../client/types.js";
 import { serializeModelValues, serializeValue } from "../data/data.js";
 import { type Json } from "../data/types.js";
+import { shouldGenerateFieldValue } from "../dataModel/shouldGenerateFieldValue.js";
 import {
   type DataModel,
   type DataModelObjectField,
