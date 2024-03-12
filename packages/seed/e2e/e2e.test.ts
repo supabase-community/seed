@@ -184,6 +184,93 @@ for (const dialect of Object.keys(adapters) as Array<Dialect>) {
           }),
         ]);
       });
+
+      test("connect option", async () => {
+        const schema: Record<string, string> = {
+          default: `
+              CREATE TABLE student (
+                student_id SERIAL PRIMARY KEY,
+                first_name VARCHAR(50) NOT NULL,
+                last_name VARCHAR(50) NOT NULL,
+                email VARCHAR(100) NOT NULL,
+                phone_number VARCHAR(15) NOT NULL
+              );
+              CREATE TABLE tutor (
+                tutor_id SERIAL PRIMARY KEY,
+                first_name VARCHAR(50) NOT NULL,
+                last_name VARCHAR(50) NOT NULL,
+                email VARCHAR(100) NOT NULL,
+                phone_number VARCHAR(50) NOT NULL
+              );
+              CREATE TABLE lesson (
+                lesson_id SERIAL PRIMARY KEY,
+                lesson_type VARCHAR(50) NOT NULL,
+                duration_minutes INT NOT NULL,
+                price DECIMAL(10, 2) NOT NULL
+              );
+              CREATE TABLE booking (
+                booking_id SERIAL PRIMARY KEY,
+                student_id INT NOT NULL REFERENCES student(student_id),
+                tutor_id INT NOT NULL REFERENCES tutor(tutor_id),
+                lesson_id INT NOT NULL REFERENCES lesson(lesson_id),
+                booking_date TIMESTAMP NOT NULL
+              );
+            `,
+          sqlite: `
+              CREATE TABLE student (
+                student_id INTEGER PRIMARY KEY AUTOINCREMENT,
+                first_name TEXT NOT NULL,
+                last_name TEXT NOT NULL,
+                email TEXT NOT NULL,
+                phone_number TEXT NOT NULL
+              );
+              CREATE TABLE tutor (
+                tutor_id INTEGER PRIMARY KEY AUTOINCREMENT,
+                first_name TEXT NOT NULL,
+                last_name TEXT NOT NULL,
+                email TEXT NOT NULL,
+                phone_number TEXT NOT NULL
+              );
+              CREATE TABLE lesson (
+                lesson_id INTEGER PRIMARY KEY AUTOINCREMENT,
+                lesson_type TEXT NOT NULL,
+                duration_minutes INT NOT NULL,
+                price DECIMAL(10, 2) NOT NULL
+              );
+              CREATE TABLE booking (
+                booking_id INTEGER PRIMARY KEY AUTOINCREMENT,
+                student_id INT NOT NULL REFERENCES student(student_id),
+                tutor_id INT NOT NULL REFERENCES tutor(tutor_id),
+                lesson_id INT NOT NULL REFERENCES lesson(lesson_id),
+                booking_date TIMESTAMP NOT NULL
+              );
+            `,
+        };
+        const { db } = await setupProject({
+          adapter,
+          databaseSchema: schema[dialect] ?? schema["default"],
+          seedScript: `
+          import { createSeedClient } from '#seed'
+          const seed = await createSeedClient()
+          await seed.tutors([{}, {}])
+          await seed.students(c => c(1))
+          await seed.bookings(c => c(2), { connect: true })
+        `,
+        });
+
+        const tutors = await db.query('select * from "tutor"');
+        const students = await db.query<{ student_id: string }>(
+          'select * from "student"',
+        );
+        const bookings = await db.query<{ student_id: string }>(
+          'select * from "booking"',
+        );
+        expect(tutors.length).toEqual(2);
+        expect(students.length).toEqual(1);
+        expect(bookings.length).toEqual(2);
+        expect(bookings[0].student_id).toEqual(students[0].student_id);
+        expect(bookings[1].student_id).toEqual(students[0].student_id);
+      });
     },
     {
       timeout: 45000,
