@@ -139,6 +139,51 @@ for (const dialect of Object.keys(adapters) as Array<Dialect>) {
           );
           expect(fullName.length).toBeLessThanOrEqual(5);
         });
+
+      test("option overriding", async () => {
+        const { db } = await setupProject({
+          adapter,
+          databaseSchema: `
+          CREATE TABLE "Thing" (
+            "id" uuid not null primary key,
+            "a" text not null,
+            "b" text not null,
+            "c" text not null
+          );
+        `,
+          seedScript: `
+          import { createSeedClient } from '#seed'
+
+          const seed = await createSeedClient({
+            models: {
+              things: {
+                data: {
+                  a: 'client-a',
+                  b: 'client-b',
+                }
+              }
+            },
+          })
+
+          await seed.things([{}], {
+            models: {
+              things: {
+                data: {
+                  b: 'plan-b',
+                }
+              }
+            }
+          })
+        `,
+        });
+
+        expect(await db.query('select * from "Thing"')).toEqual([
+          expect.objectContaining({
+            a: "client-a",
+            b: "plan-b",
+          }),
+        ]);
+      });
     },
     {
       timeout: 45000,
