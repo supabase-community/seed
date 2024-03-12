@@ -1,6 +1,4 @@
-import { type Server, createServer } from "node:http";
-
-export let server: Server | undefined;
+import { createServer } from "node:http";
 
 export function getAccessTokenFromHttpServer(port: number) {
   return new Promise<string>((resolve) => {
