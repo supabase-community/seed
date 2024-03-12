@@ -33,6 +33,7 @@ for (const dialect of Object.keys(adapters) as Array<Dialect>) {
           import { createSeedClient } from '#seed'
 
           const seed = await createSeedClient()
+
           await seed.organizations((x) => x(2, {
             members: (x) => x(3)
           }))
@@ -42,6 +43,47 @@ for (const dialect of Object.keys(adapters) as Array<Dialect>) {
         expect((await db.query('select * from "Organization"')).length).toEqual(
           2,
         );
+        expect((await db.query('select * from "Member"')).length).toEqual(6);
+      });
+
+      test("dryRun outputs sql statements to stdout", async () => {
+        const { db, stdout } = await setupProject({
+          adapter,
+          databaseSchema: `
+            CREATE TABLE "Organization" (
+              "id" uuid not null primary key
+            );
+            CREATE TABLE "Member" (
+              "id" uuid not null primary key,
+              "organizationId" uuid not null references "Organization"("id"),
+              "name" text not null
+            );
+          `,
+          seedScript: `
+            import { createSeedClient } from '#seed'
+
+            const seed = await createSeedClient({ dryRun: true })
+
+            await seed.organizations((x) => x(2, {
+              members: (x) => x(3)
+            }))
+          `,
+        });
+
+        expect((await db.query('select * from "Organization"')).length).toEqual(
+          0,
+        );
+
+        expect((await db.query('select * from "Member"')).length).toEqual(0);
+
+        for (const statement of stdout.split(";").filter(Boolean)) {
+          await db.run(statement);
+        }
+
+        expect((await db.query('select * from "Organization"')).length).toEqual(
+          2,
+        );
+
         expect((await db.query('select * from "Member"')).length).toEqual(6);
       });
     },
