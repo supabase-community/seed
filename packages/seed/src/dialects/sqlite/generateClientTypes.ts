@@ -5,8 +5,6 @@ import {
   PG_DATE_TYPES,
   PG_TO_JS_TYPES,
   extractPrimitivePgType,
-  getPgTypeArrayDimensions,
-  isNestedArrayPgType,
 } from "./utils.js";
 
 export function generateClientTypes(props: {
@@ -15,26 +13,26 @@ export function generateClientTypes(props: {
 }) {
   return _generateClientTypes({
     ...props,
-    database2tsType: pg2tsType,
-    isJson,
-    databaseClientType: "PgDatabase<any>",
-    imports: "import { type PgDatabase } from 'drizzle-orm/pg-core';",
+    database2tsType: sqlite2tsType,
+    isJson: () => false,
+    databaseClientType: `BaseSQLiteDatabase<"async" | "sync", unknown, any>`,
+    imports: `import { type BaseSQLiteDatabase } from "drizzle-orm/sqlite-core";`,
     refineType,
   });
 }
 
-function pg2tsType(
+function sqlite2tsType(
   dataModel: DataModel,
-  postgresType: string,
+  sqliteType: string,
   isRequired: boolean,
 ) {
-  const type = pg2tsTypeName(dataModel, postgresType);
+  const type = sqlite2tsTypeName(dataModel, sqliteType);
 
-  return refineType(type, postgresType, isRequired);
+  return refineType(type, sqliteType, isRequired);
 }
 
-function pg2tsTypeName(dataModel: DataModel, postgresType: string) {
-  const primitiveType = extractPrimitivePgType(postgresType);
+function sqlite2tsTypeName(dataModel: DataModel, sqliteType: string) {
+  const primitiveType = extractPrimitivePgType(sqliteType);
   if (PG_DATE_TYPES.has(primitiveType)) {
     return "( Date | string )";
   }
@@ -55,18 +53,10 @@ function pg2tsTypeName(dataModel: DataModel, postgresType: string) {
   return "unknown";
 }
 
-function refineType(type: string, postgresType: string, isRequired: boolean) {
-  if (isNestedArrayPgType(postgresType)) {
-    type = `${type}${"[]".repeat(getPgTypeArrayDimensions(postgresType))}`;
-  }
-
+function refineType(type: string, _sqliteType: string, isRequired: boolean) {
   if (!isRequired) {
     type = `${type} | null`;
   }
 
   return type;
-}
-
-function isJson(databaseType: string) {
-  return ["json", "jsonb"].includes(extractPrimitivePgType(databaseType));
 }

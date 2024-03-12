@@ -62,9 +62,6 @@ export const createSeedClient = (options?: Parameters<typeof baseCreateSeedClien
       "#dialects/sqlite/adapters.js"
     );
     return {
-      // todo(justinvdm, 7 Mar 2024):
-      // https://linear.app/snaplet/issue/S-1923/support-sqlite-in-introspect-command
-      skipReason: "Not yet supported with introspect command",
       createTestDb,
       createClient: (client) => createDrizzleORMSqliteClient(drizzle(client)),
       generateClientWrapper: ({
@@ -81,7 +78,7 @@ const db = drizzle(client);
 
 export const end = () => client.close()
 
-export const createSeedClient = (options) => baseCreateSeedClient(db, options)
+export const createSeedClient = (options?: Parameters<typeof baseCreateSeedClient>[1]) => baseCreateSeedClient(db, options)
 `,
     };
   },

@@ -14,7 +14,7 @@ export const cliRouter = router({
         z.object({
           columns: z.array(
             z.object({
-              schemaName: z.string().min(1),
+              schemaName: z.string(),
               tableName: z.string().min(1),
               columnName: z.string().min(1),
               pgType: z.string().min(1),
@@ -39,7 +39,7 @@ export const cliRouter = router({
         z.object({
           columns: z.array(
             z.object({
-              schemaName: z.string().min(1),
+              schemaName: z.string(),
               tableName: z.string().min(1),
               columnName: z.string().min(1),
               pgType: z.string().min(1),
