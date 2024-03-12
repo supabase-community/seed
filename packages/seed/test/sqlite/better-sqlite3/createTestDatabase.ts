@@ -35,7 +35,7 @@ export async function createTestDb(structure: string): Promise<{
   return {
     client: db,
     name: connString,
-    connectionString: `sqlite://${connString}`,
+    connectionString: `file://${connString}`,
   };
 }
 

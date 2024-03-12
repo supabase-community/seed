@@ -8,7 +8,7 @@ export const getDialectFromConnectionString = (
 
   if (protocol === "postgres" || protocol === "postgresql") {
     return getDialect("postgres");
-  } else if (protocol === "file" || protocol === "sqlite") {
+  } else if (protocol === "file") {
     return getDialect("sqlite");
   } else if (protocol === "mysql") {
     throw new Error(`Not implemented yet`);
