@@ -75,7 +75,7 @@ import Database from "better-sqlite3";
 import { drizzle } from "drizzle-orm/better-sqlite3";
 import { createSeedClient as baseCreateSeedClient } from "${generateOutputIndexPath}";
 
-const client = new Database("${connectionString}")
+const client = new Database(new URL("${connectionString}").pathname, { fileMustExist: false })
 
 const db = drizzle(client);
 
