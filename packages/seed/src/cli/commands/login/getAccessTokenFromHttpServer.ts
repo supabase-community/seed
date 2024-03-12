@@ -1,3 +1,4 @@
+import exitHook from "exit-hook";
 import { createServer } from "node:http";
 
 export function getAccessTokenFromHttpServer(port: number) {
@@ -16,6 +17,10 @@ export function getAccessTokenFromHttpServer(port: number) {
       }
     });
 
+    const cancelExitHook = exitHook(() => {
+      server.close();
+    });
+
     server.on("request", (req, res) => {
       if (req.method === "POST" && req.url === "/cli-token") {
         let body = "";
@@ -27,6 +32,7 @@ export function getAccessTokenFromHttpServer(port: number) {
           res.statusCode = 200;
           res.end("ok");
           const parsed = JSON.parse(body) as { password: string };
+          cancelExitHook();
           server.close();
           resolve(parsed.password);
         });
