@@ -22,7 +22,7 @@ export async function createTestDb(structure: string): Promise<{
   connectionString: string;
   name: string;
 }> {
-  const tmp = await createTestTmpDirectory();
+  const tmp = await createTestTmpDirectory(true);
   const connString = path.join(tmp.name, "test.sqlite3");
   const db = new Database(connString);
   const driz = drizzle(db);
@@ -35,7 +35,7 @@ export async function createTestDb(structure: string): Promise<{
   return {
     client: db,
     name: connString,
-    connectionString: connString,
+    connectionString: `sqlite://${connString}`,
   };
 }
 
