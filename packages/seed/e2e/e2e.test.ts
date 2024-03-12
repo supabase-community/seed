@@ -116,6 +116,29 @@ for (const dialect of Object.keys(adapters) as Array<Dialect>) {
 
         expect((await db.query('select * from "Member"')).length).toEqual(5);
       });
+
+      dialect !== "sqlite" &&
+        test("generates for char limits", async () => {
+          const { db } = await setupProject({
+            adapter,
+            databaseSchema: `
+          CREATE TABLE "User" (
+            "id" uuid not null,
+            "fullName" varchar(5) not null
+          );
+        `,
+            seedScript: `
+          import { createSeedClient } from '#seed'
+          const seed = await createSeedClient()
+          await seed.users([{}])
+        `,
+          });
+
+          const [{ fullName }] = await db.query<{ fullName: string }>(
+            'select * from "User"',
+          );
+          expect(fullName.length).toBeLessThanOrEqual(5);
+        });
     },
     {
       timeout: 45000,
