@@ -17,9 +17,11 @@ function splitSqlScript(script: string): Array<string> {
   return queries.filter((query) => query.trim() !== "");
 }
 
-export async function createTestDb(
-  structure: string,
-): Promise<{ client: Database.Database; name: string }> {
+export async function createTestDb(structure: string): Promise<{
+  client: Database.Database;
+  connectionString: string;
+  name: string;
+}> {
   const tmp = await createTestTmpDirectory();
   const connString = path.join(tmp.name, "test.sqlite3");
   const db = new Database(connString);
@@ -30,12 +32,17 @@ export async function createTestDb(
       tx.run(sql.raw(query));
     }
   });
-  return { client: db, name: connString };
+  return {
+    client: db,
+    name: connString,
+    connectionString: connString,
+  };
 }
 
 // A sample database with data in it took from: https://www.sqlitetutorial.net/sqlite-sample-database/
 export async function createChinookSqliteTestDatabase(): Promise<{
   client: Database.Database;
+  connectionString: string;
   name: string;
 }> {
   const tmp = await createTestTmpDirectory();
@@ -43,5 +50,9 @@ export async function createChinookSqliteTestDatabase(): Promise<{
   // copy chinook database to tmp directory
   await copyFile(CHINOOK_DATABASE_PATH, connString);
   const db = new Database(connString);
-  return { client: db, name: connString };
+  return {
+    client: db,
+    name: connString,
+    connectionString: connString,
+  };
 }

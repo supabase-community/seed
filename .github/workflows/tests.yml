@@ -21,6 +21,7 @@ defaults:
 env:
   TURBO_TEAM: ${{ vars.TURBO_TEAM }}
   TURBO_TOKEN: ${{ secrets.TURBO_TOKEN }}
+  PG_TEST_DATABASE_SERVER: postgresql://postgres:postgres@localhost:5432/postgres
 
 jobs:
   test-type-check:
@@ -89,7 +90,14 @@ jobs:
       - name: Setup
         uses: ./.github/actions/setup
 
+      - name: Run dev API in background
+        working-directory: ./packages/seed
+        run: |
+          pnpm start:server &
+          npx wait-on -d 5000 -i 2000 -t 20000 http://localhost:3000 --log --verbose
+
       - name: Run unit and integration tests
         run: pnpm test
-        env:
-          TEST_DATABASE_SERVER: postgresql://postgres:postgres@localhost:5432/postgres
+
+      - name: Run e2e tests
+        run: pnpm test:e2e
