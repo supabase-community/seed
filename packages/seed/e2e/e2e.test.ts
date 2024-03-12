@@ -30,14 +30,12 @@ for (const dialect of Object.keys(adapters) as Array<Dialect>) {
           );
         `,
           seedScript: `
-          import { createSeedClient, end } from '#seed'
+          import { createSeedClient } from '#seed'
 
           const seed = await createSeedClient()
           await seed.organizations((x) => x(2, {
             members: (x) => x(3)
           }))
-
-          await end()
         `,
         });
 

@@ -23,13 +23,17 @@ interface RunScriptProps {
 let scriptId = 0;
 
 export const runSeedScript = async ({
-  script,
+  script: inputScript,
   adapter,
   generateOutputIndexPath,
   connectionString,
   cwd,
   env = {},
 }: RunScriptProps) => {
+  const script = [inputScript, 'await (await import("#seed")).end()'].join(
+    "\n",
+  );
+
   cwd ??= (await tmp.dir()).path;
   generateOutputIndexPath ??= "./__generateOutput/index.js";
 
