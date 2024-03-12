@@ -1,6 +1,6 @@
 import { spinner } from "#cli/lib/spinner.js";
 import { setDataModelConfig } from "#config/dataModelConfig.js";
-import { getDialectFromConnectionString } from "../../../core/dialect/getDialectFromConnectionString.js";
+import { getDialectFromConnectionString } from "#core/dialect/getDialectFromConnectionString.js";
 
 export async function introspectHandler(args: { connectionString: string }) {
   const { connectionString } = args;
