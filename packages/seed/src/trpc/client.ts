@@ -1,14 +1,15 @@
-import { createTRPCProxyClient, httpBatchLink } from "@trpc/client";
-import { getSystemConfig } from "../config/systemConfig.js";
-import { getVersion } from "../core/version.js";
+import { createTRPCProxyClient, httpLink } from "@trpc/client";
+import { SNAPLET_API_URL } from "#config/constants.js";
+import { getSystemConfig } from "#config/systemConfig.js";
+import { getVersion } from "#core/version.js";
 import { type CLIRouter } from "./router.js";
 
 let headers: Record<string, string> | undefined;
 
 export const trpc = createTRPCProxyClient<CLIRouter>({
   links: [
-    httpBatchLink({
-      url: process.env["SNAPLET_API_URL"] ?? "https://api.snaplet.dev/cli",
+    httpLink({
+      url: SNAPLET_API_URL,
       headers: async () => {
         return (headers ??= {
           authorization: `Bearer ${process.env["SNAPLET_ACCESS_TOKEN"] ?? (await getSystemConfig()).accessToken}`,
