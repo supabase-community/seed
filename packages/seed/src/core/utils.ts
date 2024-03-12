@@ -55,6 +55,8 @@ export function escapeKey(key: string): string {
 export const ERROR_CODES = {
   SEED_ALIAS_MODEL_NAME_CONFLICTS: 9300,
   SEED_SELECT_RELATIONSHIP_ERROR: 9301,
+
+  PACKAGE_NOT_EXISTS: 9400,
 };
 
 type CodeType = keyof typeof ERROR_CODES;
@@ -70,6 +72,9 @@ export interface SeedSelectRelationshipError {
 }
 
 interface Data extends Record<CodeType, unknown> {
+  PACKAGE_NOT_EXISTS: {
+    packageName: string;
+  };
   SEED_ALIAS_MODEL_NAME_CONFLICTS: {
     conflicts: Array<AliasModelNameConflict>;
   };
@@ -101,6 +106,9 @@ const errorToStringMappings: {
       )
       .join("; ");
     return `Select configuration cause constraint relationship error\nDetails: ${errorDetails}`;
+  },
+  PACKAGE_NOT_EXISTS: (data) => {
+    return `Please install required package: '${data.packageName}'`;
   },
 };
 
@@ -137,5 +145,13 @@ export class SnapletError<Code extends CodeType = CodeType>
     } else {
       return `Unknown error code: ${this.code}`;
     }
+  }
+}
+
+export async function assertPackage(packageName: string) {
+  try {
+    await import(packageName);
+  } catch (e) {
+    throw new SnapletError("PACKAGE_NOT_EXISTS", { packageName });
   }
 }
