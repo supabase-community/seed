@@ -20,7 +20,7 @@ export function getSeedClient(props: {
   fingerprint: Fingerprint;
   userModels: UserModels;
 }) {
-  class PgSeedClient extends SeedClientBase {
+  class SqliteSeedClient extends SeedClientBase {
     readonly db: DrizzleDbClient;
     readonly dryRun: boolean;
     readonly options?: SeedClientOptions;
@@ -34,7 +34,9 @@ export function getSeedClient(props: {
         },
         runStatements: async (statements: Array<string>) => {
           if (!this.dryRun) {
-            await this.db.run(statements.join(";"));
+            for (const statement of statements) {
+              await this.db.run(statement);
+            }
           } else {
             console.log(statements.join(`;${EOL}`) + ";");
           }
@@ -64,7 +66,7 @@ export function getSeedClient(props: {
       this.dataModel = updateDataModelSequences(this.dataModel, nextDataModel);
     }
 
-    async $transaction(cb: (seed: PgSeedClient) => Promise<void>) {
+    async $transaction(cb: (seed: SqliteSeedClient) => Promise<void>) {
       // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
       await cb(await createSeedClient(this.db.adapter, this.options));
     }
@@ -76,7 +78,7 @@ export function getSeedClient(props: {
   ) => {
     // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
     const client = createDrizzleORMSqliteClient(db);
-    const seed = new PgSeedClient(client, options);
+    const seed = new SqliteSeedClient(client, options);
 
     await seed.$syncDatabase();
     seed.$reset();
