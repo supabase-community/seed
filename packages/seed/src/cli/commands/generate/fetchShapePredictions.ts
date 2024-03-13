@@ -1,4 +1,3 @@
-import { spinner } from "#cli/lib/spinner.js";
 import { shouldGenerateFieldValue } from "#core/dataModel/shouldGenerateFieldValue.js";
 import { type DataModel } from "#core/dataModel/types.js";
 import { type DetermineShapeFromType } from "#core/dialect/types.js";
@@ -7,6 +6,7 @@ import {
   type StartPredictionsColumn,
   type TableShapePredictions,
 } from "#trpc/shapes.js";
+import { spinner } from "../../lib/output.js";
 
 export const fetchShapePredictions = async (props: {
   dataModel: DataModel;
