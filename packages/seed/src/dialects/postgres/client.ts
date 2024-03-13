@@ -27,7 +27,7 @@ export function getSeedClient(props: {
         ...props,
         createStore: (dataModel: DataModel) => new PgStore(dataModel),
         emit: (event) => {
-          console.log(event);
+          console.error(event);
         },
         runStatements: async (statements: Array<string>) => {
           if (!this.dryRun) {

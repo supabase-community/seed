@@ -65,6 +65,7 @@ export async function setupProject(props: {
   };
 
   let stdout = "";
+
   if (props.seedScript) {
     const runScriptResult = await runSeedScript(props.seedScript);
     stdout = runScriptResult.stdout;
