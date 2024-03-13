@@ -248,7 +248,7 @@ for (const dialect of Object.keys(adapters) as Array<Dialect>) {
         };
         const { db } = await setupProject({
           adapter,
-          databaseSchema: schema[dialect] ?? schema["default"],
+          databaseSchema: schema[dialect] ?? schema.default,
           seedScript: `
           import { createSeedClient } from '#seed'
           const seed = await createSeedClient()
