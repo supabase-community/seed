@@ -11,9 +11,7 @@ export async function introspectHandler(args: {
 }) {
   const { databaseUrl } = args;
 
-  if (!args.silent) {
-    spinner.start("Introspecting your database");
-  }
+  spinner.start("Introspecting the database");
 
   const dialect = await getDialectFromDatabaseUrl(databaseUrl);
 
@@ -22,15 +20,20 @@ export async function introspectHandler(args: {
     fn: dialect.getDataModel,
   });
 
+  if (Object.keys(dataModel.models).length === 0) {
+    spinner.fail(
+      "No tables found in the database, please make sure the database is not empty",
+    );
+    process.exit(1);
+  }
+
   await setDataModelConfig(dataModel);
 
-  if (!args.silent) {
-    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-    const dataModelConfigPath = (await getDataModelConfigPath())!;
-    spinner.succeed(
-      `Introspected ${Object.keys(dataModel.models).length} models and wrote them into ${link("dataModel.json", dataModelConfigPath)}`,
-    );
-  }
+  // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+  const dataModelConfigPath = (await getDataModelConfigPath())!;
+  spinner.succeed(
+    `Introspected ${Object.keys(dataModel.models).length} models and wrote them into ${link("dataModel.json", dataModelConfigPath)}`,
+  );
 
   return dataModel;
 }

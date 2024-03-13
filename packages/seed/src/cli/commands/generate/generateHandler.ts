@@ -1,18 +1,21 @@
-import { relative } from "node:path";
+import { relative, sep } from "node:path";
 import { type CodegenContext, generateAssets } from "#core/codegen/codegen.js";
 import { getDataModel } from "#core/dataModel/dataModel.js";
 import { getDialect } from "#core/dialect/getDialect.js";
 import { getFingerprint } from "#core/fingerprint/fingerprint.js";
 import { type TableShapePredictions } from "#trpc/shapes.js";
-import { bold, dim, spinner } from "../../lib/output.js";
+import { bold, dim, link, spinner } from "../../lib/output.js";
 import { fetchShapeExamples } from "./fetchShapeExamples.js";
 import { fetchShapePredictions } from "./fetchShapePredictions.js";
 
 export async function generateHandler(args: { output?: string }) {
   const context = await computeCodegenContext({ outputDir: args.output });
   spinner.start(`Generating ${bold("Seed Client")}`);
-  const outputDir = relative(process.cwd(), await generateAssets(context));
-  spinner.succeed(`Generated ${bold("Seed Client")} ${dim(`to ${outputDir}`)}`);
+  const outputDir = await generateAssets(context);
+  const relativeOutputDir = `.${sep}${relative(process.cwd(), outputDir)}`;
+  spinner.succeed(
+    `Generated ${bold("Seed Client")} ${dim(`to ${link(relativeOutputDir, outputDir)}`)}`,
+  );
 }
 
 async function computeCodegenContext(props: {
@@ -26,13 +29,13 @@ async function computeCodegenContext(props: {
   let shapeExamples: Array<{ examples: Array<string>; shape: string }> = [];
 
   if (!process.env["SNAPLET_DISABLE_SHAPE_PREDICTION"]) {
-    spinner.start("Getting your models shapes for enhanced data generation 🤖");
+    spinner.start("Getting the models shapes for enhanced data generation 🤖");
     shapePredictions = await fetchShapePredictions({
       determineShapeFromType: dialect.determineShapeFromType,
       dataModel,
     });
     shapeExamples = await fetchShapeExamples(shapePredictions);
-    spinner.succeed("Got your models shapes for enhanced data generation 🤖");
+    spinner.succeed("Got the models shapes for enhanced data generation 🤖");
   }
 
   return {

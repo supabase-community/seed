@@ -5,12 +5,17 @@ export async function getDatabaseUrl() {
   const { databaseUrl } = await prompt({
     type: "text",
     name: "databaseUrl",
-    message: "Database URL:",
+    message: "What is your database URL?",
     hint: "postgresql://user:password@localhost:5432/postgres",
     // initial:
     //   projectConfig.targetDatabaseUrl || process.env.PGENV_CONNECTION_URL,
     validate(value: string) {
-      return value.length > 0;
+      try {
+        new URL(value);
+        return true;
+      } catch {
+        return "Please enter a valid database URL";
+      }
     },
   });
 
