@@ -1,4 +1,5 @@
-import { bold } from "#cli/lib/output.js";
+import { updateProjectConfig } from "#config/projectConfig.js";
+import { bold, highlight } from "../../lib/output.js";
 import { generateHandler } from "../generate/generateHandler.js";
 import { introspectHandler } from "../introspect/introspectHandler.js";
 import { loginHandler } from "../login/loginHandler.js";
@@ -9,7 +10,7 @@ export async function setupHandler() {
   const user = await getUser();
 
   const welcomeText = user
-    ? `Welcome back, ${user.email}! 🌱`
+    ? `Welcome back ${highlight(user.email)}! 🌱`
     : `Welcome to ${bold("@snaplet/seed")}, your best data buddy! 🌱`;
 
   console.log(welcomeText);
@@ -21,6 +22,8 @@ export async function setupHandler() {
   const databaseUrl = await getDatabaseUrl();
 
   await introspectHandler({ databaseUrl });
+
+  await updateProjectConfig({ targetDatabaseUrl: databaseUrl });
 
   await generateHandler({});
 }

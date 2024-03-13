@@ -1,14 +1,17 @@
 import prompt from "prompts";
+import { getProjectConfig } from "#config/projectConfig.js";
 
 export async function getDatabaseUrl() {
-  // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-  const { databaseUrl } = await prompt({
+  const projectConfig = await getProjectConfig();
+
+  if (projectConfig.targetDatabaseUrl) {
+    return projectConfig.targetDatabaseUrl;
+  }
+
+  const { databaseUrl } = (await prompt({
     type: "text",
     name: "databaseUrl",
     message: "What is your database URL?",
-    hint: "postgresql://user:password@localhost:5432/postgres",
-    // initial:
-    //   projectConfig.targetDatabaseUrl || process.env.PGENV_CONNECTION_URL,
     validate(value: string) {
       try {
         new URL(value);
@@ -17,7 +20,7 @@ export async function getDatabaseUrl() {
         return "Please enter a valid database URL";
       }
     },
-  });
+  })) as { databaseUrl: string };
 
-  return databaseUrl as string;
+  return databaseUrl;
 }
