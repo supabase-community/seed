@@ -37,7 +37,7 @@ export const defineCreateTestRole = (state: State) => {
     return result;
   };
 
-  createTestRole.afterEach = async () => {
+  createTestRole.afterAll = async () => {
     const roles = state.roles;
     state.roles = [];
 

@@ -41,7 +41,7 @@ export const defineCreateTestDb = (state: State) => {
     return result;
   };
 
-  createTestDb.afterEach = async () => {
+  createTestDb.afterAll = async () => {
     const dbs = state.dbs;
     state.dbs = [];
 
