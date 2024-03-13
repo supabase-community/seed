@@ -99,6 +99,7 @@
     "start:server": "tsx --conditions development src/trpc/server.ts",
     "type-check": "tsc --build",
     "test": "vitest run src",
-    "test:e2e": "vitest run e2e"
+    "test:e2e": "vitest run e2e",
+    "test:debug": "vitest run"
   }
 }
