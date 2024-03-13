@@ -1,7 +1,8 @@
-import { findUp, pathExists } from "find-up";
+import { pathExists } from "find-up";
 import { readFile } from "node:fs/promises";
 import { join } from "node:path";
 import * as z from "zod";
+import { getDotSnapletPath } from "./dotSnaplet.js";
 
 const projectConfigSchema = z.object({
   projectId: z.string().optional(),
@@ -14,7 +15,7 @@ export type ProjectConfig = z.infer<typeof projectConfigSchema>;
 export async function getProjectConfig() {
   let projectConfig: ProjectConfig = {};
 
-  const dotSnapletPath = await findUp(".snaplet");
+  const dotSnapletPath = await getDotSnapletPath();
 
   if (dotSnapletPath) {
     const projectConfigPath = join(dotSnapletPath, "config.json");
