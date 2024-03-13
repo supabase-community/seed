@@ -186,7 +186,7 @@ for (const dialect of Object.keys(adapters) as Array<Dialect>) {
       });
 
       test("connect option", async () => {
-        const schema: Record<string, string> = {
+        const schema: Partial<Record<"default" | Dialect, string>> = {
           default: `
               CREATE TABLE student (
                 student_id SERIAL PRIMARY KEY,
