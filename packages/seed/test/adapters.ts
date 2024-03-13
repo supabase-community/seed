@@ -43,14 +43,18 @@ export const adapters = {
       }) => `
 import postgres from "postgres";
 import { drizzle } from "drizzle-orm/postgres-js";
-import { createSeedClient as baseCreateSeedClient } from "${generateOutputIndexPath}";
+import { createDrizzleORMPgClient } from "@snaplet/seed/dialects/postgres/adapters"
+import { createSeedClient as baseCreateSeedClient } from "${generateOutputIndexPath}"
 
 const client = postgres("${connectionString}")
-const db = drizzle(client);
+
+const drizzleDb = drizzle(client)
+
+export const db = createDrizzleORMPgClient(drizzleDb)
 
 export const end = () => client.end()
 
-export const createSeedClient = (options?: Parameters<typeof baseCreateSeedClient>[1]) => baseCreateSeedClient(db, options)
+export const createSeedClient = (options?: Parameters<typeof baseCreateSeedClient>[1]) => baseCreateSeedClient(drizzleDb, options)
 `,
     };
   },
@@ -70,15 +74,18 @@ export const createSeedClient = (options?: Parameters<typeof baseCreateSeedClien
       }) => `
 import Database from "better-sqlite3";
 import { drizzle } from "drizzle-orm/better-sqlite3";
-import { createSeedClient as baseCreateSeedClient } from "${generateOutputIndexPath}";
+import { createDrizzleORMSqliteClient } from "@snaplet/seed/dialects/sqlite/adapters"
+import { createSeedClient as baseCreateSeedClient } from "${generateOutputIndexPath}"
 
 const client = new Database(new URL("${connectionString}").pathname, { fileMustExist: false })
 
-const db = drizzle(client);
+const drizzleDb = drizzle(client)
+
+export const db = createDrizzleORMSqliteClient(drizzleDb)
 
 export const end = () => client.close()
 
-export const createSeedClient = (options?: Parameters<typeof baseCreateSeedClient>[1]) => baseCreateSeedClient(db, options)
+export const createSeedClient = (options?: Parameters<typeof baseCreateSeedClient>[1]) => baseCreateSeedClient(drizzleDb, options)
 `,
     };
   },

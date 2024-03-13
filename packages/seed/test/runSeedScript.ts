@@ -1,6 +1,6 @@
 import c from "ansi-colors";
 import { execa } from "execa";
-import { mkdirp, remove, symlink, writeFile } from "fs-extra";
+import { mkdirp, symlink, writeFile } from "fs-extra";
 import path from "node:path";
 import tmp from "tmp-promise";
 import { expect } from "vitest";
@@ -100,46 +100,39 @@ export const runSeedScript = async ({
   );
   await writeFile(scriptPath, script);
 
-  try {
-    const typecheckResult = execa("tsc", ["--project", tsConfigPath], {
-      stderr: "pipe",
-      stdout: "pipe",
-      extendEnv: true,
-      cwd,
-      env: {
-        DEBUG_COLORS: "1",
-        ...env,
-      },
-    });
-    typecheckResult.stdout?.on("data", (chunk: Buffer) => {
-      debugScriptOutput(chunk.toString().trim());
-    });
-    typecheckResult.stderr?.on("data", (chunk: Buffer) => {
-      debugScriptOutput(chunk.toString().trim());
-    });
-    await typecheckResult;
+  const typecheckResult = execa("tsc", ["--project", tsConfigPath], {
+    stderr: "pipe",
+    stdout: "pipe",
+    extendEnv: true,
+    cwd,
+    env: {
+      DEBUG_COLORS: "1",
+      ...env,
+    },
+  });
+  typecheckResult.stdout?.on("data", (chunk: Buffer) => {
+    debugScriptOutput(chunk.toString().trim());
+  });
+  typecheckResult.stderr?.on("data", (chunk: Buffer) => {
+    debugScriptOutput(chunk.toString().trim());
+  });
+  await typecheckResult;
 
-    const result = execa("tsx", ["--conditions=development", scriptPath], {
-      stderr: "pipe",
-      stdout: "pipe",
-      extendEnv: true,
-      env: {
-        DEBUG_COLORS: "1",
-        ...env,
-      },
-    });
-    result.stdout?.on("data", (chunk: Buffer) => {
-      debugScriptOutput(chunk.toString().trim());
-    });
-    result.stderr?.on("data", (chunk: Buffer) => {
-      debugScriptOutput(chunk.toString().trim());
-    });
+  const result = execa("tsx", ["--conditions=development", scriptPath], {
+    stderr: "pipe",
+    stdout: "pipe",
+    extendEnv: true,
+    env: {
+      DEBUG_COLORS: "1",
+      ...env,
+    },
+  });
+  result.stdout?.on("data", (chunk: Buffer) => {
+    debugScriptOutput(chunk.toString().trim());
+  });
+  result.stderr?.on("data", (chunk: Buffer) => {
+    debugScriptOutput(chunk.toString().trim());
+  });
 
-    return await result;
-  } catch (e) {
-    throw e;
-  } finally {
-    await remove(scriptPath);
-    await remove(pkgPath);
-  }
+  return result;
 };
