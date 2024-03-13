@@ -4,7 +4,7 @@ import { setupProject } from "#test/setupProject.js";
 
 const adapter = await adapters.postgres();
 
-describe(
+describe.concurrent(
   `e2e: postgres-specific`,
   () => {
     test("works with multiple schemas", async () => {
