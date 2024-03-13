@@ -1,7 +1,7 @@
 import { pathExists } from "find-up";
-import { readFile } from "node:fs/promises";
+import { mkdir, readFile, writeFile } from "node:fs/promises";
 import { homedir } from "node:os";
-import { join } from "node:path";
+import { dirname, join } from "node:path";
 import * as z from "zod";
 
 const systemConfigSchema = z.object({
@@ -18,19 +18,39 @@ export function getSystemConfigPath(baseName = "system") {
   return join(getSystemPath(), `${baseName}.json`);
 }
 
-export async function getSystemConfig() {
+export async function getSystemConfig(props?: {
+  shouldOverrideWithEnv?: boolean;
+}) {
   let systemConfig: SystemConfig = {};
 
   const systemConfigPath = getSystemConfigPath();
 
   if (await pathExists(systemConfigPath)) {
-    systemConfig = systemConfigSchema.parse(
-      JSON.parse(await readFile(systemConfigPath, "utf8")),
-    );
+    systemConfig = systemConfigSchema
+      .passthrough()
+      .parse(JSON.parse(await readFile(systemConfigPath, "utf8")));
   }
 
+  const shouldOverrideWithEnv = props?.shouldOverrideWithEnv ?? true;
+
   return {
-    accessToken:
-      process.env["SNAPLET_ACCESS_TOKEN"] ?? systemConfig.accessToken,
+    ...systemConfig,
+    accessToken: shouldOverrideWithEnv
+      ? process.env["SNAPLET_ACCESS_TOKEN"] ?? systemConfig.accessToken
+      : systemConfig.accessToken,
   };
+}
+
+export async function setSystemConfig(systemConfig: SystemConfig) {
+  const systemConfigPath = getSystemConfigPath();
+
+  if (!(await pathExists(systemConfigPath))) {
+    await mkdir(dirname(systemConfigPath), { recursive: true });
+  }
+
+  await writeFile(
+    systemConfigPath,
+    JSON.stringify(systemConfig, null, 2),
+    "utf8",
+  );
 }
