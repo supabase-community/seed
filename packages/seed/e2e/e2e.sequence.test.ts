@@ -350,6 +350,8 @@ for (const dialect of Object.keys(adapters) as Array<Dialect>) {
           ).map((v) => ({ ...v, id: Number(v.id) })),
         ).toEqual([{ id: 7, name: "test", teamId: 1 }]);
       });
+      // TODO: allow to progamatically continue the sequence without having to regenerate the client
+      // something like seed.$introspect() that would update the dataModel and call seed.$reset()
       test("should be able to insert sequential data twice regenerating the client in between", async () => {
         const seedScript = `
         import { createSeedClient } from '#seed'
