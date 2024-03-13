@@ -65,3 +65,11 @@ export async function updateProjectConfig(
     ...projectConfig,
   });
 }
+
+export async function getProjectConfigPath() {
+  const dotSnapletPath = await getDotSnapletPath();
+  if (!dotSnapletPath) {
+    return null;
+  }
+  return join(dotSnapletPath, "config.json");
+}

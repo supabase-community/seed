@@ -1,3 +1,4 @@
+import { relative, sep } from "node:path";
 import {
   getDataModelConfigPath,
   setDataModelConfig,
@@ -31,8 +32,9 @@ export async function introspectHandler(args: {
 
   // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
   const dataModelConfigPath = (await getDataModelConfigPath())!;
+  const relativeDataModelConfigPath = `.${sep}${relative(process.cwd(), dataModelConfigPath)}`;
   spinner.succeed(
-    `Introspected ${Object.keys(dataModel.models).length} models and wrote them into ${link("dataModel.json", dataModelConfigPath)}`,
+    `Introspected ${Object.keys(dataModel.models).length} models and wrote them into ${link(relativeDataModelConfigPath, dataModelConfigPath)}`,
   );
 
   return dataModel;

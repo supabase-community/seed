@@ -1,5 +1,12 @@
+import { relative, sep } from "node:path";
 import prompt from "prompts";
-import { getProjectConfig } from "#config/projectConfig.js";
+import {
+  getProjectConfig,
+  getProjectConfigPath,
+  updateProjectConfig,
+} from "#config/projectConfig.js";
+import { getDialectFromDatabaseUrl } from "#core/dialect/getDialectFromConnectionString.js";
+import { link, spinner } from "../../lib/output.js";
 
 export async function getDatabaseUrl() {
   const projectConfig = await getProjectConfig();
@@ -21,6 +28,28 @@ export async function getDatabaseUrl() {
       }
     },
   })) as { databaseUrl: string };
+
+  // assert database connectivity
+  const dialect = await getDialectFromDatabaseUrl(databaseUrl);
+  try {
+    await dialect.withDbClient({
+      databaseUrl,
+      fn: async (db) => {
+        await db.query("SELECT 1");
+      },
+    });
+  } catch (e) {
+    spinner.fail(`Failed to connect to your database: ${(e as Error).message}`);
+    process.exit(1);
+  }
+
+  await updateProjectConfig({ targetDatabaseUrl: databaseUrl });
+  // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+  const projectConfigPath = (await getProjectConfigPath())!;
+  const relativeProjectConfigPath = `.${sep}${relative(process.cwd(), projectConfigPath)}`;
+  spinner.succeed(
+    `Wrote your database URL into ${link(relativeProjectConfigPath, projectConfigPath)}`,
+  );
 
   return databaseUrl;
 }

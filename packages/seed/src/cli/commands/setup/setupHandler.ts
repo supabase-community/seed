@@ -1,4 +1,3 @@
-import { updateProjectConfig } from "#config/projectConfig.js";
 import { bold, highlight } from "../../lib/output.js";
 import { generateHandler } from "../generate/generateHandler.js";
 import { introspectHandler } from "../introspect/introspectHandler.js";
@@ -22,8 +21,6 @@ export async function setupHandler() {
   const databaseUrl = await getDatabaseUrl();
 
   await introspectHandler({ databaseUrl });
-
-  await updateProjectConfig({ targetDatabaseUrl: databaseUrl });
 
   await generateHandler({});
 }
