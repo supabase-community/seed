@@ -56,12 +56,6 @@ export const fetchShapePredictions = async (props: {
       });
 
     // Only update progress if it has changed
-    // if (progress.current !== previousProgress) {
-    //   spinner.info(
-    //     `Prediction progress: ${progress.current} / ${progress.total}`,
-    //   );
-    // }
-    // previousProgress = progress.current;
 
     if (status === "COMPLETED") {
       done = true;
