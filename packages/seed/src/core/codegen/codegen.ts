@@ -95,4 +95,6 @@ export const generateAssets = async (context: CodegenContext) => {
     const filePath = path.join(packageDirPath, file.name);
     await writeFile(filePath, await file.template(context));
   }
+
+  return packageDirPath;
 };

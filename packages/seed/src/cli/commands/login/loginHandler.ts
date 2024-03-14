@@ -1,7 +1,7 @@
 import open from "open";
 import { getPortPromise as getPort } from "portfinder";
 import { SNAPLET_APP_URL } from "#config/constants.js";
-import { getSystemConfig, setSystemConfig } from "#config/systemConfig.js";
+import { updateSystemConfig } from "#config/systemConfig.js";
 import { trpc } from "#trpc/client.js";
 import { eraseLines, highlight, link, spinner } from "../../lib/output.js";
 import { getAccessTokenFromHttpServer } from "./getAccessTokenFromHttpServer.js";
@@ -28,12 +28,9 @@ export async function loginHandler() {
     return;
   }
 
-  const existingSystemConfig = await getSystemConfig({
-    shouldOverrideWithEnv: false,
-  });
-  await setSystemConfig({ ...existingSystemConfig, accessToken });
+  await updateSystemConfig({ accessToken });
 
   spinner.stop();
   console.log(eraseLines(3));
-  spinner.succeed(`Authentication complete for ${highlight(user.email)}`);
+  spinner.succeed(`Logged in as ${highlight(user.email)}`);
 }

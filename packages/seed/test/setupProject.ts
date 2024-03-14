@@ -1,28 +1,20 @@
 import { mkdirp, writeFile } from "fs-extra";
 import path from "node:path";
 import tmp from "tmp-promise";
+import { type DrizzleDbClient } from "#core/adapters.js";
 import { type Adapter } from "./adapters.js";
 import { TMP_DIR } from "./constants.js";
 import { runCLI } from "./runCli.js";
 import { runSeedScript as baseRunSeedScript } from "./runSeedScript.js";
 
-export async function setupProject(props: {
+async function seedSetup(props: {
   adapter: Adapter;
-  connectionString?: string;
+  connectionString: string;
   cwd?: string;
-  databaseSchema?: string;
   env?: Record<string, string>;
   seedScript?: string;
   snapletConfig?: null | string;
 }) {
-  const { adapter } = props;
-
-  const { client, connectionString } = await adapter.createTestDb(
-    props.databaseSchema ?? "",
-  );
-
-  const db = adapter.createClient(client);
-
   await mkdirp(TMP_DIR);
 
   const cwd = (props.cwd ??= (
@@ -38,7 +30,7 @@ export async function setupProject(props: {
   const generateOutputPath = "./seed";
   const generateOutputIndexPath = "./seed/index.js";
 
-  await runCLI(["introspect", "--connection-string", connectionString], {
+  await runCLI(["introspect", "--database-url", props.connectionString], {
     cwd,
     env: props.env,
   });
@@ -54,9 +46,9 @@ export async function setupProject(props: {
   ) => {
     const runScriptResult = await baseRunSeedScript({
       script,
-      adapter,
+      adapter: props.adapter,
       cwd,
-      connectionString,
+      connectionString: props.connectionString,
       generateOutputIndexPath,
       env: options?.env,
     });
@@ -70,12 +62,49 @@ export async function setupProject(props: {
     const runScriptResult = await runSeedScript(props.seedScript);
     stdout = runScriptResult.stdout;
   }
-
   return {
-    connectionString,
-    db,
     cwd,
     stdout,
     runSeedScript,
+    connectionString: props.connectionString,
   };
+}
+
+export async function setupProject(props: {
+  adapter: Adapter;
+  connectionString?: string;
+  cwd?: string;
+  databaseSchema?: string;
+  env?: Record<string, string>;
+  seedScript?: string;
+  snapletConfig?: null | string;
+}) {
+  const { adapter } = props;
+  if (props.connectionString) {
+    const result = await seedSetup({
+      ...props,
+      connectionString: props.connectionString,
+    });
+    return {
+      ...result,
+      // If we provide the connection string of an existing database we don't create a new one and therefore we won't have a db client
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any, @typescript-eslint/no-unnecessary-type-arguments
+      db: undefined as any as DrizzleDbClient<any>,
+    };
+  } else {
+    const { client, connectionString } = await adapter.createTestDb(
+      props.databaseSchema ?? "",
+    );
+
+    const db = adapter.createClient(client);
+
+    const result = await seedSetup({
+      ...props,
+      connectionString,
+    });
+    return {
+      db,
+      ...result,
+    };
+  }
 }

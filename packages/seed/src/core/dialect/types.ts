@@ -7,7 +7,7 @@ import { type DrizzleDbClient } from "../adapters.js";
 export type NestedType = string;
 
 export type WithDbClient = <Result>(props: {
-  connectionString: string;
+  databaseUrl: string;
   fn: (client: DrizzleDbClient) => Promise<Result> | Result;
 }) => Promise<Result>;
 
