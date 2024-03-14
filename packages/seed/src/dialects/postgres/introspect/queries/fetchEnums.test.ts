@@ -1,7 +1,7 @@
 import { drizzle as drizzleJs } from "drizzle-orm/postgres-js";
 import { describe, expect, test } from "vitest";
 import { postgres } from "#test";
-import { createDrizzleORMPgClient } from "../../adapters.js";
+import { createDrizzleORMPostgresClient } from "../../adapters.js";
 import { fetchEnums } from "./fetchEnums.js";
 
 const adapters = {
@@ -20,7 +20,7 @@ describe.each(["postgresJs"] as const)("fetchEnums: %s", (adapter) => {
     const db = await createTestDb(structure);
 
     const enums = await fetchEnums(
-      createDrizzleORMPgClient(drizzle(db.client)),
+      createDrizzleORMPostgresClient(drizzle(db.client)),
     );
     expect(enums).toEqual([
       {
@@ -40,7 +40,7 @@ describe.each(["postgresJs"] as const)("fetchEnums: %s", (adapter) => {
     const db = await createTestDb(structure);
 
     const enums = await fetchEnums(
-      createDrizzleORMPgClient(drizzle(db.client)),
+      createDrizzleORMPostgresClient(drizzle(db.client)),
     );
     expect(enums).toEqual(
       expect.arrayContaining([
@@ -64,7 +64,7 @@ describe.each(["postgresJs"] as const)("fetchEnums: %s", (adapter) => {
     const db = await createTestDb();
 
     const enums = await fetchEnums(
-      createDrizzleORMPgClient(drizzle(db.client)),
+      createDrizzleORMPostgresClient(drizzle(db.client)),
     );
     expect(enums).toEqual([]);
   });
@@ -78,7 +78,7 @@ describe.each(["postgresJs"] as const)("fetchEnums: %s", (adapter) => {
     const db = await createTestDb(structure);
     const testRoleClient = await createTestRole(db.client);
     const enums = await fetchEnums(
-      createDrizzleORMPgClient(drizzle(testRoleClient.client)),
+      createDrizzleORMPostgresClient(drizzle(testRoleClient.client)),
     );
     expect(enums).toEqual(
       expect.arrayContaining([

@@ -3,7 +3,7 @@ import { describe, expect, test } from "vitest";
 import { postgres } from "#test";
 import {
   type DrizzleORMPgClient,
-  createDrizzleORMPgClient,
+  createDrizzleORMPostgresClient,
 } from "./adapters.js";
 import { getDatamodel } from "./dataModel.js";
 import { PgStore } from "./store.js";
@@ -33,7 +33,7 @@ describe.each(["postgresJs"] as const)("store: %s", (adapter) => {
       );
       `;
       const db = await createTestDb(structure);
-      const orm = createDrizzleORMPgClient(drizzle(db.client));
+      const orm = createDrizzleORMPostgresClient(drizzle(db.client));
       const dataModel = await getDatamodel(orm);
 
       const store = new PgStore(dataModel);
@@ -67,7 +67,7 @@ describe.each(["postgresJs"] as const)("store: %s", (adapter) => {
       );
     `;
       const db = await createTestDb(structure);
-      const orm = createDrizzleORMPgClient(drizzle(db.client));
+      const orm = createDrizzleORMPostgresClient(drizzle(db.client));
       const dataModel = await getDatamodel(orm);
 
       const store = new PgStore(dataModel);
@@ -101,7 +101,7 @@ describe.each(["postgresJs"] as const)("store: %s", (adapter) => {
       );
     `;
       const db = await createTestDb(structure);
-      const orm = createDrizzleORMPgClient(drizzle(db.client));
+      const orm = createDrizzleORMPostgresClient(drizzle(db.client));
       const dataModel = await getDatamodel(orm);
 
       const store = new PgStore(dataModel);
@@ -150,7 +150,7 @@ describe.each(["postgresJs"] as const)("store: %s", (adapter) => {
       );
     `;
       const db = await createTestDb(structure);
-      const orm = createDrizzleORMPgClient(drizzle(db.client));
+      const orm = createDrizzleORMPostgresClient(drizzle(db.client));
       const dataModel = await getDatamodel(orm);
 
       const store = new PgStore(dataModel);
@@ -208,7 +208,7 @@ describe.each(["postgresJs"] as const)("store: %s", (adapter) => {
       `;
 
       const db = await createTestDb(structure);
-      const orm = createDrizzleORMPgClient(drizzle(db.client));
+      const orm = createDrizzleORMPostgresClient(drizzle(db.client));
       const dataModel = await getDatamodel(orm);
 
       const store = new PgStore(dataModel);

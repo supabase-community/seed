@@ -1,7 +1,7 @@
 import { drizzle as drizzleJs } from "drizzle-orm/postgres-js";
 import { describe, expect, test } from "vitest";
 import { postgres } from "#test";
-import { createDrizzleORMPgClient } from "../../adapters.js";
+import { createDrizzleORMPostgresClient } from "../../adapters.js";
 import { fetchDatabaseRelationships } from "./fetchDatabaseRelationships.js";
 
 const adapters = {
@@ -30,7 +30,7 @@ describe.each(["postgresJs"] as const)(
   `;
       const { client } = await createTestDb(structure);
       const relationships = await fetchDatabaseRelationships(
-        createDrizzleORMPgClient(drizzle(client)),
+        createDrizzleORMPostgresClient(drizzle(client)),
       );
       expect(relationships.length).toEqual(0);
     });
@@ -64,7 +64,7 @@ describe.each(["postgresJs"] as const)(
   `;
       const { client } = await createTestDb(structure);
       const relationships = await fetchDatabaseRelationships(
-        createDrizzleORMPgClient(drizzle(client)),
+        createDrizzleORMPostgresClient(drizzle(client)),
       );
       expect(relationships).toEqual(
         expect.arrayContaining([
@@ -150,7 +150,7 @@ describe.each(["postgresJs"] as const)(
   `;
       const { client } = await createTestDb(structure);
       const relationships = await fetchDatabaseRelationships(
-        createDrizzleORMPgClient(drizzle(client)),
+        createDrizzleORMPostgresClient(drizzle(client)),
       );
       expect(relationships).toEqual(
         expect.arrayContaining([
@@ -224,7 +224,7 @@ describe.each(["postgresJs"] as const)(
   `;
       const { client } = await createTestDb(structure);
       const relationships = await fetchDatabaseRelationships(
-        createDrizzleORMPgClient(drizzle(client)),
+        createDrizzleORMPostgresClient(drizzle(client)),
       );
       expect(relationships).toEqual(
         expect.arrayContaining([

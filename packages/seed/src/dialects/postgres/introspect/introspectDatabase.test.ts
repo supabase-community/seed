@@ -1,7 +1,7 @@
 import { drizzle as drizzleJs } from "drizzle-orm/postgres-js";
 import { describe, expect, test } from "vitest";
 import { postgres } from "#test";
-import { createDrizzleORMPgClient } from "../adapters.js";
+import { createDrizzleORMPostgresClient } from "../adapters.js";
 import { type Relationship, introspectDatabase } from "./introspectDatabase.js";
 
 const adapters = {
@@ -22,7 +22,7 @@ describe.each(["postgresJs"] as const)("introspectDatabase: %s", (adapter) => {
     CREATE TYPE test."Enum1" AS ENUM ('A', 'B');
   `;
     const db = await createTestDb(structure);
-    const orm = createDrizzleORMPgClient(drizzle(db.client));
+    const orm = createDrizzleORMPostgresClient(drizzle(db.client));
     await orm.run(`VACUUM ANALYZE;`);
     const result = await introspectDatabase(orm);
     expect(result).toMatchObject({
@@ -228,7 +228,7 @@ describe.each(["postgresJs"] as const)("introspectDatabase: %s", (adapter) => {
 
   test("introspectDatabase - get parent relationships from structure", async () => {
     const db = await createSnapletTestDb();
-    const orm = createDrizzleORMPgClient(drizzle(db.client));
+    const orm = createDrizzleORMPostgresClient(drizzle(db.client));
     const structure = await introspectDatabase(orm);
     const expectedAccessTokenParent: Relationship = {
       id: "AccessToken_userId_fkey",
@@ -255,7 +255,7 @@ describe.each(["postgresJs"] as const)("introspectDatabase: %s", (adapter) => {
 
   test("introspectDatabase - get primary keys from structure", async () => {
     const db = await createSnapletTestDb();
-    const orm = createDrizzleORMPgClient(drizzle(db.client));
+    const orm = createDrizzleORMPostgresClient(drizzle(db.client));
     const structure = await introspectDatabase(orm);
 
     const primaryKeys = structure.tables.find(
@@ -273,7 +273,7 @@ describe.each(["postgresJs"] as const)("introspectDatabase: %s", (adapter) => {
 
   test("introspectDatabase - get child relationships from structure", async () => {
     const db = await createSnapletTestDb();
-    const orm = createDrizzleORMPgClient(drizzle(db.client));
+    const orm = createDrizzleORMPostgresClient(drizzle(db.client));
     const structure = await introspectDatabase(orm);
     const expectedPricingPlanChild: Relationship = {
       id: "Organization_pricingPlanId_fkey",
@@ -300,7 +300,7 @@ describe.each(["postgresJs"] as const)("introspectDatabase: %s", (adapter) => {
   test("partitions of a partitioned table should not be present in the introspection result", async () => {
     // arrange
     const db = await createTestDb();
-    const orm = createDrizzleORMPgClient(drizzle(db.client));
+    const orm = createDrizzleORMPostgresClient(drizzle(db.client));
     await orm.run(`
     CREATE TABLE coach(id uuid primary key);
     CREATE TABLE exercise (id uuid, coach_id uuid REFERENCES coach(id)) PARTITION BY list(coach_id);
@@ -329,7 +329,7 @@ describe.each(["postgresJs"] as const)("introspectDatabase: %s", (adapter) => {
     const db = await createTestDb();
     const restrictedString = await createTestRole(db.client);
     const otherString = await createTestRole(db.client);
-    const orm = createDrizzleORMPgClient(drizzle(db.client));
+    const orm = createDrizzleORMPostgresClient(drizzle(db.client));
 
     await orm.run(`
     CREATE TABLE "public"."table1" ("value" text);
@@ -339,7 +339,7 @@ describe.each(["postgresJs"] as const)("introspectDatabase: %s", (adapter) => {
     CREATE TABLE "someSchema"."table3" ("value" text);
   `);
     const structure = await introspectDatabase(
-      createDrizzleORMPgClient(drizzle(restrictedString.client)),
+      createDrizzleORMPostgresClient(drizzle(restrictedString.client)),
     );
 
     expect(structure).toEqual(
@@ -359,7 +359,7 @@ describe.each(["postgresJs"] as const)("introspectDatabase: %s", (adapter) => {
     CREATE TABLE public."Member" (id serial PRIMARY KEY, name text);
   `;
     const db = await createTestDb(structure);
-    const orm = createDrizzleORMPgClient(drizzle(db.client));
+    const orm = createDrizzleORMPostgresClient(drizzle(db.client));
     const readAccessConnString = await createTestRole(db.client);
     await orm.run(`
     DROP ROLE IF EXISTS readaccess;

@@ -1,7 +1,7 @@
 import { drizzle as drizzleJs } from "drizzle-orm/postgres-js";
 import { describe, expect, test } from "vitest";
 import { postgres } from "#test";
-import { createDrizzleORMPgClient } from "../../adapters.js";
+import { createDrizzleORMPostgresClient } from "../../adapters.js";
 import { fetchPrimaryKeys } from "./fetchPrimaryKeys.js";
 
 const adapters = {
@@ -27,7 +27,7 @@ describe.each(["postgresJs"] as const)("fetchPrimaryKeys: %s", (adapter) => {
   `;
     const db = await createTestDb(structure);
     const primaryKeys = await fetchPrimaryKeys(
-      createDrizzleORMPgClient(drizzle(db.client)),
+      createDrizzleORMPostgresClient(drizzle(db.client)),
     );
     expect(primaryKeys).toEqual(
       expect.arrayContaining([
@@ -78,7 +78,7 @@ describe.each(["postgresJs"] as const)("fetchPrimaryKeys: %s", (adapter) => {
   `;
     const db = await createTestDb(structure);
     const primaryKeys = await fetchPrimaryKeys(
-      createDrizzleORMPgClient(drizzle(db.client)),
+      createDrizzleORMPostgresClient(drizzle(db.client)),
     );
     expect(primaryKeys).toEqual([
       {
@@ -134,7 +134,7 @@ describe.each(["postgresJs"] as const)("fetchPrimaryKeys: %s", (adapter) => {
   `;
     const db = await createTestDb(structure);
     const primaryKeys = await fetchPrimaryKeys(
-      createDrizzleORMPgClient(drizzle(db.client)),
+      createDrizzleORMPostgresClient(drizzle(db.client)),
     );
     expect(primaryKeys).toEqual(
       expect.arrayContaining([
@@ -164,7 +164,7 @@ describe.each(["postgresJs"] as const)("fetchPrimaryKeys: %s", (adapter) => {
   `;
     const db = await createTestDb(structure);
     const primaryKeys = await fetchPrimaryKeys(
-      createDrizzleORMPgClient(drizzle(db.client)),
+      createDrizzleORMPostgresClient(drizzle(db.client)),
     );
     expect(primaryKeys).toEqual(expect.arrayContaining([]));
   });
@@ -183,7 +183,7 @@ describe.each(["postgresJs"] as const)("fetchPrimaryKeys: %s", (adapter) => {
   `;
     const db = await createTestDb(structure);
     const primaryKeys = await fetchPrimaryKeys(
-      createDrizzleORMPgClient(drizzle(db.client)),
+      createDrizzleORMPostgresClient(drizzle(db.client)),
     );
     expect(primaryKeys).toEqual(
       expect.arrayContaining([
@@ -221,7 +221,7 @@ describe.each(["postgresJs"] as const)("fetchPrimaryKeys: %s", (adapter) => {
   `;
     const db = await createTestDb(structure);
     const primaryKeys = await fetchPrimaryKeys(
-      createDrizzleORMPgClient(drizzle(db.client)),
+      createDrizzleORMPostgresClient(drizzle(db.client)),
     );
     expect(primaryKeys).toEqual(
       expect.arrayContaining([
@@ -260,7 +260,7 @@ describe.each(["postgresJs"] as const)("fetchPrimaryKeys: %s", (adapter) => {
   `;
     const db = await createTestDb(structure);
     const primaryKeys = await fetchPrimaryKeys(
-      createDrizzleORMPgClient(drizzle(db.client)),
+      createDrizzleORMPostgresClient(drizzle(db.client)),
     );
     expect(primaryKeys).toEqual(
       expect.arrayContaining([
@@ -299,7 +299,7 @@ describe.each(["postgresJs"] as const)("fetchPrimaryKeys: %s", (adapter) => {
   `;
     const db = await createTestDb(structure);
     const primaryKeys = await fetchPrimaryKeys(
-      createDrizzleORMPgClient(drizzle(db.client)),
+      createDrizzleORMPostgresClient(drizzle(db.client)),
     );
     expect(primaryKeys).toEqual(
       expect.arrayContaining([
@@ -356,7 +356,7 @@ describe.each(["postgresJs"] as const)("fetchPrimaryKeys: %s", (adapter) => {
   `;
     const db = await createTestDb(structure);
     const primaryKeys = await fetchPrimaryKeys(
-      createDrizzleORMPgClient(drizzle(db.client)),
+      createDrizzleORMPostgresClient(drizzle(db.client)),
     );
     expect(primaryKeys).toEqual(
       expect.arrayContaining([
@@ -463,7 +463,7 @@ describe.each(["postgresJs"] as const)("fetchPrimaryKeys: %s", (adapter) => {
   `;
     const db = await createTestDb(structure);
     const primaryKeys = await fetchPrimaryKeys(
-      createDrizzleORMPgClient(drizzle(db.client)),
+      createDrizzleORMPostgresClient(drizzle(db.client)),
     );
     expect(primaryKeys).toEqual(
       expect.arrayContaining([

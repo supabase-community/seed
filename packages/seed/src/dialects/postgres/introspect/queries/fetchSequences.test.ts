@@ -1,7 +1,7 @@
 import { drizzle as drizzleJs } from "drizzle-orm/postgres-js";
 import { describe, expect, test } from "vitest";
 import { postgres } from "#test";
-import { createDrizzleORMPgClient } from "../../adapters.js";
+import { createDrizzleORMPostgresClient } from "../../adapters.js";
 import { fetchSequences } from "./fetchSequences.js";
 
 const adapters = {
@@ -21,7 +21,7 @@ describe.each(["postgresJs"] as const)("fetchSequences: %s", (adapter) => {
     const db = await createTestDb(structure);
     const { client } = db;
     const sequences = await fetchSequences(
-      createDrizzleORMPgClient(drizzle(client)),
+      createDrizzleORMPostgresClient(drizzle(client)),
     );
     expect(sequences).toEqual([
       {
@@ -47,7 +47,7 @@ describe.each(["postgresJs"] as const)("fetchSequences: %s", (adapter) => {
   `;
     const db = await createTestDb(structure);
     const { client } = db;
-    const ormClient = createDrizzleORMPgClient(drizzle(client));
+    const ormClient = createDrizzleORMPostgresClient(drizzle(client));
     const sequences = await fetchSequences(ormClient);
     expect(sequences).toEqual(
       expect.arrayContaining([
@@ -95,7 +95,7 @@ describe.each(["postgresJs"] as const)("fetchSequences: %s", (adapter) => {
     const db = await createTestDb(structure);
     const { client } = db;
     const sequences = await fetchSequences(
-      createDrizzleORMPgClient(drizzle(client)),
+      createDrizzleORMPostgresClient(drizzle(client)),
     );
     expect(sequences).toEqual([]);
   });
@@ -108,7 +108,7 @@ describe.each(["postgresJs"] as const)("fetchSequences: %s", (adapter) => {
     const db = await createTestDb(structure);
     const { client } = db;
     const sequences = await fetchSequences(
-      createDrizzleORMPgClient(drizzle(client)),
+      createDrizzleORMPostgresClient(drizzle(client)),
     );
     expect(sequences).toEqual(
       expect.arrayContaining([
@@ -137,7 +137,7 @@ describe.each(["postgresJs"] as const)("fetchSequences: %s", (adapter) => {
     const db = await createTestDb(structure);
     const { client } = db;
     const sequences = await fetchSequences(
-      createDrizzleORMPgClient(drizzle(client)),
+      createDrizzleORMPostgresClient(drizzle(client)),
     );
     expect(sequences).toEqual(
       expect.arrayContaining([

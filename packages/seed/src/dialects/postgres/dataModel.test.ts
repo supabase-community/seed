@@ -1,7 +1,7 @@
 import { drizzle as drizzleJs } from "drizzle-orm/postgres-js";
 import { describe, expect, test } from "vitest";
 import { postgres } from "#test";
-import { createDrizzleORMPgClient } from "./adapters.js";
+import { createDrizzleORMPostgresClient } from "./adapters.js";
 import { getDatamodel } from "./dataModel.js";
 
 const adapters = {
@@ -19,7 +19,7 @@ describe.each(["postgresJs"] as const)("getDataModel: %s", (adapter) => {
     CREATE TABLE public."foo" (bar text[][]);
   `;
     const db = await createTestDb(structure);
-    const orm = createDrizzleORMPgClient(drizzle(db.client));
+    const orm = createDrizzleORMPostgresClient(drizzle(db.client));
     await orm.run(`VACUUM ANALYZE;`);
     const result = await getDatamodel(orm);
     expect(result.models["foo"].fields[0].type).toEqual("text[][]");

@@ -36,6 +36,7 @@
     }
   },
   "devDependencies": {
+    "@neondatabase/serverless": "0.9.0",
     "@snaplet/copycat": "5.0.0",
     "@snaplet/eslint-config": "workspace:*",
     "@snaplet/tsconfig": "workspace:*",

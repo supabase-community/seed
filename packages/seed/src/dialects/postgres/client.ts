@@ -7,7 +7,7 @@ import { type DataModel } from "#core/dataModel/types.js";
 import { type Fingerprint } from "#core/fingerprint/types.js";
 import { updateDataModelSequences } from "#core/sequences/updateDataModelSequences.js";
 import { type UserModels } from "#core/userModels/types.js";
-import { createDrizzleORMPgClient } from "./adapters.js";
+import { createDrizzleORMPostgresClient } from "./adapters.js";
 import { getDatamodel } from "./dataModel.js";
 import { PgStore } from "./store.js";
 import { escapeIdentifier } from "./utils.js";
@@ -77,7 +77,7 @@ export function getSeedClient(props: {
     options?: SeedClientOptions,
   ) => {
     // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
-    const client = createDrizzleORMPgClient(db);
+    const client = createDrizzleORMPostgresClient(db);
     const seed = new PgSeedClient(client, options);
 
     await seed.$syncDatabase();

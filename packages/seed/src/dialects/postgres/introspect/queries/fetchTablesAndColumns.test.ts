@@ -1,7 +1,7 @@
 import { drizzle as drizzleJs } from "drizzle-orm/postgres-js";
 import { describe, expect, test } from "vitest";
 import { postgres } from "#test";
-import { createDrizzleORMPgClient } from "../../adapters.js";
+import { createDrizzleORMPostgresClient } from "../../adapters.js";
 import { fetchTablesAndColumns } from "./fetchTablesAndColumns.js";
 
 const adapters = {
@@ -19,7 +19,7 @@ describe.each(["postgresJs"] as const)(
       const structure = ``;
       const db = await createTestDb(structure);
       const tablesInfos = await fetchTablesAndColumns(
-        createDrizzleORMPgClient(drizzle(db.client)),
+        createDrizzleORMPostgresClient(drizzle(db.client)),
       );
 
       expect(tablesInfos).toEqual([]);
@@ -38,7 +38,7 @@ describe.each(["postgresJs"] as const)(
     );
   `;
       const db = await createTestDb(structure);
-      const orm = createDrizzleORMPgClient(drizzle(db.client));
+      const orm = createDrizzleORMPostgresClient(drizzle(db.client));
       await orm.run(`VACUUM ANALYZE;`);
       const tablesInfos = await fetchTablesAndColumns(orm);
       expect(tablesInfos).toEqual([
@@ -153,7 +153,7 @@ describe.each(["postgresJs"] as const)(
     );
   `;
       const db = await createTestDb(structure);
-      const orm = createDrizzleORMPgClient(drizzle(db.client));
+      const orm = createDrizzleORMPostgresClient(drizzle(db.client));
       await orm.run(`VACUUM ANALYZE;`);
       const tablesInfos = await fetchTablesAndColumns(orm);
 
@@ -214,7 +214,7 @@ describe.each(["postgresJs"] as const)(
     );
   `;
       const db = await createTestDb(structure);
-      const orm = createDrizzleORMPgClient(drizzle(db.client));
+      const orm = createDrizzleORMPostgresClient(drizzle(db.client));
       await orm.run(`VACUUM ANALYZE;`);
       const tablesInfos = await fetchTablesAndColumns(orm);
       expect(tablesInfos).toEqual([
@@ -461,7 +461,7 @@ describe.each(["postgresJs"] as const)(
     );
   `;
       const db = await createTestDb(structure);
-      const orm = createDrizzleORMPgClient(drizzle(db.client));
+      const orm = createDrizzleORMPostgresClient(drizzle(db.client));
       await orm.run(`VACUUM ANALYZE;`);
       const tablesInfos = await fetchTablesAndColumns(orm);
 

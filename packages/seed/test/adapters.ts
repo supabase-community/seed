@@ -31,9 +31,8 @@ export const adapters = {
     const { createTestDb } = (await import("#test/postgres/index.js"))
       .postgresJs;
     const { drizzle } = await import("drizzle-orm/postgres-js");
-    const { createDrizzleORMPgClient } = await import(
-      "#dialects/postgres/adapters.js"
-    );
+    const { createDrizzleORMPostgresClient: createDrizzleORMPgClient } =
+      await import("#dialects/postgres/adapters.js");
     return {
       createTestDb,
       createClient: (client) => createDrizzleORMPgClient(drizzle(client)),

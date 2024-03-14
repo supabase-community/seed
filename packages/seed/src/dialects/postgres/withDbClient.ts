@@ -10,7 +10,8 @@ export const withDbClient: WithDbClient = async ({ databaseUrl, fn }) => {
   try {
     const { drizzle } = await import("drizzle-orm/postgres-js");
     const db = drizzle(client);
-    const { createDrizzleORMPgClient } = await import("./adapters.js");
+    const { createDrizzleORMPostgresClient: createDrizzleORMPgClient } =
+      await import("./adapters.js");
 
     return await fn(createDrizzleORMPgClient(db));
   } finally {

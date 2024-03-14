@@ -1,7 +1,7 @@
 import { type PgDatabase, type QueryResultHKT } from "drizzle-orm/pg-core";
 import { type DrizzleDbClient } from "#core/adapters.js";
-import { DrizzleORMNodePostgresClient } from "./drivers/node-postgres.js";
-import { DrizzleORMPostgresJsClient } from "./drivers/postgres-js.js";
+import { DrizzleORMNodePostgresClient } from "./node-postgres.js";
+import { DrizzleORMPostgresJsClient } from "./postgres-js.js";
 
 type PgAdapterName =
   | "NeonHttpSession"
@@ -9,7 +9,7 @@ type PgAdapterName =
   | "NodePgSession"
   | "PostgresJsSession";
 
-export function createDrizzleORMPostgresClient(
+export function createDrizzleORMPgClient(
   db: PgDatabase<QueryResultHKT>,
 ): DrizzleDbClient {
   // @ts-expect-error - we need to use the drizzle internal adapter session name to determine the adapter
