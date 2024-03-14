@@ -1,7 +1,7 @@
 import { type Sql } from "postgres";
 import { DatabaseClient } from "#core/adapters.js";
+import { type Driver } from "../../types.js";
 import { postgresDatabaseUrlHint } from "./constants.js";
-import { type Driver } from "./types.js";
 
 export class PostgresJsClient extends DatabaseClient<Sql> {
   constructor(client: Sql) {
