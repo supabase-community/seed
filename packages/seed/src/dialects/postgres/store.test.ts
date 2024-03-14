@@ -1,28 +1,21 @@
-import { drizzle as drizzleJs } from "drizzle-orm/postgres-js";
 import { describe, expect, test } from "vitest";
+import { type DatabaseClient } from "#core/adapters.js";
 import { postgres } from "#test";
-import {
-  type DrizzleORMPgClient,
-  createDrizzleORMPostgresClient,
-} from "./adapters.js";
 import { getDatamodel } from "./dataModel.js";
 import { PgStore } from "./store.js";
 
 const adapters = {
-  postgresJs: () => ({
-    ...postgres.postgresJs,
-    drizzle: drizzleJs,
-  }),
+  postgresJs: () => postgres.postgresJs,
 };
 
-async function execQueries(client: DrizzleORMPgClient, queries: Array<string>) {
+async function execQueries(client: DatabaseClient, queries: Array<string>) {
   for (const query of queries) {
     await client.run(query);
   }
 }
 
 describe.each(["postgresJs"] as const)("store: %s", (adapter) => {
-  const { drizzle, createTestDb } = adapters[adapter]();
+  const { createTestDb } = adapters[adapter]();
   describe("SQL -> Store -> SQL", () => {
     test("should be able to insert basic rows into table", async () => {
       const structure = `
@@ -67,8 +60,7 @@ describe.each(["postgresJs"] as const)("store: %s", (adapter) => {
       );
     `;
       const db = await createTestDb(structure);
-      const orm = createDrizzleORMPostgresClient(drizzle(db.client));
-      const dataModel = await getDatamodel(orm);
+      const dataModel = await getDatamodel(db.client);
 
       const store = new PgStore(dataModel);
 
@@ -80,8 +72,8 @@ describe.each(["postgresJs"] as const)("store: %s", (adapter) => {
         name: "Winrar Skarsgård",
         email: "win@rar.gard",
       });
-      await execQueries(orm, [...store.toSQL()]);
-      const results = await orm.query(
+      await execQueries(db.client, [...store.toSQL()]);
+      const results = await db.client.query(
         `SELECT * FROM test_customer ORDER BY id ASC`,
       );
       expect(results).toEqual(
@@ -101,8 +93,7 @@ describe.each(["postgresJs"] as const)("store: %s", (adapter) => {
       );
     `;
       const db = await createTestDb(structure);
-      const orm = createDrizzleORMPostgresClient(drizzle(db.client));
-      const dataModel = await getDatamodel(orm);
+      const dataModel = await getDatamodel(db.client);
 
       const store = new PgStore(dataModel);
 
@@ -116,8 +107,8 @@ describe.each(["postgresJs"] as const)("store: %s", (adapter) => {
         email: "win@rar.gard",
       });
 
-      await execQueries(orm, [...store.toSQL()]);
-      const results = await orm.query(
+      await execQueries(db.client, [...store.toSQL()]);
+      const results = await db.client.query(
         `SELECT * FROM test_customer ORDER BY id ASC`,
       );
 
@@ -150,8 +141,7 @@ describe.each(["postgresJs"] as const)("store: %s", (adapter) => {
       );
     `;
       const db = await createTestDb(structure);
-      const orm = createDrizzleORMPostgresClient(drizzle(db.client));
-      const dataModel = await getDatamodel(orm);
+      const dataModel = await getDatamodel(db.client);
 
       const store = new PgStore(dataModel);
 
@@ -165,8 +155,8 @@ describe.each(["postgresJs"] as const)("store: %s", (adapter) => {
         phone: "+1234567890",
       });
 
-      await execQueries(orm, [...store.toSQL()]);
-      const results = await orm.query(
+      await execQueries(db.client, [...store.toSQL()]);
+      const results = await db.client.query(
         `SELECT * FROM test_customer ORDER BY id ASC`,
       );
 
@@ -208,8 +198,7 @@ describe.each(["postgresJs"] as const)("store: %s", (adapter) => {
       `;
 
       const db = await createTestDb(structure);
-      const orm = createDrizzleORMPostgresClient(drizzle(db.client));
-      const dataModel = await getDatamodel(orm);
+      const dataModel = await getDatamodel(db.client);
 
       const store = new PgStore(dataModel);
 
@@ -235,8 +224,8 @@ describe.each(["postgresJs"] as const)("store: %s", (adapter) => {
         product_name: "Gadget",
       });
 
-      await execQueries(orm, [...store.toSQL()]);
-      const results = await orm.query(
+      await execQueries(db.client, [...store.toSQL()]);
+      const results = await db.client.query(
         `SELECT test_customer.name, test_order.quantity FROM test_order JOIN test_customer ON test_customer.id = test_order.customer_id ORDER BY test_order.id ASC`,
       );
 

@@ -1,13 +1,13 @@
-import { sql } from "drizzle-orm";
-import { drizzle } from "drizzle-orm/postgres-js";
 import { readFileSync } from "fs-extra";
 import path from "node:path";
 import postgres from "postgres";
 import { v4 } from "uuid";
+import { type DatabaseClient } from "#core/adapters.js";
+import { PostgresJsClient } from "#dialects/postgres/drivers/postgres-js.js";
 
 interface State {
   dbs: Array<{
-    client: postgres.Sql;
+    client: DatabaseClient;
     name: string;
   }>;
 }
@@ -19,13 +19,14 @@ const TEST_DATABASE_PREFIX = "testdb";
 
 export const defineCreateTestDb = (state: State) => {
   const connString = TEST_DATABASE_SERVER;
-  const serverClient = postgres(connString, { max: 1 });
-  const serverDrizzle = drizzle(serverClient, { logger: false });
+  const dbServerClient = new PostgresJsClient(postgres(connString, { max: 1 }));
   const createTestDb = async (structure?: string) => {
     const dbName = `${TEST_DATABASE_PREFIX}${v4()}`;
-    await serverDrizzle.execute(sql.raw(`DROP DATABASE IF EXISTS "${dbName}"`));
-    await serverDrizzle.execute(sql.raw(`CREATE DATABASE "${dbName}"`));
-    const client = postgres(connString, { max: 1, database: dbName });
+    await dbServerClient.run(`DROP DATABASE IF EXISTS "${dbName}"`);
+    await dbServerClient.run(`CREATE DATABASE "${dbName}"`);
+    const client = new PostgresJsClient(
+      postgres(connString, { max: 1, database: dbName }),
+    );
     const url = new URL(connString);
     url.pathname = `/${dbName}`;
 
@@ -36,7 +37,7 @@ export const defineCreateTestDb = (state: State) => {
     };
     state.dbs.push(result);
     if (structure) {
-      await drizzle(client).execute(sql.raw(structure));
+      await client.run(structure);
     }
     return result;
   };
@@ -50,9 +51,9 @@ export const defineCreateTestDb = (state: State) => {
     // Close all pools connections on the database, if there is more than one to be able to drop it
     for (const { client, name } of dbs) {
       try {
-        await client.end();
-        await serverDrizzle.execute(
-          sql.raw(`DROP DATABASE IF EXISTS "${name}" WITH (force)`),
+        await client.disconnect();
+        await dbServerClient.run(
+          `DROP DATABASE IF EXISTS "${name}" WITH (force)`,
         );
       } catch (error) {
         failures.push({
@@ -82,6 +83,6 @@ export const createSnapletTestDb = async () => {
   const snapletSchemaSql = readFileSync(
     path.resolve(__dirname, "../fixtures/snaplet_schema.sql"),
   );
-  await drizzle(db.client).execute(sql.raw(snapletSchemaSql.toString()));
+  await db.client.run(snapletSchemaSql.toString());
   return db;
 };

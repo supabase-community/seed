@@ -1,7 +1,7 @@
 import { type PgDatabase, type QueryResultHKT } from "drizzle-orm/pg-core";
 import { type DatabaseClient } from "#core/adapters.js";
-import { DrizzleORMNodePostgresClient } from "./drivers/node-postgres.js";
-import { DrizzleORMPostgresJsClient } from "./drivers/postgres-js.js";
+import { NodePostgresClient } from "./drivers/node-postgres.js";
+import { PostgresJsClient } from "./drivers/postgres-js.js";
 
 type PgAdapterName =
   | "NeonHttpSession"
@@ -17,10 +17,10 @@ export function createDrizzleORMPostgresClient(
   const sessionName = db.session.constructor.name as PgAdapterName;
   switch (sessionName) {
     case "PostgresJsSession":
-      return new DrizzleORMPostgresJsClient(db);
+      return new PostgresJsClient(db);
     case "NodePgSession":
     case "NeonHttpSession":
     case "NeonSession":
-      return new DrizzleORMNodePostgresClient(db);
+      return new NodePostgresClient(db);
   }
 }

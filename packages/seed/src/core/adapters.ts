@@ -1,13 +1,12 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
-export abstract class DatabaseClient<T = any> {
-  constructor(protected db: T) {}
-  get adapter(): T {
-    return this.db;
-  }
+export abstract class DatabaseClient<T = unknown> {
+  constructor(
+    protected dialect: "mysql" | "postgres" | "sqlite",
+    protected client: T,
+  ) {}
   abstract disconnect(): Promise<void>;
-  abstract query<K = any>(
+  abstract query<K = unknown>(
     query: string,
-    values?: Array<any>,
+    values?: Array<unknown>,
   ): Promise<Array<K>>;
   abstract run(query: string): Promise<void>;
 }
