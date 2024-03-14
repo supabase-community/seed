@@ -31,7 +31,7 @@ function logToSqlErrors(errors: Array<ToSQLErrors>) {
     }
   }
   for (const [modelName, affectedRows] of missingPKForUpdateErrorsMap) {
-    console.log(
+    console.warn(
       `Warning: skipping UPDATE on model ${modelName} for ${affectedRows} rows as it has no id fields (no PRIMARY KEYS or UNIQUE NON NULL columns found)`,
     );
   }
