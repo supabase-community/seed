@@ -13,7 +13,7 @@ for (const dialect of Object.keys(adapters) as Array<Dialect>) {
     continue;
   }
 
-  describe(
+  describe.concurrent(
     `e2e: ${dialect}`,
     () => {
       test("generates", async () => {
@@ -117,8 +117,9 @@ for (const dialect of Object.keys(adapters) as Array<Dialect>) {
         expect((await db.query('select * from "Member"')).length).toEqual(5);
       });
 
-      dialect !== "sqlite" &&
-        test("generates for char limits", async () => {
+      test.runIf(dialect !== "sqlite")(
+        "generates for char limits",
+        async () => {
           const { db } = await setupProject({
             adapter,
             databaseSchema: `
@@ -138,7 +139,8 @@ for (const dialect of Object.keys(adapters) as Array<Dialect>) {
             'select * from "User"',
           );
           expect(fullName.length).toBeLessThanOrEqual(5);
-        });
+        },
+      );
 
       test("option overriding", async () => {
         const { db } = await setupProject({
