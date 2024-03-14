@@ -12,7 +12,6 @@ export const fetchShapePredictions = async (props: {
   determineShapeFromType: DetermineShapeFromType;
 }): Promise<Array<TableShapePredictions>> => {
   const { determineShapeFromType, dataModel } = props;
-  // spinner.info(`Predicting data labels...`);
   const allColumns: Array<StartPredictionsColumn> = [];
   const shapePredictions: Array<TableShapePredictions> = [];
 
