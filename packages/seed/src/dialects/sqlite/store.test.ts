@@ -1,7 +1,7 @@
 import { drizzle as drizzleBetterSqlite } from "drizzle-orm/better-sqlite3";
 import { describe, expect, test } from "vitest";
 import { sqlite } from "#test";
-import { type DrizzleDbClient } from "../../core/adapters.js";
+import { type DatabaseClient } from "../../core/adapters.js";
 import { createDrizzleORMSqliteClient } from "./adapters.js";
 import { getDatamodel } from "./dataModel.js";
 import { SqliteStore } from "./store.js";
@@ -13,7 +13,7 @@ const adapters = {
   }),
 };
 
-async function execQueries(client: DrizzleDbClient, queries: Array<string>) {
+async function execQueries(client: DatabaseClient, queries: Array<string>) {
   for (const query of queries) {
     await client.run(query);
   }

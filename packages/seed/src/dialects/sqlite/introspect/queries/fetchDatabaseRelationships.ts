@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
-import { type DrizzleDbClient } from "#core/adapters.js";
+import { type DatabaseClient } from "#core/adapters.js";
 import {
   FETCH_TABLE_COLUMNS_LIST,
   type FetchTableAndColumnsResultRaw,
@@ -51,7 +51,7 @@ ORDER BY
   alltables.name, fk.id
 `;
 
-export async function fetchDatabaseRelationships(client: DrizzleDbClient) {
+export async function fetchDatabaseRelationships(client: DatabaseClient) {
   const results: Array<FetchRelationshipsInfosResult> = [];
   const foreignKeysResult = await client.query<FetchTableForeignKeysResultRaw>(
     FETCH_TABLE_FOREIGN_KEYS,

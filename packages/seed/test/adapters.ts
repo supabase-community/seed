@@ -1,10 +1,10 @@
 // context(justinvdm, 7 Mar 2024): Disabled to allow for per-adapter type references inline
 /* eslint-disable @typescript-eslint/consistent-type-imports */
 import type postgresJs from "postgres";
-import { type DrizzleDbClient } from "#core/adapters.js";
+import { type DatabaseClient } from "#core/adapters.js";
 
 export interface Adapter<Client = AnyClient> {
-  createClient(client: Client): DrizzleDbClient;
+  createClient(client: Client): DatabaseClient;
   createTestDb(structure?: string): Promise<{
     client: Client;
     connectionString: string;

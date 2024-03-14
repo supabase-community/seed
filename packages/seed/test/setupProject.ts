@@ -1,7 +1,7 @@
 import { mkdirp, writeFile } from "fs-extra";
 import path from "node:path";
 import tmp from "tmp-promise";
-import { type DrizzleDbClient } from "#core/adapters.js";
+import { type DatabaseClient } from "#core/adapters.js";
 import { type Adapter } from "./adapters.js";
 import { TMP_DIR } from "./constants.js";
 import { runCLI } from "./runCli.js";
@@ -89,7 +89,7 @@ export async function setupProject(props: {
       ...result,
       // If we provide the connection string of an existing database we don't create a new one and therefore we won't have a db client
       // eslint-disable-next-line @typescript-eslint/no-explicit-any, @typescript-eslint/no-unnecessary-type-arguments
-      db: undefined as any as DrizzleDbClient<any>,
+      db: undefined as any as DatabaseClient<any>,
     };
   } else {
     const { client, connectionString } = await adapter.createTestDb(

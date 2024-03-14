@@ -1,6 +1,6 @@
 import { type BaseSQLiteDatabase } from "drizzle-orm/sqlite-core";
 import { EOL } from "node:os";
-import { type DrizzleDbClient } from "#core/adapters.js";
+import { type DatabaseClient } from "#core/adapters.js";
 import { SeedClientBase } from "#core/client/client.js";
 import { type SeedClientOptions } from "#core/client/types.js";
 import { type DataModel } from "#core/dataModel/types.js";
@@ -21,11 +21,11 @@ export function getSeedClient(props: {
   userModels: UserModels;
 }) {
   class SqliteSeedClient extends SeedClientBase {
-    readonly db: DrizzleDbClient;
+    readonly db: DatabaseClient;
     readonly dryRun: boolean;
     readonly options?: SeedClientOptions;
 
-    constructor(db: DrizzleDbClient, options?: SeedClientOptions) {
+    constructor(db: DatabaseClient, options?: SeedClientOptions) {
       super({
         ...props,
         createStore: (dataModel: DataModel) => new SqliteStore(dataModel),

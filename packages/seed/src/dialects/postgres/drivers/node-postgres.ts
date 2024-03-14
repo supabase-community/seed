@@ -1,10 +1,10 @@
 import { sql } from "drizzle-orm";
 import { type PgDatabase, type QueryResultHKT } from "drizzle-orm/pg-core";
-import { DrizzleDbClient } from "#core/adapters.js";
+import { DatabaseClient } from "#core/adapters.js";
 import { postgresDatabaseUrlHint } from "./constants.js";
-import { createDrizzleORMPgClient } from "./createDrizzleORMPgClient.js";
+import { createDrizzleORMPostgresClient } from "./createDrizzleORMPgClient.js";
 
-export class DrizzleORMNodePostgresClient extends DrizzleDbClient<
+export class DrizzleORMNodePostgresClient extends DatabaseClient<
   PgDatabase<QueryResultHKT>
 > {
   async query<K = QueryResultHKT>(
@@ -42,6 +42,6 @@ export const nodePostgresDriver = {
     const { Client } = (await import("pg")).default;
     const client = new Client(options);
     const db = drizzle(client);
-    return createDrizzleORMPgClient(db);
+    return createDrizzleORMPostgresClient(db);
   },
 };

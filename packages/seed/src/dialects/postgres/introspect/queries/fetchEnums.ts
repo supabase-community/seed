@@ -1,4 +1,4 @@
-import { type DrizzleDbClient } from "#core/adapters.js";
+import { type DatabaseClient } from "#core/adapters.js";
 import { buildSchemaExclusionClause } from "./utils.js";
 
 interface FetchEnumsResult {
@@ -31,7 +31,7 @@ const FETCH_ENUMS = `
   ORDER BY concat(pg_namespace.nspname, '.', pg_type.typname)
 `;
 
-export async function fetchEnums(client: DrizzleDbClient) {
+export async function fetchEnums(client: DatabaseClient) {
   const response = await client.query<FetchEnumsResult>(FETCH_ENUMS);
 
   return response;

@@ -1,4 +1,4 @@
-import { type DrizzleDbClient } from "#core/adapters.js";
+import { type DatabaseClient } from "#core/adapters.js";
 import { buildSchemaExclusionClause } from "./utils.js";
 
 interface RelationKeyInfos {
@@ -54,7 +54,7 @@ const FETCH_RELATIONSHIPS_INFOS = `
   ORDER BY "fkTable", "targetTable";
 `;
 
-export async function fetchDatabaseRelationships(client: DrizzleDbClient) {
+export async function fetchDatabaseRelationships(client: DatabaseClient) {
   const response = await client.query<FetchRelationshipsInfosResult>(
     FETCH_RELATIONSHIPS_INFOS,
   );

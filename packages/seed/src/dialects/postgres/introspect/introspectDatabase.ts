@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { type DrizzleDbClient } from "#core/adapters.js";
+import { type DatabaseClient } from "#core/adapters.js";
 import { groupBy } from "../utils.js";
 import { groupParentsChildrenRelations } from "./groupParentsChildrenRelations.js";
 import { fetchDatabaseRelationships } from "./queries/fetchDatabaseRelationships.js";
@@ -46,7 +46,7 @@ export interface IntrospectedStructure extends IntrospectedStructureBase {
 }
 
 export async function introspectDatabase(
-  client: DrizzleDbClient,
+  client: DatabaseClient,
 ): Promise<IntrospectedStructure> {
   const tablesInfos = await fetchTablesAndColumns(client);
   const enums = await fetchEnums(client);

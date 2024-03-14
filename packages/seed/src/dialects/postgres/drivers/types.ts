@@ -1,4 +1,4 @@
-import { type DrizzleDbClient } from "#core/adapters.js";
+import { type DatabaseClient } from "#core/adapters.js";
 
 type Parameter =
   | {
@@ -10,7 +10,7 @@ type Parameter =
 
 export interface Driver {
   definitelyTyped?: string;
-  getClient(parameters: unknown): Promise<DrizzleDbClient>;
+  getClient(parameters: unknown): Promise<DatabaseClient>;
   name: string;
   package: string;
   parameters: Array<Parameter>;

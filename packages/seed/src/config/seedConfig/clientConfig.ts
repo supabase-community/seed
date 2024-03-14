@@ -1,4 +1,4 @@
-import { type DrizzleDbClient } from "#core/adapters.js";
+import { type DatabaseClient } from "#core/adapters.js";
 
 type Parameter =
   | {
@@ -10,7 +10,7 @@ type Parameter =
 
 interface Driver {
   definitelyTyped?: string;
-  getClient(parameters: unknown): Promise<DrizzleDbClient>;
+  getClient(parameters: unknown): Promise<DatabaseClient>;
   name: string;
   package: string;
   parameters: Array<Parameter>;
@@ -38,8 +38,6 @@ export const dialects: Dialects = {
       async getClient(databaseUrl: string) {
         const { drizzle } = await import("drizzle-orm/postgres-js");
         const postgres = (await import("postgres")).default;
-        const { createDrizzleORMPostgresClient: createDrizzleORMPgClient } =
-          await import("#dialects/postgres/adapters.js");
         const client = postgres(databaseUrl);
         const db = drizzle(client);
         return createDrizzleORMPgClient(db);

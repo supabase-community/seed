@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/no-unnecessary-condition */
-import { type DrizzleDbClient } from "#core/adapters.js";
+import { type DatabaseClient } from "#core/adapters.js";
 import {
   FETCH_TABLE_COLUMNS_LIST,
   type FetchTableAndColumnsResultRaw,
@@ -60,7 +60,7 @@ SELECT
 		alltables.name, colinfo.name
 `;
 
-export async function fetchPrimaryKeys(client: DrizzleDbClient) {
+export async function fetchPrimaryKeys(client: DatabaseClient) {
   const results: Array<FetchPrimaryKeysResult> = [];
   const compositePrimaryKeysIndexes =
     await client.query<FetchCompositePrimaryKeysResultRaw>(

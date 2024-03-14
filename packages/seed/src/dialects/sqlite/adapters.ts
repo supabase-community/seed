@@ -2,9 +2,9 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { sql } from "drizzle-orm";
 import { type BaseSQLiteDatabase } from "drizzle-orm/sqlite-core";
-import { DrizzleDbClient } from "#core/adapters.js";
+import { DatabaseClient } from "#core/adapters.js";
 
-export class DrizzleORMBetterSQLiteClient extends DrizzleDbClient<
+export class DrizzleORMBetterSQLiteClient extends DatabaseClient<
   BaseSQLiteDatabase<"async" | "sync", unknown, any>
 > {
   async query<K>(
@@ -19,7 +19,7 @@ export class DrizzleORMBetterSQLiteClient extends DrizzleDbClient<
   }
 }
 
-export class DrizzleORMSqliteBunClient extends DrizzleDbClient<
+export class DrizzleORMSqliteBunClient extends DatabaseClient<
   BaseSQLiteDatabase<"async" | "sync", unknown, any>
 > {
   async query<K>(
@@ -38,7 +38,7 @@ type SQLiteAdapterName = "BetterSQLiteSession" | "SQLiteBunSession";
 
 export function createDrizzleORMSqliteClient(
   db: BaseSQLiteDatabase<"async" | "sync", unknown, any>,
-): DrizzleDbClient {
+): DatabaseClient {
   // @ts-expect-error - we need to use the drizzle internal adapter session name to determine the adapter
   const sessionName = db.session.constructor.name as SQLiteAdapterName;
   switch (sessionName) {
