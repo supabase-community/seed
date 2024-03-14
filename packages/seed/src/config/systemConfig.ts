@@ -54,3 +54,14 @@ export async function setSystemConfig(systemConfig: SystemConfig) {
     "utf8",
   );
 }
+
+export async function updateSystemConfig(systemConfig: Partial<SystemConfig>) {
+  const currentSystemConfig = await getSystemConfig({
+    shouldOverrideWithEnv: false,
+  });
+
+  await setSystemConfig({
+    ...currentSystemConfig,
+    ...systemConfig,
+  });
+}

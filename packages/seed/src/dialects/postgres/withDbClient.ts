@@ -1,10 +1,10 @@
 import { type WithDbClient } from "#core/dialect/types.js";
 import { assertPackage } from "#core/utils.js";
 
-export const withDbClient: WithDbClient = async ({ connectionString, fn }) => {
+export const withDbClient: WithDbClient = async ({ databaseUrl, fn }) => {
   await assertPackage("postgres");
   const { default: postgres } = await import("postgres");
-  const client = postgres(connectionString, {
+  const client = postgres(databaseUrl, {
     max: 1,
   });
   try {

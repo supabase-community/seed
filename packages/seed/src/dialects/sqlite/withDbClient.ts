@@ -1,10 +1,10 @@
 import { type WithDbClient } from "#core/dialect/types.js";
 import { assertPackage } from "#core/utils.js";
 
-export const withDbClient: WithDbClient = async ({ connectionString, fn }) => {
+export const withDbClient: WithDbClient = async ({ databaseUrl, fn }) => {
   await assertPackage("better-sqlite3");
   const { default: Database } = await import("better-sqlite3");
-  const client = new Database(new URL(connectionString).pathname, {
+  const client = new Database(new URL(databaseUrl).pathname, {
     fileMustExist: false,
   });
   try {

@@ -1,10 +1,10 @@
 import { getDialect } from "./getDialect.js";
 import { type Dialect } from "./types.js";
 
-export const getDialectFromConnectionString = (
-  connectionString: string,
+export const getDialectFromDatabaseUrl = (
+  databaseUrl: string,
 ): Promise<Dialect> => {
-  const protocol = new URL(connectionString).protocol.slice(0, -1);
+  const protocol = new URL(databaseUrl).protocol.slice(0, -1);
 
   if (protocol === "postgres" || protocol === "postgresql") {
     return getDialect("postgres");
