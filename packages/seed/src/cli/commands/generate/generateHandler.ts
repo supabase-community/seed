@@ -29,13 +29,13 @@ async function computeCodegenContext(props: {
   let shapeExamples: Array<{ examples: Array<string>; shape: string }> = [];
 
   if (!process.env["SNAPLET_DISABLE_SHAPE_PREDICTION"]) {
-    spinner.start("Getting the models shapes for enhanced data generation 🤖");
+    spinner.start("Getting the models' shapes for enhanced data generation 🤖");
     shapePredictions = await fetchShapePredictions({
       determineShapeFromType: dialect.determineShapeFromType,
       dataModel,
     });
     shapeExamples = await fetchShapeExamples(shapePredictions);
-    spinner.succeed("Got the models shapes for enhanced data generation 🤖");
+    spinner.succeed("Got the models' shapes for enhanced data generation 🤖");
   }
 
   return {
