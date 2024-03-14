@@ -1,6 +1,6 @@
 import c from "ansi-colors";
 import { execa } from "execa";
-import { mkdirp, symlink, writeFile } from "fs-extra";
+import { mkdirp, pathExists, symlink, writeFile } from "fs-extra";
 import path from "node:path";
 import tmp from "tmp-promise";
 import { expect } from "vitest";
@@ -65,7 +65,10 @@ export const runSeedScript = async ({
   );
 
   await mkdirp(path.dirname(snapletSeedDestPath));
-  await symlink(ROOT_DIR, snapletSeedDestPath);
+
+  if (!(await pathExists(snapletSeedDestPath))) {
+    await symlink(ROOT_DIR, snapletSeedDestPath);
+  }
 
   await writeFile(
     tsConfigPath,

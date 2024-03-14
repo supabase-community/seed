@@ -95,7 +95,7 @@ function filterOutChildrenRelations(
   for (const [key, model] of Object.entries(models)) {
     const groupedFields = groupFields(model.fields);
     const childFields = groupedFields.children.filter((field) =>
-      includedTableIds.has(field.type),
+      includedTableIds.has(models[field.type].id),
     );
     result[key] = {
       ...model,
@@ -133,9 +133,9 @@ export function getSelectFilteredDataModel(
     enums: dataModel.enums,
   };
   // We rebuild the data model with only the included tables
-  for (const [id, model] of Object.entries(relationsFilteredDataModel)) {
-    if (includedTables.has(id)) {
-      filteredDataModel.models[id] = model;
+  for (const [key, model] of Object.entries(relationsFilteredDataModel)) {
+    if (includedTables.has(model.id)) {
+      filteredDataModel.models[key] = model;
     }
   }
   return filteredDataModel;
