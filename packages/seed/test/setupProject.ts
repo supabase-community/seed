@@ -30,7 +30,7 @@ async function seedSetup(props: {
   const generateOutputPath = "./seed";
   const generateOutputIndexPath = "./seed/index.js";
 
-  await runCLI(["introspect", "--connection-string", props.connectionString], {
+  await runCLI(["introspect", "--database-url", props.connectionString], {
     cwd,
     env: props.env,
   });

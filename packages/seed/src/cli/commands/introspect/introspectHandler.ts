@@ -1,20 +1,42 @@
-import { setDataModelConfig } from "#config/dataModelConfig.js";
-import { getDialectFromConnectionString } from "#core/dialect/getDialectFromConnectionString.js";
-import { spinner } from "../../lib/output.js";
+import { relative, sep } from "node:path";
+import {
+  getDataModelConfigPath,
+  setDataModelConfig,
+} from "#config/dataModelConfig.js";
+import { getDialectFromDatabaseUrl } from "#core/dialect/getDialectFromConnectionString.js";
+import { link, spinner } from "../../lib/output.js";
 
-export async function introspectHandler(args: { connectionString: string }) {
-  const { connectionString } = args;
-  spinner.start("Introspecting...");
+export async function introspectHandler(args: {
+  databaseUrl: string;
+  silent?: boolean;
+}) {
+  const { databaseUrl } = args;
 
-  const dialect = await getDialectFromConnectionString(connectionString);
+  spinner.start("Introspecting the database");
+
+  const dialect = await getDialectFromDatabaseUrl(databaseUrl);
 
   const dataModel = await dialect.withDbClient({
-    connectionString,
+    databaseUrl,
     fn: dialect.getDataModel,
   });
 
+  if (Object.keys(dataModel.models).length === 0) {
+    spinner.fail(
+      "No tables found in the database, please make sure the database is not empty",
+    );
+    process.exit(1);
+  }
+
   await setDataModelConfig(dataModel);
 
-  spinner.succeed();
-  console.log("Done!");
+  // we know the path exists because we just called `setDataModelConfig`
+  // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+  const dataModelConfigPath = (await getDataModelConfigPath())!;
+  const relativeDataModelConfigPath = `.${sep}${relative(process.cwd(), dataModelConfigPath)}`;
+  spinner.succeed(
+    `Introspected ${Object.keys(dataModel.models).length} models and wrote them into ${link(relativeDataModelConfigPath, dataModelConfigPath)}`,
+  );
+
+  return dataModel;
 }

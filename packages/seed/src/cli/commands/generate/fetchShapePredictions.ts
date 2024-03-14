@@ -6,14 +6,12 @@ import {
   type StartPredictionsColumn,
   type TableShapePredictions,
 } from "#trpc/shapes.js";
-import { spinner } from "../../lib/output.js";
 
 export const fetchShapePredictions = async (props: {
   dataModel: DataModel;
   determineShapeFromType: DetermineShapeFromType;
 }): Promise<Array<TableShapePredictions>> => {
   const { determineShapeFromType, dataModel } = props;
-  spinner.info(`Predicting data labels...`);
   const allColumns: Array<StartPredictionsColumn> = [];
   const shapePredictions: Array<TableShapePredictions> = [];
 
@@ -50,21 +48,14 @@ export const fetchShapePredictions = async (props: {
     });
 
   let done = false;
-  let previousProgress: number | undefined;
 
   while (!done) {
-    const { status, progress } =
+    const { status } =
       await trpc.predictions.getPredictionJobProgressRoute.query({
         predictionJobId,
       });
 
     // Only update progress if it has changed
-    if (progress.current !== previousProgress) {
-      spinner.info(
-        `Prediction progress: ${progress.current} / ${progress.total}`,
-      );
-    }
-    previousProgress = progress.current;
 
     if (status === "COMPLETED") {
       done = true;
@@ -72,7 +63,6 @@ export const fetchShapePredictions = async (props: {
       await new Promise((resolve) => setTimeout(resolve, 5000));
     }
   }
-  spinner.info("Fetching predictions...");
   // Batch 100 columns at a time to avoid hitting the max query size
   const batchSize = 100;
   for (

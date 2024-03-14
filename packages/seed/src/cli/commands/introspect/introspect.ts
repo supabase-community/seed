@@ -5,7 +5,7 @@ export function introspectCommand(program: Argv) {
     "introspect",
     "Introspect and generate the data model for your database",
     (y) =>
-      y.option("connection-string", {
+      y.option("database-url", {
         alias: "c",
         describe:
           "The connection string to use for introspecting your database",

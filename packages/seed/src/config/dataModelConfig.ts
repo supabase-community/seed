@@ -1,14 +1,13 @@
-import { findUp, pathExists } from "find-up";
-import { mkdir, readFile, writeFile } from "node:fs/promises";
+import { pathExists } from "find-up";
+import { readFile, writeFile } from "node:fs/promises";
 import { join } from "node:path";
 import { type DataModel } from "#core/dataModel/types.js";
+import { ensureDotSnapletPath, getDotSnapletPath } from "./dotSnaplet.js";
 
 export async function getDataModelConfig() {
   let dataModelConfig: DataModel | null = null;
 
-  const dotSnapletPath = await findUp(".snaplet", {
-    type: "directory",
-  });
+  const dotSnapletPath = await getDotSnapletPath();
 
   if (dotSnapletPath) {
     const dataModelConfigPath = join(dotSnapletPath, "dataModel.json");
@@ -23,14 +22,7 @@ export async function getDataModelConfig() {
 }
 
 export async function setDataModelConfig(dataModelConfig: DataModel) {
-  let dotSnapletPath = await findUp(".snaplet", {
-    type: "directory",
-  });
-
-  if (!dotSnapletPath) {
-    dotSnapletPath = join(process.cwd(), ".snaplet");
-    await mkdir(dotSnapletPath);
-  }
+  const dotSnapletPath = await ensureDotSnapletPath();
 
   const dataModelConfigPath = join(dotSnapletPath, "dataModel.json");
   await writeFile(
@@ -38,4 +30,12 @@ export async function setDataModelConfig(dataModelConfig: DataModel) {
     JSON.stringify(dataModelConfig, null, 2),
     "utf8",
   );
+}
+
+export async function getDataModelConfigPath() {
+  const dotSnapletPath = await getDotSnapletPath();
+  if (!dotSnapletPath) {
+    return null;
+  }
+  return join(dotSnapletPath, "dataModel.json");
 }
