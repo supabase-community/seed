@@ -30,6 +30,7 @@ export async function introspectHandler(args: {
 
   await setDataModelConfig(dataModel);
 
+  // we know the path exists because we just called `setDataModelConfig`
   // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
   const dataModelConfigPath = (await getDataModelConfigPath())!;
   const relativeDataModelConfigPath = `.${sep}${relative(process.cwd(), dataModelConfigPath)}`;
