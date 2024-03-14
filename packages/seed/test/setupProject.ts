@@ -38,7 +38,7 @@ export async function setupProject(props: {
   const generateOutputPath = "./seed";
   const generateOutputIndexPath = "./seed/index.js";
 
-  await runCLI(["introspect", "--connection-string", connectionString], {
+  await runCLI(["introspect", "--database-url", connectionString], {
     cwd,
     env: props.env,
   });

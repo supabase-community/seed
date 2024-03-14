@@ -9,9 +9,17 @@ export const trpc = createTRPCProxyClient<CLIRouter>({
     httpLink({
       url: SNAPLET_API_URL,
       headers: async () => ({
-        authorization: `Bearer ${process.env["SNAPLET_ACCESS_TOKEN"] ?? (await getSystemConfig()).accessToken}`,
+        authorization: `Bearer ${await getAccessToken()}`,
         "user-agent": `Snaplet Seed / ${await getVersion()}`,
       }),
     }),
   ],
 });
+
+let accessToken: string | undefined;
+async function getAccessToken() {
+  return (
+    process.env["SNAPLET_ACCESS_TOKEN"] ??
+    (accessToken ??= (await getSystemConfig()).accessToken)
+  );
+}
