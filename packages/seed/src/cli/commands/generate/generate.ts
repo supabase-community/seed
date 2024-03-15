@@ -13,6 +13,7 @@ export function generateCommand(program: Argv) {
     async (args) => {
       const { generateHandler } = await import("./generateHandler.js");
       await generateHandler(args);
+      (await import("exit-hook")).gracefulExit();
     },
   );
 }

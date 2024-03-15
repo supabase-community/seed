@@ -4,5 +4,6 @@ export function setupCommand(program: Argv) {
   return program.command("setup", "Setup seed for your project", async () => {
     const { setupHandler } = await import("./setupHandler.js");
     await setupHandler();
+    (await import("exit-hook")).gracefulExit();
   });
 }

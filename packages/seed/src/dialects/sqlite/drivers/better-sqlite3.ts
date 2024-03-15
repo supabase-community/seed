@@ -2,6 +2,7 @@ import { type Database } from "better-sqlite3";
 import { z } from "zod";
 import { DatabaseClient } from "#core/adapters.js";
 import { type Driver } from "../../types.js";
+import { serializeParameters } from "../../utils.js";
 
 export class BetterSqlite3Client extends DatabaseClient<Database> {
   constructor(client: Database) {
@@ -36,6 +37,11 @@ export const betterSqlite3Driver = {
   package: "better-sqlite3",
   definitelyTyped: "@types/better-sqlite3",
   parameters: betterSqlite3ParametersSchema,
+  template: {
+    import: `import Database from "better-sqlite3";`,
+    create: (parameters: Array<unknown>) =>
+      `new Database(${serializeParameters(parameters)})`,
+  },
   async getDatabaseClient(databasePath: string) {
     const Database = (await import("better-sqlite3")).default;
     const client = new Database(databasePath);

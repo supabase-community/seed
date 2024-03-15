@@ -2,6 +2,7 @@ import { type Client } from "pg";
 import { z } from "zod";
 import { DatabaseClient } from "#core/adapters.js";
 import { type Driver } from "../../types.js";
+import { serializeParameters } from "../../utils.js";
 
 export class NodePostgresClient extends DatabaseClient<Client> {
   constructor(client: Client) {
@@ -38,10 +39,16 @@ export const nodePostgresDriver = {
   id: "node-postgres" as const,
   package: "pg",
   definitelyTyped: "@types/pg",
+  template: {
+    import: `import { Client } from "pg";`,
+    create: (parameters: Array<unknown>) =>
+      `new Client(${serializeParameters(parameters)})`,
+  },
   parameters: nodePostgresParametersSchema,
   async getDatabaseClient(options: { connectionString: string }) {
     const { Client } = (await import("pg")).default;
     const client = new Client(options);
+    await client.connect();
     return new NodePostgresClient(client);
   },
 } satisfies Driver;

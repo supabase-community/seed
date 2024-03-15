@@ -7,4 +7,8 @@ export interface Driver {
   id: string;
   package: string;
   parameters: ZodTuple;
+  template: {
+    create: (parameters: Array<unknown>) => string;
+    import: string;
+  };
 }

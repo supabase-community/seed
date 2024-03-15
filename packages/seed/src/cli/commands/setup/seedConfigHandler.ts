@@ -1,6 +1,10 @@
+import dedent from "dedent";
+import { gracefulExit } from "exit-hook";
 import prompt from "prompts";
+import { z } from "zod";
 import { type DialectId, dialects } from "#dialects/dialects.js";
 import { type DriverId, drivers } from "#dialects/drivers.js";
+import { getDatabaseClient } from "#dialects/getDatabaseClient.js";
 
 export async function seedConfigHandler() {
   const dialectChoices = Object.keys(dialects)
@@ -37,11 +41,68 @@ export async function seedConfigHandler() {
 
   const driver = drivers[driverId];
 
-  for (const parameter of driver.parameters.items) {
-    console.log(driver.parameters);
-    console.log(parameter);
-    console.log(parameter._def);
-    console.log(parameter._type);
-    console.log(parameter.description);
+  // the parameters are raw strings
+  const parameters: Array<unknown> = [];
+  // the runtime parameters have their process.env values resolved
+  const runtimeParameters: Array<unknown> = [];
+
+  for (const item of driver.parameters.items) {
+    if (item instanceof z.ZodObject) {
+      const entries = Object.entries(item.shape);
+      let parameter: Record<string, unknown> = {};
+      let runtimeParameter: Record<string, unknown> = {};
+      for (const [key, subItem] of entries) {
+        const { value } = (await prompt({
+          type: "text",
+          name: "value",
+          message: subItem.description,
+        })) as { value: string };
+        parameter[key] = value;
+        runtimeParameter[key] = value.startsWith("process.env.")
+          ? process.env[value.slice("process.env.".length)]
+          : value;
+      }
+      parameters.push(parameter);
+      runtimeParameters.push(runtimeParameter);
+    } else {
+      const { value } = (await prompt({
+        type: "text",
+        name: "value",
+        message: item.description,
+      })) as { value: string };
+      parameters.push(value);
+      runtimeParameters.push(
+        value.startsWith("process.env.")
+          ? process.env[value.slice("process.env.".length)]
+          : value,
+      );
+    }
   }
+
+  const databaseClient = await getDatabaseClient({
+    driver: driverId,
+    // @ts-expect-error: we can't know the type of the parameters as we're dynamically asking for them
+    parameters: runtimeParameters,
+  });
+
+  // assert database connectivity
+  try {
+    await databaseClient.query("SELECT 1");
+  } catch (e) {
+    console.error(`Could not connect to the database: ${(e as Error).message}`);
+    gracefulExit(1);
+  }
+
+  // save the seed config
+  const template = dedent`
+    import { defineConfig } from "@snaplet/seed";
+    import { createDatabaseClient } from "@snaplet/seed/${driverId}";
+    ${driver.template.import}
+
+    export default defineConfig({
+      databaseClient: () => createDatabaseClient(${driver.template.create(parameters)})
+    });
+  `;
+
+  console.log(template);
 }
