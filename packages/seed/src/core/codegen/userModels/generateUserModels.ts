@@ -145,7 +145,7 @@ export const generateDefaultsForModels = (props: {
       shapePredictions.find(
         (predictions) =>
           model.tableName === predictions.tableName &&
-          model.schemaName === predictions.schemaName,
+          (model.schemaName ?? "") === predictions.schemaName,
       ) ?? null;
 
     const modelFingerprint = fingerprint[modelName] ?? null;
