@@ -91,14 +91,17 @@ export async function checkConstraints(
 
   for (const constraint of sortedConstraints) {
     // We skip the constraint if it contains null values
-    // todo: once we have the info for "nulls not distinct" in the dataModel, we will be able to conditionnally skip the constraint
-    if (constraint.fields.some((c) => props.modelData[c] === null)) {
+    if (
+      constraint.fields.some((c) => props.modelData[c] === null) &&
+      // Execpt if the constraint is nullNotDistinct so each null values isn't considered distinct
+      // from the other null values anymore (maximum one null value is allowed)
+      !constraint.nullNotDistinct
+    ) {
       continue;
     }
 
     const hash = getHash(
-      // eslint-disable-next-line @typescript-eslint/no-base-to-string, @typescript-eslint/no-non-null-assertion
-      constraint.fields.map((f) => props.modelData[f]!.toString()),
+      constraint.fields.map((f) => JSON.stringify(props.modelData[f])),
     );
     const constraintStore =
       props.constraintsStores[props.model][constraint.name];
@@ -147,6 +150,7 @@ export async function checkConstraints(
           return acc;
         }, {});
       let constraintData = getConstraintData();
+
       const connectStores = parentFieldsToRetry
         .map((f) => f.type)
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -165,6 +169,43 @@ export async function checkConstraints(
         constraintStore,
         ...props,
       });
+      // If the conflict isn't fixed and null is actually an option for the constraint
+      if (!conflictFixed && constraint.nullNotDistinct) {
+        const hasNullableParent = parentFieldsToRetry.some(
+          (f) => !f.isRequired,
+        );
+        // We add a null options to every parent fields that can be null
+        // and we retry the cartesian product so we always try the null option only if
+        // we failed to fix the constraint with the previous non-null options
+        if (hasNullableParent) {
+          const connectStores = parentFieldsToRetry
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            .reduce<Record<string, Array<any>>>((acc, field) => {
+              const nullOption = field.relationToFields.reduce<
+                Record<string, null>
+              >((acc, f) => {
+                acc[f] = null;
+                return acc;
+              }, {});
+
+              acc[field.type] = field.isRequired
+                ? // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+                  props.connectStore![field.type]
+                : // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+                  [...props.connectStore![field.type], nullOption];
+              return acc;
+            }, {});
+          conflictFixed = await cartesianProduct({
+            connectStores,
+            fields: parentFieldsToRetry,
+            level: 0,
+            constraintData,
+            constraint,
+            constraintStore,
+            ...props,
+          });
+        }
+      }
 
       // if we couldn't fix the constraint with parent fields, we try with scalar fields if there is something to try
       if (!conflictFixed && scalarFieldsToRetry.length > 0) {
@@ -197,11 +238,10 @@ export async function checkConstraints(
       for (const column of constraint.fields) {
         props.modelData[column] = constraintData[column];
       }
-      const hash = getHash(
-        // eslint-disable-next-line @typescript-eslint/no-non-null-assertion, @typescript-eslint/no-base-to-string
-        constraint.fields.map((f) => constraintData[f]!.toString()),
+      const finalHash = getHash(
+        constraint.fields.map((f) => JSON.stringify(constraintData[f])),
       );
-      constraintStore.add(hash);
+      constraintStore.add(finalHash);
     } else {
       constraintStore.add(hash);
     }
@@ -269,8 +309,9 @@ async function cartesianProduct(
       }
 
       const hash = getHash(
-        // eslint-disable-next-line @typescript-eslint/no-non-null-assertion, @typescript-eslint/no-base-to-string
-        props.constraint.fields.map((c) => props.constraintData[c]!.toString()),
+        props.constraint.fields.map((c) =>
+          JSON.stringify(props.constraintData[c]),
+        ),
       );
 
       if (!props.constraintStore.has(hash)) {
@@ -295,8 +336,9 @@ async function cartesianProduct(
       );
 
       const hash = getHash(
-        // eslint-disable-next-line @typescript-eslint/no-non-null-assertion, @typescript-eslint/no-base-to-string
-        props.constraint.fields.map((f) => props.constraintData[f]!.toString()),
+        props.constraint.fields.map((f) =>
+          JSON.stringify(props.constraintData[f]),
+        ),
       );
 
       if (!props.constraintStore.has(hash)) {

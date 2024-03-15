@@ -329,6 +329,7 @@ export function introspectionToDataModel(
         table.uniqueConstraints?.map((c) => ({
           name: c.name,
           fields: c.columns,
+          nullNotDistinct: c.nullNotDistinct,
         })) ?? [],
     };
 
