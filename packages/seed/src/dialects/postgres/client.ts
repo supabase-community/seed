@@ -3,6 +3,7 @@ import { EOL } from "node:os";
 import { type DrizzleDbClient } from "#core/adapters.js";
 import { SeedClientBase } from "#core/client/client.js";
 import { type SeedClientOptions } from "#core/client/types.js";
+import { filterModelsBySelectConfig } from "#core/client/utils.js";
 import { type DataModel } from "#core/dataModel/types.js";
 import { type Fingerprint } from "#core/fingerprint/types.js";
 import { updateDataModelSequences } from "#core/sequences/updateDataModelSequences.js";
@@ -45,17 +46,20 @@ export function getSeedClient(props: {
       this.options = options;
     }
 
-    async $resetDatabase() {
+    async $resetDatabase(selectConfig?: Record<string, boolean>) {
+      const models = Object.values(this.dataModel.models);
+      const filteredModels = filterModelsBySelectConfig(models, selectConfig);
       if (!this.dryRun) {
-        const tablesToTruncate = Object.values(this.dataModel.models)
+        const tablesToTruncate = filteredModels
           .map(
             (model) =>
               // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
               `${escapeIdentifier(model.schemaName!)}.${escapeIdentifier(model.tableName)}`,
           )
           .join(", ");
-
-        await this.db.run(`TRUNCATE ${tablesToTruncate} CASCADE`);
+        if (tablesToTruncate.length > 0) {
+          await this.db.run(`TRUNCATE ${tablesToTruncate} CASCADE`);
+        }
       }
     }
 

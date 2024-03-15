@@ -12,6 +12,7 @@ import {
 } from "../fingerprint/fingerprint.js";
 import { type Fingerprint } from "../fingerprint/types.js";
 import { escapeKey } from "../utils.js";
+import { generateSelectTypeFromTableIds } from "./generateConfigTypes.js";
 
 type Database2tsType = (
   dataModel: DataModel,
@@ -40,6 +41,7 @@ export async function generateClientTypes(props: {
   return [
     imports,
     generateHelpers(),
+    generateSelectTypes(dataModel),
     generateStoreTypes(dataModel),
     generateEnums(dataModel),
     await generateInputsTypes({
@@ -52,6 +54,15 @@ export async function generateClientTypes(props: {
     generateSeedClientBaseTypes(dataModel),
     generateSeedClientTypes(props.databaseClientType),
   ].join(EOL);
+}
+
+function generateSelectTypes(dataModel: DataModel) {
+  const tableIdsSet = new Set<string>();
+  for (const model of Object.values(dataModel.models)) {
+    tableIdsSet.add(model.id);
+  }
+  const tableIds = Array.from(tableIdsSet);
+  return generateSelectTypeFromTableIds(tableIds);
 }
 
 function generateHelpers() {
@@ -575,7 +586,7 @@ ${Object.keys(dataModel.models)
   /**
    * Delete all data in the database while preserving the database structure.
    */
-  $resetDatabase(): Promise<unknown>;
+  $resetDatabase(selectConfig?: SelectConfig): Promise<unknown>;
 
   /**
    * Get the global store.
