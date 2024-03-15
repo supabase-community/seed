@@ -2,6 +2,9 @@ import { describe, expect, test } from "vitest";
 import { type Dialect, adapters } from "#test/adapters.js";
 import { setupProject } from "#test/setupProject.js";
 
+type DialectRecordWithDefault = Partial<Record<Dialect, string>> &
+  Record<"default", string>;
+
 for (const dialect of Object.keys(adapters) as Array<Dialect>) {
   const adapter = await adapters[dialect]();
 
@@ -188,7 +191,7 @@ for (const dialect of Object.keys(adapters) as Array<Dialect>) {
       });
 
       test("connect option", async () => {
-        const schema: Partial<Record<"default" | Dialect, string>> = {
+        const schema: DialectRecordWithDefault = {
           default: `
               CREATE TABLE student (
                 student_id SERIAL PRIMARY KEY,
@@ -358,7 +361,7 @@ for (const dialect of Object.keys(adapters) as Array<Dialect>) {
       });
 
       test("compatibility with externally inserted data", async () => {
-        const schema: Partial<Record<"default" | Dialect, string>> = {
+        const schema: DialectRecordWithDefault = {
           default: `
             CREATE TABLE "User" (
               "user_id" SERIAL PRIMARY KEY

@@ -2,6 +2,9 @@ import { describe, expect, test } from "vitest";
 import { type Dialect, adapters } from "#test/adapters.js";
 import { setupProject } from "#test/setupProject.js";
 
+type DialectRecordWithDefault = Partial<Record<Dialect, string>> &
+  Record<"default", string>;
+
 for (const dialect of Object.keys(adapters) as Array<Dialect>) {
   const adapter = await adapters[dialect]();
 
@@ -17,7 +20,7 @@ for (const dialect of Object.keys(adapters) as Array<Dialect>) {
     `e2e keys: ${dialect}`,
     () => {
       test("work as expected with composites primary keys", async () => {
-        const schema: Partial<Record<"default" | Dialect, string>> = {
+        const schema: DialectRecordWithDefault = {
           default: `
             CREATE TABLE "Team" (
               "id" SERIAL PRIMARY KEY
@@ -114,7 +117,7 @@ for (const dialect of Object.keys(adapters) as Array<Dialect>) {
         ]);
       });
       test("work as expected with composite primary keys made by non nullable unique index", async () => {
-        const schema: Partial<Record<"default" | Dialect, string>> = {
+        const schema: DialectRecordWithDefault = {
           default: `
             CREATE TABLE "Team" (
               "id" SERIAL PRIMARY KEY
@@ -207,7 +210,7 @@ for (const dialect of Object.keys(adapters) as Array<Dialect>) {
         ]);
       });
       test("work as expected with composite primary keys made by nullable unique index", async () => {
-        const schema: Partial<Record<"default" | Dialect, string>> = {
+        const schema: DialectRecordWithDefault = {
           default: `
             CREATE TABLE "Team" (
               "id" SERIAL PRIMARY KEY
@@ -324,7 +327,7 @@ for (const dialect of Object.keys(adapters) as Array<Dialect>) {
         }
       });
       test("work as expected and UPDATE children with PRIMARY KEY field", async () => {
-        const schema: Partial<Record<"default" | Dialect, string>> = {
+        const schema: DialectRecordWithDefault = {
           default: `
             CREATE TABLE "Team" (
               "id" SERIAL PRIMARY KEY
@@ -416,7 +419,7 @@ for (const dialect of Object.keys(adapters) as Array<Dialect>) {
         ]);
       });
       test("work as expected and UPDATE children with UNIQUE NON NULLABLE field", async () => {
-        const schema: Partial<Record<"default" | Dialect, string>> = {
+        const schema: DialectRecordWithDefault = {
           default: `
             CREATE TABLE "Team" (
               "id" SERIAL PRIMARY KEY
