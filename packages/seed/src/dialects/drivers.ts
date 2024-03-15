@@ -6,4 +6,4 @@ export const drivers = {
   ...sqliteDrivers,
 };
 
-export type Driver = keyof typeof drivers;
+export type DriverId = keyof typeof drivers;

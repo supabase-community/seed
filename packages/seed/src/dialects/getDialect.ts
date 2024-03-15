@@ -1,16 +1,27 @@
-import { type Driver } from "./drivers.js";
+import { type DialectId } from "./dialects.js";
+import { type DriverId } from "./drivers.js";
+import { postgresDialect } from "./postgres/dialect.js";
 import { postgresDrivers } from "./postgres/drivers/index.js";
+import { sqliteDialect } from "./sqlite/dialect.js";
 import { sqliteDrivers } from "./sqlite/drivers/index.js";
-import { type Dialect } from "./types.js";
 
-export function getDialect(driver: Driver): Dialect {
+export function getDialectFromDriverId(driver: DriverId) {
   if (Object.keys(postgresDrivers).includes(driver)) {
-    return "postgres";
+    return postgresDialect;
   }
 
   if (Object.keys(sqliteDrivers).includes(driver)) {
-    return "sqlite";
+    return sqliteDialect;
   }
 
-  throw new Error("Unknown dialect");
+  throw new Error(`No dialect found for driver '${driver}'`);
+}
+
+export function getDialect(dialectId: DialectId) {
+  switch (dialectId) {
+    case "postgres":
+      return postgresDialect;
+    case "sqlite":
+      return sqliteDialect;
+  }
 }

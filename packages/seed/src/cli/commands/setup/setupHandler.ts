@@ -1,9 +1,7 @@
 import { bold, highlight } from "../../lib/output.js";
-import { generateHandler } from "../generate/generateHandler.js";
-import { introspectHandler } from "../introspect/introspectHandler.js";
 import { loginHandler } from "../login/loginHandler.js";
-import { getDatabaseUrl } from "./getDatabaseUrl.js";
 import { getUser } from "./getUser.js";
+import { seedConfigHandler } from "./seedConfigHandler.js";
 
 export async function setupHandler() {
   const user = await getUser();
@@ -18,9 +16,9 @@ export async function setupHandler() {
     await loginHandler();
   }
 
-  const databaseUrl = await getDatabaseUrl();
+  await seedConfigHandler();
 
-  await introspectHandler({ databaseUrl });
+  // await introspectHandler();
 
-  await generateHandler({});
+  // await generateHandler({});
 }

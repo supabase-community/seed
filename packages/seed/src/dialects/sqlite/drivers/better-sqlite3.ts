@@ -1,7 +1,7 @@
 import { type Database } from "better-sqlite3";
 import { z } from "zod";
 import { DatabaseClient } from "#core/adapters.js";
-import { type DriverItem } from "../../types.js";
+import { type Driver } from "../../types.js";
 
 export class BetterSqlite3Client extends DatabaseClient<Database> {
   constructor(client: Database) {
@@ -32,7 +32,7 @@ export const betterSqlite3Schema = z.object({
 });
 
 export const betterSqlite3Driver = {
-  name: "better-sqlite3" as const,
+  id: "better-sqlite3" as const,
   package: "better-sqlite3",
   definitelyTyped: "@types/better-sqlite3",
   parameters: betterSqlite3ParametersSchema,
@@ -41,4 +41,4 @@ export const betterSqlite3Driver = {
     const client = new Database(databasePath);
     return new BetterSqlite3Client(client);
   },
-} satisfies DriverItem;
+} satisfies Driver;

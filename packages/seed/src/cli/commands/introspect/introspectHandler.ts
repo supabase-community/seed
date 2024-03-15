@@ -1,31 +1,28 @@
+import { gracefulExit } from "exit-hook";
 import { relative, sep } from "node:path";
 import {
   getDataModelConfigPath,
   setDataModelConfig,
 } from "#config/dataModelConfig.js";
-import { getDialectFromDatabaseUrl } from "#core/dialect/getDialectFromConnectionString.js";
+import { getSeedConfig } from "#config/seedConfig/seedConfig.js";
+import { getDatabaseClient } from "#dialects/getDatabaseClient.js";
+import { getDialectFromDriverId } from "#dialects/getDialect.js";
 import { link, spinner } from "../../lib/output.js";
 
-export async function introspectHandler(args: {
-  databaseUrl: string;
-  silent?: boolean;
-}) {
-  const { databaseUrl } = args;
-
+export async function introspectHandler() {
   spinner.start("Introspecting the database");
 
-  const dialect = await getDialectFromDatabaseUrl(databaseUrl);
+  const seedConfig = await getSeedConfig();
+  const dialect = getDialectFromDriverId(seedConfig.databaseClient.driver);
+  const databaseClient = await getDatabaseClient(seedConfig.databaseClient);
 
-  const dataModel = await dialect.withDbClient({
-    databaseUrl,
-    fn: dialect.getDataModel,
-  });
+  const dataModel = await dialect.getDataModel(databaseClient);
 
   if (Object.keys(dataModel.models).length === 0) {
     spinner.fail(
       "No tables found in the database, please make sure the database is not empty",
     );
-    process.exit(1);
+    gracefulExit(1);
   }
 
   await setDataModelConfig(dataModel);
