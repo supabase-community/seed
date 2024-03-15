@@ -1,7 +1,7 @@
 import { type Client } from "pg";
 import { z } from "zod";
 import { DatabaseClient } from "#core/adapters.js";
-import { type Driver } from "../../types.js";
+import { type DriverItem } from "../../types.js";
 
 export class NodePostgresClient extends DatabaseClient<Client> {
   constructor(client: Client) {
@@ -35,7 +35,7 @@ export const nodePostgresSchema = z.object({
 });
 
 export const nodePostgresDriver = {
-  name: "node-postgres",
+  name: "node-postgres" as const,
   package: "pg",
   definitelyTyped: "@types/pg",
   parameters: nodePostgresParametersSchema,
@@ -44,4 +44,4 @@ export const nodePostgresDriver = {
     const client = new Client(options);
     return new NodePostgresClient(client);
   },
-} as const satisfies Driver;
+} satisfies DriverItem;

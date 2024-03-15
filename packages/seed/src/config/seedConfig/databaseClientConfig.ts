@@ -8,3 +8,5 @@ export const databaseClientConfigSchema = z.union([
   nodePostgresSchema,
   betterSqlite3Schema,
 ]);
+
+export type DatabaseClientConfig = z.infer<typeof databaseClientConfigSchema>;
