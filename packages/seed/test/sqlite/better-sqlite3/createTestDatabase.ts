@@ -1,8 +1,8 @@
 import Database from "better-sqlite3";
-import { sql } from "drizzle-orm";
-import { drizzle } from "drizzle-orm/better-sqlite3";
 import { copyFile } from "fs-extra";
 import path from "node:path";
+import { type DatabaseClient } from "#core/adapters.js";
+import { BetterSqlite3Client } from "#dialects/sqlite/drivers/better-sqlite3.js";
 import { createTestTmpDirectory } from "../../createTmpDirectory.js";
 
 const CHINOOK_DATABASE_PATH = path.resolve(__dirname, "../fixtures/chinook.db");
@@ -18,22 +18,20 @@ function splitSqlScript(script: string): Array<string> {
 }
 
 export async function createTestDb(structure: string): Promise<{
-  client: Database.Database;
+  client: DatabaseClient;
   connectionString: string;
   name: string;
 }> {
   const tmp = await createTestTmpDirectory(true);
   const connString = path.join(tmp.name, "test.sqlite3");
   const db = new Database(connString);
-  const driz = drizzle(db);
+  const client = new BetterSqlite3Client(db);
   const queries = splitSqlScript(structure);
-  driz.transaction((tx) => {
-    for (const query of queries) {
-      tx.run(sql.raw(query));
-    }
-  });
+  for (const query of queries) {
+    await client.run(query);
+  }
   return {
-    client: db,
+    client,
     name: connString,
     connectionString: `file://${connString}`,
   };
@@ -41,7 +39,7 @@ export async function createTestDb(structure: string): Promise<{
 
 // A sample database with data in it took from: https://www.sqlitetutorial.net/sqlite-sample-database/
 export async function createChinookSqliteTestDatabase(): Promise<{
-  client: Database.Database;
+  client: DatabaseClient;
   connectionString: string;
   name: string;
 }> {
@@ -50,8 +48,9 @@ export async function createChinookSqliteTestDatabase(): Promise<{
   // copy chinook database to tmp directory
   await copyFile(CHINOOK_DATABASE_PATH, connString);
   const db = new Database(connString);
+  const client = new BetterSqlite3Client(db);
   return {
-    client: db,
+    client,
     name: connString,
     connectionString: connString,
   };

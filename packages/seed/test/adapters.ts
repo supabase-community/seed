@@ -2,11 +2,13 @@
 /* eslint-disable @typescript-eslint/consistent-type-imports */
 import type postgresJs from "postgres";
 import { type DatabaseClient } from "#core/adapters.js";
+import { PostgresJsClient } from "#dialects/postgres/drivers/postgres-js.js";
+import { BetterSqlite3Client } from "#dialects/sqlite/drivers/better-sqlite3.js";
 
 export interface Adapter<Client = AnyClient> {
   createClient(client: Client): DatabaseClient;
   createTestDb(structure?: string): Promise<{
-    client: Client;
+    client: DatabaseClient;
     connectionString: string;
     name: string;
   }>;
@@ -30,12 +32,9 @@ export const adapters = {
   async postgres(): Promise<Adapter<postgresJs.Sql>> {
     const { createTestDb } = (await import("#test/postgres/index.js"))
       .postgresJs;
-    const { drizzle } = await import("drizzle-orm/postgres-js");
-    const { createDrizzleORMPostgresClient: createDrizzleORMPgClient } =
-      await import("#dialects/postgres/adapters.js");
     return {
       createTestDb,
-      createClient: (client) => createDrizzleORMPgClient(drizzle(client)),
+      createClient: (client) => new PostgresJsClient(client),
       generateClientWrapper: ({
         generateOutputIndexPath,
         connectionString,
@@ -60,13 +59,9 @@ export const createSeedClient = (options?: Parameters<typeof baseCreateSeedClien
   async sqlite(): Promise<Adapter<import("better-sqlite3").Database>> {
     const { createTestDb } = (await import("#test/sqlite/index.js"))
       .betterSqlite3;
-    const { drizzle } = await import("drizzle-orm/better-sqlite3");
-    const { createDrizzleORMSqliteClient } = await import(
-      "#dialects/sqlite/adapters.js"
-    );
     return {
       createTestDb,
-      createClient: (client) => createDrizzleORMSqliteClient(drizzle(client)),
+      createClient: (client) => new BetterSqlite3Client(client),
       generateClientWrapper: ({
         generateOutputIndexPath,
         connectionString,

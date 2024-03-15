@@ -1,5 +1,7 @@
 import { type Database } from "better-sqlite3";
+import { z } from "zod";
 import { DatabaseClient } from "#core/adapters.js";
+import { type Driver } from "../../types.js";
 
 export class BetterSqlite3Client extends DatabaseClient<Database> {
   constructor(client: Database) {
@@ -20,19 +22,23 @@ export class BetterSqlite3Client extends DatabaseClient<Database> {
   }
 }
 
+const betterSqlite3ParametersSchema = z.tuple([
+  z.string().describe("file name"),
+]);
+
+export const betterSqlite3Schema = z.object({
+  driver: z.literal("better-sqlite3"),
+  parameters: betterSqlite3ParametersSchema,
+});
+
 export const betterSqlite3Driver = {
   name: "better-sqlite3",
   package: "better-sqlite3",
   definitelyTyped: "@types/better-sqlite3",
-  parameters: [
-    {
-      name: "file name",
-      kind: "scalar",
-    },
-  ],
-  async getClient(databasePath: string) {
+  parameters: betterSqlite3ParametersSchema,
+  async getDatabaseClient(databasePath: string) {
     const Database = (await import("better-sqlite3")).default;
     const client = new Database(databasePath);
     return new BetterSqlite3Client(client);
   },
-};
+} as const satisfies Driver;

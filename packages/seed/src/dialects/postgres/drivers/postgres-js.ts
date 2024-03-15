@@ -1,7 +1,7 @@
 import { type Sql } from "postgres";
+import { z } from "zod";
 import { DatabaseClient } from "#core/adapters.js";
 import { type Driver } from "../../types.js";
-import { postgresDatabaseUrlHint } from "./constants.js";
 
 export class PostgresJsClient extends DatabaseClient<Sql> {
   constructor(client: Sql) {
@@ -21,19 +21,22 @@ export class PostgresJsClient extends DatabaseClient<Sql> {
   }
 }
 
-export const postgresJsDriver: Driver = {
-  name: "Postgres.js",
+const postgresJsParametersSchema = z.tuple([
+  z.string().describe("database url"),
+]);
+
+export const postgresJsSchema = z.object({
+  driver: z.literal("postgres-js"),
+  parameters: postgresJsParametersSchema,
+});
+
+export const postgresJsDriver = {
+  name: "postgres-js",
   package: "postgres",
-  parameters: [
-    {
-      kind: "scalar",
-      name: "database url",
-      hint: postgresDatabaseUrlHint,
-    },
-  ],
-  async getClient(databaseUrl: string) {
+  parameters: postgresJsParametersSchema,
+  async getDatabaseClient(databaseUrl: string) {
     const postgres = (await import("postgres")).default;
     const client = postgres(databaseUrl);
     return new PostgresJsClient(client);
   },
-};
+} as const satisfies Driver;

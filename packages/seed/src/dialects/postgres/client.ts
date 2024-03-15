@@ -76,7 +76,6 @@ export function getSeedClient(props: {
     db: PgDatabase<any>,
     options?: SeedClientOptions,
   ) => {
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
     const client = createDrizzleORMPostgresClient(db);
     const seed = new PgSeedClient(client, options);
 

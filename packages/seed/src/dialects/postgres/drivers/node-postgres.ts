@@ -1,6 +1,7 @@
 import { type Client } from "pg";
+import { z } from "zod";
 import { DatabaseClient } from "#core/adapters.js";
-import { postgresDatabaseUrlHint } from "./constants.js";
+import { type Driver } from "../../types.js";
 
 export class NodePostgresClient extends DatabaseClient<Client> {
   constructor(client: Client) {
@@ -20,26 +21,27 @@ export class NodePostgresClient extends DatabaseClient<Client> {
   }
 }
 
+const nodePostgresParametersSchema = z.tuple([
+  z
+    .object({
+      connectionString: z.string().describe("connection string"),
+    })
+    .describe("options"),
+]);
+
+export const nodePostgresSchema = z.object({
+  driver: z.literal("node-postgres"),
+  parameters: nodePostgresParametersSchema,
+});
+
 export const nodePostgresDriver = {
   name: "node-postgres",
   package: "pg",
   definitelyTyped: "@types/pg",
-  parameters: [
-    {
-      name: "options",
-      kind: "object",
-      properties: {
-        connectionString: {
-          kind: "scalar",
-          name: "connection string",
-          hint: postgresDatabaseUrlHint,
-        },
-      },
-    },
-  ],
-  async getClient(options: { connectionString: string }) {
+  parameters: nodePostgresParametersSchema,
+  async getDatabaseClient(options: { connectionString: string }) {
     const { Client } = (await import("pg")).default;
     const client = new Client(options);
     return new NodePostgresClient(client);
   },
-};
+} as const satisfies Driver;

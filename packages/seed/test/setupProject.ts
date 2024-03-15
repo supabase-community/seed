@@ -88,7 +88,7 @@ export async function setupProject(props: {
     return {
       ...result,
       // If we provide the connection string of an existing database we don't create a new one and therefore we won't have a db client
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any, @typescript-eslint/no-unnecessary-type-arguments
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       db: undefined as any as DatabaseClient<any>,
     };
   } else {
@@ -96,14 +96,12 @@ export async function setupProject(props: {
       props.databaseSchema ?? "",
     );
 
-    const db = adapter.createClient(client);
-
     const result = await seedSetup({
       ...props,
       connectionString,
     });
     return {
-      db,
+      db: client,
       ...result,
     };
   }

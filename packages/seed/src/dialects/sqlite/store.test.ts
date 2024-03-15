@@ -1,16 +1,11 @@
-import { drizzle as drizzleBetterSqlite } from "drizzle-orm/better-sqlite3";
 import { describe, expect, test } from "vitest";
 import { sqlite } from "#test";
 import { type DatabaseClient } from "../../core/adapters.js";
-import { createDrizzleORMSqliteClient } from "./adapters.js";
 import { getDatamodel } from "./dataModel.js";
 import { SqliteStore } from "./store.js";
 
 const adapters = {
-  betterSqlite3: () => ({
-    ...sqlite.betterSqlite3,
-    drizzle: drizzleBetterSqlite,
-  }),
+  betterSqlite3: () => sqlite.betterSqlite3,
 };
 
 async function execQueries(client: DatabaseClient, queries: Array<string>) {
@@ -20,7 +15,7 @@ async function execQueries(client: DatabaseClient, queries: Array<string>) {
 }
 
 describe.each(["betterSqlite3"] as const)("store: %s", (adapter) => {
-  const { drizzle, createTestDb } = adapters[adapter]();
+  const { createTestDb } = adapters[adapter]();
 
   describe("SQL -> Store -> SQL", () => {
     test("should be able to insert basic rows into table", async () => {
@@ -32,8 +27,7 @@ describe.each(["betterSqlite3"] as const)("store: %s", (adapter) => {
       );
       `;
       const db = await createTestDb(structure);
-      const orm = createDrizzleORMSqliteClient(drizzle(db.client));
-      const dataModel = await getDatamodel(orm);
+      const dataModel = await getDatamodel(db.client);
 
       const store = new SqliteStore(dataModel);
 
@@ -48,8 +42,8 @@ describe.each(["betterSqlite3"] as const)("store: %s", (adapter) => {
         name: "Winrar Skarsgård",
         email: "win@rar.gard",
       });
-      await execQueries(orm, [...store.toSQL()]);
-      const results = await orm.query(`SELECT * FROM test_customer`);
+      await execQueries(db.client, [...store.toSQL()]);
+      const results = await db.client.query(`SELECT * FROM test_customer`);
       expect(results).toEqual(
         expect.arrayContaining([
           { id: 2, name: "Cadavre Exquis", email: "cadavre@ex.quis" },
@@ -66,8 +60,7 @@ describe.each(["betterSqlite3"] as const)("store: %s", (adapter) => {
       );
     `;
       const db = await createTestDb(structure);
-      const orm = createDrizzleORMSqliteClient(drizzle(db.client));
-      const dataModel = await getDatamodel(orm);
+      const dataModel = await getDatamodel(db.client);
 
       const store = new SqliteStore(dataModel);
 
@@ -79,8 +72,8 @@ describe.each(["betterSqlite3"] as const)("store: %s", (adapter) => {
         name: "Winrar Skarsgård",
         email: "win@rar.gard",
       });
-      await execQueries(orm, [...store.toSQL()]);
-      const results = await orm.query(
+      await execQueries(db.client, [...store.toSQL()]);
+      const results = await db.client.query(
         `SELECT * FROM test_customer ORDER BY id ASC`,
       );
       expect(results).toEqual(
@@ -100,8 +93,7 @@ describe.each(["betterSqlite3"] as const)("store: %s", (adapter) => {
       );
     `;
       const db = await createTestDb(structure);
-      const orm = createDrizzleORMSqliteClient(drizzle(db.client));
-      const dataModel = await getDatamodel(orm);
+      const dataModel = await getDatamodel(db.client);
 
       const store = new SqliteStore(dataModel);
 
@@ -115,8 +107,8 @@ describe.each(["betterSqlite3"] as const)("store: %s", (adapter) => {
         email: "win@rar.gard",
       });
 
-      await execQueries(orm, [...store.toSQL()]);
-      const results = await orm.query(
+      await execQueries(db.client, [...store.toSQL()]);
+      const results = await db.client.query(
         `SELECT * FROM test_customer ORDER BY id ASC`,
       );
 
@@ -149,8 +141,7 @@ describe.each(["betterSqlite3"] as const)("store: %s", (adapter) => {
       );
     `;
       const db = await createTestDb(structure);
-      const orm = createDrizzleORMSqliteClient(drizzle(db.client));
-      const dataModel = await getDatamodel(orm);
+      const dataModel = await getDatamodel(db.client);
 
       const store = new SqliteStore(dataModel);
 
@@ -164,8 +155,8 @@ describe.each(["betterSqlite3"] as const)("store: %s", (adapter) => {
         phone: "+1234567890",
       });
 
-      await execQueries(orm, [...store.toSQL()]);
-      const results = await orm.query(
+      await execQueries(db.client, [...store.toSQL()]);
+      const results = await db.client.query(
         `SELECT * FROM test_customer ORDER BY id ASC`,
       );
 
@@ -208,8 +199,7 @@ describe.each(["betterSqlite3"] as const)("store: %s", (adapter) => {
       `;
 
       const db = await createTestDb(structure);
-      const orm = createDrizzleORMSqliteClient(drizzle(db.client));
-      const dataModel = await getDatamodel(orm);
+      const dataModel = await getDatamodel(db.client);
 
       const store = new SqliteStore(dataModel);
 
@@ -236,8 +226,8 @@ describe.each(["betterSqlite3"] as const)("store: %s", (adapter) => {
         product_name: "Gadget",
       });
       const queries = store.toSQL();
-      await execQueries(orm, [...queries]);
-      const results = await orm.query(
+      await execQueries(db.client, [...queries]);
+      const results = await db.client.query(
         `SELECT test_customer.name, test_order.order_details FROM test_order JOIN test_customer ON test_customer.id = test_order.customer_id`,
       );
 

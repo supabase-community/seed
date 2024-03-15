@@ -1,3 +1,4 @@
+import { type ZodTuple } from "zod";
 import { type DatabaseClient } from "#core/adapters.js";
 
 type Parameter =
@@ -10,10 +11,10 @@ type Parameter =
 
 export interface Driver {
   definitelyTyped?: string;
-  getClient(parameters: unknown): Promise<DatabaseClient>;
+  getDatabaseClient(parameters: unknown): Promise<DatabaseClient>;
   name: string;
   package: string;
-  parameters: Array<Parameter>;
+  parameters: ZodTuple;
 }
 
 type Dialect = Array<Driver>;

@@ -1,19 +1,13 @@
-import { sql } from "drizzle-orm";
-import { drizzle as drizzleBetterSqlite } from "drizzle-orm/better-sqlite3";
 import { describe, expect, test } from "vitest";
 import { sqlite } from "#test";
-import { createDrizzleORMSqliteClient } from "../../adapters.js";
 import { fetchSequences } from "./fetchSequences.js";
 
 const adapters = {
-  betterSqlite3: () => ({
-    ...sqlite.betterSqlite3,
-    drizzle: drizzleBetterSqlite,
-  }),
+  betterSqlite3: () => sqlite.betterSqlite3,
 };
 
 describe.each(["betterSqlite3"] as const)("fetchSequences: %s", (adapter) => {
-  const { drizzle, createTestDb } = adapters[adapter]();
+  const { createTestDb } = adapters[adapter]();
 
   test("should fetch primary key autoincrement sequence", async () => {
     const structure = `
@@ -23,9 +17,7 @@ describe.each(["betterSqlite3"] as const)("fetchSequences: %s", (adapter) => {
         );
       `;
     const { client } = await createTestDb(structure);
-    const sequences = await fetchSequences(
-      createDrizzleORMSqliteClient(drizzle(client)),
-    );
+    const sequences = await fetchSequences(client);
     expect(sequences).toEqual([
       {
         tableId: "students",
@@ -43,9 +35,7 @@ describe.each(["betterSqlite3"] as const)("fetchSequences: %s", (adapter) => {
         );
       `;
     const { client } = await createTestDb(structure);
-    const sequences = await fetchSequences(
-      createDrizzleORMSqliteClient(drizzle(client)),
-    );
+    const sequences = await fetchSequences(client);
     expect(sequences).toEqual(
       expect.arrayContaining([
         {
@@ -57,14 +47,10 @@ describe.each(["betterSqlite3"] as const)("fetchSequences: %s", (adapter) => {
       ]),
     );
 
-    drizzle(client).run(
-      sql`
-        INSERT INTO students (name) VALUES ('John Doe'), ('Jane Smith');
-      `,
+    await client.run(
+      `INSERT INTO students (name) VALUES ('John Doe'), ('Jane Smith');`,
     );
-    expect(
-      await fetchSequences(createDrizzleORMSqliteClient(drizzle(client))),
-    ).toEqual(
+    expect(await fetchSequences(client)).toEqual(
       expect.arrayContaining([
         {
           tableId: "students",
