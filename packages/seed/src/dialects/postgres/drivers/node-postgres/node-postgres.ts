@@ -1,8 +1,8 @@
 import { type Client } from "pg";
 import { z } from "zod";
 import { DatabaseClient } from "#core/adapters.js";
-import { type Driver } from "../../types.js";
-import { serializeParameters } from "../../utils.js";
+import { type Driver } from "../../../types.js";
+import { serializeParameters } from "../../../utils.js";
 
 export class NodePostgresClient extends DatabaseClient<Client> {
   constructor(client: Client) {
@@ -30,6 +30,8 @@ const nodePostgresParametersSchema = z.tuple([
     .describe("options"),
 ]);
 
+type NodePostgresParameters = z.infer<typeof nodePostgresParametersSchema>;
+
 export const nodePostgresSchema = z.object({
   driver: z.literal("node-postgres"),
   parameters: nodePostgresParametersSchema,
@@ -45,9 +47,9 @@ export const nodePostgresDriver = {
       `new Client(${serializeParameters(parameters)})`,
   },
   parameters: nodePostgresParametersSchema,
-  async getDatabaseClient(options: { connectionString: string }) {
+  async getDatabaseClient(...parameters: NodePostgresParameters) {
     const { Client } = (await import("pg")).default;
-    const client = new Client(options);
+    const client = new Client(...parameters);
     await client.connect();
     return new NodePostgresClient(client);
   },

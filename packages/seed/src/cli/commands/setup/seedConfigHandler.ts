@@ -1,10 +1,8 @@
 import dedent from "dedent";
-import { gracefulExit } from "exit-hook";
 import prompt from "prompts";
 import { z } from "zod";
 import { type DialectId, dialects } from "#dialects/dialects.js";
 import { type DriverId, drivers } from "#dialects/drivers.js";
-import { getDatabaseClient } from "#dialects/getDatabaseClient.js";
 
 export async function seedConfigHandler() {
   const dialectChoices = Object.keys(dialects)
@@ -55,7 +53,7 @@ export async function seedConfigHandler() {
         const { value } = (await prompt({
           type: "text",
           name: "value",
-          message: subItem.description,
+          message: `What is your ${subItem.description}?`,
         })) as { value: string };
         parameter[key] = value;
         runtimeParameter[key] = value.startsWith("process.env.")
@@ -68,7 +66,7 @@ export async function seedConfigHandler() {
       const { value } = (await prompt({
         type: "text",
         name: "value",
-        message: item.description,
+        message: `What is your ${item.description}?`,
       })) as { value: string };
       parameters.push(value);
       runtimeParameters.push(
@@ -79,19 +77,8 @@ export async function seedConfigHandler() {
     }
   }
 
-  const databaseClient = await getDatabaseClient({
-    driver: driverId,
-    // @ts-expect-error: we can't know the type of the parameters as we're dynamically asking for them
-    parameters: runtimeParameters,
-  });
-
-  // assert database connectivity
-  try {
-    await databaseClient.query("SELECT 1");
-  } catch (e) {
-    console.error(`Could not connect to the database: ${(e as Error).message}`);
-    gracefulExit(1);
-  }
+  // TODO: install the required dependencies
+  // @snaplet/seed + @snaplet/copycat + driver.package + driver.definitelyTyped
 
   // save the seed config
   const template = dedent`

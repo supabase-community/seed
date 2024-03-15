@@ -2,8 +2,8 @@
 /* eslint-disable @typescript-eslint/consistent-type-imports */
 import type postgresJs from "postgres";
 import { type DatabaseClient } from "#core/adapters.js";
-import { PostgresJsClient } from "#dialects/postgres/drivers/postgres-js.js";
-import { BetterSqlite3Client } from "#dialects/sqlite/drivers/better-sqlite3.js";
+import { PostgresJsClient } from "#dialects/postgres/drivers/postgres-js/postgres-js.js";
+import { BetterSqlite3Client } from "#dialects/sqlite/drivers/better-sqlite3/better-sqlite3.js";
 
 export interface Adapter<Client = AnyClient> {
   createClient(client: Client): DatabaseClient;

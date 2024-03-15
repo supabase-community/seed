@@ -15,24 +15,40 @@
   },
   "exports": {
     ".": {
+      "types": "./dist/index.d.ts",
       "development": "./src/index.ts",
-      "default": "./dist/index.js",
-      "types": "./dist/index.d.ts"
+      "default": "./dist/index.js"
     },
     "./config": {
+      "types": "./dist/config.d.ts",
       "development": "./src/config.ts",
-      "default": "./dist/config.js",
-      "types": "./dist/config.d.ts"
+      "default": "./dist/config.js"
     },
     "./cli": {
+      "types": "./dist/cli/index.d.ts",
       "development": "./src/cli/index.ts",
-      "default": "./dist/cli/index.js",
-      "types": "./dist/cli/index.d.ts"
+      "default": "./dist/cli/index.js"
+
     },
     "./dialects/*": {
+      "types": "./dist/dialects/*.d.ts",
       "development": "./src/dialects/*.ts",
-      "default": "./dist/dialects/*.js",
-      "types": "./dist/dialects/*.d.ts"
+      "default": "./dist/dialects/*.js"
+    },
+    "./node-postgres": {
+      "types": "./dist/dialects/postgres/drivers/node-postgres/index.d.ts",
+      "development": "./src/dialects/postgres/drivers/node-postgres/index.ts",
+      "default": "./dist/dialects/postgres/drivers/node-postgres/index.js"
+    },
+    "./postgres-js": {
+      "types": "./dist/dialects/postgres/drivers/postgres-js/index.d.ts",
+      "development": "./src/dialects/postgres/drivers/postgres-js/index.ts",
+      "default": "./dist/dialects/postgres/drivers/postgres-js/index.js"
+    },
+    "./better-sqlite3": {
+      "types": "./dist/dialects/sqlite/drivers/better-sqlite3/index.d.ts",
+      "development": "./src/dialects/sqlite/drivers/better-sqlite3/index.ts",
+      "default": "./dist/dialects/sqlite/drivers/better-sqlite3/index.js"
     }
   },
   "devDependencies": {

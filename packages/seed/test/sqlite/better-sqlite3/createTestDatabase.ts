@@ -2,7 +2,7 @@ import Database from "better-sqlite3";
 import { copyFile } from "fs-extra";
 import path from "node:path";
 import { type DatabaseClient } from "#core/adapters.js";
-import { BetterSqlite3Client } from "#dialects/sqlite/drivers/better-sqlite3.js";
+import { BetterSqlite3Client } from "#dialects/sqlite/drivers/better-sqlite3/better-sqlite3.js";
 import { createTestTmpDirectory } from "../../createTmpDirectory.js";
 
 const CHINOOK_DATABASE_PATH = path.resolve(__dirname, "../fixtures/chinook.db");
