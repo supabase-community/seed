@@ -9,6 +9,7 @@ import {
 import { type DialectId, dialects } from "#dialects/dialects.js";
 import { type DriverId, drivers } from "#dialects/drivers.js";
 import { getDatabaseClient } from "#dialects/getDatabaseClient.js";
+import { spinner } from "../../lib/output.js";
 
 export async function seedConfigHandler() {
   const dialectChoices = Object.keys(dialects)
@@ -85,6 +86,12 @@ export async function seedConfigHandler() {
 
   // TODO: install the required dependencies
   // @snaplet/seed + @snaplet/copycat + driver.package + driver.definitelyTyped
+  spinner.start(
+    `Installing the dependencies: \`@snaplet/seed\`, \`@snaplet/copycat\`, \`${driver.package}\``,
+  );
+  spinner.succeed(
+    `Installed the dependencies: \`@snaplet/seed\`, \`@snaplet/copycat\`, \`${driver.package}\``,
+  );
 
   // save the seed config
   const template = dedent`
