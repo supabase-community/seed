@@ -14,7 +14,7 @@ export async function saveSeedConfig({
   parameters: Array<unknown>;
 }) {
   const template = dedent`
-    import { defineConfig } from "@snaplet/seed";
+    import { defineConfig } from "@snaplet/seed/config";
     import { createDatabaseClient } from "@snaplet/seed/${driver.id}";
     ${driver.template.import}
 
