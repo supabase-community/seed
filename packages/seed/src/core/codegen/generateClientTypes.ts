@@ -1,4 +1,6 @@
 import { EOL } from "node:os";
+import { type SeedConfig } from "#config/seedConfig/seedConfig.js";
+import { getSelectFilteredDataModel } from "#core/dataModel/select.js";
 import {
   type DataModel,
   type DataModelModel,
@@ -36,12 +38,13 @@ export async function generateClientTypes(props: {
   imports: string;
   isJson: IsJson;
   refineType: RefineType;
+  seeedConfig?: SeedConfig;
 }) {
-  const { dataModel, fingerprint, imports } = props;
+  const { dataModel, fingerprint, imports, seeedConfig } = props;
   return [
     imports,
     generateHelpers(),
-    generateSelectTypes(dataModel),
+    generateSelectTypes(dataModel, seeedConfig?.select),
     generateStoreTypes(dataModel),
     generateEnums(dataModel),
     await generateInputsTypes({
@@ -56,9 +59,18 @@ export async function generateClientTypes(props: {
   ].join(EOL);
 }
 
-function generateSelectTypes(dataModel: DataModel) {
+function generateSelectTypes(
+  dataModel: DataModel,
+  seedSelectConfig?: SeedConfig["select"],
+) {
   const tableIdsSet = new Set<string>();
-  for (const model of Object.values(dataModel.models)) {
+  // First we filter out the tables excluded from seed.config.ts if there is any
+  // so the possibilities are reduced to what the user wants to seed
+  const selectFilteredModel = getSelectFilteredDataModel(
+    dataModel,
+    seedSelectConfig,
+  );
+  for (const model of Object.values(selectFilteredModel.models)) {
     tableIdsSet.add(model.id);
   }
   const tableIds = Array.from(tableIdsSet);

@@ -343,6 +343,79 @@ for (const dialect of Object.keys(adapters) as Array<Dialect>) {
           expect((await db.query('SELECT * FROM "BABBA"')).length).toBe(2);
           expect((await db.query('SELECT * FROM "BABA"')).length).toBe(2);
         });
+
+        test("should not allow to pass a table already excluded in the config", async () => {
+          const tableName: DialectRecordWithDefault = {
+            default: "BABA",
+            postgres: "public.BABA",
+          };
+          const schema: DialectRecordWithDefault = {
+            default: `
+              CREATE TABLE "BABBA" (
+                "id" SERIAL PRIMARY KEY
+              );
+
+              CREATE TABLE "BABA" (
+                "id" SERIAL PRIMARY KEY
+              );
+            `,
+            sqlite: `
+              CREATE TABLE "BABBA" (
+                "id" INTEGER PRIMARY KEY AUTOINCREMENT
+              );
+              CREATE TABLE "BABA" (
+                "id" INTEGER PRIMARY KEY AUTOINCREMENT
+              );
+            `,
+          };
+
+          const snapletConfig: DialectRecordWithDefault = {
+            default: `
+              import { defineConfig } from "@snaplet/seed/config";
+
+              export default defineConfig({
+                select: {
+                  "BABA": false,
+                },
+              })
+            `,
+            postgres: `
+              import { defineConfig } from "@snaplet/seed/config";
+
+              export default defineConfig({
+                select: {
+                  "${tableName[dialect] ?? tableName.default}": false,
+                },
+              })
+            `,
+          };
+
+          const seedScript: DialectRecordWithDefault = {
+            default: `
+              import { createSeedClient } from '#seed'
+
+              const seed = await createSeedClient()
+              await seed.$resetDatabase({ "BABA": false })
+            `,
+            postgres: `
+              import { createSeedClient } from '#seed'
+
+              const seed = await createSeedClient()
+              await seed.$resetDatabase({ "${tableName[dialect] ?? tableName.default}": false })
+            `,
+          };
+
+          await expect(() =>
+            setupProject({
+              adapter,
+              snapletConfig: snapletConfig[dialect] ?? snapletConfig.default,
+              databaseSchema: schema[dialect] ?? schema.default,
+              seedScript: seedScript[dialect] ?? seedScript.default,
+            }),
+          ).rejects.toThrow(
+            `'"${tableName[dialect] ?? tableName.default}"' does not exist in type 'SelectConfig'`,
+          );
+        });
       });
     },
     {
