@@ -81,8 +81,7 @@
     "vitest": "1.2.2"
   },
   "peerDependencies": {
-    "@snaplet/copycat": ">=2.0.0",
-    "drizzle-orm": "^0.29.3"
+    "@snaplet/copycat": ">=2.0.0"
   },
   "dependencies": {
     "@babel/types": "7.23.9",

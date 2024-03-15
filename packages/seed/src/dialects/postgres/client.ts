@@ -1,4 +1,3 @@
-import { type PgDatabase } from "drizzle-orm/pg-core";
 import { EOL } from "node:os";
 import { type DatabaseClient } from "#core/adapters.js";
 import { SeedClientBase } from "#core/client/client.js";
@@ -7,7 +6,7 @@ import { type DataModel } from "#core/dataModel/types.js";
 import { type Fingerprint } from "#core/fingerprint/types.js";
 import { updateDataModelSequences } from "#core/sequences/updateDataModelSequences.js";
 import { type UserModels } from "#core/userModels/types.js";
-import { createDrizzleORMPostgresClient } from "./adapters.js";
+import { getDatabaseClient } from "#dialects/getDatabaseClient.js";
 import { getDatamodel } from "./dataModel.js";
 import { PgStore } from "./store.js";
 import { escapeIdentifier } from "./utils.js";
@@ -22,7 +21,7 @@ export function getSeedClient(props: {
     readonly dryRun: boolean;
     readonly options?: SeedClientOptions;
 
-    constructor(db: DatabaseClient, options?: SeedClientOptions) {
+    constructor(databaseClient: DatabaseClient, options?: SeedClientOptions) {
       super({
         ...props,
         createStore: (dataModel: DataModel) => new PgStore(dataModel),
@@ -41,7 +40,7 @@ export function getSeedClient(props: {
 
       this.dryRun = options?.dryRun ?? false;
 
-      this.db = db;
+      this.db = databaseClient;
       this.options = options;
     }
 
@@ -66,18 +65,14 @@ export function getSeedClient(props: {
     }
 
     async $transaction(cb: (seed: PgSeedClient) => Promise<void>) {
-      // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
-      await cb(await createSeedClient(this.db.adapter, this.options));
+      await cb(await createSeedClient(this.options));
     }
   }
 
-  const createSeedClient = async (
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    db: PgDatabase<any>,
-    options?: SeedClientOptions,
-  ) => {
-    const client = createDrizzleORMPostgresClient(db);
-    const seed = new PgSeedClient(client, options);
+  const createSeedClient = async (options?: SeedClientOptions) => {
+    const databaseClient =
+      options?.databaseClient ?? (await getDatabaseClient());
+    const seed = new PgSeedClient(databaseClient, options);
 
     await seed.$syncDatabase();
     seed.$reset();

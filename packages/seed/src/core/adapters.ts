@@ -1,7 +1,7 @@
 export abstract class DatabaseClient<T = unknown> {
   constructor(
-    protected dialect: "mysql" | "postgres" | "sqlite",
-    protected client: T,
+    public dialect: "postgres" | "sqlite",
+    public client: T,
   ) {}
   abstract disconnect(): Promise<void>;
   abstract query<K = unknown>(

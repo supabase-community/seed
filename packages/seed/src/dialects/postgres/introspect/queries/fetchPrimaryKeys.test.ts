@@ -1,18 +1,13 @@
-import { drizzle as drizzleJs } from "drizzle-orm/postgres-js";
 import { describe, expect, test } from "vitest";
 import { postgres } from "#test";
-import { createDrizzleORMPostgresClient } from "../../adapters.js";
 import { fetchPrimaryKeys } from "./fetchPrimaryKeys.js";
 
 const adapters = {
-  postgresJs: () => ({
-    ...postgres.postgresJs,
-    drizzle: drizzleJs,
-  }),
+  postgresJs: () => postgres.postgresJs,
 };
 
 describe.each(["postgresJs"] as const)("fetchPrimaryKeys: %s", (adapter) => {
-  const { drizzle, createTestDb } = adapters[adapter]();
+  const { createTestDb } = adapters[adapter]();
   test("should get basics primary keys", async () => {
     const structure = `
     CREATE TABLE "Courses" (
@@ -26,9 +21,7 @@ describe.each(["postgresJs"] as const)("fetchPrimaryKeys: %s", (adapter) => {
     );
   `;
     const db = await createTestDb(structure);
-    const primaryKeys = await fetchPrimaryKeys(
-      createDrizzleORMPostgresClient(drizzle(db.client)),
-    );
+    const primaryKeys = await fetchPrimaryKeys(db.client);
     expect(primaryKeys).toEqual(
       expect.arrayContaining([
         {
@@ -77,9 +70,7 @@ describe.each(["postgresJs"] as const)("fetchPrimaryKeys: %s", (adapter) => {
     );
   `;
     const db = await createTestDb(structure);
-    const primaryKeys = await fetchPrimaryKeys(
-      createDrizzleORMPostgresClient(drizzle(db.client)),
-    );
+    const primaryKeys = await fetchPrimaryKeys(db.client);
     expect(primaryKeys).toEqual([
       {
         keys: [{ name: "CourseID", type: "int4" }],
@@ -133,9 +124,7 @@ describe.each(["postgresJs"] as const)("fetchPrimaryKeys: %s", (adapter) => {
     );
   `;
     const db = await createTestDb(structure);
-    const primaryKeys = await fetchPrimaryKeys(
-      createDrizzleORMPostgresClient(drizzle(db.client)),
-    );
+    const primaryKeys = await fetchPrimaryKeys(db.client);
     expect(primaryKeys).toEqual(
       expect.arrayContaining([
         {
@@ -163,9 +152,7 @@ describe.each(["postgresJs"] as const)("fetchPrimaryKeys: %s", (adapter) => {
     );
   `;
     const db = await createTestDb(structure);
-    const primaryKeys = await fetchPrimaryKeys(
-      createDrizzleORMPostgresClient(drizzle(db.client)),
-    );
+    const primaryKeys = await fetchPrimaryKeys(db.client);
     expect(primaryKeys).toEqual(expect.arrayContaining([]));
   });
 
@@ -182,9 +169,7 @@ describe.each(["postgresJs"] as const)("fetchPrimaryKeys: %s", (adapter) => {
     );
   `;
     const db = await createTestDb(structure);
-    const primaryKeys = await fetchPrimaryKeys(
-      createDrizzleORMPostgresClient(drizzle(db.client)),
-    );
+    const primaryKeys = await fetchPrimaryKeys(db.client);
     expect(primaryKeys).toEqual(
       expect.arrayContaining([
         {
@@ -220,9 +205,7 @@ describe.each(["postgresJs"] as const)("fetchPrimaryKeys: %s", (adapter) => {
     CREATE UNIQUE INDEX idx_student_value ON "Students"("StudentID");
   `;
     const db = await createTestDb(structure);
-    const primaryKeys = await fetchPrimaryKeys(
-      createDrizzleORMPostgresClient(drizzle(db.client)),
-    );
+    const primaryKeys = await fetchPrimaryKeys(db.client);
     expect(primaryKeys).toEqual(
       expect.arrayContaining([
         {
@@ -259,9 +242,7 @@ describe.each(["postgresJs"] as const)("fetchPrimaryKeys: %s", (adapter) => {
     CREATE UNIQUE INDEX idx_student_value ON "Students"("StudentID");
   `;
     const db = await createTestDb(structure);
-    const primaryKeys = await fetchPrimaryKeys(
-      createDrizzleORMPostgresClient(drizzle(db.client)),
-    );
+    const primaryKeys = await fetchPrimaryKeys(db.client);
     expect(primaryKeys).toEqual(
       expect.arrayContaining([
         {
@@ -298,9 +279,7 @@ describe.each(["postgresJs"] as const)("fetchPrimaryKeys: %s", (adapter) => {
     CREATE UNIQUE INDEX idx_student_value ON "Students"("StudentID");
   `;
     const db = await createTestDb(structure);
-    const primaryKeys = await fetchPrimaryKeys(
-      createDrizzleORMPostgresClient(drizzle(db.client)),
-    );
+    const primaryKeys = await fetchPrimaryKeys(db.client);
     expect(primaryKeys).toEqual(
       expect.arrayContaining([
         {
@@ -355,9 +334,7 @@ describe.each(["postgresJs"] as const)("fetchPrimaryKeys: %s", (adapter) => {
     CREATE UNIQUE INDEX idx_student_value ON "notNullIndex"("StudentID");
   `;
     const db = await createTestDb(structure);
-    const primaryKeys = await fetchPrimaryKeys(
-      createDrizzleORMPostgresClient(drizzle(db.client)),
-    );
+    const primaryKeys = await fetchPrimaryKeys(db.client);
     expect(primaryKeys).toEqual(
       expect.arrayContaining([
         {
@@ -462,9 +439,7 @@ describe.each(["postgresJs"] as const)("fetchPrimaryKeys: %s", (adapter) => {
   );
   `;
     const db = await createTestDb(structure);
-    const primaryKeys = await fetchPrimaryKeys(
-      createDrizzleORMPostgresClient(drizzle(db.client)),
-    );
+    const primaryKeys = await fetchPrimaryKeys(db.client);
     expect(primaryKeys).toEqual(
       expect.arrayContaining([
         {

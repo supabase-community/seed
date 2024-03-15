@@ -4,18 +4,15 @@ import {
   getDataModelConfigPath,
   setDataModelConfig,
 } from "#config/dataModelConfig.js";
-import { getSeedConfig } from "#config/seedConfig/seedConfig.js";
 import { getDatabaseClient } from "#dialects/getDatabaseClient.js";
-import { getDialectFromDriverId } from "#dialects/getDialect.js";
+import { getDialectById } from "#dialects/getDialect.js";
 import { link, spinner } from "../../lib/output.js";
 
 export async function introspectHandler() {
   spinner.start("Introspecting the database");
 
-  const seedConfig = await getSeedConfig();
-  const dialect = getDialectFromDriverId(seedConfig.databaseClient.driver);
-  const databaseClient = await getDatabaseClient(seedConfig.databaseClient);
-
+  const databaseClient = await getDatabaseClient();
+  const dialect = getDialectById(databaseClient.dialect);
   const dataModel = await dialect.getDataModel(databaseClient);
 
   if (Object.keys(dataModel.models).length === 0) {

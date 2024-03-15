@@ -1,18 +1,14 @@
-import { drizzle as drizzleJs } from "drizzle-orm/postgres-js";
 import { describe, expect, test } from "vitest";
 import { postgres } from "#test";
-import { createDrizzleORMPostgresClient } from "../adapters.js";
+import { createDatabaseClient } from "../drivers/postgres-js/index.js";
 import { type Relationship, introspectDatabase } from "./introspectDatabase.js";
 
 const adapters = {
-  postgresJs: () => ({
-    ...postgres.postgresJs,
-    drizzle: drizzleJs,
-  }),
+  postgresJs: () => postgres.postgresJs,
 };
 
 describe.each(["postgresJs"] as const)("introspectDatabase: %s", (adapter) => {
-  const { drizzle, createTestDb, createSnapletTestDb, createTestRole } =
+  const { createTestDb, createSnapletTestDb, createTestRole } =
     adapters[adapter]();
   test("introspectDatabase should return detailed database structure", async () => {
     const structure = `
@@ -22,9 +18,8 @@ describe.each(["postgresJs"] as const)("introspectDatabase: %s", (adapter) => {
     CREATE TYPE test."Enum1" AS ENUM ('A', 'B');
   `;
     const db = await createTestDb(structure);
-    const orm = createDrizzleORMPostgresClient(drizzle(db.client));
-    await orm.run(`VACUUM ANALYZE;`);
-    const result = await introspectDatabase(orm);
+    await db.client.run(`VACUUM ANALYZE;`);
+    const result = await introspectDatabase(db.client);
     expect(result).toMatchObject({
       enums: [
         {
@@ -228,8 +223,7 @@ describe.each(["postgresJs"] as const)("introspectDatabase: %s", (adapter) => {
 
   test("introspectDatabase - get parent relationships from structure", async () => {
     const db = await createSnapletTestDb();
-    const orm = createDrizzleORMPostgresClient(drizzle(db.client));
-    const structure = await introspectDatabase(orm);
+    const structure = await introspectDatabase(db.client);
     const expectedAccessTokenParent: Relationship = {
       id: "AccessToken_userId_fkey",
       fkTable: "public.AccessToken",
@@ -255,8 +249,7 @@ describe.each(["postgresJs"] as const)("introspectDatabase: %s", (adapter) => {
 
   test("introspectDatabase - get primary keys from structure", async () => {
     const db = await createSnapletTestDb();
-    const orm = createDrizzleORMPostgresClient(drizzle(db.client));
-    const structure = await introspectDatabase(orm);
+    const structure = await introspectDatabase(db.client);
 
     const primaryKeys = structure.tables.find(
       (t) => t.id == "public.AccessToken",
@@ -273,8 +266,7 @@ describe.each(["postgresJs"] as const)("introspectDatabase: %s", (adapter) => {
 
   test("introspectDatabase - get child relationships from structure", async () => {
     const db = await createSnapletTestDb();
-    const orm = createDrizzleORMPostgresClient(drizzle(db.client));
-    const structure = await introspectDatabase(orm);
+    const structure = await introspectDatabase(db.client);
     const expectedPricingPlanChild: Relationship = {
       id: "Organization_pricingPlanId_fkey",
       fkTable: "public.Organization",
@@ -300,16 +292,15 @@ describe.each(["postgresJs"] as const)("introspectDatabase: %s", (adapter) => {
   test("partitions of a partitioned table should not be present in the introspection result", async () => {
     // arrange
     const db = await createTestDb();
-    const orm = createDrizzleORMPostgresClient(drizzle(db.client));
-    await orm.run(`
+    await db.client.run(`
     CREATE TABLE coach(id uuid primary key);
     CREATE TABLE exercise (id uuid, coach_id uuid REFERENCES coach(id)) PARTITION BY list(coach_id);
     CREATE TABLE exercise1 PARTITION OF exercise FOR VALUES IN (NULL);
     CREATE TABLE exercise2 PARTITION OF exercise DEFAULT;
   `);
-    await orm.run(`VACUUM ANALYZE;`);
+    await db.client.run(`VACUUM ANALYZE;`);
     // act
-    const structure = await introspectDatabase(orm);
+    const structure = await introspectDatabase(db.client);
 
     // assert
     expect(structure.tables.find((t) => t.id === "public.coach")).toMatchObject(
@@ -327,11 +318,10 @@ describe.each(["postgresJs"] as const)("introspectDatabase: %s", (adapter) => {
   });
   test("introspect with tables and schemas the user cannot access", async () => {
     const db = await createTestDb();
-    const restrictedString = await createTestRole(db.client);
-    const otherString = await createTestRole(db.client);
-    const orm = createDrizzleORMPostgresClient(drizzle(db.client));
+    const restrictedString = await createTestRole(db.client.client);
+    const otherString = await createTestRole(db.client.client);
 
-    await orm.run(`
+    await db.client.run(`
     CREATE TABLE "public"."table1" ("value" text);
     GRANT SELECT ON TABLE "public"."table1" TO "${restrictedString.name}";
     CREATE TABLE "public"."table2" ("value" text);
@@ -339,7 +329,7 @@ describe.each(["postgresJs"] as const)("introspectDatabase: %s", (adapter) => {
     CREATE TABLE "someSchema"."table3" ("value" text);
   `);
     const structure = await introspectDatabase(
-      createDrizzleORMPostgresClient(drizzle(restrictedString.client)),
+      createDatabaseClient(restrictedString.client),
     );
 
     expect(structure).toEqual(
@@ -359,9 +349,8 @@ describe.each(["postgresJs"] as const)("introspectDatabase: %s", (adapter) => {
     CREATE TABLE public."Member" (id serial PRIMARY KEY, name text);
   `;
     const db = await createTestDb(structure);
-    const orm = createDrizzleORMPostgresClient(drizzle(db.client));
-    const readAccessConnString = await createTestRole(db.client);
-    await orm.run(`
+    const readAccessConnString = await createTestRole(db.client.client);
+    await db.client.run(`
     DROP ROLE IF EXISTS readaccess;
     CREATE ROLE readaccess;
     GRANT CONNECT ON DATABASE "${db.name}" TO readaccess;
@@ -369,8 +358,8 @@ describe.each(["postgresJs"] as const)("introspectDatabase: %s", (adapter) => {
     GRANT SELECT ON ALL TABLES IN SCHEMA public TO readaccess;
     GRANT readaccess TO "${readAccessConnString.name}";
   `);
-    await orm.run(`VACUUM ANALYZE;`);
-    const result = await introspectDatabase(orm);
+    await db.client.run(`VACUUM ANALYZE;`);
+    const result = await introspectDatabase(db.client);
 
     const member = result.tables.find((t) => t.id == "public.Member");
     console.log(

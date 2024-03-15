@@ -1,9 +1,8 @@
 import { relative, sep } from "node:path";
-import { getSeedConfig } from "#config/seedConfig/seedConfig.js";
 import { type CodegenContext, generateAssets } from "#core/codegen/codegen.js";
 import { getDataModel } from "#core/dataModel/dataModel.js";
 import { getFingerprint } from "#core/fingerprint/fingerprint.js";
-import { getDialectFromDriverId } from "#dialects/getDialect.js";
+import { getDialect } from "#dialects/getDialect.js";
 import { type TableShapePredictions } from "#trpc/shapes.js";
 import { bold, dim, link, spinner } from "../../lib/output.js";
 import { fetchShapeExamples } from "./fetchShapeExamples.js";
@@ -24,9 +23,8 @@ async function computeCodegenContext(props: {
 }): Promise<CodegenContext> {
   const { outputDir } = props;
 
-  const seedConfig = await getSeedConfig();
   const dataModel = await getDataModel();
-  const dialect = getDialectFromDriverId(seedConfig.databaseClient.driver);
+  const dialect = await getDialect();
   let shapePredictions: Array<TableShapePredictions> = [];
   let shapeExamples: Array<{ examples: Array<string>; shape: string }> = [];
 

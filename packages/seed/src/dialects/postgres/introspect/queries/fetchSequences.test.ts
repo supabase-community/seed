@@ -1,18 +1,13 @@
-import { drizzle as drizzleJs } from "drizzle-orm/postgres-js";
 import { describe, expect, test } from "vitest";
 import { postgres } from "#test";
-import { createDrizzleORMPostgresClient } from "../../adapters.js";
 import { fetchSequences } from "./fetchSequences.js";
 
 const adapters = {
-  postgresJs: () => ({
-    ...postgres.postgresJs,
-    drizzle: drizzleJs,
-  }),
+  postgresJs: () => postgres.postgresJs,
 };
 
 describe.each(["postgresJs"] as const)("fetchSequences: %s", (adapter) => {
-  const { drizzle, createTestDb } = adapters[adapter]();
+  const { createTestDb } = adapters[adapter]();
 
   test("should fetch basic sequences", async () => {
     const structure = `
@@ -20,9 +15,7 @@ describe.each(["postgresJs"] as const)("fetchSequences: %s", (adapter) => {
   `;
     const db = await createTestDb(structure);
     const { client } = db;
-    const sequences = await fetchSequences(
-      createDrizzleORMPostgresClient(drizzle(client)),
-    );
+    const sequences = await fetchSequences(client);
     expect(sequences).toEqual([
       {
         schema: "public",
@@ -47,8 +40,7 @@ describe.each(["postgresJs"] as const)("fetchSequences: %s", (adapter) => {
   `;
     const db = await createTestDb(structure);
     const { client } = db;
-    const ormClient = createDrizzleORMPostgresClient(drizzle(client));
-    const sequences = await fetchSequences(ormClient);
+    const sequences = await fetchSequences(client);
     expect(sequences).toEqual(
       expect.arrayContaining([
         {
@@ -65,12 +57,12 @@ describe.each(["postgresJs"] as const)("fetchSequences: %s", (adapter) => {
         },
       ]),
     );
-    await ormClient.run(
+    await client.run(
       `
         INSERT INTO public.students (name) VALUES ('John Doe'), ('Jane Smith');
         INSERT INTO public.courses (title) VALUES ('Mathematics'), ('Science');`,
     );
-    const result = await fetchSequences(ormClient);
+    const result = await fetchSequences(client);
 
     expect(result).toEqual(
       expect.arrayContaining([
@@ -94,9 +86,7 @@ describe.each(["postgresJs"] as const)("fetchSequences: %s", (adapter) => {
     const structure = ``;
     const db = await createTestDb(structure);
     const { client } = db;
-    const sequences = await fetchSequences(
-      createDrizzleORMPostgresClient(drizzle(client)),
-    );
+    const sequences = await fetchSequences(client);
     expect(sequences).toEqual([]);
   });
 
@@ -107,9 +97,7 @@ describe.each(["postgresJs"] as const)("fetchSequences: %s", (adapter) => {
   `;
     const db = await createTestDb(structure);
     const { client } = db;
-    const sequences = await fetchSequences(
-      createDrizzleORMPostgresClient(drizzle(client)),
-    );
+    const sequences = await fetchSequences(client);
     expect(sequences).toEqual(
       expect.arrayContaining([
         {
@@ -136,9 +124,7 @@ describe.each(["postgresJs"] as const)("fetchSequences: %s", (adapter) => {
   `;
     const db = await createTestDb(structure);
     const { client } = db;
-    const sequences = await fetchSequences(
-      createDrizzleORMPostgresClient(drizzle(client)),
-    );
+    const sequences = await fetchSequences(client);
     expect(sequences).toEqual(
       expect.arrayContaining([
         {

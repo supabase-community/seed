@@ -1,27 +1,21 @@
-import { drizzle as drizzleJs } from "drizzle-orm/postgres-js";
 import { describe, expect, test } from "vitest";
+import { createDatabaseClient } from "#dialects/postgres/drivers/postgres-js/index.js";
 import { postgres } from "#test";
-import { createDrizzleORMPostgresClient } from "../../adapters.js";
 import { fetchEnums } from "./fetchEnums.js";
 
 const adapters = {
-  postgresJs: () => ({
-    ...postgres.postgresJs,
-    drizzle: drizzleJs,
-  }),
+  postgresJs: () => postgres.postgresJs,
 };
 
 describe.each(["postgresJs"] as const)("fetchEnums: %s", (adapter) => {
-  const { drizzle, createTestDb, createTestRole } = adapters[adapter]();
+  const { createTestDb, createTestRole } = adapters[adapter]();
   test("should fetch basic enums", async () => {
     const structure = `
     CREATE TYPE public."enum_example" AS ENUM ('A', 'B', 'C');
   `;
     const db = await createTestDb(structure);
 
-    const enums = await fetchEnums(
-      createDrizzleORMPostgresClient(drizzle(db.client)),
-    );
+    const enums = await fetchEnums(db.client);
     expect(enums).toEqual([
       {
         id: "public.enum_example",
@@ -39,9 +33,7 @@ describe.each(["postgresJs"] as const)("fetchEnums: %s", (adapter) => {
   `;
     const db = await createTestDb(structure);
 
-    const enums = await fetchEnums(
-      createDrizzleORMPostgresClient(drizzle(db.client)),
-    );
+    const enums = await fetchEnums(db.client);
     expect(enums).toEqual(
       expect.arrayContaining([
         {
@@ -63,9 +55,7 @@ describe.each(["postgresJs"] as const)("fetchEnums: %s", (adapter) => {
   test("should handle empty result when no accessible enums", async () => {
     const db = await createTestDb();
 
-    const enums = await fetchEnums(
-      createDrizzleORMPostgresClient(drizzle(db.client)),
-    );
+    const enums = await fetchEnums(db.client);
     expect(enums).toEqual([]);
   });
 
@@ -76,10 +66,8 @@ describe.each(["postgresJs"] as const)("fetchEnums: %s", (adapter) => {
     CREATE TYPE private."enum_example_private" AS ENUM ('D', 'E', 'F');
   `;
     const db = await createTestDb(structure);
-    const testRoleClient = await createTestRole(db.client);
-    const enums = await fetchEnums(
-      createDrizzleORMPostgresClient(drizzle(testRoleClient.client)),
-    );
+    const testRoleClient = await createTestRole(db.client.client);
+    const enums = await fetchEnums(createDatabaseClient(testRoleClient.client));
     expect(enums).toEqual(
       expect.arrayContaining([
         {

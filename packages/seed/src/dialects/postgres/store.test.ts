@@ -26,8 +26,7 @@ describe.each(["postgresJs"] as const)("store: %s", (adapter) => {
       );
       `;
       const db = await createTestDb(structure);
-      const orm = createDrizzleORMPostgresClient(drizzle(db.client));
-      const dataModel = await getDatamodel(orm);
+      const dataModel = await getDatamodel(db.client);
 
       const store = new PgStore(dataModel);
 
@@ -42,8 +41,8 @@ describe.each(["postgresJs"] as const)("store: %s", (adapter) => {
         name: "Winrar Skarsgård",
         email: "win@rar.gard",
       });
-      await execQueries(orm, [...store.toSQL()]);
-      const results = await orm.query(`SELECT * FROM test_customer`);
+      await execQueries(db.client, [...store.toSQL()]);
+      const results = await db.client.query(`SELECT * FROM test_customer`);
       expect(results).toEqual(
         expect.arrayContaining([
           { id: 2, name: "Cadavre Exquis", email: "cadavre@ex.quis" },
