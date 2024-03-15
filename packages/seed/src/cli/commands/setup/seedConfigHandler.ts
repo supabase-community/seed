@@ -6,6 +6,7 @@ import {
   deleteSeedConfig,
   setSeedConfig,
 } from "#config/seedConfig/seedConfig.js";
+import { introspectProject } from "#config/utils.js";
 import { type DialectId, dialects } from "#dialects/dialects.js";
 import { type DriverId, drivers } from "#dialects/drivers.js";
 import { getDatabaseClient } from "#dialects/getDatabaseClient.js";
@@ -84,11 +85,24 @@ export async function seedConfigHandler() {
     }
   }
 
-  // TODO: install the required dependencies
-  // @snaplet/seed + @snaplet/copycat + driver.package + driver.definitelyTyped
   spinner.start(
     `Installing the dependencies: \`@snaplet/seed\`, \`@snaplet/copycat\`, \`${driver.package}\``,
   );
+  const { packageManager, rootPath, packageJson } = await introspectProject();
+  const dependencies = [
+    "@snaplet/seed",
+    "@snaplet/copycat",
+    driver.package,
+  ].filter((d) => !packageJson.dependencies?.[d]);
+  const devDependencies =
+    "definitelyTyped" in driver &&
+    packageJson.devDependencies?.[driver.definitelyTyped] === undefined
+      ? [driver.definitelyTyped]
+      : [];
+
+  await packageManager.add(dependencies, { cwd: rootPath });
+  await packageManager.add(devDependencies, { dev: true, cwd: rootPath });
+
   spinner.succeed(
     `Installed the dependencies: \`@snaplet/seed\`, \`@snaplet/copycat\`, \`${driver.package}\``,
   );
