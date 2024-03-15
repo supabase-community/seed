@@ -209,6 +209,7 @@ const introspectedStructureBaseSchema = z.object({
             table: z.string(),
             dirty: z.boolean(),
             name: z.string(),
+            nullNotDistinct: z.boolean().default(false),
             columns: z.array(z.string()),
           }),
         )
