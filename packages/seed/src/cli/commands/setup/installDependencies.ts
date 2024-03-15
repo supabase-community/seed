@@ -35,6 +35,6 @@ export async function installDependencies({ driver }: { driver: Driver }) {
   });
 
   spinner.succeed(
-    `Installed the dependencies: \`@snaplet/seed\`, \`@snaplet/copycat\`, \`${driver.package}\``,
+    `Installed the dependencies: ${devDependenciesToInstall.map((d) => `\`${d}\``).join(", ")}`,
   );
 }

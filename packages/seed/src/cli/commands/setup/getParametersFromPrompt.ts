@@ -3,6 +3,12 @@ import { z } from "zod";
 import { type Driver } from "#dialects/types.js";
 
 export async function getParametersFromPrompt(driver: Driver) {
+  console.log(
+    `Please provide the following parameters for your ${driver.id} database client:`,
+  );
+  console.log(
+    `Hint: You can use the syntax \`process.env.<YOUR_VARIABLE>\` to reference environment variables`,
+  );
   const parameters: Array<unknown> = [];
 
   for (const item of driver.parameters.items) {

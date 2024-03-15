@@ -86,7 +86,7 @@ export async function introspectProject() {
     }
   }
 
-  const packageJsonPath = await findUp("package.json");
+  const packageJsonPath = await findUp("package.json", { cwd: rootPath });
 
   if (!packageJsonPath) {
     throw new Error("No package.json found");
