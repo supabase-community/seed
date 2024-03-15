@@ -1,4 +1,6 @@
+import { seedConfigExists } from "#config/seedConfig/seedConfig.js";
 import { bold, highlight } from "../../lib/output.js";
+import { introspectHandler } from "../introspect/introspectHandler.js";
 import { loginHandler } from "../login/loginHandler.js";
 import { getUser } from "./getUser.js";
 import { seedConfigHandler } from "./seedConfigHandler.js";
@@ -16,9 +18,11 @@ export async function setupHandler() {
     await loginHandler();
   }
 
-  await seedConfigHandler();
+  if (!(await seedConfigExists())) {
+    await seedConfigHandler();
+  }
 
-  // await introspectHandler();
+  await introspectHandler();
 
   // await generateHandler({});
 }

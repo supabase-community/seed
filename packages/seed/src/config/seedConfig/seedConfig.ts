@@ -1,9 +1,9 @@
-import { findMonorepoRoot } from "@alienfast/find-monorepo-root";
 import { loadConfig } from "c12";
 import { existsSync } from "node:fs";
 import { rm, writeFile } from "node:fs/promises";
 import { join } from "node:path";
 import * as z from "zod";
+import { introspectProject } from "#config/utils.js";
 import { aliasConfigSchema } from "./aliasConfig.js";
 import { databaseClientConfigSchema } from "./databaseClientConfig.js";
 import { fingerprintConfigSchema } from "./fingerprintConfig.js";
@@ -23,6 +23,7 @@ export type SeedConfig = z.infer<typeof configSchema>;
 export async function getSeedConfig() {
   const { config } = await loadConfig({
     name: "seed",
+    cwd: (await introspectProject()).rootPath,
   });
 
   const parsedConfig = configSchema.parse(config ?? {});
@@ -31,8 +32,7 @@ export async function getSeedConfig() {
 }
 
 export async function getSeedConfigPath() {
-  const { dir } = await findMonorepoRoot(process.cwd());
-  return join(dir, "seed.config.ts");
+  return join((await introspectProject()).rootPath, "seed.config.ts");
 }
 
 export async function seedConfigExists() {
