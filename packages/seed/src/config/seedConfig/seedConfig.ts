@@ -1,4 +1,8 @@
+import { findMonorepoRoot } from "@alienfast/find-monorepo-root";
 import { loadConfig } from "c12";
+import { existsSync } from "node:fs";
+import { rm, writeFile } from "node:fs/promises";
+import { join } from "node:path";
 import * as z from "zod";
 import { aliasConfigSchema } from "./aliasConfig.js";
 import { databaseClientConfigSchema } from "./databaseClientConfig.js";
@@ -24,4 +28,21 @@ export async function getSeedConfig() {
   const parsedConfig = configSchema.parse(config ?? {});
 
   return parsedConfig;
+}
+
+export async function getSeedConfigPath() {
+  const { dir } = await findMonorepoRoot(process.cwd());
+  return join(dir, "seed.config.ts");
+}
+
+export async function seedConfigExists() {
+  return existsSync(await getSeedConfigPath());
+}
+
+export async function setSeedConfig(template: string) {
+  await writeFile(await getSeedConfigPath(), template, "utf8");
+}
+
+export async function deleteSeedConfig() {
+  await rm(await getSeedConfigPath());
 }

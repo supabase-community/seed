@@ -1,8 +1,14 @@
 import dedent from "dedent";
+import { gracefulExit } from "exit-hook";
 import prompt from "prompts";
 import { z } from "zod";
+import {
+  deleteSeedConfig,
+  setSeedConfig,
+} from "#config/seedConfig/seedConfig.js";
 import { type DialectId, dialects } from "#dialects/dialects.js";
 import { type DriverId, drivers } from "#dialects/drivers.js";
+import { getDatabaseClient } from "#dialects/getDatabaseClient.js";
 
 export async function seedConfigHandler() {
   const dialectChoices = Object.keys(dialects)
@@ -91,5 +97,17 @@ export async function seedConfigHandler() {
     });
   `;
 
-  console.log(template);
+  await setSeedConfig(template);
+
+  const databaseClient = await getDatabaseClient();
+  try {
+    await databaseClient.query("SELECT 1");
+  } catch (error) {
+    await deleteSeedConfig();
+    console.error(
+      "Failed to connect to the database with the provided configuration",
+    );
+    console.error(error);
+    gracefulExit(1);
+  }
 }
