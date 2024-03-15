@@ -1,6 +1,10 @@
 import dedent from "dedent";
-import { setSeedConfig } from "#config/seedConfig/seedConfig.js";
+import {
+  getSeedConfigPath,
+  setSeedConfig,
+} from "#config/seedConfig/seedConfig.js";
 import { type Driver } from "#dialects/types.js";
+import { link, spinner } from "../../lib/output.js";
 
 export async function saveSeedConfig({
   driver,
@@ -20,6 +24,10 @@ export async function saveSeedConfig({
   `;
 
   await setSeedConfig(template);
+
+  const seedConfigPath = await getSeedConfigPath();
+
+  spinner.succeed(`Seed config saved to ${link(seedConfigPath)}`);
 
   // const databaseClient = await getDatabaseClient();
   // try {
