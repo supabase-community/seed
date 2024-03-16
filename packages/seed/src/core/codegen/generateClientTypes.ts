@@ -30,15 +30,13 @@ type RefineType = (
 export async function generateClientTypes(props: {
   dataModel: DataModel;
   database2tsType: Database2tsType;
-  databaseClientType: string;
   fingerprint?: Fingerprint;
-  imports: string;
   isJson: IsJson;
   refineType: RefineType;
 }) {
-  const { dataModel, fingerprint, imports } = props;
+  const { dataModel, fingerprint } = props;
   return [
-    imports,
+    'import { type DatabaseClient } from "@snaplet/seed/database-client";',
     generateHelpers(),
     generateStoreTypes(dataModel),
     generateEnums(dataModel),
@@ -50,7 +48,7 @@ export async function generateClientTypes(props: {
       refineType: props.refineType,
     }),
     generateSeedClientBaseTypes(dataModel),
-    generateSeedClientTypes(props.databaseClientType),
+    generateSeedClientTypes(),
   ].join(EOL);
 }
 
@@ -589,11 +587,12 @@ ${Object.keys(dataModel.models)
 }`;
 }
 
-function generateSeedClientTypes(databaseClientType: string) {
+function generateSeedClientTypes() {
   return `
   export type SeedClientOptions = {
+    databaseClient?: DatabaseClient;
     dryRun?: boolean;
     models?: UserModels;
   }
-  export declare const createSeedClient: (db: ${databaseClientType}, options?: SeedClientOptions) => Promise<SeedClient>`;
+  export declare const createSeedClient: (options?: SeedClientOptions) => Promise<SeedClient>`;
 }

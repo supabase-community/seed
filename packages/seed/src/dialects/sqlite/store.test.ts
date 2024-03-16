@@ -1,6 +1,6 @@
 import { describe, expect, test } from "vitest";
 import { sqlite } from "#test";
-import { type DatabaseClient } from "../../core/adapters.js";
+import { type DatabaseClient } from "../../core/databaseClient.js";
 import { getDatamodel } from "./dataModel.js";
 import { SqliteStore } from "./store.js";
 

@@ -29,6 +29,11 @@
       "development": "./src/cli/index.ts",
       "default": "./dist/cli/index.js"
     },
+    "./database-client": {
+      "types": "./dist/core/databaseClient.d.ts",
+      "development": "./src/core/databaseClient.ts",
+      "default": "./dist/core/databaseClient.js"
+    },
     "./dialects/*": {
       "types": "./dist/dialects/*.d.ts",
       "development": "./src/dialects/*.ts",

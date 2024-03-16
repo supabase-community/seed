@@ -15,8 +15,6 @@ export function generateClientTypes(props: {
     ...props,
     database2tsType: sqlite2tsType,
     isJson: () => false,
-    databaseClientType: `BaseSQLiteDatabase<"async" | "sync", unknown, any>`,
-    imports: `import { type BaseSQLiteDatabase } from "drizzle-orm/sqlite-core";`,
     refineType,
   });
 }
