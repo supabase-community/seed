@@ -2,7 +2,7 @@ import { readFileSync } from "fs-extra";
 import path from "node:path";
 import postgres from "postgres";
 import { v4 } from "uuid";
-import { type DatabaseClient } from "#core/adapters.js";
+import { type DatabaseClient } from "#core/databaseClient.js";
 import { PostgresJsClient } from "#dialects/postgres/drivers/postgres-js/postgres-js.js";
 
 interface State {

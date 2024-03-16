@@ -1,4 +1,4 @@
-import { type DatabaseClient } from "#core/adapters.js";
+import { type DatabaseClient } from "#core/databaseClient.js";
 import { groupBy } from "../utils.js";
 import { groupParentsChildrenRelations } from "./groupParentsChildrenRelations.js";
 import { fetchDatabaseRelationships } from "./queries/fetchDatabaseRelationships.js";

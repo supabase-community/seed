@@ -1,5 +1,5 @@
-import { type DatabaseClient } from "#core/adapters.js";
 import { type DataModel } from "#core/dataModel/types.js";
+import { type DatabaseClient } from "#core/databaseClient.js";
 import { introspectDatabase } from "./introspect/introspectDatabase.js";
 import { introspectionToDataModel } from "./introspect/introspectionToDataModel.js";
 

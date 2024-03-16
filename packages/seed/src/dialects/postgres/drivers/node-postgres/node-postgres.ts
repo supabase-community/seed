@@ -1,6 +1,6 @@
 import { type Client } from "pg";
 import { z } from "zod";
-import { DatabaseClient } from "#core/adapters.js";
+import { DatabaseClient } from "#core/databaseClient.js";
 import { type Driver } from "../../../types.js";
 import { serializeParameters } from "../../../utils.js";
 

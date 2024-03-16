@@ -1,5 +1,5 @@
 import { getSeedConfig } from "#config/seedConfig/seedConfig.js";
-import { type DatabaseClient } from "#core/adapters.js";
+import { type DatabaseClient } from "#core/databaseClient.js";
 import { drivers } from "./drivers.js";
 
 let databaseClient: DatabaseClient | undefined;

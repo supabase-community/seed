@@ -1,5 +1,5 @@
 import { describe, expect, test } from "vitest";
-import { type DatabaseClient } from "#core/adapters.js";
+import { type DatabaseClient } from "#core/databaseClient.js";
 import { postgres } from "#test";
 import { getDatamodel } from "./dataModel.js";
 import { PgStore } from "./store.js";

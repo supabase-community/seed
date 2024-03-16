@@ -1,5 +1,5 @@
 import { EOL } from "node:os";
-import { type DatabaseClient } from "#core/adapters.js";
+import { type DatabaseClient } from "#core/databaseClient.js";
 import { SeedClientBase } from "#core/client/client.js";
 import { type SeedClientOptions } from "#core/client/types.js";
 import { type DataModel } from "#core/dataModel/types.js";

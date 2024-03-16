@@ -26,7 +26,7 @@ export async function getSeedConfig() {
     cwd: (await introspectProject()).rootPath,
   });
 
-  const parsedConfig = configSchema.parse(config ?? {});
+  const parsedConfig = configSchema.passthrough().parse(config ?? {});
 
   return parsedConfig;
 }

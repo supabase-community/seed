@@ -5,4 +5,4 @@ export function createDatabaseClient(client: Sql) {
   return new PostgresJsClient(client);
 }
 
-export type { DatabaseClient } from "#core/adapters.js";
+export type { DatabaseClient } from "#core/databaseClient.js";

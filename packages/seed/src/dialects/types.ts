@@ -1,5 +1,5 @@
 import { type ZodTuple } from "zod";
-import { type DatabaseClient } from "#core/adapters.js";
+import { type DatabaseClient } from "#core/databaseClient.js";
 
 export interface Driver {
   definitelyTyped?: string;

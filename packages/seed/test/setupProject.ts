@@ -1,7 +1,7 @@
 import { mkdirp, writeFile } from "fs-extra";
 import path from "node:path";
 import tmp from "tmp-promise";
-import { type DatabaseClient } from "#core/adapters.js";
+import { type DatabaseClient } from "#core/databaseClient.js";
 import { type Adapter } from "./adapters.js";
 import { TMP_DIR } from "./constants.js";
 import { runCLI } from "./runCli.js";
@@ -12,8 +12,8 @@ async function seedSetup(props: {
   connectionString: string;
   cwd?: string;
   env?: Record<string, string>;
+  seedConfig?: ((connectionString: string) => string) | null | string;
   seedScript?: string;
-  snapletConfig?: null | string;
 }) {
   await mkdirp(TMP_DIR);
 
@@ -23,14 +23,24 @@ async function seedSetup(props: {
     })
   ).path);
 
-  if (props.snapletConfig) {
-    await writeFile(path.join(cwd, "seed.config.ts"), props.snapletConfig);
+  if (props.seedConfig !== null) {
+    let seedConfig: string;
+    if (props.seedConfig !== undefined) {
+      if (typeof props.seedConfig === "function") {
+        seedConfig = props.seedConfig(props.connectionString);
+      } else {
+        seedConfig = props.seedConfig;
+      }
+    } else {
+      seedConfig = props.adapter.generateSeedConfig(props.connectionString);
+    }
+    await writeFile(path.join(cwd, "seed.config.ts"), seedConfig);
   }
 
   const generateOutputPath = "./seed";
   const generateOutputIndexPath = "./seed/index.js";
 
-  await runCLI(["introspect", "--database-url", props.connectionString], {
+  await runCLI(["introspect"], {
     cwd,
     env: props.env,
   });
@@ -76,8 +86,8 @@ export async function setupProject(props: {
   cwd?: string;
   databaseSchema?: string;
   env?: Record<string, string>;
+  seedConfig?: ((connectionString: string) => string) | null | string;
   seedScript?: string;
-  snapletConfig?: null | string;
 }) {
   const { adapter } = props;
   if (props.connectionString) {

@@ -1,8 +1,8 @@
 import { EOL } from "node:os";
-import { type DatabaseClient } from "#core/adapters.js";
 import { SeedClientBase } from "#core/client/client.js";
 import { type SeedClientOptions } from "#core/client/types.js";
 import { type DataModel } from "#core/dataModel/types.js";
+import { type DatabaseClient } from "#core/databaseClient.js";
 import { type Fingerprint } from "#core/fingerprint/types.js";
 import { updateDataModelSequences } from "#core/sequences/updateDataModelSequences.js";
 import { type UserModels } from "#core/userModels/types.js";

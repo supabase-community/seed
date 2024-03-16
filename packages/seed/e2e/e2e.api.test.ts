@@ -187,7 +187,7 @@ for (const dialect of Object.keys(adapters) as Array<Dialect>) {
             `,
           };
 
-          const snapletConfig: Partial<Record<"default" | Dialect, string>> = {
+          const seedConfig: Partial<Record<"default" | Dialect, string>> = {
             default: `
               import { defineConfig } from "@snaplet/seed/config";
 
@@ -210,7 +210,7 @@ for (const dialect of Object.keys(adapters) as Array<Dialect>) {
 
           const { db, runSeedScript } = await setupProject({
             adapter,
-            snapletConfig: snapletConfig[dialect] ?? snapletConfig.default,
+            seedConfig: seedConfig[dialect] ?? seedConfig.default,
             databaseSchema: schema[dialect] ?? schema.default,
           });
 

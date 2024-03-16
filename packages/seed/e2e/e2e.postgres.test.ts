@@ -19,7 +19,6 @@ describe.concurrent(
             "id" uuid not null primary key
           );
         `,
-        snapletConfig: null,
         seedScript: `
           import { createSeedClient } from '#seed'
 
@@ -120,7 +119,7 @@ describe.concurrent(
       });
 
       test("should not reset config excluded schema", async () => {
-        const snapletConfig = `
+        const seedConfig = `
         import { defineConfig } from "@snaplet/seed/config";
 
         export default defineConfig({
@@ -174,7 +173,7 @@ describe.concurrent(
               "id" INTEGER GENERATED ALWAYS AS IDENTITY PRIMARY KEY
             );
           `,
-          snapletConfig,
+          seedConfig: seedConfig,
           seedScript,
         });
         expect((await db.query('SELECT * FROM "Player"')).length).toEqual(6);
@@ -190,7 +189,7 @@ describe.concurrent(
       });
 
       test("should not reset config excluded table", async () => {
-        const snapletConfig = `
+        const seedConfig = `
         import { defineConfig } from "@snaplet/seed/config";
 
         export default defineConfig({
@@ -244,7 +243,7 @@ describe.concurrent(
               "id" INTEGER GENERATED ALWAYS AS IDENTITY PRIMARY KEY
             );
           `,
-          snapletConfig,
+          seedConfig: seedConfig,
           seedScript,
         });
         expect((await db.query('SELECT * FROM "Player"')).length).toEqual(6);

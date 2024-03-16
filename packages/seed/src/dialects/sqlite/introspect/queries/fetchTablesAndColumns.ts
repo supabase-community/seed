@@ -1,5 +1,5 @@
 import { sortBy } from "remeda";
-import { type DatabaseClient } from "#core/adapters.js";
+import { type DatabaseClient } from "#core/databaseClient.js";
 // We crawl over the types to get the common SQL types
 // so they must be ordered by
 export const COMMON_SQL_TYPES = [
