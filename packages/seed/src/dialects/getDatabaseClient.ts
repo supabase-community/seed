@@ -1,5 +1,6 @@
 import { getSeedConfig } from "#config/seedConfig/seedConfig.js";
 import { type DatabaseClient } from "#core/adapters.js";
+import { drivers } from "./drivers.js";
 
 let databaseClient: DatabaseClient | undefined;
 
@@ -9,6 +10,19 @@ export async function getDatabaseClient() {
   }
 
   const seedConfig = await getSeedConfig();
-  databaseClient = seedConfig.databaseClient();
-  return databaseClient;
+
+  switch (seedConfig.databaseClient.driver) {
+    case "better-sqlite3":
+      return drivers[seedConfig.databaseClient.driver].getDatabaseClient(
+        ...seedConfig.databaseClient.parameters,
+      );
+    case "node-postgres":
+      return drivers[seedConfig.databaseClient.driver].getDatabaseClient(
+        ...seedConfig.databaseClient.parameters,
+      );
+    case "postgres-js":
+      return drivers[seedConfig.databaseClient.driver].getDatabaseClient(
+        ...seedConfig.databaseClient.parameters,
+      );
+  }
 }

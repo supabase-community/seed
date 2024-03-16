@@ -15,11 +15,12 @@ export async function saveSeedConfig({
 }) {
   const template = dedent`
     import { defineConfig } from "@snaplet/seed/config";
-    import { createDatabaseClient } from "@snaplet/seed/${driver.id}";
-    ${driver.template.import}
 
     export default defineConfig({
-      databaseClient: () => createDatabaseClient(${driver.template.create(parameters)})
+      databaseClient: {
+        driver: "${driver.id}",
+        parameters: ${serializeParameters(parameters)},
+      },
     });
   `;
 
@@ -28,16 +29,27 @@ export async function saveSeedConfig({
   const seedConfigPath = await getSeedConfigPath();
 
   spinner.succeed(`Seed config saved to ${link(seedConfigPath)}`);
+}
 
-  // const databaseClient = await getDatabaseClient();
-  // try {
-  //   await databaseClient.query("SELECT 1");
-  // } catch (error) {
-  //   await deleteSeedConfig();
-  //   console.error(
-  //     "Failed to connect to the database with the provided configuration",
-  //   );
-  //   console.error(error);
-  //   gracefulExit(1);
-  // }
+function serializeParameters(parameters: Array<unknown>) {
+  const serializedParameters = JSON.stringify(parameters);
+
+  // We need to unquote process.env references
+  const processEnvDot: [RegExp, string] = [
+    /"process\.env\.(\w+)"/g,
+    "process.env.$1",
+  ];
+  const processEnvIndexDoubleQuotes: [RegExp, string] = [
+    /"process\.env\[\\"(\w+)\\"\]"/g,
+    'process.env["$1"]',
+  ];
+  const processEnvIndexSimpleQuotes: [RegExp, string] = [
+    /"process\.env\['(\w+)'\]"/g,
+    "process.env['$1']",
+  ];
+
+  return serializedParameters
+    .replace(...processEnvDot)
+    .replace(...processEnvIndexDoubleQuotes)
+    .replace(...processEnvIndexSimpleQuotes);
 }

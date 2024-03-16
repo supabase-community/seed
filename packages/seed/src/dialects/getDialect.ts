@@ -1,14 +1,26 @@
-import { type DialectId } from "./dialects.js";
-import { getDatabaseClient } from "./getDatabaseClient.js";
+import { getSeedConfig } from "#config/seedConfig/seedConfig.js";
+import { dialects } from "./dialects.js";
 import { postgresDialect } from "./postgres/dialect.js";
 import { sqliteDialect } from "./sqlite/dialect.js";
 
-export async function getDialect() {
-  const databaseClient = await getDatabaseClient();
-  return getDialectById(databaseClient.dialect);
+export async function getDialectId() {
+  const seedConfig = await getSeedConfig();
+  const driverId = seedConfig.databaseClient.driver;
+
+  if (Object.keys(dialects.postgres.drivers).includes(driverId)) {
+    return "postgres";
+  }
+
+  if (Object.keys(dialects.sqlite.drivers).includes(driverId)) {
+    return "sqlite";
+  }
+
+  throw new Error(`Unknown dialect from driver: ${driverId}`);
 }
 
-export function getDialectById(dialectId: DialectId) {
+export async function getDialect() {
+  const dialectId = await getDialectId();
+
   switch (dialectId) {
     case "postgres":
       return postgresDialect;

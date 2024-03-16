@@ -1,5 +1,4 @@
 import { EOL } from "node:os";
-import { getSeedConfig } from "#config/seedConfig/seedConfig.js";
 import { type DatabaseClient } from "#core/adapters.js";
 import { SeedClientBase } from "#core/client/client.js";
 import { type SeedClientOptions } from "#core/client/types.js";
@@ -7,6 +6,7 @@ import { type DataModel } from "#core/dataModel/types.js";
 import { type Fingerprint } from "#core/fingerprint/types.js";
 import { updateDataModelSequences } from "#core/sequences/updateDataModelSequences.js";
 import { type UserModels } from "#core/userModels/types.js";
+import { getDatabaseClient } from "#dialects/getDatabaseClient.js";
 import { getDatamodel } from "./dataModel.js";
 import { SqliteStore } from "./store.js";
 import { escapeIdentifier } from "./utils.js";
@@ -69,7 +69,7 @@ export function getSeedClient(props: {
 
   const createSeedClient = async (options?: SeedClientOptions) => {
     const databaseClient =
-      options?.databaseClient ?? (await getSeedConfig()).databaseClient();
+      options?.databaseClient ?? (await getDatabaseClient());
 
     const seed = new SqliteSeedClient(databaseClient, options);
 
