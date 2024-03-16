@@ -70,7 +70,7 @@ export const createSeedClient = (options?: Parameters<typeof baseCreateSeedClien
     const { createTestDb } = (await import("#test/sqlite/index.js"))
       .betterSqlite3;
     const generateSeedConfigDatabaseClient = (connectionString: string) =>
-      `databaseClient: { driver: "better-sqlite3", parameters: [new URL("${connectionString}").pathname, { fileMustExist: false }] },`;
+      `databaseClient: { driver: "better-sqlite3", parameters: [new URL("${connectionString}").pathname] },`;
     return {
       createTestDb,
       createClient: (client) => new BetterSqlite3Client(client),

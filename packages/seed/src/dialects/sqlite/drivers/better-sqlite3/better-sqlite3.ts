@@ -19,7 +19,7 @@ export class BetterSqlite3Client extends DatabaseClient<Database> {
   }
   // eslint-disable-next-line @typescript-eslint/require-await
   async run(query: string): Promise<void> {
-    this.client.prepare(query).all();
+    this.client.prepare(query).run();
   }
 }
 

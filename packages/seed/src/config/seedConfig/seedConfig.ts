@@ -23,7 +23,7 @@ export type SeedConfig = z.infer<typeof configSchema>;
 export async function getSeedConfig() {
   const { config } = await loadConfig({
     name: "seed",
-    cwd: (await introspectProject()).rootPath,
+    // cwd: (await introspectProject()).rootPath,
   });
 
   const parsedConfig = configSchema.passthrough().parse(config ?? {});
