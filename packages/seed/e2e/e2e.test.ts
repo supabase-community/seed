@@ -387,8 +387,8 @@ for (const dialect of Object.keys(adapters) as Array<Dialect>) {
 
           const seed = await createSeedClient()
 
-          await db.run('insert into "User" DEFAULT VALUES')
-          await db.run('insert into "User" DEFAULT VALUES')
+          await db.execute('insert into "User" DEFAULT VALUES')
+          await db.execute('insert into "User" DEFAULT VALUES')
 
           await seed.$transaction(async seed => {
             await seed.users(x => x(2))
