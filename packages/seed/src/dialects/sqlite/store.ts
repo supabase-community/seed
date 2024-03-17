@@ -31,7 +31,7 @@ function logToSqlErrors(errors: Array<ToSQLErrors>) {
     }
   }
   for (const [modelName, affectedRows] of missingPKForUpdateErrorsMap) {
-    console.log(
+    console.warn(
       `Warning: skipping UPDATE on model ${modelName} for ${affectedRows} rows as it has no id fields (no PRIMARY KEYS or UNIQUE NON NULL columns found)`,
     );
   }
@@ -134,8 +134,7 @@ export class SqliteStore extends StoreBase {
         }
         if (updateRow) {
           const updateStatement = [
-            // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-            `UPDATE ${ident(model.schemaName!)}.${ident(model.tableName)}`,
+            `UPDATE ${ident(model.tableName)}`,
             `SET ${Object.entries(updateRow.values)
               .map(
                 ([c, v]) => `${ident(fieldToColumnMap.get(c))} = ${literal(v)}`,
