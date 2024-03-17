@@ -46,6 +46,7 @@ export class SeedPrisma extends DatabaseClient<PrismaLikeClient> {
   async disconnect(): Promise<void> {
     await this.client.$disconnect();
   }
+
   async execute(query: string): Promise<void> {
     await this.client.$executeRawUnsafe(query);
   }
