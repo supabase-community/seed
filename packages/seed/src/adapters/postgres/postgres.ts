@@ -1,8 +1,6 @@
 import { type Sql } from "postgres";
-import { z } from "zod";
 import { DatabaseClient } from "#core/databaseClient.js";
 import { type Adapter } from "../types.js";
-import { serializeParameters } from "../utils.js";
 
 export class PostgresClient extends DatabaseClient<Sql> {
   constructor(client: Sql) {
@@ -22,27 +20,7 @@ export class PostgresClient extends DatabaseClient<Sql> {
   }
 }
 
-const postgresParametersSchema = z.tuple([z.string().describe("database url")]);
-
-type PostgresParameters = z.infer<typeof postgresParametersSchema>;
-
-export const postgresSchema = z.object({
-  adapter: z.literal("postgres"),
-  parameters: postgresParametersSchema,
-});
-
 export const postgresAdapter = {
   id: "postgres" as const,
-  template: {
-    import: `import postgres from "postgres";`,
-    create: (parameters: Array<unknown>) =>
-      `postgres(${serializeParameters(parameters)})`,
-  },
-  package: "postgres",
-  parameters: postgresParametersSchema,
-  async getDatabaseClient(...parameters: PostgresParameters) {
-    const postgres = (await import("postgres")).default;
-    const client = postgres(...parameters);
-    return new PostgresClient(client);
-  },
+  className: "PostgresClient",
 } satisfies Adapter;

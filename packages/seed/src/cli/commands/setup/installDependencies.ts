@@ -1,8 +1,7 @@
 import { introspectProject } from "#config/utils.js";
-import { type Adapter } from "#dialects/types.js";
 import { spinner } from "../../lib/output.js";
 
-export async function installDependencies({ adapter }: { adapter: Adapter }) {
+export async function installDependencies() {
   const { packageManager, rootPath, packageJson } = await introspectProject();
 
   const allDependencies = {
@@ -10,16 +9,9 @@ export async function installDependencies({ adapter }: { adapter: Adapter }) {
     ...(packageJson.devDependencies ?? {}),
   };
 
-  const devDependenciesToInstall = [
-    "@snaplet/copycat",
-    "@snaplet/seed",
-    adapter.package,
-    ...("definitelyTyped" in adapter &&
-    adapter.definitelyTyped !== undefined &&
-    packageJson.devDependencies?.[adapter.definitelyTyped] === undefined
-      ? [adapter.definitelyTyped]
-      : []),
-  ].filter((d) => !allDependencies[d]);
+  const devDependenciesToInstall = ["@snaplet/copycat", "@snaplet/seed"].filter(
+    (d) => !allDependencies[d],
+  );
 
   if (devDependenciesToInstall.length === 0) {
     return;
