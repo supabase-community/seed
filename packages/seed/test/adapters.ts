@@ -2,8 +2,8 @@
 /* eslint-disable @typescript-eslint/consistent-type-imports */
 import type postgres from "postgres";
 import dedent from "dedent";
-import { BetterSqlite3Client } from "#adapters/better-sqlite3/better-sqlite3.js";
-import { PostgresClient } from "#adapters/postgres/postgres.js";
+import { SeedBetterSqlite3 } from "#adapters/better-sqlite3/better-sqlite3.js";
+import { SeedPostgres } from "#adapters/postgres/postgres.js";
 import { type DatabaseClient } from "#core/databaseClient.js";
 
 export interface Adapter<Client = AnyClient> {
@@ -46,7 +46,7 @@ export const adapters = {
       })
     `,
       generateSeedConfigDatabaseClient,
-      createClient: (client) => new PostgresClient(client),
+      createClient: (client) => new SeedPostgres(client),
       generateClientWrapper: ({
         generateOutputIndexPath,
         connectionString,
@@ -72,7 +72,7 @@ export const createSeedClient = (options?: Parameters<typeof baseCreateSeedClien
       `databaseClient: { adapter: "better-sqlite3", parameters: [new URL("${connectionString}").pathname] },`;
     return {
       createTestDb,
-      createClient: (client) => new BetterSqlite3Client(client),
+      createClient: (client) => new SeedBetterSqlite3(client),
       generateSeedConfigDatabaseClient,
       generateSeedConfig: (connectionString: string) => dedent`
         import { defineConfig } from "@snaplet/seed/config";

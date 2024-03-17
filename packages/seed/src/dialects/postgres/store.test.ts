@@ -10,7 +10,7 @@ const adapters = {
 
 async function execQueries(client: DatabaseClient, queries: Array<string>) {
   for (const query of queries) {
-    await client.run(query);
+    await client.execute(query);
   }
 }
 

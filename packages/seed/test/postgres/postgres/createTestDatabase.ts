@@ -2,7 +2,7 @@ import { readFileSync } from "fs-extra";
 import path from "node:path";
 import postgres from "postgres";
 import { v4 } from "uuid";
-import { PostgresClient } from "#adapters/postgres/postgres.js";
+import { SeedPostgres } from "#adapters/postgres/postgres.js";
 import { type DatabaseClient } from "#core/databaseClient.js";
 
 interface State {
@@ -19,12 +19,12 @@ const TEST_DATABASE_PREFIX = "testdb";
 
 export const defineCreateTestDb = (state: State) => {
   const connString = TEST_DATABASE_SERVER;
-  const dbServerClient = new PostgresClient(postgres(connString, { max: 1 }));
+  const dbServerClient = new SeedPostgres(postgres(connString, { max: 1 }));
   const createTestDb = async (structure?: string) => {
     const dbName = `${TEST_DATABASE_PREFIX}${v4()}`;
-    await dbServerClient.run(`DROP DATABASE IF EXISTS "${dbName}"`);
-    await dbServerClient.run(`CREATE DATABASE "${dbName}"`);
-    const client = new PostgresClient(
+    await dbServerClient.execute(`DROP DATABASE IF EXISTS "${dbName}"`);
+    await dbServerClient.execute(`CREATE DATABASE "${dbName}"`);
+    const client = new SeedPostgres(
       postgres(connString, { max: 1, database: dbName }),
     );
     const url = new URL(connString);
@@ -37,7 +37,7 @@ export const defineCreateTestDb = (state: State) => {
     };
     state.dbs.push(result);
     if (structure) {
-      await client.run(structure);
+      await client.execute(structure);
     }
     return result;
   };
@@ -52,7 +52,7 @@ export const defineCreateTestDb = (state: State) => {
     for (const { client, name } of dbs) {
       try {
         await client.disconnect();
-        await dbServerClient.run(
+        await dbServerClient.execute(
           `DROP DATABASE IF EXISTS "${name}" WITH (force)`,
         );
       } catch (error) {
@@ -83,6 +83,6 @@ export const createSnapletTestDb = async () => {
   const snapletSchemaSql = readFileSync(
     path.resolve(__dirname, "../fixtures/snaplet_schema.sql"),
   );
-  await db.client.run(snapletSchemaSql.toString());
+  await db.client.execute(snapletSchemaSql.toString());
   return db;
 };

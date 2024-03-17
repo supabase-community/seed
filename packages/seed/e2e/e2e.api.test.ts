@@ -214,11 +214,11 @@ for (const dialect of Object.keys(adapters) as Array<Dialect>) {
             databaseSchema: schema[dialect] ?? schema.default,
           });
 
-          await db.run(`INSERT INTO "A" DEFAULT VALUES`);
-          await db.run(`INSERT INTO "A" DEFAULT VALUES`);
+          await db.execute(`INSERT INTO "A" DEFAULT VALUES`);
+          await db.execute(`INSERT INTO "A" DEFAULT VALUES`);
 
-          await db.run(`INSERT INTO "B" DEFAULT VALUES`);
-          await db.run(`INSERT INTO "B" DEFAULT VALUES`);
+          await db.execute(`INSERT INTO "B" DEFAULT VALUES`);
+          await db.execute(`INSERT INTO "B" DEFAULT VALUES`);
 
           await runSeedScript(`
             import { createSeedClient } from '#seed'

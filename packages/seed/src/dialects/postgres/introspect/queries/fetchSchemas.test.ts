@@ -1,5 +1,5 @@
 import { describe, expect, test } from "vitest";
-import { createDatabaseClient } from "#adapters/postgres/index.js";
+import { SeedPostgres } from "#adapters/postgres/index.js";
 import { postgres } from "#test";
 import { fetchSchemas } from "./fetchSchemas.js";
 
@@ -21,11 +21,11 @@ describe.each(["postgres"] as const)("fetchSchemas: %s", (adapter) => {
   `;
     const db = await createTestDb(structure);
     const testRole = await createTestRole(db.client.client);
-    await db.client.run(
+    await db.client.execute(
       `REVOKE ALL PRIVILEGES ON SCHEMA private FROM "${testRole.name}";
       GRANT ALL PRIVILEGES ON SCHEMA other TO "${testRole.name}";`,
     );
-    const schemas = await fetchSchemas(createDatabaseClient(testRole.client));
+    const schemas = await fetchSchemas(new SeedPostgres(testRole.client));
     expect(schemas.length).toBe(2);
     expect(schemas).toEqual(expect.arrayContaining(["other", "public"]));
   });

@@ -1,6 +1,6 @@
 import postgres from "postgres";
 import { v4 } from "uuid";
-import { createDatabaseClient } from "#adapters/postgres/index.js";
+import { SeedPostgres } from "#adapters/postgres/index.js";
 
 interface State {
   roles: Array<{
@@ -16,10 +16,10 @@ const TEST_ROLE_PREFIX = "testrole";
 
 export const defineCreateTestRole = (state: State) => {
   const serverClient = postgres(TEST_DATABASE_SERVER, { max: 1 });
-  const serverDatabaseClient = createDatabaseClient(serverClient);
+  const serverDatabaseClient = new SeedPostgres(serverClient);
   const createTestRole = async (client: postgres.Sql) => {
     const roleName = `${TEST_ROLE_PREFIX}${v4()}`;
-    await serverDatabaseClient.run(
+    await serverDatabaseClient.execute(
       `CREATE ROLE "${roleName}" WITH LOGIN PASSWORD 'password'`,
     );
     const loggedClient = postgres(TEST_DATABASE_SERVER, {
@@ -45,7 +45,7 @@ export const defineCreateTestRole = (state: State) => {
     // Close all pools connections on the database, if there is more than one to be able to drop it
     for (const { name } of roles) {
       try {
-        await serverDatabaseClient.run(`DROP ROLE IF EXISTS "${name}"`);
+        await serverDatabaseClient.execute(`DROP ROLE IF EXISTS "${name}"`);
       } catch (error) {
         failures.push({
           roleName: name,

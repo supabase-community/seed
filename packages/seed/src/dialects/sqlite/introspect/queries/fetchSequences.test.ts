@@ -47,7 +47,7 @@ describe.each(["betterSqlite3"] as const)("fetchSequences: %s", (adapter) => {
       ]),
     );
 
-    await client.run(
+    await client.execute(
       `INSERT INTO students (name) VALUES ('John Doe'), ('Jane Smith');`,
     );
     expect(await fetchSequences(client)).toEqual(

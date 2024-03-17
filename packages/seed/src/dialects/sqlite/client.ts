@@ -31,7 +31,7 @@ export function getSeedClient(props: {
         runStatements: async (statements: Array<string>) => {
           if (!this.dryRun) {
             for (const statement of statements) {
-              await this.db.run(statement);
+              await this.db.execute(statement);
             }
           } else {
             console.log(statements.join(`;${EOL}`) + ";");
@@ -51,7 +51,7 @@ export function getSeedClient(props: {
           (model) => escapeIdentifier(model.tableName),
         );
         for (const table of tablesToTruncate) {
-          await this.db.run(`DELETE FROM ${table}`);
+          await this.db.execute(`DELETE FROM ${table}`);
         }
       }
     }

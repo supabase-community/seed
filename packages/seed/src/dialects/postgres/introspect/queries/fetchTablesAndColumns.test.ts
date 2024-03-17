@@ -31,7 +31,7 @@ describe.each(["postgres"] as const)(
     );
   `;
       const db = await createTestDb(structure);
-      await db.client.run(`VACUUM ANALYZE;`);
+      await db.client.execute(`VACUUM ANALYZE;`);
       const tablesInfos = await fetchTablesAndColumns(db.client);
       expect(tablesInfos).toEqual([
         {
@@ -145,7 +145,7 @@ describe.each(["postgres"] as const)(
     );
   `;
       const db = await createTestDb(structure);
-      await db.client.run(`VACUUM ANALYZE;`);
+      await db.client.execute(`VACUUM ANALYZE;`);
       const tablesInfos = await fetchTablesAndColumns(db.client);
 
       expect(tablesInfos).toEqual([
@@ -205,7 +205,7 @@ describe.each(["postgres"] as const)(
     );
   `;
       const db = await createTestDb(structure);
-      await db.client.run(`VACUUM ANALYZE;`);
+      await db.client.execute(`VACUUM ANALYZE;`);
       const tablesInfos = await fetchTablesAndColumns(db.client);
       expect(tablesInfos).toEqual([
         {
@@ -451,7 +451,7 @@ describe.each(["postgres"] as const)(
     );
   `;
       const db = await createTestDb(structure);
-      await db.client.run(`VACUUM ANALYZE;`);
+      await db.client.execute(`VACUUM ANALYZE;`);
       const tablesInfos = await fetchTablesAndColumns(db.client);
 
       expect(tablesInfos).toEqual([

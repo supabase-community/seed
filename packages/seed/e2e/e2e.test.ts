@@ -77,7 +77,7 @@ for (const dialect of Object.keys(adapters) as Array<Dialect>) {
         expect((await db.query('select * from "Member"')).length).toEqual(0);
 
         for (const statement of stdout.split(";").filter(Boolean)) {
-          await db.run(statement);
+          await db.execute(statement);
         }
 
         expect((await db.query('select * from "Organization"')).length).toEqual(
@@ -380,7 +380,7 @@ for (const dialect of Object.keys(adapters) as Array<Dialect>) {
           databaseSchema: schema[dialect] ?? schema.default,
         });
 
-        await db.run('insert into "User" DEFAULT VALUES');
+        await db.execute('insert into "User" DEFAULT VALUES');
 
         await runSeedScript(`
           import { createSeedClient, db } from "#seed"

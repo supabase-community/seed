@@ -14,7 +14,7 @@ describe.each(["postgres"] as const)("getDataModel: %s", (adapter) => {
     CREATE TABLE public."foo" (bar text[][]);
   `;
     const db = await createTestDb(structure);
-    await db.client.run(`VACUUM ANALYZE;`);
+    await db.client.execute(`VACUUM ANALYZE;`);
     const result = await getDatamodel(db.client);
     expect(result.models["foo"].fields[0].type).toEqual("text[][]");
   });

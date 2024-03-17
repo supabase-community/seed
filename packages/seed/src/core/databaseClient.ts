@@ -4,9 +4,9 @@ export abstract class DatabaseClient<T = unknown> {
     public client: T,
   ) {}
   abstract disconnect(): Promise<void>;
+  abstract execute(query: string): Promise<void>;
   abstract query<K = unknown>(
     query: string,
     values?: Array<unknown>,
   ): Promise<Array<K>>;
-  abstract run(query: string): Promise<void>;
 }

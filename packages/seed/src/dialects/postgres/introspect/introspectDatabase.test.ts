@@ -1,6 +1,6 @@
 import { describe, expect, test } from "vitest";
+import { SeedPostgres } from "#adapters/postgres/index.js";
 import { postgres } from "#test";
-import { createDatabaseClient } from "../../../adapters/postgres/index.js";
 import { type Relationship, introspectDatabase } from "./introspectDatabase.js";
 
 const adapters = {
@@ -18,7 +18,7 @@ describe.each(["postgres"] as const)("introspectDatabase: %s", (adapter) => {
     CREATE TYPE test."Enum1" AS ENUM ('A', 'B');
   `;
     const db = await createTestDb(structure);
-    await db.client.run(`VACUUM ANALYZE;`);
+    await db.client.execute(`VACUUM ANALYZE;`);
     const result = await introspectDatabase(db.client);
     expect(result).toMatchObject({
       enums: [
@@ -292,13 +292,13 @@ describe.each(["postgres"] as const)("introspectDatabase: %s", (adapter) => {
   test("partitions of a partitioned table should not be present in the introspection result", async () => {
     // arrange
     const db = await createTestDb();
-    await db.client.run(`
+    await db.client.execute(`
     CREATE TABLE coach(id uuid primary key);
     CREATE TABLE exercise (id uuid, coach_id uuid REFERENCES coach(id)) PARTITION BY list(coach_id);
     CREATE TABLE exercise1 PARTITION OF exercise FOR VALUES IN (NULL);
     CREATE TABLE exercise2 PARTITION OF exercise DEFAULT;
   `);
-    await db.client.run(`VACUUM ANALYZE;`);
+    await db.client.execute(`VACUUM ANALYZE;`);
     // act
     const structure = await introspectDatabase(db.client);
 
@@ -321,7 +321,7 @@ describe.each(["postgres"] as const)("introspectDatabase: %s", (adapter) => {
     const restrictedString = await createTestRole(db.client.client);
     const otherString = await createTestRole(db.client.client);
 
-    await db.client.run(`
+    await db.client.execute(`
     CREATE TABLE "public"."table1" ("value" text);
     GRANT SELECT ON TABLE "public"."table1" TO "${restrictedString.name}";
     CREATE TABLE "public"."table2" ("value" text);
@@ -329,7 +329,7 @@ describe.each(["postgres"] as const)("introspectDatabase: %s", (adapter) => {
     CREATE TABLE "someSchema"."table3" ("value" text);
   `);
     const structure = await introspectDatabase(
-      createDatabaseClient(restrictedString.client),
+      new SeedPostgres(restrictedString.client),
     );
 
     expect(structure).toEqual(
@@ -350,7 +350,7 @@ describe.each(["postgres"] as const)("introspectDatabase: %s", (adapter) => {
   `;
     const db = await createTestDb(structure);
     const readAccessConnString = await createTestRole(db.client.client);
-    await db.client.run(`
+    await db.client.execute(`
     DROP ROLE IF EXISTS readaccess;
     CREATE ROLE readaccess;
     GRANT CONNECT ON DATABASE "${db.name}" TO readaccess;
@@ -358,7 +358,7 @@ describe.each(["postgres"] as const)("introspectDatabase: %s", (adapter) => {
     GRANT SELECT ON ALL TABLES IN SCHEMA public TO readaccess;
     GRANT readaccess TO "${readAccessConnString.name}";
   `);
-    await db.client.run(`VACUUM ANALYZE;`);
+    await db.client.execute(`VACUUM ANALYZE;`);
     const result = await introspectDatabase(db.client);
 
     const member = result.tables.find((t) => t.id == "public.Member");

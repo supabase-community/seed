@@ -30,7 +30,7 @@ export function getSeedClient(props: {
         },
         runStatements: async (statements: Array<string>) => {
           if (!this.dryRun) {
-            await this.db.run(statements.join(";"));
+            await this.db.execute(statements.join(";"));
           } else {
             console.log(statements.join(`;${EOL}`) + ";");
           }
@@ -54,7 +54,7 @@ export function getSeedClient(props: {
           )
           .join(", ");
 
-        await this.db.run(`TRUNCATE ${tablesToTruncate} CASCADE`);
+        await this.db.execute(`TRUNCATE ${tablesToTruncate} CASCADE`);
       }
     }
 

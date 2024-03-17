@@ -57,7 +57,7 @@ describe.each(["postgres"] as const)("fetchSequences: %s", (adapter) => {
         },
       ]),
     );
-    await client.run(
+    await client.execute(
       `
         INSERT INTO public.students (name) VALUES ('John Doe'), ('Jane Smith');
         INSERT INTO public.courses (title) VALUES ('Mathematics'), ('Science');`,

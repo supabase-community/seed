@@ -1,7 +1,7 @@
 import Database from "better-sqlite3";
 import { copyFile } from "fs-extra";
 import path from "node:path";
-import { BetterSqlite3Client } from "#adapters/better-sqlite3/better-sqlite3.js";
+import { SeedBetterSqlite3 } from "#adapters/better-sqlite3/better-sqlite3.js";
 import { type DatabaseClient } from "#core/databaseClient.js";
 import { createTestTmpDirectory } from "../../createTmpDirectory.js";
 
@@ -25,10 +25,10 @@ export async function createTestDb(structure: string): Promise<{
   const tmp = await createTestTmpDirectory(true);
   const connString = path.join(tmp.name, "test.sqlite3");
   const db = new Database(connString);
-  const client = new BetterSqlite3Client(db);
+  const client = new SeedBetterSqlite3(db);
   const queries = splitSqlScript(structure);
   for (const query of queries) {
-    await client.run(query);
+    await client.execute(query);
   }
   return {
     client,
@@ -48,7 +48,7 @@ export async function createChinookSqliteTestDatabase(): Promise<{
   // copy chinook database to tmp directory
   await copyFile(CHINOOK_DATABASE_PATH, connString);
   const db = new Database(connString);
-  const client = new BetterSqlite3Client(db);
+  const client = new SeedBetterSqlite3(db);
   return {
     client,
     name: connString,

@@ -1,5 +1,5 @@
 import { describe, expect, test } from "vitest";
-import { createDatabaseClient } from "#adapters/postgres/index.js";
+import { SeedPostgres } from "#adapters/postgres/index.js";
 import { postgres } from "#test";
 import { fetchEnums } from "./fetchEnums.js";
 
@@ -67,7 +67,7 @@ describe.each(["postgres"] as const)("fetchEnums: %s", (adapter) => {
   `;
     const db = await createTestDb(structure);
     const testRoleClient = await createTestRole(db.client.client);
-    const enums = await fetchEnums(createDatabaseClient(testRoleClient.client));
+    const enums = await fetchEnums(new SeedPostgres(testRoleClient.client));
     expect(enums).toEqual(
       expect.arrayContaining([
         {
