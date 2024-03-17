@@ -1,17 +1,17 @@
 import prompt from "prompts";
 import { z } from "zod";
-import { type Driver } from "#dialects/types.js";
+import { type Adapter } from "#dialects/types.js";
 
-export async function getParametersFromPrompt(driver: Driver) {
+export async function getParametersFromPrompt(adapter: Adapter) {
   console.log(
-    `Please provide the following parameters for your ${driver.id} database client:`,
+    `Please provide the following parameters for your ${adapter.id} database client:`,
   );
   console.log(
     `Hint: You can use the syntax \`process.env.<YOUR_VARIABLE>\` to reference environment variables`,
   );
   const parameters: Array<unknown> = [];
 
-  for (const item of driver.parameters.items) {
+  for (const item of adapter.parameters.items) {
     if (item instanceof z.ZodObject) {
       // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
       const entries = Object.entries(item.shape);

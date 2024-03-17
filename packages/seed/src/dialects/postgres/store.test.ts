@@ -5,7 +5,7 @@ import { getDatamodel } from "./dataModel.js";
 import { PgStore } from "./store.js";
 
 const adapters = {
-  postgresJs: () => postgres.postgresJs,
+  postgres: () => postgres.postgres,
 };
 
 async function execQueries(client: DatabaseClient, queries: Array<string>) {
@@ -14,7 +14,7 @@ async function execQueries(client: DatabaseClient, queries: Array<string>) {
   }
 }
 
-describe.each(["postgresJs"] as const)("store: %s", (adapter) => {
+describe.each(["postgres"] as const)("store: %s", (adapter) => {
   const { createTestDb } = adapters[adapter]();
   describe("SQL -> Store -> SQL", () => {
     test("should be able to insert basic rows into table", async () => {

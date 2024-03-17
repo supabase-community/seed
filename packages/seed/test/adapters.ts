@@ -1,10 +1,10 @@
 // context(justinvdm, 7 Mar 2024): Disabled to allow for per-adapter type references inline
 /* eslint-disable @typescript-eslint/consistent-type-imports */
-import type postgresJs from "postgres";
+import type postgres from "postgres";
 import dedent from "dedent";
+import { BetterSqlite3Client } from "#adapters/better-sqlite3/better-sqlite3.js";
+import { PostgresClient } from "#adapters/postgres/postgres.js";
 import { type DatabaseClient } from "#core/databaseClient.js";
-import { PostgresJsClient } from "#dialects/postgres/drivers/postgres-js/postgres-js.js";
-import { BetterSqlite3Client } from "#dialects/sqlite/drivers/better-sqlite3/better-sqlite3.js";
 
 export interface Adapter<Client = AnyClient> {
   createClient(client: Client): DatabaseClient;
@@ -32,11 +32,10 @@ export type AnyClient =
     : never;
 
 export const adapters = {
-  async postgres(): Promise<Adapter<postgresJs.Sql>> {
-    const { createTestDb } = (await import("#test/postgres/index.js"))
-      .postgresJs;
+  async postgres(): Promise<Adapter<postgres.Sql>> {
+    const { createTestDb } = (await import("#test/postgres/index.js")).postgres;
     const generateSeedConfigDatabaseClient = (connectionString: string) =>
-      `databaseClient: { driver: "postgres-js", parameters: ["${connectionString}"] },`;
+      `databaseClient: { adapter: "postgres", parameters: ["${connectionString}"] },`;
     return {
       createTestDb,
       generateSeedConfig: (connectionString: string) => dedent`
@@ -47,13 +46,13 @@ export const adapters = {
       })
     `,
       generateSeedConfigDatabaseClient,
-      createClient: (client) => new PostgresJsClient(client),
+      createClient: (client) => new PostgresClient(client),
       generateClientWrapper: ({
         generateOutputIndexPath,
         connectionString,
       }) => `
 import postgres from "postgres";
-import { createDatabaseClient } from "@snaplet/seed/postgres-js"
+import { createDatabaseClient } from "@snaplet/seed/postgres"
 import { createSeedClient as baseCreateSeedClient } from "${generateOutputIndexPath}"
 
 const client = postgres("${connectionString}")
@@ -70,7 +69,7 @@ export const createSeedClient = (options?: Parameters<typeof baseCreateSeedClien
     const { createTestDb } = (await import("#test/sqlite/index.js"))
       .betterSqlite3;
     const generateSeedConfigDatabaseClient = (connectionString: string) =>
-      `databaseClient: { driver: "better-sqlite3", parameters: [new URL("${connectionString}").pathname] },`;
+      `databaseClient: { adapter: "better-sqlite3", parameters: [new URL("${connectionString}").pathname] },`;
     return {
       createTestDb,
       createClient: (client) => new BetterSqlite3Client(client),

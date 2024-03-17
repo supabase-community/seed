@@ -3,10 +3,10 @@ import { postgres } from "#test";
 import { fetchDatabaseRelationships } from "./fetchDatabaseRelationships.js";
 
 const adapters = {
-  postgresJs: () => postgres.postgresJs,
+  postgres: () => postgres.postgres,
 };
 
-describe.each(["postgresJs"] as const)(
+describe.each(["postgres"] as const)(
   "fetchDatabaseRelationships: %s",
   (adapter) => {
     const { createTestDb } = adapters[adapter]();

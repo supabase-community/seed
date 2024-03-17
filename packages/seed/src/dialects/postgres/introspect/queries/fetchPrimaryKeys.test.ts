@@ -3,10 +3,10 @@ import { postgres } from "#test";
 import { fetchPrimaryKeys } from "./fetchPrimaryKeys.js";
 
 const adapters = {
-  postgresJs: () => postgres.postgresJs,
+  postgres: () => postgres.postgres,
 };
 
-describe.each(["postgresJs"] as const)("fetchPrimaryKeys: %s", (adapter) => {
+describe.each(["postgres"] as const)("fetchPrimaryKeys: %s", (adapter) => {
   const { createTestDb } = adapters[adapter]();
   test("should get basics primary keys", async () => {
     const structure = `

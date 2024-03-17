@@ -1,7 +1,6 @@
 import { type DataModel } from "#core/dataModel/types.js";
 import { type Fingerprint } from "#core/fingerprint/types.js";
 import { type Templates } from "#core/userModels/templates/types.js";
-import { type Driver } from "#dialects/types.js";
 import { type Shape } from "#trpc/shapes.js";
 import { type DatabaseClient } from "../databaseClient.js";
 
@@ -16,7 +15,6 @@ export type GetDataModel = (client: DatabaseClient) => Promise<DataModel>;
 
 export interface Dialect {
   determineShapeFromType: DetermineShapeFromType;
-  drivers: Record<string, Driver>;
   generateClientTypes: GenerateClientTypes;
   getDataModel: GetDataModel;
   id: string;

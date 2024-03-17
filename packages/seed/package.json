@@ -19,6 +19,21 @@
       "development": "./src/index.ts",
       "default": "./dist/index.js"
     },
+    "./adapter-pg": {
+      "types": "./dist/dialects/postgres/adapters/pg/index.d.ts",
+      "development": "./src/dialects/postgres/adapters/pg/index.ts",
+      "default": "./dist/dialects/postgres/adapters/pg/index.js"
+    },
+    "./adapter-postgres": {
+      "types": "./dist/dialects/postgres/adapters/postgres/index.d.ts",
+      "development": "./src/dialects/postgres/adapters/postgres/index.ts",
+      "default": "./dist/dialects/postgres/adapters/postgres/index.js"
+    },
+    "./adapter-better-sqlite3": {
+      "types": "./dist/dialects/sqlite/adapters/better-sqlite3/index.d.ts",
+      "development": "./src/dialects/sqlite/adapters/better-sqlite3/index.ts",
+      "default": "./dist/dialects/sqlite/adapters/better-sqlite3/index.js"
+    },
     "./config": {
       "types": "./dist/config.d.ts",
       "development": "./src/config.ts",
@@ -29,7 +44,7 @@
       "development": "./src/cli/index.ts",
       "default": "./dist/cli/index.js"
     },
-    "./database-client": {
+    "./adapter": {
       "types": "./dist/core/databaseClient.d.ts",
       "development": "./src/core/databaseClient.ts",
       "default": "./dist/core/databaseClient.js"
@@ -38,21 +53,6 @@
       "types": "./dist/dialects/*.d.ts",
       "development": "./src/dialects/*.ts",
       "default": "./dist/dialects/*.js"
-    },
-    "./node-postgres": {
-      "types": "./dist/dialects/postgres/drivers/node-postgres/index.d.ts",
-      "development": "./src/dialects/postgres/drivers/node-postgres/index.ts",
-      "default": "./dist/dialects/postgres/drivers/node-postgres/index.js"
-    },
-    "./postgres-js": {
-      "types": "./dist/dialects/postgres/drivers/postgres-js/index.d.ts",
-      "development": "./src/dialects/postgres/drivers/postgres-js/index.ts",
-      "default": "./dist/dialects/postgres/drivers/postgres-js/index.js"
-    },
-    "./better-sqlite3": {
-      "types": "./dist/dialects/sqlite/drivers/better-sqlite3/index.d.ts",
-      "development": "./src/dialects/sqlite/drivers/better-sqlite3/index.ts",
-      "default": "./dist/dialects/sqlite/drivers/better-sqlite3/index.js"
     }
   },
   "devDependencies": {

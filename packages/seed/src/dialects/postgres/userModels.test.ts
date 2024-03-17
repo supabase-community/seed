@@ -387,7 +387,7 @@ describe("SEED_PG_TEMPLATES", () => {
           },
           "DRINKS": {
             "success": true,
-            "value": "Screwdriver",
+            "value": "Screwadapter",
           },
           "EMAIL": {
             "success": true,
@@ -1208,7 +1208,7 @@ describe("SEED_PG_TEMPLATES", () => {
           },
           "DRINKS": {
             "success": true,
-            "value": "Screwdriver",
+            "value": "Screwadapter",
           },
           "EMAIL": {
             "success": true,
@@ -2023,7 +2023,7 @@ describe("SEED_PG_TEMPLATES", () => {
           },
           "DRINKS": {
             "success": true,
-            "value": "Screwdriver",
+            "value": "Screwadapter",
           },
           "EMAIL": {
             "success": true,
@@ -2850,7 +2850,7 @@ describe("SEED_PG_TEMPLATES", () => {
           },
           "DRINKS": {
             "success": true,
-            "value": "Screwdriver",
+            "value": "Screwadapter",
           },
           "EMAIL": {
             "success": true,
@@ -4073,7 +4073,7 @@ describe("SEED_PG_TEMPLATES", () => {
           },
           "DRINKS": {
             "success": true,
-            "value": "Screwdriver",
+            "value": "Screwadapter",
           },
           "EMAIL": {
             "success": true,
@@ -4930,7 +4930,7 @@ describe("SEED_PG_TEMPLATES", () => {
           },
           "DRINKS": {
             "success": true,
-            "value": "Screwdriver",
+            "value": "Screwadapter",
           },
           "EMAIL": {
             "success": true,

@@ -1,17 +1,16 @@
-import { getDialectFromPrompt } from "./getDialectFromPrompt.js";
-import { getDriverFromPrompt } from "./getDriverFromPrompt.js";
+import { getAdapterFromPrompt } from "./getAdapterFromPrompt.js";
 import { getParametersFromPrompt } from "./getParametersFromPrompt.js";
 import { installDependencies } from "./installDependencies.js";
 import { saveSeedConfig } from "./saveSeedConfig.js";
 
 export async function seedConfigHandler() {
-  const dialect = await getDialectFromPrompt();
+  // const dialect = await getDialectFromPrompt();
 
-  const driver = await getDriverFromPrompt(dialect);
+  const adapter = await getAdapterFromPrompt();
 
-  const parameters = await getParametersFromPrompt(driver);
+  const parameters = await getParametersFromPrompt(adapter);
 
-  await installDependencies({ driver });
+  await installDependencies({ adapter });
 
-  await saveSeedConfig({ driver, parameters });
+  await saveSeedConfig({ adapter, parameters });
 }

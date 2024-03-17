@@ -3,10 +3,10 @@ import { postgres } from "#test";
 import { fetchSequences } from "./fetchSequences.js";
 
 const adapters = {
-  postgresJs: () => postgres.postgresJs,
+  postgres: () => postgres.postgres,
 };
 
-describe.each(["postgresJs"] as const)("fetchSequences: %s", (adapter) => {
+describe.each(["postgres"] as const)("fetchSequences: %s", (adapter) => {
   const { createTestDb } = adapters[adapter]();
 
   test("should fetch basic sequences", async () => {

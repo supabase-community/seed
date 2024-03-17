@@ -1,10 +1,10 @@
 import { type Client } from "pg";
 import { z } from "zod";
 import { DatabaseClient } from "#core/databaseClient.js";
-import { type Driver } from "../../../types.js";
-import { serializeParameters } from "../../../utils.js";
+import { type Adapter } from "../types.js";
+import { serializeParameters } from "../utils.js";
 
-export class NodePostgresClient extends DatabaseClient<Client> {
+export class PgClient extends DatabaseClient<Client> {
   constructor(client: Client) {
     super("postgres", client);
   }
@@ -22,7 +22,7 @@ export class NodePostgresClient extends DatabaseClient<Client> {
   }
 }
 
-const nodePostgresParametersSchema = z.tuple([
+const pgParametersSchema = z.tuple([
   z
     .object({
       connectionString: z.string().describe("connection string"),
@@ -30,15 +30,15 @@ const nodePostgresParametersSchema = z.tuple([
     .describe("options"),
 ]);
 
-type NodePostgresParameters = z.infer<typeof nodePostgresParametersSchema>;
+type PgParameters = z.infer<typeof pgParametersSchema>;
 
-export const nodePostgresSchema = z.object({
-  driver: z.literal("node-postgres"),
-  parameters: nodePostgresParametersSchema,
+export const pgSchema = z.object({
+  adapter: z.literal("pg"),
+  parameters: pgParametersSchema,
 });
 
-export const nodePostgresDriver = {
-  id: "node-postgres" as const,
+export const pgAdapter = {
+  id: "pg" as const,
   package: "pg",
   definitelyTyped: "@types/pg",
   template: {
@@ -46,11 +46,11 @@ export const nodePostgresDriver = {
     create: (parameters: Array<unknown>) =>
       `new Client(${serializeParameters(parameters)})`,
   },
-  parameters: nodePostgresParametersSchema,
-  async getDatabaseClient(...parameters: NodePostgresParameters) {
+  parameters: pgParametersSchema,
+  async getDatabaseClient(...parameters: PgParameters) {
     const { Client } = (await import("pg")).default;
     const client = new Client(...parameters);
     await client.connect();
-    return new NodePostgresClient(client);
+    return new PgClient(client);
   },
-} satisfies Driver;
+} satisfies Adapter;

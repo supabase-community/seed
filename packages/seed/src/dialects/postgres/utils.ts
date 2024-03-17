@@ -171,7 +171,7 @@ export const serializeToSQL = (type: string, value: Json): Json => {
 };
 
 /**
- * From https://github.com/brianc/node-postgres/blob/2a8efbee09a284be12748ed3962bc9b816965e36/packages/pg/lib/utils.js#L175-L202
+ * From https://github.com/brianc/pg/blob/2a8efbee09a284be12748ed3962bc9b816965e36/packages/pg/lib/utils.js#L175-L202
  */
 export const escapeIdentifier = function (str: string) {
   return '"' + str.replace(/"/g, '""') + '"';

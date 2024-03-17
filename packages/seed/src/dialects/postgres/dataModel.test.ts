@@ -3,10 +3,10 @@ import { postgres } from "#test";
 import { getDatamodel } from "./dataModel.js";
 
 const adapters = {
-  postgresJs: () => postgres.postgresJs,
+  postgres: () => postgres.postgres,
 };
 
-describe.each(["postgresJs"] as const)("getDataModel: %s", (adapter) => {
+describe.each(["postgres"] as const)("getDataModel: %s", (adapter) => {
   const { createTestDb } = adapters[adapter]();
 
   test("array types", async () => {

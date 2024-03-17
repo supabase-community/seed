@@ -2,8 +2,8 @@ import { readFileSync } from "fs-extra";
 import path from "node:path";
 import postgres from "postgres";
 import { v4 } from "uuid";
+import { PostgresClient } from "#adapters/postgres/postgres.js";
 import { type DatabaseClient } from "#core/databaseClient.js";
-import { PostgresJsClient } from "#dialects/postgres/drivers/postgres-js/postgres-js.js";
 
 interface State {
   dbs: Array<{
@@ -19,12 +19,12 @@ const TEST_DATABASE_PREFIX = "testdb";
 
 export const defineCreateTestDb = (state: State) => {
   const connString = TEST_DATABASE_SERVER;
-  const dbServerClient = new PostgresJsClient(postgres(connString, { max: 1 }));
+  const dbServerClient = new PostgresClient(postgres(connString, { max: 1 }));
   const createTestDb = async (structure?: string) => {
     const dbName = `${TEST_DATABASE_PREFIX}${v4()}`;
     await dbServerClient.run(`DROP DATABASE IF EXISTS "${dbName}"`);
     await dbServerClient.run(`CREATE DATABASE "${dbName}"`);
-    const client = new PostgresJsClient(
+    const client = new PostgresClient(
       postgres(connString, { max: 1, database: dbName }),
     );
     const url = new URL(connString);

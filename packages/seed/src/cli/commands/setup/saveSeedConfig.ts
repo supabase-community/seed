@@ -3,14 +3,14 @@ import {
   getSeedConfigPath,
   setSeedConfig,
 } from "#config/seedConfig/seedConfig.js";
-import { type Driver } from "#dialects/types.js";
+import { type Adapter } from "#dialects/types.js";
 import { link, spinner } from "../../lib/output.js";
 
 export async function saveSeedConfig({
-  driver,
+  adapter,
   parameters,
 }: {
-  driver: Driver;
+  adapter: Adapter;
   parameters: Array<unknown>;
 }) {
   const template = dedent`
@@ -18,7 +18,7 @@ export async function saveSeedConfig({
 
     export default defineConfig({
       databaseClient: {
-        driver: "${driver.id}",
+        adapter: "${adapter.id}",
         parameters: ${serializeParameters(parameters)},
       },
     });

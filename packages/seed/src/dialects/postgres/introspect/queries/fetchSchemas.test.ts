@@ -1,13 +1,13 @@
 import { describe, expect, test } from "vitest";
-import { createDatabaseClient } from "#dialects/postgres/drivers/postgres-js/index.js";
+import { createDatabaseClient } from "#adapters/postgres/index.js";
 import { postgres } from "#test";
 import { fetchSchemas } from "./fetchSchemas.js";
 
 const adapters = {
-  postgresJs: () => postgres.postgresJs,
+  postgres: () => postgres.postgres,
 };
 
-describe.each(["postgresJs"] as const)("fetchSchemas: %s", (adapter) => {
+describe.each(["postgres"] as const)("fetchSchemas: %s", (adapter) => {
   const { createTestDb, createTestRole } = adapters[adapter]();
   test("should fetch only the public schema", async () => {
     const db = await createTestDb();

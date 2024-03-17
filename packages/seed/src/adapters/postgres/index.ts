@@ -1,8 +1,8 @@
 import { type Sql } from "postgres";
-import { PostgresJsClient } from "./postgres-js.js";
+import { PostgresClient } from "./postgres.js";
 
 export function createDatabaseClient(client: Sql) {
-  return new PostgresJsClient(client);
+  return new PostgresClient(client);
 }
 
 export type { DatabaseClient } from "#core/databaseClient.js";

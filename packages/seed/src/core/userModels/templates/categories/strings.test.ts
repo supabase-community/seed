@@ -306,7 +306,7 @@ describe("strings", () => {
         },
         "DRINKS": {
           "success": true,
-          "value": "Screwdriver",
+          "value": "Screwadapter",
         },
         "EMAIL": {
           "success": true,

@@ -1,6 +1,6 @@
 import postgres from "postgres";
 import { v4 } from "uuid";
-import { createDatabaseClient } from "#dialects/postgres/drivers/postgres-js/index.js";
+import { createDatabaseClient } from "#adapters/postgres/index.js";
 
 interface State {
   roles: Array<{
