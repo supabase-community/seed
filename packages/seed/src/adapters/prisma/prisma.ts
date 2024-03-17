@@ -10,12 +10,37 @@ interface PrismaLikeClient {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     ...values: Array<any>
   ): Promise<T>;
+  // https://github.com/prisma/prisma/blob/ed2f2fc22c5847839b8fd742192fa3b4ad5e78d6/packages/client/src/runtime/getPrismaClient.ts#L404
+  _engineConfig?: {
+    // https://github.com/prisma/prisma/blob/ed2f2fc22c5847839b8fd742192fa3b4ad5e78d6/packages/client/tests/functional/_utils/providers.ts#L1-L8
+    activeProvider:
+      | "cockroachdb"
+      | "mongodb"
+      | "mysql"
+      | "postgresql"
+      | "sqlite"
+      | "sqlserver";
+  };
 }
 
 export class SeedPrisma extends DatabaseClient<PrismaLikeClient> {
   constructor(client: PrismaLikeClient) {
-    // TODO: determine the dialect from prisma client
-    super("postgres", client);
+    switch (client._engineConfig?.activeProvider) {
+      case "postgresql":
+        super("postgres", client);
+        break;
+      case "sqlite":
+        super("sqlite", client);
+        break;
+      // TODO: uncomment when we add MySQL support
+      // case "mysql":
+      //   super("mysql", client);
+      //   break;
+      default:
+        throw new Error(
+          `Unsupported Prisma provider ${client._engineConfig?.activeProvider}`,
+        );
+    }
   }
 
   async disconnect(): Promise<void> {
@@ -25,13 +50,13 @@ export class SeedPrisma extends DatabaseClient<PrismaLikeClient> {
     await this.client.$executeRawUnsafe(query);
   }
 
-  async query<K = unknown>(query: string): Promise<Array<K>> {
+  async query<K = object>(query: string): Promise<Array<K>> {
     const res = await this.client.$queryRawUnsafe<K>(query);
     return res as Array<K>;
   }
 }
 
-export const postgresAdapter = {
-  id: "postgres" as const,
-  className: "SeedPostgres",
+export const prismaAdapter = {
+  id: "prisma" as const,
+  className: "SeedPrisma",
 } satisfies Adapter;
