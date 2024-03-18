@@ -1,4 +1,5 @@
 import { relative, sep } from "node:path";
+import { cliTelemetry } from "#cli/lib/cliTelemetry.js";
 import {
   getDataModelConfigPath,
   setDataModelConfig,
@@ -13,6 +14,8 @@ export async function introspectHandler(args: {
   const { databaseUrl } = args;
 
   spinner.start("Introspecting the database");
+
+  await cliTelemetry.captureEvent("$command:introspect:start");
 
   const dialect = await getDialectFromDatabaseUrl(databaseUrl);
 
@@ -37,6 +40,8 @@ export async function introspectHandler(args: {
   spinner.succeed(
     `Introspected ${Object.keys(dataModel.models).length} models and wrote them into ${link(relativeDataModelConfigPath, dataModelConfigPath)}`,
   );
+
+  await cliTelemetry.captureEvent("$command:introspect:end");
 
   return dataModel;
 }
