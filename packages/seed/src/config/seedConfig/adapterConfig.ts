@@ -1,8 +1,10 @@
 import * as z from "zod";
-import { DatabaseClient } from "#core/databaseClient.js";
+import { type DatabaseClient } from "#core/databaseClient.js";
 
 export const adapterConfigSchema = z
   .function()
-  .returns(z.instanceof(DatabaseClient));
+  .returns(z.union([z.promise(z.unknown()), z.unknown()])) as z.ZodType<
+  () => DatabaseClient | Promise<DatabaseClient>
+>;
 
 export type AdapterConfig = z.infer<typeof adapterConfigSchema>;

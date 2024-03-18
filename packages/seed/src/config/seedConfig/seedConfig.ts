@@ -30,7 +30,7 @@ export async function getSeedConfig() {
     name: "seed",
   });
 
-  const parsedConfig = configSchema.passthrough().parse(config ?? {});
+  const parsedConfig = configSchema.parse(config ?? {});
 
   return parsedConfig;
 }
