@@ -6,6 +6,7 @@ import { type SeedClientOptions } from "#core/client/types.js";
 import { type DataModel } from "#core/dataModel/types.js";
 import { type Fingerprint } from "#core/fingerprint/types.js";
 import { updateDataModelSequences } from "#core/sequences/updateDataModelSequences.js";
+import { runtimeTelemetry } from "#core/telemetry/runtimeTelemetry.js";
 import { type UserModels } from "#core/userModels/types.js";
 import { createDrizzleORMPgClient } from "./adapters.js";
 import { getDatamodel } from "./dataModel.js";
@@ -27,7 +28,9 @@ export function getSeedClient(props: {
         ...props,
         createStore: (dataModel: DataModel) => new PgStore(dataModel),
         emit: (event) => {
-          console.error(event);
+          void runtimeTelemetry.captureThrottledEvent(event, {
+            dialect: "postgres",
+          });
         },
         runStatements: async (statements: Array<string>) => {
           if (!this.dryRun) {
@@ -66,7 +69,6 @@ export function getSeedClient(props: {
     }
 
     async $transaction(cb: (seed: PgSeedClient) => Promise<void>) {
-      // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
       await cb(await createSeedClient(this.db.adapter, this.options));
     }
   }
@@ -76,7 +78,6 @@ export function getSeedClient(props: {
     db: PgDatabase<any>,
     options?: SeedClientOptions,
   ) => {
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
     const client = createDrizzleORMPgClient(db);
     const seed = new PgSeedClient(client, options);
 

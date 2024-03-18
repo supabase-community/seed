@@ -6,6 +6,7 @@ import { type SeedClientOptions } from "#core/client/types.js";
 import { type DataModel } from "#core/dataModel/types.js";
 import { type Fingerprint } from "#core/fingerprint/types.js";
 import { updateDataModelSequences } from "#core/sequences/updateDataModelSequences.js";
+import { runtimeTelemetry } from "#core/telemetry/runtimeTelemetry.js";
 import { type UserModels } from "#core/userModels/types.js";
 import { createDrizzleORMSqliteClient } from "./adapters.js";
 import { getDatamodel } from "./dataModel.js";
@@ -30,7 +31,9 @@ export function getSeedClient(props: {
         ...props,
         createStore: (dataModel: DataModel) => new SqliteStore(dataModel),
         emit: (event) => {
-          console.error(event);
+          void runtimeTelemetry.captureThrottledEvent(event, {
+            dialect: "sqlite",
+          });
         },
         runStatements: async (statements: Array<string>) => {
           if (!this.dryRun) {
@@ -67,7 +70,6 @@ export function getSeedClient(props: {
     }
 
     async $transaction(cb: (seed: SqliteSeedClient) => Promise<void>) {
-      // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
       await cb(await createSeedClient(this.db.adapter, this.options));
     }
   }
@@ -76,7 +78,6 @@ export function getSeedClient(props: {
     db: DrizzleSqliteDatabase,
     options?: SeedClientOptions,
   ) => {
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
     const client = createDrizzleORMSqliteClient(db);
     const seed = new SqliteSeedClient(client, options);
 

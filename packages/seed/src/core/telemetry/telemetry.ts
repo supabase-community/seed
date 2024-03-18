@@ -11,6 +11,8 @@ import {
 
 const POSTHOG_API_KEY = "phc_F2nspobfCOFDskuwSN7syqKyz8aAzRTw2MEsRvQSB5G";
 
+export const EVENT_THROTTLE_INTERVAL = 1000 * 60 * 60 * 24;
+
 type TelemetrySource = "seed" | "seed-cli";
 
 interface TelemetryOptions {
@@ -111,7 +113,6 @@ export const createTelemetry = (options: TelemetryOptions) => {
 
   const captureThrottledEvent = async (
     event: string,
-    interval: number,
     properties: Record<string, unknown> = {},
   ) => {
     const now = Date.now();
@@ -119,7 +120,7 @@ export const createTelemetry = (options: TelemetryOptions) => {
     const lastEventTimestamps = (manifest.lastEventTimestamps ??= {});
     const lastEventTimestamp = lastEventTimestamps[event] ?? 0;
 
-    if (now - lastEventTimestamp > interval) {
+    if (now - lastEventTimestamp > EVENT_THROTTLE_INTERVAL) {
       await captureEvent(event, properties);
       lastEventTimestamps[event] = now;
       await updateSystemManifest({ lastEventTimestamps });
