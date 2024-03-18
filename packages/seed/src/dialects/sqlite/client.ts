@@ -1,6 +1,7 @@
 import { EOL } from "node:os";
 import { SeedClientBase } from "#core/client/client.js";
 import { type SeedClientOptions } from "#core/client/types.js";
+import { filterModelsBySelectConfig } from "#core/client/utils.js";
 import { type DataModel } from "#core/dataModel/types.js";
 import { type DatabaseClient } from "#core/databaseClient.js";
 import { type Fingerprint } from "#core/fingerprint/types.js";
@@ -45,10 +46,12 @@ export function getSeedClient(props: {
       this.options = options;
     }
 
-    async $resetDatabase() {
+    async $resetDatabase(selectConfig?: Record<string, boolean>) {
+      const models = Object.values(this.dataModel.models);
+      const filteredModels = filterModelsBySelectConfig(models, selectConfig);
       if (!this.dryRun) {
-        const tablesToTruncate = Object.values(this.dataModel.models).map(
-          (model) => escapeIdentifier(model.tableName),
+        const tablesToTruncate = filteredModels.map((model) =>
+          escapeIdentifier(model.tableName),
         );
         for (const table of tablesToTruncate) {
           await this.db.execute(`DELETE FROM ${table}`);

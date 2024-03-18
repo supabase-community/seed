@@ -7,6 +7,52 @@ const adapter = await adapters.postgres();
 describe.concurrent(
   `e2e: postgres-specific`,
   () => {
+    test("generates valid sequences for tables with ids as sequences or identity", async () => {
+      const { db } = await setupProject({
+        adapter,
+        databaseSchema: `
+          CREATE TABLE "Team" (
+            "id" SERIAL PRIMARY KEY
+          );
+          CREATE TABLE "Player" (
+            "id" BIGSERIAL PRIMARY KEY,
+            "teamId" integer NOT NULL REFERENCES "Team"("id"),
+            "name" text NOT NULL
+          );
+          CREATE TABLE "Game" (
+            "id" INTEGER GENERATED ALWAYS AS IDENTITY PRIMARY KEY
+          );
+        `,
+        seedScript: `
+          import { createSeedClient } from '#seed'
+            const seed = await createSeedClient({ dryRun: false })
+            await seed.teams((x) => x(2, {
+              players: (x) => x(3)
+            }));
+            await seed.games((x) => x(3));
+          `,
+      });
+
+      const teams = await db.query<{ id: number }>('SELECT * FROM "Team"');
+      const players = await db.query<{
+        id: number;
+        name: string;
+        teamId: number;
+      }>('SELECT * FROM "Player"');
+      const games = await db.query<{ id: number }>('SELECT * FROM "Game"');
+      expect(teams.length).toEqual(2); // Expected number of teams
+      expect(players.length).toEqual(6); // Expected number of players
+      expect(games.length).toEqual(3); // Expected number of games
+      const teamIDs = teams.map((row) => Number(row.id)).sort((a, b) => a - b);
+      const playerIDs = players
+        .map((row) => Number(row.id))
+        .sort((a, b) => a - b);
+      const gameIDs = games.map((row) => Number(row.id)).sort((a, b) => a - b);
+
+      expect(teamIDs).toEqual([1, 2]);
+      expect(playerIDs).toEqual([1, 2, 3, 4, 5, 6]);
+      expect(gameIDs).toEqual([1, 2, 3]);
+    });
     test("works with multiple schemas", async () => {
       const { db } = await setupProject({
         adapter,

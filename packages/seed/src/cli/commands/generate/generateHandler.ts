@@ -1,4 +1,5 @@
 import { relative, sep } from "node:path";
+import { getSeedConfig } from "#config/seedConfig/seedConfig.js";
 import { type CodegenContext, generateAssets } from "#core/codegen/codegen.js";
 import { getDataModel } from "#core/dataModel/dataModel.js";
 import { getFingerprint } from "#core/fingerprint/fingerprint.js";
@@ -24,7 +25,9 @@ async function computeCodegenContext(props: {
   const { outputDir } = props;
 
   const dataModel = await getDataModel();
+  const seedConfig = await getSeedConfig();
   const dialect = await getDialect();
+
   let shapePredictions: Array<TableShapePredictions> = [];
   let shapeExamples: Array<{ examples: Array<string>; shape: string }> = [];
 
@@ -39,6 +42,7 @@ async function computeCodegenContext(props: {
   }
 
   return {
+    seedConfig,
     fingerprint: await getFingerprint(),
     dataModel,
     outputDir,

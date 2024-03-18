@@ -163,7 +163,7 @@ export interface FetchTableForeignKeysResultRaw {
   fkFromColumn: string;
   fkId: number;
   fkSeq: number;
-  fkToColumn: string;
+  fkToColumn: null | string;
   fkToTable: string;
   tableId: string;
   tableName: string;

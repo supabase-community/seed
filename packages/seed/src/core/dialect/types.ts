@@ -1,3 +1,4 @@
+import { type SeedConfig } from "#config/seedConfig/seedConfig.js";
 import { type DataModel } from "#core/dataModel/types.js";
 import { type Fingerprint } from "#core/fingerprint/types.js";
 import { type Templates } from "#core/userModels/templates/types.js";
@@ -29,4 +30,5 @@ export type DetermineShapeFromType = (type: string) => Shape | null;
 export type GenerateClientTypes = (props: {
   dataModel: DataModel;
   fingerprint?: Fingerprint;
+  seedConfig?: SeedConfig;
 }) => Promise<string> | string;

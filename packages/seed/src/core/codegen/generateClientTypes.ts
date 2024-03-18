@@ -1,4 +1,6 @@
 import { EOL } from "node:os";
+import { type SeedConfig } from "#config/seedConfig/seedConfig.js";
+import { getSelectFilteredDataModel } from "#core/dataModel/select.js";
 import {
   type DataModel,
   type DataModelModel,
@@ -12,6 +14,7 @@ import {
 } from "../fingerprint/fingerprint.js";
 import { type Fingerprint } from "../fingerprint/types.js";
 import { escapeKey } from "../utils.js";
+import { generateSelectTypeFromTableIds } from "./generateConfigTypes.js";
 
 type Database2tsType = (
   dataModel: DataModel,
@@ -33,11 +36,13 @@ export async function generateClientTypes(props: {
   fingerprint?: Fingerprint;
   isJson: IsJson;
   refineType: RefineType;
+  seedConfig?: SeedConfig;
 }) {
-  const { dataModel, fingerprint } = props;
+  const { dataModel, fingerprint, seedConfig } = props;
   return [
     'import { type DatabaseClient } from "@snaplet/seed/database-client";',
     generateHelpers(),
+    generateSelectTypes(dataModel, seedConfig?.select),
     generateStoreTypes(dataModel),
     generateEnums(dataModel),
     await generateInputsTypes({
@@ -50,6 +55,24 @@ export async function generateClientTypes(props: {
     generateSeedClientBaseTypes(dataModel),
     generateSeedClientTypes(),
   ].join(EOL);
+}
+
+function generateSelectTypes(
+  dataModel: DataModel,
+  seedSelectConfig?: SeedConfig["select"],
+) {
+  const tableIdsSet = new Set<string>();
+  // First we filter out the tables excluded from seed.config.ts if there is any
+  // so the possibilities are reduced to what the user wants to seed
+  const selectFilteredModel = getSelectFilteredDataModel(
+    dataModel,
+    seedSelectConfig,
+  );
+  for (const model of Object.values(selectFilteredModel.models)) {
+    tableIdsSet.add(model.id);
+  }
+  const tableIds = Array.from(tableIdsSet);
+  return generateSelectTypeFromTableIds(tableIds);
 }
 
 function generateHelpers() {
@@ -573,7 +596,7 @@ ${Object.keys(dataModel.models)
   /**
    * Delete all data in the database while preserving the database structure.
    */
-  $resetDatabase(): Promise<unknown>;
+  $resetDatabase(selectConfig?: SelectConfig): Promise<unknown>;
 
   /**
    * Get the global store.
