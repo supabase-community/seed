@@ -12,23 +12,30 @@ type ComputeFingerprintFieldTypeName = (
   | "FingerprintRelationField"
   | null;
 
+export function generateSelectTypeFromTableIds(
+  tableIds: Array<string>,
+): string {
+  const uniqueTableIds = Array.from(new Set(tableIds));
+  return [
+    `//#region selectTypes`,
+    `type PartialRecord<K extends keyof unknown, T> = {
+      [P in K]?: T;
+  };`,
+    uniqueTableIds.length > 0
+      ? `type TablesOptions = \n${uniqueTableIds.map((id) => `\t"${id}"`).join(" |\n")}\ntype SelectOptions = TablesOptions | \`\${string}${SELECT_WILDCARD_STRING}\``
+      : `type SelectOptions = \`\${string}${SELECT_WILDCARD_STRING}\``,
+    `type SelectConfig = PartialRecord<SelectOptions, boolean>`,
+    `//#endregion`,
+  ].join("\n");
+}
+
 function generateSelectTypes(dataModel: DataModel): string {
   const tableIdsSet = new Set<string>();
   for (const model of Object.values(dataModel.models)) {
     tableIdsSet.add(model.id);
   }
   const tableIds = Array.from(tableIdsSet);
-  return [
-    `//#region types`,
-    `type PartialRecord<K extends keyof unknown, T> = {
-      [P in K]?: T;
-  };`,
-    tableIds.length > 0
-      ? `type TablesOptions = \n${tableIds.map((id) => `\t"${id}"`).join(" |\n")}\ntype SelectOptions = TablesOptions | \`\${string}${SELECT_WILDCARD_STRING}\``
-      : `type SelectOptions = \`\${string}${SELECT_WILDCARD_STRING}\``,
-    `type SelectConfig = PartialRecord<SelectOptions, boolean>`,
-    `//#endregion`,
-  ].join("\n");
+  return generateSelectTypeFromTableIds(tableIds);
 }
 
 function generateAliasTypes(dataModel: DataModel) {
