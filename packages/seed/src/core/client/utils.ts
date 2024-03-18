@@ -5,15 +5,15 @@ export function filterModelsBySelectConfig(
   models: Array<DataModelModel>,
   selectConfig?: Record<string, boolean>,
 ) {
-  let fitlteredModels = Object.values(models);
+  let filteredModels = Object.values(models);
   if (selectConfig !== undefined) {
     const tableIds = Object.values(models).map((model) => model.id);
     const includedTableIds = new Set(
       computeIncludedTables(tableIds, selectConfig),
     );
-    fitlteredModels = fitlteredModels.filter((model) =>
+    filteredModels = filteredModels.filter((model) =>
       includedTableIds.has(model.id),
     );
   }
-  return fitlteredModels;
+  return filteredModels;
 }
