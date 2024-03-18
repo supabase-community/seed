@@ -33,7 +33,7 @@ export const postgresAdapter = {
       adapter: () => {
         const client = postgres(${parameters});
         return new SeedPostgres(client);
-      }
+      },
     });
   `,
 } satisfies Adapter;

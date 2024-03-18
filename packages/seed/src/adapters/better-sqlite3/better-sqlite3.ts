@@ -36,7 +36,7 @@ export const betterSqlite3Adapter = {
       adapter: () => {
         const client = new Database(${parameters});
         return new SeedBetterSqlite3(client);
-      }
+      },
     });
   `,
 } satisfies Adapter;

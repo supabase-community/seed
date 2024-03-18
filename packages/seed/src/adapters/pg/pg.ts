@@ -34,7 +34,7 @@ export const pgAdapter = {
         const client = new Client(${parameters});
         await client.connect();
         return new SeedPg(client);
-      }
+      },
     });
   `,
 } satisfies Adapter;

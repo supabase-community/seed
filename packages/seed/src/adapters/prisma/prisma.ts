@@ -70,7 +70,7 @@ export const prismaAdapter = {
       adapter: () => {
         const client = new PrismaClient(${parameters});
         return new SeedPrisma(client);
-      }
+      },
     });
   `,
 } satisfies Adapter;
