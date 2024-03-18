@@ -1,4 +1,5 @@
 import { relative, sep } from "node:path";
+import { getSnapletSeedConfig } from "#config/seedConfig/seedConfig.js";
 import { type CodegenContext, generateAssets } from "#core/codegen/codegen.js";
 import { getDataModel } from "#core/dataModel/dataModel.js";
 import { getDialect } from "#core/dialect/getDialect.js";
@@ -24,6 +25,7 @@ async function computeCodegenContext(props: {
   const { outputDir } = props;
 
   const dataModel = await getDataModel();
+  const seedConfig = await getSnapletSeedConfig();
   const dialect = await getDialect(dataModel.dialect);
   let shapePredictions: Array<TableShapePredictions> = [];
   let shapeExamples: Array<{ examples: Array<string>; shape: string }> = [];
@@ -39,6 +41,7 @@ async function computeCodegenContext(props: {
   }
 
   return {
+    seedConfig,
     fingerprint: await getFingerprint(),
     dataModel,
     outputDir,

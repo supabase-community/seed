@@ -103,7 +103,9 @@ export abstract class SeedClientBase implements SeedClient {
     return this.state.store._store;
   }
 
-  abstract $resetDatabase(): Promise<void>;
+  abstract $resetDatabase(
+    selectConfig?: Record<string, boolean>,
+  ): Promise<void>;
 
   abstract $syncDatabase(): Promise<void>;
 
@@ -115,7 +117,7 @@ export abstract class SeedClientBase implements SeedClient {
 interface SeedClient {
   $reset: () => void;
 
-  $resetDatabase: () => Promise<void>;
+  $resetDatabase: (selectConfig?: Record<string, boolean>) => Promise<void>;
 
   $store: Store["_store"];
 
