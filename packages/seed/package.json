@@ -20,24 +20,24 @@
       "default": "./dist/index.js"
     },
     "./adapter-better-sqlite3": {
-      "types": "./dist/dialects/sqlite/adapters/better-sqlite3/index.d.ts",
-      "development": "./src/dialects/sqlite/adapters/better-sqlite3/index.ts",
-      "default": "./dist/dialects/sqlite/adapters/better-sqlite3/index.js"
+      "types": "./dist/adapters/better-sqlite3/index.d.ts",
+      "development": "./src/adapters/better-sqlite3/index.ts",
+      "default": "./dist/adapters/better-sqlite3/index.js"
     },
     "./adapter-pg": {
-      "types": "./dist/dialects/postgres/adapters/pg/index.d.ts",
-      "development": "./src/dialects/postgres/adapters/pg/index.ts",
-      "default": "./dist/dialects/postgres/adapters/pg/index.js"
+      "types": "./dist/adapters/pg/index.d.ts",
+      "development": "./src/adapters/pg/index.ts",
+      "default": "./dist/adapters/pg/index.js"
     },
     "./adapter-postgres": {
-      "types": "./dist/dialects/postgres/adapters/postgres/index.d.ts",
-      "development": "./src/dialects/postgres/adapters/postgres/index.ts",
-      "default": "./dist/dialects/postgres/adapters/postgres/index.js"
+      "types": "./dist/adapters/postgres/index.d.ts",
+      "development": "./src/adapters/postgres/index.ts",
+      "default": "./dist/adapters/postgres/index.js"
     },
     "./adapter-prisma": {
-      "types": "./dist/dialects/postgres/adapters/prisma/index.d.ts",
-      "development": "./src/dialects/postgres/adapters/prisma/index.ts",
-      "default": "./dist/dialects/postgres/adapters/prisma/index.js"
+      "types": "./dist/adapters/prisma/index.d.ts",
+      "development": "./src/adapters/prisma/index.ts",
+      "default": "./dist/adapters/prisma/index.js"
     },
     "./config": {
       "types": "./dist/config/seedConfig/defineConfig.d.ts",
