@@ -152,9 +152,7 @@ describe.each(["betterSqlite3"] as const)(
         );
       `;
       const { client } = await createTestDb(structure);
-      const relationships = await fetchDatabaseRelationships(
-        createDrizzleORMSqliteClient(drizzle(client)),
-      );
+      const relationships = await fetchDatabaseRelationships(client);
       expect(relationships).toEqual(
         expect.arrayContaining([
           {

@@ -2,8 +2,13 @@ import { describe, expect, test } from "vitest";
 import { type Dialect, adapters } from "#test/adapters.js";
 import { setupProject } from "#test/setupProject.js";
 
-type DialectRecordWithDefault = Partial<Record<Dialect, string>> &
-  Record<"default", string>;
+type DialectRecordWithDefault<T> = Partial<Record<Dialect, T>> &
+  Record<"default", T>;
+type SchemaRecord = DialectRecordWithDefault<string>;
+type SeedScriptRecord = DialectRecordWithDefault<string>;
+type SeedConfigRecord = DialectRecordWithDefault<
+  (connectionString: string) => string
+>;
 
 for (const dialect of Object.keys(adapters) as Array<Dialect>) {
   const adapter = await adapters[dialect]();
@@ -12,7 +17,7 @@ for (const dialect of Object.keys(adapters) as Array<Dialect>) {
     `e2e: api: ${dialect}`,
     () => {
       test("seed.$reset works as expected", async () => {
-        const schema: DialectRecordWithDefault = {
+        const schema: SchemaRecord = {
           default: `
             CREATE TABLE "user" (
               "id" SERIAL PRIMARY KEY,
@@ -51,7 +56,7 @@ for (const dialect of Object.keys(adapters) as Array<Dialect>) {
       });
 
       test("seed.$transaction works as expected", async () => {
-        const schema: DialectRecordWithDefault = {
+        const schema: SchemaRecord = {
           default: `
             CREATE TABLE "user" (
               "id" SERIAL PRIMARY KEY,
@@ -116,7 +121,7 @@ for (const dialect of Object.keys(adapters) as Array<Dialect>) {
 
       describe("$resetDatabase", () => {
         test("should reset all tables per default", async () => {
-          const schema: DialectRecordWithDefault = {
+          const schema: SchemaRecord = {
             default: `
               CREATE TABLE "Team" (
                 "id" SERIAL PRIMARY KEY
@@ -171,7 +176,7 @@ for (const dialect of Object.keys(adapters) as Array<Dialect>) {
         });
 
         test("should not reset config excluded table", async () => {
-          const schema: DialectRecordWithDefault = {
+          const schema: SchemaRecord = {
             default: `
               CREATE TABLE "BABBA" (
                 "id" SERIAL PRIMARY KEY
@@ -191,9 +196,7 @@ for (const dialect of Object.keys(adapters) as Array<Dialect>) {
             `,
           };
 
-          const seedConfig: Partial<
-            Record<"default" | Dialect, (connectionString: string) => string>
-          > = {
+          const seedConfig: SeedConfigRecord = {
             default: (connectionString) =>
               adapter.generateSeedConfig(
                 connectionString,
@@ -238,7 +241,7 @@ for (const dialect of Object.keys(adapters) as Array<Dialect>) {
         });
 
         test("should not reset parameterized excluded table", async () => {
-          const schema: DialectRecordWithDefault = {
+          const schema: SchemaRecord = {
             default: `
               CREATE TABLE "BABBA" (
                 "id" SERIAL PRIMARY KEY
@@ -258,7 +261,7 @@ for (const dialect of Object.keys(adapters) as Array<Dialect>) {
             `,
           };
 
-          const seedScript: DialectRecordWithDefault = {
+          const seedScript: SeedScriptRecord = {
             default: `
               import { createSeedClient } from '#seed'
 
@@ -294,7 +297,7 @@ for (const dialect of Object.keys(adapters) as Array<Dialect>) {
         });
 
         test("should not reset parameterized excluded table with star syntax", async () => {
-          const schema: DialectRecordWithDefault = {
+          const schema: SchemaRecord = {
             default: `
               CREATE TABLE "BABBA" (
                 "id" SERIAL PRIMARY KEY
@@ -314,7 +317,7 @@ for (const dialect of Object.keys(adapters) as Array<Dialect>) {
             `,
           };
 
-          const seedScript: DialectRecordWithDefault = {
+          const seedScript: SeedScriptRecord = {
             default: `
               import { createSeedClient } from '#seed'
 
@@ -347,11 +350,11 @@ for (const dialect of Object.keys(adapters) as Array<Dialect>) {
         });
 
         test("should not allow to pass a table already excluded in the config", async () => {
-          const tableName: DialectRecordWithDefault = {
+          const tableName: SchemaRecord = {
             default: "BABA",
             postgres: "public.BABA",
           };
-          const schema: DialectRecordWithDefault = {
+          const schema: SchemaRecord = {
             default: `
               CREATE TABLE "BABBA" (
                 "id" SERIAL PRIMARY KEY
@@ -371,28 +374,28 @@ for (const dialect of Object.keys(adapters) as Array<Dialect>) {
             `,
           };
 
-          const seedConfig: DialectRecordWithDefault = {
-            default: `
-              import { defineConfig } from "@snaplet/seed/config";
-
-              export default defineConfig({
-                select: {
-                  "BABA": false,
-                },
-              })
-            `,
-            postgres: `
-              import { defineConfig } from "@snaplet/seed/config";
-
-              export default defineConfig({
-                select: {
-                  "${tableName[dialect] ?? tableName.default}": false,
-                },
-              })
-            `,
+          const seedConfig: SeedConfigRecord = {
+            default: (connectionString) =>
+              adapter.generateSeedConfig(
+                connectionString,
+                `
+                  select: {
+                    "BABA": false,
+                  },
+                `,
+              ),
+            postgres: (connectionString) =>
+              adapter.generateSeedConfig(
+                connectionString,
+                `
+                  select: {
+                    "${tableName[dialect] ?? tableName.default}": false,
+                  },
+                `,
+              ),
           };
 
-          const seedScript: DialectRecordWithDefault = {
+          const seedScript: SeedScriptRecord = {
             default: `
               import { createSeedClient } from '#seed'
 
