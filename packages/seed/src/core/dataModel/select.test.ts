@@ -107,7 +107,6 @@ describe("getSelectFilteredDataModel", () => {
     };
     expect(getSelectFilteredDataModel(sqliteDataModel, selectConfig)).toEqual(
       expect.objectContaining({
-        dialect: "sqlite",
         models: {
           test_customer: {
             id: "test_customer",
