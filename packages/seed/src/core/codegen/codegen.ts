@@ -2,6 +2,7 @@ import { findUp } from "find-up";
 import { mkdirp } from "fs-extra/esm";
 import { writeFile } from "node:fs/promises";
 import path from "node:path";
+import { type SeedConfig } from "#config/seedConfig/seedConfig.js";
 import { type DataModel } from "#core/dataModel/types.js";
 import { type Dialect } from "#core/dialect/types.js";
 import { type Fingerprint } from "#core/fingerprint/types.js";
@@ -13,6 +14,7 @@ export interface CodegenContext {
   dialect: Dialect;
   fingerprint: Fingerprint;
   outputDir?: string;
+  seedConfig: SeedConfig;
   shapeExamples: Array<{ examples: Array<string>; shape: string }>;
   shapePredictions: Array<TableShapePredictions>;
 }
@@ -53,8 +55,12 @@ export const createSeedClient = getSeedClient({ dataModel, userModels });
   },
   TYPEDEFS: {
     name: "index.d.ts",
-    template({ dialect, dataModel, fingerprint }: CodegenContext) {
-      return dialect.generateClientTypes({ dataModel, fingerprint });
+    template({ dialect, dataModel, fingerprint, seedConfig }: CodegenContext) {
+      return dialect.generateClientTypes({
+        dataModel,
+        fingerprint,
+        seedConfig,
+      });
     },
   },
   DATA_MODEL: {

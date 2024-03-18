@@ -2,6 +2,9 @@ import { describe, expect, test } from "vitest";
 import { type Dialect, adapters } from "#test/adapters.js";
 import { setupProject } from "#test/setupProject.js";
 
+type DialectRecordWithDefault = Partial<Record<Dialect, string>> &
+  Record<"default", string>;
+
 for (const dialect of Object.keys(adapters) as Array<Dialect>) {
   const adapter = await adapters[dialect]();
 
@@ -9,7 +12,7 @@ for (const dialect of Object.keys(adapters) as Array<Dialect>) {
     `e2e: api: ${dialect}`,
     () => {
       test("seed.$reset works as expected", async () => {
-        const schema: Partial<Record<"default" | Dialect, string>> = {
+        const schema: DialectRecordWithDefault = {
           default: `
             CREATE TABLE "user" (
               "id" SERIAL PRIMARY KEY,
@@ -48,7 +51,7 @@ for (const dialect of Object.keys(adapters) as Array<Dialect>) {
       });
 
       test("seed.$transaction works as expected", async () => {
-        const schema: Partial<Record<"default" | Dialect, string>> = {
+        const schema: DialectRecordWithDefault = {
           default: `
             CREATE TABLE "user" (
               "id" SERIAL PRIMARY KEY,
@@ -113,7 +116,7 @@ for (const dialect of Object.keys(adapters) as Array<Dialect>) {
 
       describe("$resetDatabase", () => {
         test("should reset all tables per default", async () => {
-          const schema: Partial<Record<"default" | Dialect, string>> = {
+          const schema: DialectRecordWithDefault = {
             default: `
               CREATE TABLE "Team" (
                 "id" SERIAL PRIMARY KEY
@@ -151,11 +154,12 @@ for (const dialect of Object.keys(adapters) as Array<Dialect>) {
         }));
         await seed.games((x) => x(3));
       `;
-          const { db, runSeedScript } = await setupProject({
+          const { db, runSeedScript, stdout } = await setupProject({
             adapter,
             databaseSchema: schema[dialect] ?? schema.default,
             seedScript,
           });
+          console.log(stdout);
           expect((await db.query('SELECT * FROM "Player"')).length).toEqual(6);
           expect((await db.query('SELECT * FROM "Team"')).length).toEqual(2);
           expect((await db.query('SELECT * FROM "Game"')).length).toEqual(3);
@@ -167,33 +171,33 @@ for (const dialect of Object.keys(adapters) as Array<Dialect>) {
         });
 
         test("should not reset config excluded table", async () => {
-          const schema: Partial<Record<"default" | Dialect, string>> = {
+          const schema: DialectRecordWithDefault = {
             default: `
-              CREATE TABLE "A" (
+              CREATE TABLE "BABBA" (
                 "id" SERIAL PRIMARY KEY
               );
 
-              CREATE TABLE "B" (
+              CREATE TABLE "BABA" (
                 "id" SERIAL PRIMARY KEY
               );
             `,
             sqlite: `
-              CREATE TABLE "A" (
+              CREATE TABLE "BABBA" (
                 "id" INTEGER PRIMARY KEY AUTOINCREMENT
               );
-              CREATE TABLE "B" (
+              CREATE TABLE "BABA" (
                 "id" INTEGER PRIMARY KEY AUTOINCREMENT
               );
             `,
           };
 
-          const snapletConfig: Partial<Record<"default" | Dialect, string>> = {
+          const snapletConfig: DialectRecordWithDefault = {
             default: `
               import { defineConfig } from "@snaplet/seed/config";
 
               export default defineConfig({
                 select: {
-                  "B": false,
+                  "BABA": false,
                 },
               })
             `,
@@ -202,7 +206,7 @@ for (const dialect of Object.keys(adapters) as Array<Dialect>) {
 
               export default defineConfig({
                 select: {
-                  "public.B": false,
+                  "public.BABA": false,
                 },
               })
             `,
@@ -214,11 +218,11 @@ for (const dialect of Object.keys(adapters) as Array<Dialect>) {
             databaseSchema: schema[dialect] ?? schema.default,
           });
 
-          await db.run(`INSERT INTO "A" DEFAULT VALUES`);
-          await db.run(`INSERT INTO "A" DEFAULT VALUES`);
+          await db.run(`INSERT INTO "BABBA" DEFAULT VALUES`);
+          await db.run(`INSERT INTO "BABBA" DEFAULT VALUES`);
 
-          await db.run(`INSERT INTO "B" DEFAULT VALUES`);
-          await db.run(`INSERT INTO "B" DEFAULT VALUES`);
+          await db.run(`INSERT INTO "BABA" DEFAULT VALUES`);
+          await db.run(`INSERT INTO "BABA" DEFAULT VALUES`);
 
           await runSeedScript(`
             import { createSeedClient } from '#seed'
@@ -227,8 +231,190 @@ for (const dialect of Object.keys(adapters) as Array<Dialect>) {
             await seed.$resetDatabase()
           `);
 
-          expect((await db.query('SELECT * FROM "A"')).length).toBe(0);
-          expect((await db.query('SELECT * FROM "B"')).length).toBe(2);
+          expect((await db.query('SELECT * FROM "BABBA"')).length).toBe(0);
+          expect((await db.query('SELECT * FROM "BABA"')).length).toBe(2);
+        });
+
+        test("should not reset parameterized excluded table", async () => {
+          const schema: DialectRecordWithDefault = {
+            default: `
+              CREATE TABLE "BABBA" (
+                "id" SERIAL PRIMARY KEY
+              );
+
+              CREATE TABLE "BABA" (
+                "id" SERIAL PRIMARY KEY
+              );
+            `,
+            sqlite: `
+              CREATE TABLE "BABBA" (
+                "id" INTEGER PRIMARY KEY AUTOINCREMENT
+              );
+              CREATE TABLE "BABA" (
+                "id" INTEGER PRIMARY KEY AUTOINCREMENT
+              );
+            `,
+          };
+
+          const seedScript: DialectRecordWithDefault = {
+            default: `
+              import { createSeedClient } from '#seed'
+
+              const seed = await createSeedClient()
+              await seed.$resetDatabase({ "BABA": false })
+            `,
+            postgres: `
+              import { createSeedClient } from '#seed'
+
+              const seed = await createSeedClient()
+              await seed.$resetDatabase({ "public.BABA": false })
+            `,
+          };
+
+          const { db, runSeedScript } = await setupProject({
+            adapter,
+            databaseSchema: schema[dialect] ?? schema.default,
+          });
+
+          await db.run(`INSERT INTO "BABBA" DEFAULT VALUES`);
+          await db.run(`INSERT INTO "BABBA" DEFAULT VALUES`);
+
+          await db.run(`INSERT INTO "BABA" DEFAULT VALUES`);
+          await db.run(`INSERT INTO "BABA" DEFAULT VALUES`);
+
+          const { stdout } = await runSeedScript(
+            seedScript[dialect] ?? seedScript.default,
+          );
+          console.log(stdout);
+
+          expect((await db.query('SELECT * FROM "BABBA"')).length).toBe(0);
+          expect((await db.query('SELECT * FROM "BABA"')).length).toBe(2);
+        });
+
+        test("should not reset parameterized excluded table with star syntax", async () => {
+          const schema: DialectRecordWithDefault = {
+            default: `
+              CREATE TABLE "BABBA" (
+                "id" SERIAL PRIMARY KEY
+              );
+
+              CREATE TABLE "BABA" (
+                "id" SERIAL PRIMARY KEY
+              );
+            `,
+            sqlite: `
+              CREATE TABLE "BABBA" (
+                "id" INTEGER PRIMARY KEY AUTOINCREMENT
+              );
+              CREATE TABLE "BABA" (
+                "id" INTEGER PRIMARY KEY AUTOINCREMENT
+              );
+            `,
+          };
+
+          const seedScript: DialectRecordWithDefault = {
+            default: `
+              import { createSeedClient } from '#seed'
+
+              const seed = await createSeedClient()
+              await seed.$resetDatabase({ "BA*": false })
+            `,
+            postgres: `
+              import { createSeedClient } from '#seed'
+
+              const seed = await createSeedClient()
+              await seed.$resetDatabase({ "public.BA*": false })
+            `,
+          };
+
+          const { db, runSeedScript } = await setupProject({
+            adapter,
+            databaseSchema: schema[dialect] ?? schema.default,
+          });
+
+          await db.run(`INSERT INTO "BABBA" DEFAULT VALUES`);
+          await db.run(`INSERT INTO "BABBA" DEFAULT VALUES`);
+
+          await db.run(`INSERT INTO "BABA" DEFAULT VALUES`);
+          await db.run(`INSERT INTO "BABA" DEFAULT VALUES`);
+
+          await runSeedScript(seedScript[dialect] ?? seedScript.default);
+
+          expect((await db.query('SELECT * FROM "BABBA"')).length).toBe(2);
+          expect((await db.query('SELECT * FROM "BABA"')).length).toBe(2);
+        });
+
+        test("should not allow to pass a table already excluded in the config", async () => {
+          const tableName: DialectRecordWithDefault = {
+            default: "BABA",
+            postgres: "public.BABA",
+          };
+          const schema: DialectRecordWithDefault = {
+            default: `
+              CREATE TABLE "BABBA" (
+                "id" SERIAL PRIMARY KEY
+              );
+
+              CREATE TABLE "BABA" (
+                "id" SERIAL PRIMARY KEY
+              );
+            `,
+            sqlite: `
+              CREATE TABLE "BABBA" (
+                "id" INTEGER PRIMARY KEY AUTOINCREMENT
+              );
+              CREATE TABLE "BABA" (
+                "id" INTEGER PRIMARY KEY AUTOINCREMENT
+              );
+            `,
+          };
+
+          const snapletConfig: DialectRecordWithDefault = {
+            default: `
+              import { defineConfig } from "@snaplet/seed/config";
+
+              export default defineConfig({
+                select: {
+                  "BABA": false,
+                },
+              })
+            `,
+            postgres: `
+              import { defineConfig } from "@snaplet/seed/config";
+
+              export default defineConfig({
+                select: {
+                  "${tableName[dialect] ?? tableName.default}": false,
+                },
+              })
+            `,
+          };
+
+          const seedScript: DialectRecordWithDefault = {
+            default: `
+              import { createSeedClient } from '#seed'
+
+              const seed = await createSeedClient()
+              await seed.$resetDatabase({ "BABA": false })
+            `,
+            postgres: `
+              import { createSeedClient } from '#seed'
+
+              const seed = await createSeedClient()
+              await seed.$resetDatabase({ "${tableName[dialect] ?? tableName.default}": false })
+            `,
+          };
+
+          await expect(() =>
+            setupProject({
+              adapter,
+              snapletConfig: snapletConfig[dialect] ?? snapletConfig.default,
+              databaseSchema: schema[dialect] ?? schema.default,
+              seedScript: seedScript[dialect] ?? seedScript.default,
+            }),
+          ).rejects.toThrow(
+            `'"${tableName[dialect] ?? tableName.default}"' does not exist in type 'SelectConfig'`,
+          );
         });
       });
     },
