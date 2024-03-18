@@ -1,4 +1,5 @@
 import { type Database } from "better-sqlite3";
+import dedent from "dedent";
 import { DatabaseClient } from "#core/databaseClient.js";
 import { type Adapter } from "../types.js";
 
@@ -25,5 +26,17 @@ export class SeedBetterSqlite3 extends DatabaseClient<Database> {
 
 export const betterSqlite3Adapter = {
   id: "better-sqlite3" as const,
-  className: "SeedBetterSqlite3",
+  packageName: "better-sqlite3",
+  template: (parameters = `/* connection parameters */`) => dedent`
+    import { SeedBetterSqlite3 } from "@snaplet/seed/adapter-better-sqlite3";
+    import { defineConfig } from "@snaplet/seed/config";
+    import Database from "better-sqlite3";
+
+    export default defineConfig({
+      adapter: () => {
+        const client = new Database(${parameters});
+        return new SeedBetterSqlite3(client);
+      }
+    });
+  `,
 } satisfies Adapter;

@@ -1,8 +1,9 @@
 import { seedConfigExists } from "#config/seedConfig/seedConfig.js";
 import { bold, highlight } from "../../lib/output.js";
+import { generateHandler } from "../generate/generateHandler.js";
 import { introspectHandler } from "../introspect/introspectHandler.js";
 import { loginHandler } from "../login/loginHandler.js";
-import { getAdapterFromPrompt } from "./getAdapterFromPrompt.js";
+import { getAdapter } from "./getAdapter.js";
 import { getUser } from "./getUser.js";
 import { installDependencies } from "./installDependencies.js";
 import { saveSeedConfig } from "./saveSeedConfig.js";
@@ -23,12 +24,12 @@ export async function setupHandler() {
   await installDependencies();
 
   if (!(await seedConfigExists())) {
-    const adapter = await getAdapterFromPrompt();
+    const adapter = await getAdapter();
 
     await saveSeedConfig({ adapter });
   }
 
   await introspectHandler();
 
-  // await generateHandler({});
+  await generateHandler({});
 }

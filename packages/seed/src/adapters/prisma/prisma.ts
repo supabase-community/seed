@@ -1,3 +1,4 @@
+import dedent from "dedent";
 import { DatabaseClient } from "#core/databaseClient.js";
 import { type Adapter } from "../types.js";
 
@@ -59,5 +60,17 @@ export class SeedPrisma extends DatabaseClient<PrismaLikeClient> {
 
 export const prismaAdapter = {
   id: "prisma" as const,
-  className: "SeedPrisma",
+  packageName: "@prisma/client",
+  template: (parameters = `/* connection parameters */`) => dedent`
+    import { SeedPrisma } from "@snaplet/seed/adapter-prisma";
+    import { defineConfig } from "@snaplet/seed/config";
+    import { PrismaClient } from "@prisma/client";
+
+    export default defineConfig({
+      adapter: () => {
+        const client = new PrismaClient(${parameters});
+        return new SeedPrisma(client);
+      }
+    });
+  `,
 } satisfies Adapter;

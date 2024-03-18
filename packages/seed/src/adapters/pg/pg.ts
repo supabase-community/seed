@@ -1,3 +1,4 @@
+import dedent from "dedent";
 import { type Client } from "pg";
 import { DatabaseClient } from "#core/databaseClient.js";
 import { type Adapter } from "../types.js";
@@ -22,5 +23,18 @@ export class SeedPg extends DatabaseClient<Client> {
 
 export const pgAdapter = {
   id: "pg" as const,
-  className: "SeedPg",
+  packageName: "pg",
+  template: (parameters = `/* connection parameters */`) => dedent`
+    import { SeedPg } from "@snaplet/seed/adapter-pg";
+    import { defineConfig } from "@snaplet/seed/config";
+    import { Client } from "pg";
+
+    export default defineConfig({
+      adapter: async () => {
+        const client = new Client(${parameters});
+        await client.connect();
+        return new SeedPg(client);
+      }
+    });
+  `,
 } satisfies Adapter;

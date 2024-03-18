@@ -1,3 +1,4 @@
+import dedent from "dedent";
 import { type Sql } from "postgres";
 import { DatabaseClient } from "#core/databaseClient.js";
 import { type Adapter } from "../types.js";
@@ -22,5 +23,17 @@ export class SeedPostgres extends DatabaseClient<Sql> {
 
 export const postgresAdapter = {
   id: "postgres" as const,
-  className: "SeedPostgres",
+  packageName: "postgres",
+  template: (parameters = `/* connection parameters */`) => dedent`
+    import { SeedPostgres } from "@snaplet/seed/adapter-postgres";
+    import { defineConfig } from "@snaplet/seed/config";
+    import postgres from "postgres";
+
+    export default defineConfig({
+      adapter: () => {
+        const client = postgres(${parameters});
+        return new SeedPostgres(client);
+      }
+    });
+  `,
 } satisfies Adapter;

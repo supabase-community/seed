@@ -1,4 +1,5 @@
 export interface Adapter {
-  className: string;
   id: string;
+  packageName: string;
+  template: (parameters?: string) => string;
 }
