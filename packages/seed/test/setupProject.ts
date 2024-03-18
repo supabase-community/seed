@@ -1,9 +1,9 @@
-import { mkdirp, writeFile } from "fs-extra";
-import path, { join } from "node:path";
+import { mkdirp, pathExists, symlink, writeFile } from "fs-extra";
+import path from "node:path";
 import tmp from "tmp-promise";
 import { type DatabaseClient } from "#core/databaseClient.js";
 import { type Adapter } from "./adapters.js";
-import { TMP_DIR } from "./constants.js";
+import { ROOT_DIR, TMP_DIR } from "./constants.js";
 import { runCLI } from "./runCli.js";
 import { runSeedScript as baseRunSeedScript } from "./runSeedScript.js";
 
@@ -15,6 +15,7 @@ async function seedSetup(props: {
   seedConfig?: ((connectionString: string) => string) | null | string;
   seedScript?: string;
 }) {
+  const { connectionString, adapter } = props;
   await mkdirp(TMP_DIR);
 
   const cwd = (props.cwd ??= (
@@ -23,7 +24,46 @@ async function seedSetup(props: {
     })
   ).path);
 
-  await writeFile(join(cwd, "package.json"), JSON.stringify({}));
+  const tsConfigPath = path.join(cwd, "tsconfig.json");
+  const clientWrapperRelativePath = "./__seed.ts";
+  const clientWrapperPath = path.join(cwd, clientWrapperRelativePath);
+  const pkgPath = path.join(cwd, "package.json");
+  const snapletSeedDestPath = path.join(
+    cwd,
+    "node_modules",
+    "@snaplet",
+    "seed",
+  );
+
+  await mkdirp(path.dirname(snapletSeedDestPath));
+
+  if (!(await pathExists(snapletSeedDestPath))) {
+    await symlink(ROOT_DIR, snapletSeedDestPath);
+  }
+
+  await writeFile(
+    tsConfigPath,
+    JSON.stringify({
+      extends: "@snaplet/tsconfig",
+      compilerOptions: {
+        noEmit: true,
+        emitDeclarationOnly: false,
+        allowImportingTsExtensions: true,
+      },
+      include: ["*.ts", clientWrapperRelativePath],
+    }),
+  );
+
+  await writeFile(
+    pkgPath,
+    JSON.stringify({
+      name: path.dirname(cwd),
+      type: "module",
+      imports: {
+        "#seed": clientWrapperRelativePath,
+      },
+    }),
+  );
 
   if (props.seedConfig !== null) {
     let seedConfig: string;
@@ -41,6 +81,14 @@ async function seedSetup(props: {
 
   const generateOutputPath = "./seed";
   const generateOutputIndexPath = "./seed/index.js";
+
+  await writeFile(
+    clientWrapperPath,
+    adapter.generateClientWrapper({
+      generateOutputIndexPath,
+      connectionString,
+    }),
+  );
 
   await runCLI(["introspect"], {
     cwd,
