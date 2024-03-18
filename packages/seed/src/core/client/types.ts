@@ -4,7 +4,7 @@ import { type Store } from "../store/store.js";
 import { type UserModels } from "../userModels/types.js";
 
 export interface SeedClientOptions {
-  databaseClient?: DatabaseClient;
+  adapter?: DatabaseClient;
   dryRun?: boolean;
   models?: UserModels;
 }

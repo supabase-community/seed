@@ -21,11 +21,6 @@ const configSchema = z.object({
 export type SeedConfig = z.infer<typeof configSchema>;
 
 export async function getSeedConfig() {
-  const seedConfigPath = await getSeedConfigPath();
-
-  // const config = await importSingleTs(seedConfigPath, {
-  //   conditions: ["development"],
-  // });
   const { config } = await loadConfig({
     name: "seed",
   });

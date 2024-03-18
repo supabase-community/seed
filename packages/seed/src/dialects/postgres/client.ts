@@ -70,8 +70,7 @@ export function getSeedClient(props: {
   }
 
   const createSeedClient = async (options?: SeedClientOptions) => {
-    const databaseClient =
-      options?.databaseClient ?? (await getDatabaseClient());
+    const databaseClient = options?.adapter ?? (await getDatabaseClient());
     const seed = new PgSeedClient(databaseClient, options);
 
     await seed.$syncDatabase();

@@ -590,7 +590,7 @@ ${Object.keys(dataModel.models)
 function generateSeedClientTypes() {
   return `
   export type SeedClientOptions = {
-    databaseClient?: DatabaseClient;
+    adapter?: DatabaseClient;
     dryRun?: boolean;
     models?: UserModels;
   }

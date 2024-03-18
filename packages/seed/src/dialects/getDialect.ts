@@ -4,7 +4,7 @@ import { sqliteDialect } from "./sqlite/dialect.js";
 
 export async function getDialectId() {
   const seedConfig = await getSeedConfig();
-  const databaseClient = seedConfig.adapter();
+  const databaseClient = await seedConfig.adapter();
 
   return databaseClient.dialect;
 }
