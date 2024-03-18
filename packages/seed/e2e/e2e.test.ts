@@ -16,7 +16,7 @@ for (const dialect of Object.keys(adapters) as Array<Dialect>) {
   describe.concurrent(
     `e2e: ${dialect}`,
     () => {
-      test.only("generates", async () => {
+      test("generates", async () => {
         const { db } = await setupProject({
           adapter,
           databaseSchema: `
