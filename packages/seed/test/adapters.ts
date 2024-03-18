@@ -35,11 +35,13 @@ export const adapters = {
   async postgres(): Promise<Adapter<postgres.Sql>> {
     const { createTestDb } = (await import("#test/postgres/index.js")).postgres;
     const generateSeedConfigDatabaseClient = (connectionString: string) =>
-      `databaseClient: { adapter: "postgres", parameters: ["${connectionString}"] },`;
+      `adapter: () => new SeedPostgres(postgres("${connectionString}")),`;
     return {
       createTestDb,
       generateSeedConfig: (connectionString: string) => dedent`
       import { defineConfig } from "@snaplet/seed/config";
+      import { SeedPostgres } from "@snaplet/seed/adapter-postgres";
+      import postgres from "postgres";
 
       export default defineConfig({
         ${generateSeedConfigDatabaseClient(connectionString)}
@@ -50,32 +52,34 @@ export const adapters = {
       generateClientWrapper: ({
         generateOutputIndexPath,
         connectionString,
-      }) => `
-import postgres from "postgres";
-import { createDatabaseClient } from "@snaplet/seed/postgres"
-import { createSeedClient as baseCreateSeedClient } from "${generateOutputIndexPath}"
+      }) => dedent`
+        import postgres from "postgres";
+        import { SeedPostgres } from "@snaplet/seed/adapter-postgres"
+        import { createSeedClient as baseCreateSeedClient } from "${generateOutputIndexPath}"
 
-const client = postgres("${connectionString}")
+        const client = postgres("${connectionString}")
 
-export const db = createDatabaseClient(client)
+        export const db = new SeedPostgres(client)
 
-export const end = () => client.end()
+        export const end = () => client.end()
 
-export const createSeedClient = (options?: Parameters<typeof baseCreateSeedClient>[0]) => baseCreateSeedClient({ databaseClient: db, ...options })
-`,
+        export const createSeedClient = (options?: Parameters<typeof baseCreateSeedClient>[0]) => baseCreateSeedClient({ adapter: db, ...options })
+      `,
     };
   },
   async sqlite(): Promise<Adapter<import("better-sqlite3").Database>> {
     const { createTestDb } = (await import("#test/sqlite/index.js"))
       .betterSqlite3;
     const generateSeedConfigDatabaseClient = (connectionString: string) =>
-      `databaseClient: { adapter: "better-sqlite3", parameters: [new URL("${connectionString}").pathname] },`;
+      `adapter: () => new SeedBetterSqlite3(new Database(new URL("${connectionString}").pathname)),`;
     return {
       createTestDb,
       createClient: (client) => new SeedBetterSqlite3(client),
       generateSeedConfigDatabaseClient,
       generateSeedConfig: (connectionString: string) => dedent`
         import { defineConfig } from "@snaplet/seed/config";
+        import { SeedBetterSqlite3 } from "@snaplet/seed/adapter-better-sqlite3";
+        import Database from "better-sqlite3";
 
         export default defineConfig({
           ${generateSeedConfigDatabaseClient(connectionString)}
@@ -84,19 +88,19 @@ export const createSeedClient = (options?: Parameters<typeof baseCreateSeedClien
       generateClientWrapper: ({
         generateOutputIndexPath,
         connectionString,
-      }) => `
-import Database from "better-sqlite3";
-import { createDatabaseClient } from "@snaplet/seed/better-sqlite3"
-import { createSeedClient as baseCreateSeedClient } from "${generateOutputIndexPath}"
+      }) => dedent`
+        import Database from "better-sqlite3";
+        import { SeedBetterSqlite3 } from "@snaplet/seed/adapter-better-sqlite3"
+        import { createSeedClient as baseCreateSeedClient } from "${generateOutputIndexPath}"
 
-const client = new Database(new URL("${connectionString}").pathname, { fileMustExist: false })
+        const client = new Database(new URL("${connectionString}").pathname)
 
-export const db = createDatabaseClient(client)
+        export const db = new SeedBetterSqlite3(client)
 
-export const end = () => client.close()
+        export const end = () => client.close()
 
-export const createSeedClient = (options?: Parameters<typeof baseCreateSeedClient>[0]) => baseCreateSeedClient({ databaseClient: db, ...options })
-`,
+        export const createSeedClient = (options?: Parameters<typeof baseCreateSeedClient>[0]) => baseCreateSeedClient({ adapter: db, ...options })
+      `,
     };
   },
 } as const;

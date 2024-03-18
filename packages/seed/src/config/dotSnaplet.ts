@@ -1,6 +1,7 @@
 import { findUp } from "find-up";
 import { mkdir } from "node:fs/promises";
 import { join } from "node:path";
+import { getRootPath } from "./utils.js";
 
 export async function getDotSnapletPath() {
   const path = await findUp(".snaplet", {
@@ -14,7 +15,7 @@ export async function ensureDotSnapletPath() {
   let dotSnapletPath = await getDotSnapletPath();
 
   if (!dotSnapletPath) {
-    dotSnapletPath = join(process.cwd(), ".snaplet");
+    dotSnapletPath = join(await getRootPath(), ".snaplet");
     await mkdir(dotSnapletPath);
   }
 

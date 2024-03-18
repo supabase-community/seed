@@ -40,9 +40,9 @@
       "default": "./dist/dialects/postgres/adapters/prisma/index.js"
     },
     "./config": {
-      "types": "./dist/config.d.ts",
-      "development": "./src/config.ts",
-      "default": "./dist/config.js"
+      "types": "./dist/config/seedConfig/defineConfig.d.ts",
+      "development": "./src/config/seedConfig/defineConfig.ts",
+      "default": "./dist/config/seedConfig/defineConfig.js"
     },
     "./cli": {
       "types": "./dist/cli/index.d.ts",
@@ -101,8 +101,10 @@
     "ansi-escapes": "6.2.0",
     "c12": "1.8.0",
     "dedent": "1.5.1",
+    "esbuild": "0.20.2",
     "exit-hook": "4.0.0",
     "find-up": "7.0.0",
+    "import-single-ts": "1.0.3",
     "inflection": "^3.0.0",
     "javascript-stringify": "2.1.0",
     "json-schema-library": "9.1.3",

@@ -1,5 +1,5 @@
 import { mkdirp, writeFile } from "fs-extra";
-import path from "node:path";
+import path, { join } from "node:path";
 import tmp from "tmp-promise";
 import { type DatabaseClient } from "#core/databaseClient.js";
 import { type Adapter } from "./adapters.js";
@@ -22,6 +22,8 @@ async function seedSetup(props: {
       tmpdir: TMP_DIR,
     })
   ).path);
+
+  await writeFile(join(cwd, "package.json"), JSON.stringify({}));
 
   if (props.seedConfig !== null) {
     let seedConfig: string;

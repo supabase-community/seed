@@ -1,16 +1,15 @@
-import { introspectProject } from "#config/utils.js";
+import {
+  getInstalledDependencies,
+  getPackageManager,
+  getRootPath,
+} from "#config/utils.js";
 import { spinner } from "../../lib/output.js";
 
 export async function installDependencies() {
-  const { packageManager, rootPath, packageJson } = await introspectProject();
-
-  const allDependencies = {
-    ...(packageJson.dependencies ?? {}),
-    ...(packageJson.devDependencies ?? {}),
-  };
+  const installedDependencies = await getInstalledDependencies();
 
   const devDependenciesToInstall = ["@snaplet/copycat", "@snaplet/seed"].filter(
-    (d) => !allDependencies[d],
+    (d) => !installedDependencies[d],
   );
 
   if (devDependenciesToInstall.length === 0) {
@@ -20,6 +19,9 @@ export async function installDependencies() {
   spinner.start(
     `Installing the dependencies: ${devDependenciesToInstall.map((d) => `\`${d}\``).join(", ")}`,
   );
+
+  const packageManager = await getPackageManager();
+  const rootPath = await getRootPath();
 
   await packageManager.add(devDependenciesToInstall, {
     dev: true,

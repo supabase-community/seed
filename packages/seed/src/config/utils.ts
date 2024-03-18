@@ -1,7 +1,7 @@
 import { execa } from "execa";
 import { findUp } from "find-up";
 import { readFile } from "node:fs/promises";
-import { dirname } from "node:path";
+import { dirname, join } from "node:path";
 
 interface PackageManager {
   add: (
@@ -72,45 +72,57 @@ const packageManagers = {
   [yarn.id]: yarn,
 };
 
-export async function introspectProject() {
-  let rootPath: string | undefined;
-  let packageManager: PackageManager | undefined;
-
-  // lockfile based strategy
-  for (const pm of Object.values(packageManagers)) {
-    const lockfilePath = await findUp(pm.lockfile);
-    if (lockfilePath) {
-      rootPath = dirname(lockfilePath);
-      packageManager = pm;
-      break;
-    }
-  }
-
-  const packageJsonPath = await findUp("package.json", { cwd: rootPath });
+export async function getRootPath() {
+  const packageJsonPath = await findUp("package.json");
 
   if (!packageJsonPath) {
     throw new Error("No package.json found");
   }
 
-  if (!rootPath) {
-    rootPath = dirname(packageJsonPath);
-  }
+  return dirname(packageJsonPath);
+}
 
-  const packageJson = JSON.parse(await readFile(packageJsonPath, "utf8")) as {
+export async function getInstalledDependencies() {
+  const rootPath = await getRootPath();
+
+  const packageJson = JSON.parse(
+    await readFile(join(rootPath, "package.json"), "utf8"),
+  ) as {
     dependencies?: Record<string, string>;
     devDependencies?: Record<string, string>;
-    packageManager?: string;
   };
 
-  if (!packageManager) {
-    if (packageJson.packageManager?.startsWith("pnpm")) {
-      packageManager = packageManagers.pnpm;
-    } else if (packageJson.packageManager?.startsWith("yarn")) {
-      packageManager = packageManagers.yarn;
-    } else {
-      packageManager = packageManagers.npm;
+  return {
+    ...packageJson.dependencies,
+    ...packageJson.devDependencies,
+  };
+}
+
+export async function getPackageManager() {
+  // lock file strategy
+  for (const pm of Object.values(packageManagers)) {
+    const lockfilePath = await findUp(pm.lockfile);
+    if (lockfilePath) {
+      return pm;
     }
   }
 
-  return { rootPath, packageManager, packageJson };
+  const packageJsonPath = await findUp("package.json");
+
+  if (!packageJsonPath) {
+    throw new Error("No package.json found");
+  }
+
+  const packageJson = JSON.parse(await readFile(packageJsonPath, "utf8")) as {
+    packageManager?: string;
+  };
+
+  if (packageJson.packageManager?.startsWith("pnpm")) {
+    return packageManagers.pnpm;
+  } else if (packageJson.packageManager?.startsWith("yarn")) {
+    return packageManagers.yarn;
+  }
+
+  // we assume npm if nothing is found
+  return packageManagers.npm;
 }

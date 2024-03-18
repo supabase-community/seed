@@ -3,7 +3,7 @@ import { existsSync } from "node:fs";
 import { rm, writeFile } from "node:fs/promises";
 import { join } from "node:path";
 import * as z from "zod";
-import { introspectProject } from "#config/utils.js";
+import { getRootPath } from "#config/utils.js";
 import { adapterConfigSchema } from "./adapterConfig.js";
 import { aliasConfigSchema } from "./aliasConfig.js";
 import { fingerprintConfigSchema } from "./fingerprintConfig.js";
@@ -21,9 +21,13 @@ const configSchema = z.object({
 export type SeedConfig = z.infer<typeof configSchema>;
 
 export async function getSeedConfig() {
+  const seedConfigPath = await getSeedConfigPath();
+
+  // const config = await importSingleTs(seedConfigPath, {
+  //   conditions: ["development"],
+  // });
   const { config } = await loadConfig({
     name: "seed",
-    // cwd: (await introspectProject()).rootPath,
   });
 
   const parsedConfig = configSchema.passthrough().parse(config ?? {});
@@ -32,7 +36,7 @@ export async function getSeedConfig() {
 }
 
 export async function getSeedConfigPath() {
-  return join((await introspectProject()).rootPath, "seed.config.ts");
+  return join(await getRootPath(), "seed.config.ts");
 }
 
 export async function seedConfigExists() {
