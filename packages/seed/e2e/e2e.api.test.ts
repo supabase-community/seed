@@ -187,25 +187,27 @@ for (const dialect of Object.keys(adapters) as Array<Dialect>) {
             `,
           };
 
-          const seedConfig: Partial<Record<"default" | Dialect, string>> = {
-            default: `
-              import { defineConfig } from "@snaplet/seed/config";
-
-              export default defineConfig({
-                select: {
-                  "B": false,
-                },
-              })
-            `,
-            postgres: `
-              import { defineConfig } from "@snaplet/seed/config";
-
-              export default defineConfig({
-                select: {
-                  "public.B": false,
-                },
-              })
-            `,
+          const seedConfig: Partial<
+            Record<"default" | Dialect, (connectionString: string) => string>
+          > = {
+            default: (connectionString) =>
+              adapter.generateSeedConfig(
+                connectionString,
+                `
+                  select: {
+                    "B": false,
+                  },
+                `,
+              ),
+            postgres: (connectionString) =>
+              adapter.generateSeedConfig(
+                connectionString,
+                `
+                  select: {
+                    "public.B": false,
+                  },
+                `,
+              ),
           };
 
           const { db, runSeedScript } = await setupProject({

@@ -17,8 +17,7 @@ export interface Adapter<Client = AnyClient> {
     connectionString: string;
     generateOutputIndexPath: string;
   }): string;
-  generateSeedConfig(connectionString: string): string;
-  generateSeedConfigDatabaseClient(connectionString: string): string;
+  generateSeedConfig(connectionString: string, config?: string): string;
   skipReason?: string;
 }
 
@@ -36,18 +35,19 @@ export const adapters = {
     const { createTestDb } = (await import("#test/postgres/index.js")).postgres;
     const generateSeedConfigDatabaseClient = (connectionString: string) =>
       `adapter: () => new SeedPostgres(postgres("${connectionString}")),`;
+
     return {
       createTestDb,
-      generateSeedConfig: (connectionString: string) => dedent`
+      generateSeedConfig: (connectionString: string, config?: string) => dedent`
       import { defineConfig } from "@snaplet/seed/config";
       import { SeedPostgres } from "@snaplet/seed/adapter-postgres";
       import postgres from "postgres";
 
       export default defineConfig({
-        ${generateSeedConfigDatabaseClient(connectionString)}
+        adapter: () => new SeedPostgres(postgres("${connectionString}")),
+        ${config ?? ""}
       })
     `,
-      generateSeedConfigDatabaseClient,
       createClient: (client) => new SeedPostgres(client),
       generateClientWrapper: ({
         generateOutputIndexPath,
@@ -70,19 +70,17 @@ export const adapters = {
   async sqlite(): Promise<Adapter<import("better-sqlite3").Database>> {
     const { createTestDb } = (await import("#test/sqlite/index.js"))
       .betterSqlite3;
-    const generateSeedConfigDatabaseClient = (connectionString: string) =>
-      `adapter: () => new SeedBetterSqlite3(new Database(new URL("${connectionString}").pathname)),`;
     return {
       createTestDb,
       createClient: (client) => new SeedBetterSqlite3(client),
-      generateSeedConfigDatabaseClient,
-      generateSeedConfig: (connectionString: string) => dedent`
+      generateSeedConfig: (connectionString: string, config?: string) => dedent`
         import { defineConfig } from "@snaplet/seed/config";
         import { SeedBetterSqlite3 } from "@snaplet/seed/adapter-better-sqlite3";
         import Database from "better-sqlite3";
 
         export default defineConfig({
-          ${generateSeedConfigDatabaseClient(connectionString)}
+          adapter: () => new SeedBetterSqlite3(new Database(new URL("${connectionString}").pathname)),
+          ${config ?? ""}
         })
       `,
       generateClientWrapper: ({
