@@ -1,3 +1,4 @@
+import { cliTelemetry } from "#cli/lib/cliTelemetry.js";
 import { bold, highlight } from "../../lib/output.js";
 import { generateHandler } from "../generate/generateHandler.js";
 import { introspectHandler } from "../introspect/introspectHandler.js";
@@ -6,6 +7,8 @@ import { getDatabaseUrl } from "./getDatabaseUrl.js";
 import { getUser } from "./getUser.js";
 
 export async function setupHandler() {
+  await cliTelemetry.captureEvent("$command:setup:start");
+
   const user = await getUser();
 
   const welcomeText = user
@@ -23,4 +26,6 @@ export async function setupHandler() {
   await introspectHandler({ databaseUrl });
 
   await generateHandler({});
+
+  await cliTelemetry.captureEvent("$command:setup:end");
 }
