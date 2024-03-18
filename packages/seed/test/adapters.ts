@@ -33,9 +33,6 @@ export type AnyClient =
 export const adapters = {
   async postgres(): Promise<Adapter<postgres.Sql>> {
     const { createTestDb } = (await import("#test/postgres/index.js")).postgres;
-    const generateSeedConfigDatabaseClient = (connectionString: string) =>
-      `adapter: () => new SeedPostgres(postgres("${connectionString}")),`;
-
     return {
       createTestDb,
       generateSeedConfig: (connectionString: string, config?: string) => dedent`
