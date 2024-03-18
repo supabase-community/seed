@@ -1077,7 +1077,7 @@ for (const dialect of Object.keys(adapters) as Array<Dialect>) {
           ]),
         );
       });
-      test.only("should error on non nullables complex circular references", async () => {
+      test("should error on non nullables complex circular references", async () => {
         const schema: Partial<Record<"default" | Dialect, string>> = {
           default: `
           create table customer (
@@ -1122,8 +1122,8 @@ for (const dialect of Object.keys(adapters) as Array<Dialect>) {
   
           create table "order" (
             id integer primary key autoincrement,
-            customer_id integer REFERENCES customer(id),
-            product_id integer REFERENCES product(id),
+            customer_id integer not null REFERENCES customer(id),
+            product_id integer not null REFERENCES product(id),
             quantity integer not null
           );
           ALTER TABLE customer ADD COLUMN last_order_id integer not null REFERENCES "order"(id);
