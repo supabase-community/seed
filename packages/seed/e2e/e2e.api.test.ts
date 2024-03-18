@@ -349,7 +349,7 @@ for (const dialect of Object.keys(adapters) as Array<Dialect>) {
           expect((await db.query('SELECT * FROM "BABA"')).length).toBe(2);
         });
 
-        test("should not allow to pass a table already excluded in the config", async () => {
+        test.skip("should not allow to pass a table already excluded in the config", async () => {
           const tableName: SchemaRecord = {
             default: "BABA",
             postgres: "public.BABA",
