@@ -12,7 +12,7 @@ const systemConfigSchema = z.object({
 
 export type SystemConfig = z.infer<typeof systemConfigSchema>;
 
-let cachedSystemConfig: SystemConfig | null = null
+let cachedSystemConfig: SystemConfig | null = null;
 
 export function getSystemPath(baseDir: string = homedir()) {
   return join(baseDir, ".config", "snaplet");
@@ -24,26 +24,28 @@ export function getSystemConfigPath(baseName = "system") {
 
 const readSystemConfig = async (forceRead = false) => {
   if (!forceRead && cachedSystemConfig != null) {
-    return cachedSystemConfig
+    return cachedSystemConfig;
   }
 
   const systemConfigPath = getSystemConfigPath();
 
   if (await pathExists(systemConfigPath)) {
-    return cachedSystemConfig = systemConfigSchema
+    return (cachedSystemConfig = systemConfigSchema
       .passthrough()
-      .parse(JSON.parse(await readFile(systemConfigPath, "utf8")));
+      .parse(JSON.parse(await readFile(systemConfigPath, "utf8"))));
   } else {
-    return {}
+    return {};
   }
-}
+};
 
-export async function getSystemConfig(props: {
-  shouldOverrideWithEnv?: boolean;
-  forceRead?: boolean
-} = {}) {
-  const { forceRead, shouldOverrideWithEnv = true } = props
-  const systemConfig: SystemConfig = (await readSystemConfig(forceRead))
+export async function getSystemConfig(
+  props: {
+    forceRead?: boolean;
+    shouldOverrideWithEnv?: boolean;
+  } = {},
+) {
+  const { forceRead, shouldOverrideWithEnv = true } = props;
+  const systemConfig: SystemConfig = await readSystemConfig(forceRead);
 
   return {
     ...systemConfig,
@@ -66,7 +68,7 @@ export async function setSystemConfig(systemConfig: SystemConfig) {
     "utf8",
   );
 
-  cachedSystemConfig = null
+  cachedSystemConfig = null;
 }
 
 export async function updateSystemConfig(systemConfig: Partial<SystemConfig>) {
@@ -77,7 +79,7 @@ export async function updateSystemConfig(systemConfig: Partial<SystemConfig>) {
   const nextSystemConfig = {
     ...currentSystemConfig,
     ...systemConfig,
-  }
+  };
 
   await setSystemConfig(nextSystemConfig);
 }

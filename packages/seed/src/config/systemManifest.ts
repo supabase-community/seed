@@ -20,7 +20,7 @@ export const saveSystemManifest = async (next: SystemManifest) => {
 export const updateSystemManifest = async (
   updates?: Partial<SystemManifest>,
 ) => {
-  const current = (await readSystemManifest()) ?? {};
+  const current = await readSystemManifest();
 
   await saveSystemManifest({
     ...current,

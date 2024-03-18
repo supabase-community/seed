@@ -4,7 +4,10 @@ import os from "node:os";
 import { PostHog } from "posthog-node";
 import { v4 as uuidv4 } from "uuid";
 import { getSystemConfig, updateSystemConfig } from "#config/systemConfig.js";
-import { readSystemManifest, updateSystemManifest } from '#config/systemManifest.js';
+import {
+  readSystemManifest,
+  updateSystemManifest,
+} from "#config/systemManifest.js";
 
 const POSTHOG_API_KEY = "phc_F2nspobfCOFDskuwSN7syqKyz8aAzRTw2MEsRvQSB5G";
 
@@ -12,7 +15,7 @@ type TelemetrySource = "seed" | "seed-cli";
 
 interface TelemetryOptions {
   isProduction?: boolean;
-  properties?: () => Record<string, unknown>;
+  properties?: () => Promise<Record<string, unknown>> | Record<string, unknown>;
   source: TelemetrySource;
 }
 let posthog: PostHog | null = null;
@@ -112,7 +115,7 @@ export const createTelemetry = (options: TelemetryOptions) => {
     properties: Record<string, unknown> = {},
   ) => {
     const now = Date.now();
-    const manifest = (await readSystemManifest()) ?? {};
+    const manifest = await readSystemManifest();
     const lastEventTimestamps = (manifest.lastEventTimestamps ??= {});
     const lastEventTimestamp = lastEventTimestamps[event] ?? 0;
 
