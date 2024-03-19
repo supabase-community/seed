@@ -6,6 +6,10 @@ export { createSnapletTestDb, createTestDb } from "./createTestDatabase.js";
 export { createTestRole } from "./createTestRole.js";
 
 afterAll(async () => {
-  await createTestRole.afterAll().catch(console.log);
-  await createTestDb.afterAll().catch(console.log);
+  await createTestRole.afterAll().catch((e: unknown) => {
+    console.log(e);
+  });
+  await createTestDb.afterAll().catch((e: unknown) => {
+    console.log(e);
+  });
 });
