@@ -31,7 +31,10 @@ export async function loginHandler() {
     return;
   }
 
-  await updateSystemConfig({ accessToken });
+  await updateSystemConfig({
+    userId: user.id,
+    accessToken,
+  });
 
   spinner.stop();
   console.log(eraseLines(3));
