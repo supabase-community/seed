@@ -1,10 +1,9 @@
 import { gracefulExit } from "exit-hook";
-import { relative, sep } from "node:path";
+import { getDatabaseClient } from "#adapters/getDatabaseClient.js";
 import {
   getDataModelConfigPath,
   setDataModelConfig,
 } from "#config/dataModelConfig.js";
-import { getDatabaseClient } from "#dialects/getDatabaseClient.js";
 import { getDialect } from "#dialects/getDialect.js";
 import { link, spinner } from "../../lib/output.js";
 
@@ -27,9 +26,8 @@ export async function introspectHandler() {
   // we know the path exists because we just called `setDataModelConfig`
   // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
   const dataModelConfigPath = (await getDataModelConfigPath())!;
-  const relativeDataModelConfigPath = `.${sep}${relative(process.cwd(), dataModelConfigPath)}`;
   spinner.succeed(
-    `Introspected ${Object.keys(dataModel.models).length} models and wrote them into ${link(relativeDataModelConfigPath, dataModelConfigPath)}`,
+    `Introspected ${Object.keys(dataModel.models).length} models and wrote them into ${link(dataModelConfigPath)}`,
   );
 
   return dataModel;

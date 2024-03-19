@@ -1,19 +1,29 @@
-import { gracefulExit } from "exit-hook";
+import { watch } from "node:fs/promises";
 import { type Adapter } from "#adapters/types.js";
 import {
   getSeedConfigPath,
   setSeedConfig,
 } from "#config/seedConfig/seedConfig.js";
-import { link, spinner } from "../../lib/output.js";
+import { eraseLines, link, spinner } from "../../lib/output.js";
+import { isConnected } from "./isConnected.js";
 
 export async function saveSeedConfig({ adapter }: { adapter: Adapter }) {
   await setSeedConfig(adapter.template());
 
   const seedConfigPath = await getSeedConfigPath();
 
-  spinner.succeed(
-    `Seed config saved to ${link(seedConfigPath)}, please fill in the connection parameters and rerun the setup command.`,
+  spinner.succeed(`Seed config saved to ${link(seedConfigPath)}`);
+
+  spinner.start(
+    `Please enter your database connection details by editing ${link("seed.config.ts", seedConfigPath)}`,
   );
 
-  gracefulExit();
+  const watcher = watch(seedConfigPath);
+  for await (const event of watcher) {
+    if (event.eventType === "change" && (await isConnected())) {
+      spinner.stop();
+      eraseLines(1);
+      break;
+    }
+  }
 }

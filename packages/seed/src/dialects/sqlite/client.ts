@@ -1,4 +1,5 @@
 import { EOL } from "node:os";
+import { getDatabaseClient } from "#adapters/getDatabaseClient.js";
 import { SeedClientBase } from "#core/client/client.js";
 import { type SeedClientOptions } from "#core/client/types.js";
 import { filterModelsBySelectConfig } from "#core/client/utils.js";
@@ -7,7 +8,6 @@ import { type DatabaseClient } from "#core/databaseClient.js";
 import { type Fingerprint } from "#core/fingerprint/types.js";
 import { updateDataModelSequences } from "#core/sequences/updateDataModelSequences.js";
 import { type UserModels } from "#core/userModels/types.js";
-import { getDatabaseClient } from "#dialects/getDatabaseClient.js";
 import { getDatamodel } from "./dataModel.js";
 import { SqliteStore } from "./store.js";
 import { escapeIdentifier } from "./utils.js";

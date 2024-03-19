@@ -1,5 +1,5 @@
-import prompt from "prompts";
 import { type AdapterId, adapters } from "#adapters/index.js";
+import { prompt } from "../../lib/output.js";
 
 export async function getAdapterFromPrompt() {
   const adapterChoices = Object.keys(adapters)

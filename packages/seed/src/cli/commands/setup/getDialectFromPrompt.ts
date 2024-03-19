@@ -1,5 +1,5 @@
-import prompt from "prompts";
 import { type DialectId, dialects } from "#dialects/dialects.js";
+import { prompt } from "../../lib/output.js";
 
 export async function getDialectFromPrompt() {
   const dialectChoices = Object.keys(dialects)

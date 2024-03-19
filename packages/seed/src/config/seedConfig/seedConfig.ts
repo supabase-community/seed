@@ -22,6 +22,7 @@ export type SeedConfig = z.infer<typeof configSchema>;
 
 export async function getSeedConfig() {
   const { config } = await loadConfig({
+    dotenv: true,
     name: "seed",
   });
 
