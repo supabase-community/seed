@@ -3650,7 +3650,7 @@ export const strings: TypeTemplates = {
         `collaboration`,
         `monitoring`,
         `leverage`,
-        `driver`,
+        `adapter`,
         `projection`,
         `installation`,
         `product`,
