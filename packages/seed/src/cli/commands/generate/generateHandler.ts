@@ -1,7 +1,7 @@
 import { cliTelemetry } from "#cli/lib/cliTelemetry.js";
 import { getSeedConfig } from "#config/seedConfig/seedConfig.js";
 import { type CodegenContext, generateAssets } from "#core/codegen/codegen.js";
-import { getDataModel } from "#core/dataModel/dataModel.js";
+import { getDataModel, getRawDataModel } from "#core/dataModel/dataModel.js";
 import { getFingerprint } from "#core/fingerprint/fingerprint.js";
 import { getDialect } from "#dialects/getDialect.js";
 import { type TableShapePredictions } from "#trpc/shapes.js";
@@ -32,6 +32,7 @@ async function computeCodegenContext(props: {
 }): Promise<CodegenContext> {
   const { outputDir } = props;
 
+  const rawDataModel = await getRawDataModel();
   const dataModel = await getDataModel();
   const seedConfig = await getSeedConfig();
   const dialect = await getDialect();
@@ -53,6 +54,7 @@ async function computeCodegenContext(props: {
     seedConfig,
     fingerprint: await getFingerprint(),
     dataModel,
+    rawDataModel,
     outputDir,
     shapePredictions,
     shapeExamples,

@@ -349,7 +349,7 @@ for (const dialect of Object.keys(adapters) as Array<Dialect>) {
           expect((await db.query('SELECT * FROM "BABA"')).length).toBe(2);
         });
 
-        test.skip("should not allow to pass a table already excluded in the config", async () => {
+        test("should not allow to pass a table already excluded in the config", async () => {
           const tableName: SchemaRecord = {
             default: "BABA",
             postgres: "public.BABA",
@@ -380,7 +380,7 @@ for (const dialect of Object.keys(adapters) as Array<Dialect>) {
                 connectionString,
                 `
                   select: {
-                    "BABA": false,
+                    "${tableName[dialect] ?? tableName.default}": false,
                   },
                 `,
               ),
@@ -424,7 +424,7 @@ for (const dialect of Object.keys(adapters) as Array<Dialect>) {
       });
     },
     {
-      timeout: 45000,
+      timeout: 50000,
     },
   );
 }
