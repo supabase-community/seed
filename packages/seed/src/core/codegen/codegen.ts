@@ -1,3 +1,4 @@
+import dedent from "dedent";
 import { findUp } from "find-up";
 import { mkdirp } from "fs-extra/esm";
 import { writeFile } from "node:fs/promises";
@@ -24,34 +25,39 @@ const FILES = {
   PKG: {
     name: "package.json",
     template() {
-      return `{
-  "name": "__snaplet",
-  "type": "module",
-  "exports": {
-    "default": "./index.js",
-    "types": "./index.d.ts"
-  }
-}`;
+      return dedent`{
+        "name": "__snaplet",
+        "type": "module",
+        "exports": {
+          ".": {
+            "types": "./index.d.ts",
+            "default": "./index.js"
+          },
+          "./config": {
+            "types": "./defineConfig.d.ts"
+          }
+        }
+      }`;
     },
   },
   INDEX: {
     name: "index.js",
     template({ dialect }: CodegenContext) {
-      return `
-import { readFileSync } from "node:fs";
-import { dirname, join } from "node:path";
-import { fileURLToPath } from "node:url";
+      return dedent`
+        import { readFileSync } from "node:fs";
+        import { dirname, join } from "node:path";
+        import { fileURLToPath } from "node:url";
 
-import { getSeedClient } from "@snaplet/seed/dialects/${dialect.id}/client";
-import { userModels } from "./${FILES.USER_MODELS.name}";
+        import { getSeedClient } from "@snaplet/seed/dialects/${dialect.id}/client";
+        import { userModels } from "./${FILES.USER_MODELS.name}";
 
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = dirname(__filename);
+        const __filename = fileURLToPath(import.meta.url);
+        const __dirname = dirname(__filename);
 
-const dataModel = JSON.parse(readFileSync(join(__dirname, "${FILES.DATA_MODEL.name}")));
+        const dataModel = JSON.parse(readFileSync(join(__dirname, "${FILES.DATA_MODEL.name}")));
 
-export const createSeedClient = getSeedClient({ dataModel, userModels });
-`;
+        export const createSeedClient = getSeedClient({ dataModel, userModels });
+      `;
     },
   },
   TYPEDEFS: {
@@ -65,7 +71,7 @@ export const createSeedClient = getSeedClient({ dataModel, userModels });
     },
   },
   CONFIGTYPEDEFS: {
-    name: "seed.config.d.ts",
+    name: "defineConfig.d.ts",
     template: async ({ dialect, dataModel, rawDataModel }: CodegenContext) => {
       const configTypes = await dialect.generateConfigTypes({
         dataModel,
