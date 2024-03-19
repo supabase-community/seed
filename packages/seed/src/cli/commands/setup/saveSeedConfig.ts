@@ -12,7 +12,7 @@ export async function saveSeedConfig({ adapter }: { adapter: Adapter }) {
 
   const seedConfigPath = await getSeedConfigPath();
 
-  spinner.succeed(`Seed config saved to ${link(seedConfigPath)}`);
+  spinner.succeed(`Seed configuration saved to ${link(seedConfigPath)}`);
 
   spinner.start(
     `Please enter your database connection details by editing ${link("seed.config.ts", seedConfigPath)}`,

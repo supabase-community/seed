@@ -4,16 +4,16 @@ import { getDataModel } from "#core/dataModel/dataModel.js";
 import { getFingerprint } from "#core/fingerprint/fingerprint.js";
 import { getDialect } from "#dialects/getDialect.js";
 import { type TableShapePredictions } from "#trpc/shapes.js";
-import { bold, dim, link, spinner } from "../../lib/output.js";
+import { bold, link, spinner } from "../../lib/output.js";
 import { fetchShapeExamples } from "./fetchShapeExamples.js";
 import { fetchShapePredictions } from "./fetchShapePredictions.js";
 
 export async function generateHandler(args: { output?: string }) {
   const context = await computeCodegenContext({ outputDir: args.output });
-  spinner.start(`Generating ${bold("Seed Client")}`);
+  spinner.start(`Generating your ${bold("Seed Client")}`);
   const outputDir = await generateAssets(context);
   spinner.succeed(
-    `Generated ${bold("Seed Client")} ${dim(`to ${link(outputDir)}`)}`,
+    `Generated your ${bold("Seed Client")} to ${link(outputDir)}`,
   );
   spinner.info(
     `You might want to reload your TypeScript Server to pick up the changes`,

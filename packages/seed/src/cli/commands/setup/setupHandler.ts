@@ -13,8 +13,8 @@ export async function setupHandler() {
   const user = await getUser();
 
   const welcomeText = user
-    ? `Welcome back ${highlight(user.email)}! 🌱`
-    : `Welcome to ${bold("@snaplet/seed")}, your best data buddy! 🌱`;
+    ? `Welcome back ${highlight(user.email)}! 😻`
+    : `Welcome to ${bold("@snaplet/seed")}, your best data buddy! 😸`;
 
   console.log(welcomeText);
 
