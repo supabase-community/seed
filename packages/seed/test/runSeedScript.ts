@@ -15,7 +15,6 @@ interface RunScriptProps {
   connectionString: string;
   cwd?: string;
   env?: Record<string, string>;
-  generateOutputIndexPath?: string;
   script: string;
 }
 
@@ -23,16 +22,12 @@ let scriptId = 0;
 
 export const runSeedScript = async ({
   script: inputScript,
-  generateOutputIndexPath,
   cwd,
   env = {},
 }: RunScriptProps) => {
-  const script = [inputScript, 'await (await import("#seed")).end()'].join(
-    "\n",
-  );
+  const script = [inputScript, "process.exit()"].join("\n");
 
   cwd ??= (await tmp.dir()).path;
-  generateOutputIndexPath ??= "./__generateOutput/index.js";
 
   debugScriptRun(
     [
@@ -78,6 +73,7 @@ export const runSeedScript = async ({
     stderr: "pipe",
     stdout: "pipe",
     extendEnv: true,
+    cwd,
     env: {
       DEBUG_COLORS: "1",
       ...env,

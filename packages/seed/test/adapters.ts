@@ -13,10 +13,6 @@ export interface Adapter<Client = AnyClient> {
     connectionString: string;
     name: string;
   }>;
-  generateClientWrapper(props: {
-    connectionString: string;
-    generateOutputIndexPath: string;
-  }): string;
   generateSeedConfig(connectionString: string, config?: string): string;
   skipReason?: string;
 }
@@ -46,22 +42,6 @@ export const adapters = {
       })
     `,
       createClient: (client) => new SeedPostgres(client),
-      generateClientWrapper: ({
-        generateOutputIndexPath,
-        connectionString,
-      }) => dedent`
-        import postgres from "postgres";
-        import { SeedPostgres } from "@snaplet/seed/adapter-postgres"
-        import { createSeedClient as baseCreateSeedClient } from "${generateOutputIndexPath}"
-
-        const client = postgres("${connectionString}")
-
-        export const db = new SeedPostgres(client)
-
-        export const end = () => client.end()
-
-        export const createSeedClient = (options?: Parameters<typeof baseCreateSeedClient>[0]) => baseCreateSeedClient({ adapter: db, ...options })
-      `,
     };
   },
   async sqlite(): Promise<Adapter<import("better-sqlite3").Database>> {
@@ -79,22 +59,6 @@ export const adapters = {
           adapter: () => new SeedBetterSqlite3(new Database(new URL("${connectionString}").pathname)),
           ${config ?? ""}
         })
-      `,
-      generateClientWrapper: ({
-        generateOutputIndexPath,
-        connectionString,
-      }) => dedent`
-        import Database from "better-sqlite3";
-        import { SeedBetterSqlite3 } from "@snaplet/seed/adapter-better-sqlite3"
-        import { createSeedClient as baseCreateSeedClient } from "${generateOutputIndexPath}"
-
-        const client = new Database(new URL("${connectionString}").pathname)
-
-        export const db = new SeedBetterSqlite3(client)
-
-        export const end = () => client.close()
-
-        export const createSeedClient = (options?: Parameters<typeof baseCreateSeedClient>[0]) => baseCreateSeedClient({ adapter: db, ...options })
       `,
     };
   },

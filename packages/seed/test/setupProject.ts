@@ -15,7 +15,6 @@ async function seedSetup(props: {
   seedConfig?: ((connectionString: string) => string) | null | string;
   seedScript?: string;
 }) {
-  const { connectionString, adapter } = props;
   await mkdirp(TMP_DIR);
 
   const cwd = (props.cwd ??= (
@@ -25,8 +24,6 @@ async function seedSetup(props: {
   ).path);
 
   const tsConfigPath = path.join(cwd, "tsconfig.json");
-  const clientWrapperRelativePath = "./__seed.ts";
-  const clientWrapperPath = path.join(cwd, clientWrapperRelativePath);
   const pkgPath = path.join(cwd, "package.json");
   const snapletSeedDestPath = path.join(
     cwd,
@@ -43,26 +40,34 @@ async function seedSetup(props: {
 
   await writeFile(
     tsConfigPath,
-    JSON.stringify({
-      extends: "@snaplet/tsconfig",
-      compilerOptions: {
-        noEmit: true,
-        emitDeclarationOnly: false,
-        allowImportingTsExtensions: true,
+    JSON.stringify(
+      {
+        extends: "@snaplet/tsconfig",
+        compilerOptions: {
+          noEmit: true,
+          emitDeclarationOnly: false,
+          allowImportingTsExtensions: true,
+        },
+        include: ["*.mts"],
       },
-      include: ["*.ts", "*.mts", clientWrapperRelativePath],
-    }),
+      null,
+      2,
+    ),
   );
 
   await writeFile(
     pkgPath,
-    JSON.stringify({
-      name: path.dirname(cwd),
-      type: "module",
-      imports: {
-        "#seed": clientWrapperRelativePath,
+    JSON.stringify(
+      {
+        name: path.basename(cwd),
+        type: "module",
+        imports: {
+          "#seed": "./__seed/index.js",
+        },
       },
-    }),
+      null,
+      2,
+    ),
   );
 
   if (props.seedConfig !== null) {
@@ -79,23 +84,12 @@ async function seedSetup(props: {
     await writeFile(path.join(cwd, "seed.config.ts"), seedConfig);
   }
 
-  const generateOutputPath = "./seed";
-  const generateOutputIndexPath = "./seed/index.js";
-
-  await writeFile(
-    clientWrapperPath,
-    adapter.generateClientWrapper({
-      generateOutputIndexPath,
-      connectionString,
-    }),
-  );
-
   await runCLI(["introspect"], {
     cwd,
     env: props.env,
   });
 
-  await runCLI(["generate", "--output", generateOutputPath], {
+  await runCLI(["generate", "--output", "./__seed"], {
     cwd,
     env: props.env,
   });
@@ -109,7 +103,6 @@ async function seedSetup(props: {
       adapter: props.adapter,
       cwd,
       connectionString: props.connectionString,
-      generateOutputIndexPath,
       env: options?.env,
     });
 
