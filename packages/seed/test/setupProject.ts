@@ -1,3 +1,4 @@
+import dedent from "dedent";
 import { mkdirp, pathExists, symlink, writeFile } from "fs-extra";
 import path from "node:path";
 import tmp from "tmp-promise";
@@ -48,7 +49,7 @@ async function seedSetup(props: {
           emitDeclarationOnly: false,
           allowImportingTsExtensions: true,
         },
-        include: ["*.mts"],
+        include: ["*.ts", "*.mts"],
       },
       null,
       2,
@@ -81,6 +82,11 @@ async function seedSetup(props: {
     } else {
       seedConfig = props.adapter.generateSeedConfig(props.connectionString);
     }
+    seedConfig = dedent`
+      /// <reference path="./__seed/defineConfig.d.ts" />
+
+      ${seedConfig}
+    `;
     await writeFile(path.join(cwd, "seed.config.ts"), seedConfig);
   }
 
