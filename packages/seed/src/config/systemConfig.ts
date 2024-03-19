@@ -27,14 +27,19 @@ const readSystemConfig = async (forceRead = false) => {
     return cachedSystemConfig;
   }
 
-  const systemConfigPath = getSystemConfigPath();
+  try {
+    const systemConfigPath = getSystemConfigPath();
 
-  if (await pathExists(systemConfigPath)) {
-    return (cachedSystemConfig = systemConfigSchema
-      .passthrough()
-      .parse(JSON.parse(await readFile(systemConfigPath, "utf8"))));
-  } else {
-    return {};
+    if (await pathExists(systemConfigPath)) {
+      return (cachedSystemConfig = systemConfigSchema
+        .passthrough()
+        .parse(JSON.parse(await readFile(systemConfigPath, "utf8"))));
+    } else {
+      return {};
+    }
+  } catch (e) {
+    cachedSystemConfig = null;
+    throw e;
   }
 };
 
