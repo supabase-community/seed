@@ -1,7 +1,7 @@
 import { type PgDatabase } from "drizzle-orm/pg-core";
 import { EOL } from "node:os";
 import { type DrizzleDbClient } from "#core/adapters.js";
-import { SeedClientBase } from "#core/client/client.js";
+import { SeedClientBase, setupClient } from "#core/client/client.js";
 import { type SeedClientOptions } from "#core/client/types.js";
 import { filterModelsBySelectConfig } from "#core/client/utils.js";
 import { type DataModel } from "#core/dataModel/types.js";
@@ -27,9 +27,6 @@ export function getSeedClient(props: {
       super({
         ...props,
         createStore: (dataModel: DataModel) => new PgStore(dataModel),
-        emit: (event) => {
-          console.error(event);
-        },
         runStatements: async (statements: Array<string>) => {
           if (!this.dryRun) {
             await this.db.run(statements.join(";"));
@@ -80,14 +77,14 @@ export function getSeedClient(props: {
     db: PgDatabase<any>,
     options?: SeedClientOptions,
   ) => {
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
-    const client = createDrizzleORMPgClient(db);
-    const seed = new PgSeedClient(client, options);
-
-    await seed.$syncDatabase();
-    seed.$reset();
-
-    return seed;
+    return setupClient({
+      dialect: "postgres",
+      createClient() {
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
+        const client = createDrizzleORMPgClient(db);
+        return new PgSeedClient(client, options);
+      },
+    });
   };
 
   return createSeedClient;

@@ -1,4 +1,5 @@
 import { relative, sep } from "node:path";
+import { cliTelemetry } from "#cli/lib/cliTelemetry.js";
 import { getSnapletSeedConfig } from "#config/seedConfig/seedConfig.js";
 import { type CodegenContext, generateAssets } from "#core/codegen/codegen.js";
 import { getDataModel } from "#core/dataModel/dataModel.js";
@@ -10,13 +11,18 @@ import { fetchShapeExamples } from "./fetchShapeExamples.js";
 import { fetchShapePredictions } from "./fetchShapePredictions.js";
 
 export async function generateHandler(args: { output?: string }) {
-  const context = await computeCodegenContext({ outputDir: args.output });
   spinner.start(`Generating ${bold("Seed Client")}`);
+
+  await cliTelemetry.captureEvent("$command:generate:start");
+
+  const context = await computeCodegenContext({ outputDir: args.output });
   const outputDir = await generateAssets(context);
   const relativeOutputDir = `.${sep}${relative(process.cwd(), outputDir)}`;
   spinner.succeed(
     `Generated ${bold("Seed Client")} ${dim(`to ${link(relativeOutputDir, outputDir)}`)}`,
   );
+
+  await cliTelemetry.captureEvent("$command:generate:end");
 }
 
 async function computeCodegenContext(props: {
