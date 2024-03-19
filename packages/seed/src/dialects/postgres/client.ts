@@ -67,6 +67,7 @@ export function getSeedClient(props: {
     }
 
     async $transaction(cb: (seed: PgSeedClient) => Promise<void>) {
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
       await cb(await createSeedClient(this.db.adapter, this.options));
     }
   }
@@ -79,6 +80,7 @@ export function getSeedClient(props: {
     return setupClient({
       dialect: "postgres",
       createClient() {
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
         const client = createDrizzleORMPgClient(db);
         return new PgSeedClient(client, options);
       },
