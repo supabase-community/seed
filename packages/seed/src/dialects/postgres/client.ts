@@ -6,9 +6,9 @@ import { type SeedClientOptions } from "#core/client/types.js";
 import { filterModelsBySelectConfig } from "#core/client/utils.js";
 import { type DataModel } from "#core/dataModel/types.js";
 import { type Fingerprint } from "#core/fingerprint/types.js";
+import { captureRuntimeEvent } from "#core/runtime/captureRuntimeEvent.js";
 import { updateDataModelSequences } from "#core/sequences/updateDataModelSequences.js";
 import { type UserModels } from "#core/userModels/types.js";
-import { runtimeTelemetry } from "#runtime/runtimeTelemetry.js";
 import { createDrizzleORMPgClient } from "./adapters.js";
 import { getDatamodel } from "./dataModel.js";
 import { PgStore } from "./store.js";
@@ -28,11 +28,6 @@ export function getSeedClient(props: {
       super({
         ...props,
         createStore: (dataModel: DataModel) => new PgStore(dataModel),
-        emit: (event) => {
-          void runtimeTelemetry.captureThrottledEvent(event, {
-            dialect: "postgres",
-          });
-        },
         runStatements: async (statements: Array<string>) => {
           if (!this.dryRun) {
             await this.db.run(statements.join(";"));
@@ -82,12 +77,17 @@ export function getSeedClient(props: {
     db: PgDatabase<any>,
     options?: SeedClientOptions,
   ) => {
+    const promisedEventCapture = captureRuntimeEvent("$call:createSeedClient", {
+      dialect: "postgres",
+    });
+
     const client = createDrizzleORMPgClient(db);
     const seed = new PgSeedClient(client, options);
 
     await seed.$syncDatabase();
     seed.$reset();
 
+    await promisedEventCapture;
     return seed;
   };
 

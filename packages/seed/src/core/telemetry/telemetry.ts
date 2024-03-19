@@ -4,14 +4,8 @@ import os from "node:os";
 import { PostHog } from "posthog-node";
 import { v4 as uuidv4 } from "uuid";
 import { getSystemConfig, updateSystemConfig } from "#config/systemConfig.js";
-import {
-  readSystemManifest,
-  updateSystemManifest,
-} from "#config/systemManifest.js";
 
 const POSTHOG_API_KEY = "phc_F2nspobfCOFDskuwSN7syqKyz8aAzRTw2MEsRvQSB5G";
-
-export const EVENT_THROTTLE_INTERVAL = 1000 * 60 * 60 * 24;
 
 type TelemetrySource = "seed" | "seed-cli";
 
@@ -20,14 +14,6 @@ interface TelemetryOptions {
   properties?: () => Promise<Record<string, unknown>> | Record<string, unknown>;
   source: TelemetrySource;
 }
-let posthog: PostHog | null = null;
-
-const initPosthog = () =>
-  (posthog ??= new PostHog(POSTHOG_API_KEY, {
-    host: "https://app.posthog.com",
-    flushAt: 0,
-    flushInterval: 0,
-  }));
 
 const createAnonymousId = async () => {
   const anonymousId = uuidv4();
@@ -48,11 +34,20 @@ const getDistinctId = async () => {
 };
 
 export const createTelemetry = (options: TelemetryOptions) => {
+  let posthog: PostHog | null = null;
+
   const {
     source,
     properties: baseProperties = () => ({}),
     isProduction = process.env["NODE_ENV"] === "production",
   } = options;
+
+  const initPosthog = () =>
+    (posthog ??= new PostHog(POSTHOG_API_KEY, {
+      host: "https://app.posthog.com",
+      flushAt: 0,
+      flushInterval: 0,
+    }));
 
   if (process.env["SNAPLET_DISABLE_TELEMETRY"] !== "1" && isProduction) {
     initPosthog();
@@ -111,26 +106,9 @@ export const createTelemetry = (options: TelemetryOptions) => {
     await posthog?.shutdown();
   };
 
-  const captureThrottledEvent = async (
-    event: string,
-    properties: Record<string, unknown> = {},
-  ) => {
-    const now = Date.now();
-    const manifest = await readSystemManifest();
-    const lastEventTimestamps = (manifest.lastEventTimestamps ??= {});
-    const lastEventTimestamp = lastEventTimestamps[event] ?? 0;
-
-    if (now - lastEventTimestamp > EVENT_THROTTLE_INTERVAL) {
-      await captureEvent(event, properties);
-      lastEventTimestamps[event] = now;
-      await updateSystemManifest({ lastEventTimestamps });
-    }
-  };
-
   return {
     captureEvent,
     captureUserLogin,
     teardownTelemetry,
-    captureThrottledEvent,
   };
 };

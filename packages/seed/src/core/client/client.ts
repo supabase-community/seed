@@ -22,13 +22,18 @@ export abstract class SeedClientBase implements SeedClient {
   constructor(props: {
     createStore: (dataModel: DataModel) => Store;
     dataModel: DataModel;
-    emit: (event: string) => void;
+    emit?: (event: string) => void;
     fingerprint: Fingerprint;
     options?: SeedClientOptions;
     runStatements: (statements: Array<string>) => Promise<void>;
     userModels: UserModels;
   }) {
-    this.emit = props.emit;
+    this.emit =
+      props.emit ??
+      (() => {
+        /* stub */
+      });
+
     this.createStore = props.createStore;
     this.runStatements = props.runStatements;
     this.fingerprint = props.fingerprint;
