@@ -82,6 +82,8 @@ async function seedSetup(props: {
     } else {
       seedConfig = props.adapter.generateSeedConfig(props.connectionString);
     }
+
+    // We need to load the typed defineConfig types explicitly for the test environment
     seedConfig = dedent`
       /// <reference path="./__seed/defineConfig.d.ts" />
 

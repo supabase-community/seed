@@ -74,6 +74,7 @@ export const runSeedScript = async ({
     stdout: "pipe",
     extendEnv: true,
     cwd,
+    preferLocal: true,
     env: {
       DEBUG_COLORS: "1",
       ...env,
