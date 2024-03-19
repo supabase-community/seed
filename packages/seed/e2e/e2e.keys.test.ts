@@ -2,6 +2,9 @@ import { describe, expect, test } from "vitest";
 import { type Dialect, adapters } from "#test/adapters.js";
 import { setupProject } from "#test/setupProject.js";
 
+type DialectRecordWithDefault = Partial<Record<Dialect, string>> &
+  Record<"default", string>;
+
 for (const dialect of Object.keys(adapters) as Array<Dialect>) {
   const adapter = await adapters[dialect]();
 
@@ -17,7 +20,7 @@ for (const dialect of Object.keys(adapters) as Array<Dialect>) {
     `e2e keys: ${dialect}`,
     () => {
       test("work as expected with composites primary keys", async () => {
-        const schema: Partial<Record<"default" | Dialect, string>> = {
+        const schema: DialectRecordWithDefault = {
           default: `
             CREATE TABLE "Team" (
               "id" SERIAL PRIMARY KEY
@@ -114,7 +117,7 @@ for (const dialect of Object.keys(adapters) as Array<Dialect>) {
         ]);
       });
       test("work as expected with composite primary keys made by non nullable unique index", async () => {
-        const schema: Partial<Record<"default" | Dialect, string>> = {
+        const schema: DialectRecordWithDefault = {
           default: `
             CREATE TABLE "Team" (
               "id" SERIAL PRIMARY KEY
@@ -207,7 +210,7 @@ for (const dialect of Object.keys(adapters) as Array<Dialect>) {
         ]);
       });
       test("work as expected with composite primary keys made by nullable unique index", async () => {
-        const schema: Partial<Record<"default" | Dialect, string>> = {
+        const schema: DialectRecordWithDefault = {
           default: `
             CREATE TABLE "Team" (
               "id" SERIAL PRIMARY KEY
@@ -324,7 +327,7 @@ for (const dialect of Object.keys(adapters) as Array<Dialect>) {
         }
       });
       test("work as expected and UPDATE children with PRIMARY KEY field", async () => {
-        const schema: Partial<Record<"default" | Dialect, string>> = {
+        const schema: DialectRecordWithDefault = {
           default: `
             CREATE TABLE "Team" (
               "id" SERIAL PRIMARY KEY
@@ -416,7 +419,7 @@ for (const dialect of Object.keys(adapters) as Array<Dialect>) {
         ]);
       });
       test("work as expected and UPDATE children with UNIQUE NON NULLABLE field", async () => {
-        const schema: Partial<Record<"default" | Dialect, string>> = {
+        const schema: DialectRecordWithDefault = {
           default: `
             CREATE TABLE "Team" (
               "id" SERIAL PRIMARY KEY
@@ -506,7 +509,7 @@ for (const dialect of Object.keys(adapters) as Array<Dialect>) {
         ]);
       });
       test("should handle auto circular references", async () => {
-        const schema: Partial<Record<"default" | Dialect, string>> = {
+        const schema: DialectRecordWithDefault = {
           default: `
             create table customer (
               id serial primary key,
@@ -553,7 +556,7 @@ for (const dialect of Object.keys(adapters) as Array<Dialect>) {
         );
       });
       test("should connect auto circular references", async () => {
-        const schema: Partial<Record<"default" | Dialect, string>> = {
+        const schema: DialectRecordWithDefault = {
           default: `
             create table customer (
               id serial primary key,
@@ -598,7 +601,7 @@ for (const dialect of Object.keys(adapters) as Array<Dialect>) {
         );
       });
       test("should handle complex circular references", async () => {
-        const schema: Partial<Record<"default" | Dialect, string>> = {
+        const schema: DialectRecordWithDefault = {
           default: `
               create table customer (
                 id serial primary key,
@@ -717,7 +720,7 @@ for (const dialect of Object.keys(adapters) as Array<Dialect>) {
         );
       });
       test("should handle circular references with bigger circular loop", async () => {
-        const schema: Partial<Record<"default" | Dialect, string>> = {
+        const schema: DialectRecordWithDefault = {
           default: `
             -- Create tables without foreign keys that reference "order"
             create table customer (
@@ -891,7 +894,7 @@ for (const dialect of Object.keys(adapters) as Array<Dialect>) {
         );
       });
       test("should work with one single nullable FK table in the circular loop", async () => {
-        const schema: Partial<Record<"default" | Dialect, string>> = {
+        const schema: DialectRecordWithDefault = {
           default: `
           create table customer (
             id serial primary key,
@@ -1000,7 +1003,7 @@ for (const dialect of Object.keys(adapters) as Array<Dialect>) {
         );
       });
       test("should handle join table relationship", async () => {
-        const schema: Partial<Record<"default" | Dialect, string>> = {
+        const schema: DialectRecordWithDefault = {
           default: `
           CREATE TABLE authors (
             id SERIAL PRIMARY KEY,
@@ -1078,7 +1081,7 @@ for (const dialect of Object.keys(adapters) as Array<Dialect>) {
         );
       });
       test("should error on non nullables complex circular references", async () => {
-        const schema: Partial<Record<"default" | Dialect, string>> = {
+        const schema: DialectRecordWithDefault = {
           default: `
           create table customer (
             id serial primary key,
@@ -1158,7 +1161,7 @@ for (const dialect of Object.keys(adapters) as Array<Dialect>) {
       test.todo(
         "should handle complex circular references using connection",
         async () => {
-          const schema: Partial<Record<"default" | Dialect, string>> = {
+          const schema: DialectRecordWithDefault = {
             default: `
               create table customer (
                 id serial primary key,
