@@ -1,5 +1,5 @@
-import { getSeedConfig } from "#config/seedConfig/seedConfig.js";
 import { cliTelemetry } from "#cli/lib/cliTelemetry.js";
+import { getSeedConfig } from "#config/seedConfig/seedConfig.js";
 import { type CodegenContext, generateAssets } from "#core/codegen/codegen.js";
 import { getDataModel } from "#core/dataModel/dataModel.js";
 import { getFingerprint } from "#core/fingerprint/fingerprint.js";
@@ -13,7 +13,7 @@ export async function generateHandler(args: { output?: string }) {
   spinner.start(`Generating your ${bold("Seed Client")}`);
 
   await cliTelemetry.captureEvent("$command:generate:start");
-  
+
   const context = await computeCodegenContext({ outputDir: args.output });
 
   const outputDir = await generateAssets(context);

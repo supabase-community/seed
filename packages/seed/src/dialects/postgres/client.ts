@@ -1,11 +1,6 @@
 import { EOL } from "node:os";
-<<<<<<< HEAD
 import { getDatabaseClient } from "#adapters/getDatabaseClient.js";
 import { SeedClientBase, setupClient } from "#core/client/client.js";
-=======
-import { type DrizzleDbClient } from "#core/adapters.js";
-import { SeedClientBase, setupClient } from "#core/client/client.js";
->>>>>>> main
 import { type SeedClientOptions } from "#core/client/types.js";
 import { filterModelsBySelectConfig } from "#core/client/utils.js";
 import { type DataModel } from "#core/dataModel/types.js";
@@ -78,9 +73,9 @@ export function getSeedClient(props: {
   const createSeedClient = async (options?: SeedClientOptions) => {
     return setupClient({
       dialect: "postgres",
-      createClient() {
-    const databaseClient = options?.adapter ?? (await getDatabaseClient());
-    return new PgSeedClient(databaseClient, options);
+      async createClient() {
+        const databaseClient = options?.adapter ?? (await getDatabaseClient());
+        return new PgSeedClient(databaseClient, options);
       },
     });
   };

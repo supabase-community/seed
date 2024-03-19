@@ -1,5 +1,5 @@
-import { seedConfigExists } from "#config/seedConfig/seedConfig.js";
 import { cliTelemetry } from "#cli/lib/cliTelemetry.js";
+import { seedConfigExists } from "#config/seedConfig/seedConfig.js";
 import { bold, highlight } from "../../lib/output.js";
 import { generateHandler } from "../generate/generateHandler.js";
 import { introspectHandler } from "../introspect/introspectHandler.js";

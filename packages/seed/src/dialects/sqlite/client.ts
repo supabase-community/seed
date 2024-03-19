@@ -70,7 +70,7 @@ export function getSeedClient(props: {
   const createSeedClient = async (options?: SeedClientOptions) => {
     return setupClient({
       dialect: "sqlite",
-      createClient() {
+      async createClient() {
         const databaseClient = options?.adapter ?? (await getDatabaseClient());
         return new SqliteSeedClient(databaseClient, options);
       },
