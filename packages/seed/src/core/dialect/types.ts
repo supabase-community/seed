@@ -17,6 +17,7 @@ export type GetDataModel = (client: DatabaseClient) => Promise<DataModel>;
 export interface Dialect {
   determineShapeFromType: DetermineShapeFromType;
   generateClientTypes: GenerateClientTypes;
+  generateConfigTypes: GenerateConfigTypes;
   getDataModel: GetDataModel;
   id: string;
   templates: Templates;
@@ -31,4 +32,9 @@ export type GenerateClientTypes = (props: {
   dataModel: DataModel;
   fingerprint?: Fingerprint;
   seedConfig?: SeedConfig;
+}) => Promise<string> | string;
+
+export type GenerateConfigTypes = (props: {
+  dataModel: DataModel;
+  rawDataModel: DataModel;
 }) => Promise<string> | string;

@@ -18,7 +18,7 @@ export function generateSelectTypeFromTableIds(
   const uniqueTableIds = Array.from(new Set(tableIds));
   return [
     `//#region selectTypes`,
-    `type PartialRecord<K extends keyof unknown, T> = {
+    `type PartialRecord<K extends keyof any, T> = {
       [P in K]?: T;
   };`,
     uniqueTableIds.length > 0
@@ -83,7 +83,7 @@ function generateFingerprintTypes(props: {
 }) {
   const { dataModel, computeFingerprintFieldTypeName } = props;
   const relationField = `interface FingerprintRelationField {
-  count?: number | MinMaxOption;
+  count?: number | { min?: number; max?: number };
 }`;
   const jsonField = `interface FingerprintJsonField {
   schema?: any;
@@ -128,16 +128,17 @@ ${dataModel.models[modelName].fields
 function generateDefineConfigTypes() {
   return `
 type TypedConfig = {
+  adapter: import("@snaplet/seed/config").TypedConfig["adapter"];
   /**
    * Parameter to customize fields and relationships names.
    * {@link https://docs.snaplet.dev/core-concepts/seed}
    */
-  alias?: import("./snaplet-client").Alias;
+  alias?: Alias;
   /**
    * Parameter to customize the fingerprinting.
    * {@link https://docs.snaplet.dev/core-concepts/seed}
    */
-  fingerprint?: import("./snaplet-client").Fingerprint;
+  fingerprint?: Fingerprint;
   /**
    * Parameter to configure the inclusion/exclusion of schemas and tables from the seeds.
    * {@link https://docs.snaplet.dev/reference/configuration#select}
@@ -163,7 +164,7 @@ export function generateConfigTypes(props: {
   return [
     generateAliasTypes(rawDataModel),
     generateFingerprintTypes({ dataModel, computeFingerprintFieldTypeName }),
-    generateSelectTypes(dataModel),
+    generateSelectTypes(rawDataModel),
     generateDefineConfigTypes(),
   ].join(EOL);
 }

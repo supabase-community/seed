@@ -14,6 +14,7 @@ export interface CodegenContext {
   dialect: Dialect;
   fingerprint: Fingerprint;
   outputDir?: string;
+  rawDataModel: DataModel;
   seedConfig: SeedConfig;
   shapeExamples: Array<{ examples: Array<string>; shape: string }>;
   shapePredictions: Array<TableShapePredictions>;
@@ -61,6 +62,19 @@ export const createSeedClient = getSeedClient({ dataModel, userModels });
         fingerprint,
         seedConfig,
       });
+    },
+  },
+  CONFIGTYPEDEFS: {
+    name: "seed.config.d.ts",
+    template: async ({ dialect, dataModel, rawDataModel }: CodegenContext) => {
+      const configTypes = await dialect.generateConfigTypes({
+        dataModel,
+        rawDataModel,
+      });
+      return `
+      declare module "@snaplet/seed/config" {
+        ${configTypes}
+      }`;
     },
   },
   DATA_MODEL: {
