@@ -340,6 +340,9 @@ for (const dialect of Object.keys(adapters) as Array<Dialect>) {
       });
 
       test("compatibility with externally inserted data", async () => {
+        // context(justinvdm, 24 Jan 2024): We use `user_id` as a field name to
+        // make sure any field aliasing / renaming we do (e.g. to camel case)
+        // does not affect how sequences are found and updated
         const schema: DialectRecordWithDefault = {
           default: `
             CREATE TABLE "User" (
@@ -353,9 +356,6 @@ for (const dialect of Object.keys(adapters) as Array<Dialect>) {
           `,
         };
 
-        // context(justinvdm, 24 Jan 2024): We use `user_id` as a field name to
-        // make sure any field aliasing / renaming we do (e.g. to camel case)
-        // does not affect how sequences are found and updated
         const { db, runSeedScript } = await setupProject({
           adapter,
           databaseSchema: schema[dialect] ?? schema.default,
@@ -364,9 +364,15 @@ for (const dialect of Object.keys(adapters) as Array<Dialect>) {
         await db.execute('insert into "User" DEFAULT VALUES');
 
         await runSeedScript(`
-          import { createSeedClient, db } from "#seed"
+          import { createSeedClient } from "#seed"
 
           const seed = await createSeedClient()
+
+          // context(justinvdm, 19 Mar 2024): db is not typed as part of codegen-ed
+          // types since it is internal, but over here we need a way to execute
+          // queries against the same db, and db gives us a straightforward
+          // way to do this
+          const db = (seed as any).db
 
           await db.execute('insert into "User" DEFAULT VALUES')
           await db.execute('insert into "User" DEFAULT VALUES')
