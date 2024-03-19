@@ -79,6 +79,7 @@ export function getSeedClient(props: {
     return setupClient({
       dialect: "sqlite",
       createClient() {
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
         const client = createDrizzleORMSqliteClient(db);
         return new SqliteSeedClient(client, options);
       },
