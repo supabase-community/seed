@@ -49,9 +49,9 @@ export const defineCreateTestDb = (state: State) => {
     const failures: Array<{ dbName: string; error: Error }> = [];
 
     // Close all pools connections on the database, if there is more than one to be able to drop it
-    for (const { client, name } of dbs) {
+    for (const { /*client,*/ name } of dbs) {
       try {
-        await client.disconnect();
+        // await client.disconnect();
         await dbServerClient.execute(
           `DROP DATABASE IF EXISTS "${name}" WITH (force)`,
         );

@@ -10,9 +10,6 @@ export class SeedBetterSqlite3 extends DatabaseClient<Database> {
     super("sqlite", client);
   }
 
-  async disconnect(): Promise<void> {
-    // no-op
-  }
   // eslint-disable-next-line @typescript-eslint/require-await
   async execute(query: string): Promise<void> {
     this.client.prepare(query).run();

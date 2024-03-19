@@ -1,3 +1,4 @@
+import { gracefulExit } from "exit-hook";
 import yargs from "yargs";
 import { hideBin } from "yargs/helpers";
 import { generateCommand } from "./commands/generate/generate.js";
@@ -13,3 +14,5 @@ loginCommand(program);
 setupCommand(program);
 
 await program.parse();
+
+gracefulExit();

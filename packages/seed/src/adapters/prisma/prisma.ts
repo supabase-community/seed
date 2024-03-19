@@ -3,7 +3,6 @@ import { DatabaseClient } from "#core/databaseClient.js";
 import { type Adapter } from "../types.js";
 
 interface PrismaLikeClient {
-  $disconnect: () => Promise<void>;
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   $executeRawUnsafe(query: string, ...values: Array<any>): Promise<number>;
   $queryRawUnsafe<T = unknown>(
@@ -42,10 +41,6 @@ export class SeedPrisma extends DatabaseClient<PrismaLikeClient> {
           `Unsupported Prisma provider ${client._engineConfig?.activeProvider}`,
         );
     }
-  }
-
-  async disconnect(): Promise<void> {
-    await this.client.$disconnect();
   }
 
   async execute(query: string): Promise<void> {

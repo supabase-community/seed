@@ -3,7 +3,6 @@ export abstract class DatabaseClient<T = unknown> {
     public dialect: "postgres" | "sqlite",
     public client: T,
   ) {}
-  abstract disconnect(): Promise<void>;
   abstract execute(query: string): Promise<void>;
   abstract query<K = unknown>(
     query: string,

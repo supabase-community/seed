@@ -6,6 +6,7 @@ import { getRootPath } from "./utils.js";
 export async function getDotSnapletPath() {
   const path = await findUp(".snaplet", {
     type: "directory",
+    stopAt: await getRootPath(),
   });
 
   return path;

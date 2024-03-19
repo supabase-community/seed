@@ -8,9 +8,6 @@ export class SeedPostgres extends DatabaseClient<Sql> {
     super("postgres", client);
   }
 
-  async disconnect(): Promise<void> {
-    await this.client.end();
-  }
   async execute(query: string): Promise<void> {
     await this.client.unsafe(query);
   }

@@ -7,7 +7,6 @@ export function introspectCommand(program: Argv) {
     async () => {
       const { introspectHandler } = await import("./introspectHandler.js");
       await introspectHandler();
-      (await import("exit-hook")).gracefulExit();
     },
   );
 }
