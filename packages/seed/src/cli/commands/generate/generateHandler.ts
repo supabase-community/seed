@@ -1,4 +1,5 @@
 import { getSeedConfig } from "#config/seedConfig/seedConfig.js";
+import { cliTelemetry } from "#cli/lib/cliTelemetry.js";
 import { type CodegenContext, generateAssets } from "#core/codegen/codegen.js";
 import { getDataModel } from "#core/dataModel/dataModel.js";
 import { getFingerprint } from "#core/fingerprint/fingerprint.js";
@@ -9,8 +10,12 @@ import { fetchShapeExamples } from "./fetchShapeExamples.js";
 import { fetchShapePredictions } from "./fetchShapePredictions.js";
 
 export async function generateHandler(args: { output?: string }) {
-  const context = await computeCodegenContext({ outputDir: args.output });
   spinner.start(`Generating your ${bold("Seed Client")}`);
+
+  await cliTelemetry.captureEvent("$command:generate:start");
+  
+  const context = await computeCodegenContext({ outputDir: args.output });
+
   const outputDir = await generateAssets(context);
   spinner.succeed(
     `Generated your ${bold("Seed Client")} to ${link(outputDir)}`,
@@ -18,6 +23,8 @@ export async function generateHandler(args: { output?: string }) {
   spinner.info(
     `You might want to reload your TypeScript Server to pick up the changes`,
   );
+
+  await cliTelemetry.captureEvent("$command:generate:end");
 }
 
 async function computeCodegenContext(props: {

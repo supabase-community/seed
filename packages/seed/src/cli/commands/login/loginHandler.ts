@@ -1,4 +1,5 @@
 import { getPortPromise as getPort } from "portfinder";
+import { cliTelemetry } from "#cli/lib/cliTelemetry.js";
 import { SNAPLET_APP_URL } from "#config/constants.js";
 import { updateSystemConfig } from "#config/systemConfig.js";
 import { trpc } from "#trpc/client.js";
@@ -6,6 +7,8 @@ import { eraseLines, highlight, link, spinner } from "../../lib/output.js";
 import { getAccessTokenFromHttpServer } from "./getAccessTokenFromHttpServer.js";
 
 export async function loginHandler() {
+  await cliTelemetry.captureEvent("$command:login:start");
+
   const port = await getPort();
 
   const accessTokenUrl = `${SNAPLET_APP_URL}/access-token/cli?port=${port}`;
@@ -25,9 +28,15 @@ export async function loginHandler() {
     return;
   }
 
-  await updateSystemConfig({ accessToken });
+  await updateSystemConfig({
+    accessToken,
+  });
+
+  await cliTelemetry.captureUserLogin(user);
 
   spinner.stop();
   eraseLines(3);
   spinner.succeed(`Logged in as ${highlight(user.email)}`);
+
+  await cliTelemetry.captureEvent("$command:login:end");
 }

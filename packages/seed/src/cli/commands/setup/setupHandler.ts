@@ -1,4 +1,5 @@
 import { seedConfigExists } from "#config/seedConfig/seedConfig.js";
+import { cliTelemetry } from "#cli/lib/cliTelemetry.js";
 import { bold, highlight } from "../../lib/output.js";
 import { generateHandler } from "../generate/generateHandler.js";
 import { introspectHandler } from "../introspect/introspectHandler.js";
@@ -10,6 +11,8 @@ import { installDependencies } from "./installDependencies.js";
 import { saveSeedConfig } from "./saveSeedConfig.js";
 
 export async function setupHandler() {
+  await cliTelemetry.captureEvent("$command:setup:start");
+
   const user = await getUser();
 
   const welcomeText = user
@@ -39,4 +42,6 @@ export async function setupHandler() {
   if (isFirstTimeSetup) {
     await generateSeedScriptExample();
   }
+
+  await cliTelemetry.captureEvent("$command:setup:end");
 }
