@@ -1,4 +1,4 @@
-import { readJson, writeJson } from "fs-extra";
+import { readFile, writeFile } from "node:fs/promises";
 import path from "node:path";
 import { getSystemPath } from "./systemConfig.js";
 
@@ -14,7 +14,7 @@ const getSystemManifestPath = () => {
 };
 
 export const saveSystemManifest = async (next: SystemManifest) => {
-  await writeJson(getSystemManifestPath(), next);
+  await writeFile(getSystemManifestPath(), JSON.stringify(next));
 };
 
 export const updateSystemManifest = async (
@@ -30,7 +30,9 @@ export const updateSystemManifest = async (
 
 export const readSystemManifest = async (): Promise<SystemManifest> => {
   try {
-    return await readJson(getSystemManifestPath());
+    return JSON.parse(
+      (await readFile(getSystemManifestPath())).toString(),
+    ) as SystemManifest;
   } catch {
     // context(justinvdm, 10 Jan 2024): Any failed reads of the system manifest file should not
     // break `@snaplet/seed`
