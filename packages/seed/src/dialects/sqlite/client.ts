@@ -1,12 +1,11 @@
 import { type BaseSQLiteDatabase } from "drizzle-orm/sqlite-core";
 import { EOL } from "node:os";
 import { type DrizzleDbClient } from "#core/adapters.js";
-import { SeedClientBase } from "#core/client/client.js";
+import { SeedClientBase, setupClient } from "#core/client/client.js";
 import { type SeedClientOptions } from "#core/client/types.js";
 import { filterModelsBySelectConfig } from "#core/client/utils.js";
 import { type DataModel } from "#core/dataModel/types.js";
 import { type Fingerprint } from "#core/fingerprint/types.js";
-import { captureRuntimeEvent } from "#core/runtime/captureRuntimeEvent.js";
 import { updateDataModelSequences } from "#core/sequences/updateDataModelSequences.js";
 import { type UserModels } from "#core/userModels/types.js";
 import { createDrizzleORMSqliteClient } from "./adapters.js";
@@ -76,18 +75,13 @@ export function getSeedClient(props: {
     db: DrizzleSqliteDatabase,
     options?: SeedClientOptions,
   ) => {
-    const promisedEventCapture = captureRuntimeEvent("$call:createSeedClient", {
+    return setupClient({
       dialect: "sqlite",
+      createClient() {
+        const client = createDrizzleORMSqliteClient(db);
+        return new SqliteSeedClient(client, options);
+      },
     });
-
-    const client = createDrizzleORMSqliteClient(db);
-    const seed = new SqliteSeedClient(client, options);
-
-    await seed.$syncDatabase();
-    seed.$reset();
-
-    await promisedEventCapture;
-    return seed;
   };
 
   return createSeedClient;
