@@ -1,28 +1,21 @@
-import { drizzle as drizzleBetterSqlite } from "drizzle-orm/better-sqlite3";
 import { describe, expect, test } from "vitest";
 import { sqlite } from "#test";
-import { createDrizzleORMSqliteClient } from "../../adapters.js";
 import { fetchTablesAndColumns } from "./fetchTablesAndColumns.js";
 
 const adapters = {
-  betterSqlite3: () => ({
-    ...sqlite.betterSqlite3,
-    drizzle: drizzleBetterSqlite,
-  }),
+  betterSqlite3: () => sqlite.betterSqlite3,
 };
 
 describe.each(["betterSqlite3"] as const)(
   "fetchTablesAndColumns: %s",
   (adapter) => {
-    const { drizzle, createTestDb } = adapters[adapter]();
+    const { createTestDb } = adapters[adapter]();
 
     test("should fetch all tables and columns on empty db", async () => {
       const structure = ``;
       const { client } = await createTestDb(structure);
 
-      const tablesInfos = await fetchTablesAndColumns(
-        createDrizzleORMSqliteClient(drizzle(client)),
-      );
+      const tablesInfos = await fetchTablesAndColumns(client);
 
       expect(tablesInfos).toEqual([]);
     });
@@ -41,9 +34,7 @@ describe.each(["betterSqlite3"] as const)(
       `;
       const { client } = await createTestDb(structure);
 
-      const tablesInfos = await fetchTablesAndColumns(
-        createDrizzleORMSqliteClient(drizzle(client)),
-      );
+      const tablesInfos = await fetchTablesAndColumns(client);
       expect(tablesInfos).toEqual([
         {
           columns: [
@@ -145,9 +136,7 @@ describe.each(["betterSqlite3"] as const)(
       `;
       const { client } = await createTestDb(structure);
 
-      const tablesInfos = await fetchTablesAndColumns(
-        createDrizzleORMSqliteClient(drizzle(client)),
-      );
+      const tablesInfos = await fetchTablesAndColumns(client);
       expect(tablesInfos).toEqual([
         {
           id: "Courses",
@@ -329,9 +318,7 @@ describe.each(["betterSqlite3"] as const)(
       `;
       const { client } = await createTestDb(structure);
 
-      const tablesInfos = await fetchTablesAndColumns(
-        createDrizzleORMSqliteClient(drizzle(client)),
-      );
+      const tablesInfos = await fetchTablesAndColumns(client);
       expect(tablesInfos).toEqual([
         {
           id: "Courses",
@@ -496,9 +483,7 @@ describe.each(["betterSqlite3"] as const)(
       `;
       const { client } = await createTestDb(structure);
 
-      const tablesInfos = await fetchTablesAndColumns(
-        createDrizzleORMSqliteClient(drizzle(client)),
-      );
+      const tablesInfos = await fetchTablesAndColumns(client);
 
       expect(tablesInfos).toEqual([
         {

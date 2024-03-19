@@ -1,4 +1,3 @@
-import open from "open";
 import { getPortPromise as getPort } from "portfinder";
 import { cliTelemetry } from "#cli/lib/cliTelemetry.js";
 import { SNAPLET_APP_URL } from "#config/constants.js";
@@ -13,8 +12,6 @@ export async function loginHandler() {
   const port = await getPort();
 
   const accessTokenUrl = `${SNAPLET_APP_URL}/access-token/cli?port=${port}`;
-
-  await open(accessTokenUrl);
 
   console.log(`Please visit the following URL in your web browser:`);
   console.log(link(accessTokenUrl));
@@ -38,7 +35,7 @@ export async function loginHandler() {
   await cliTelemetry.captureUserLogin(user);
 
   spinner.stop();
-  console.log(eraseLines(3));
+  eraseLines(3);
   spinner.succeed(`Logged in as ${highlight(user.email)}`);
 
   await cliTelemetry.captureEvent("$command:login:end");

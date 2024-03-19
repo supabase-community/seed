@@ -1,9 +1,9 @@
-import { mkdirp, writeFile } from "fs-extra";
+import { mkdirp, pathExists, symlink, writeFile } from "fs-extra";
 import path from "node:path";
 import tmp from "tmp-promise";
-import { type DrizzleDbClient } from "#core/adapters.js";
+import { type DatabaseClient } from "#core/databaseClient.js";
 import { type Adapter } from "./adapters.js";
-import { TMP_DIR } from "./constants.js";
+import { ROOT_DIR, TMP_DIR } from "./constants.js";
 import { runCLI } from "./runCli.js";
 import { runSeedScript as baseRunSeedScript } from "./runSeedScript.js";
 
@@ -12,9 +12,10 @@ async function seedSetup(props: {
   connectionString: string;
   cwd?: string;
   env?: Record<string, string>;
+  seedConfig?: ((connectionString: string) => string) | null | string;
   seedScript?: string;
-  snapletConfig?: null | string;
 }) {
+  const { connectionString, adapter } = props;
   await mkdirp(TMP_DIR);
 
   const cwd = (props.cwd ??= (
@@ -23,14 +24,73 @@ async function seedSetup(props: {
     })
   ).path);
 
-  if (props.snapletConfig) {
-    await writeFile(path.join(cwd, "seed.config.ts"), props.snapletConfig);
+  const tsConfigPath = path.join(cwd, "tsconfig.json");
+  const clientWrapperRelativePath = "./__seed.ts";
+  const clientWrapperPath = path.join(cwd, clientWrapperRelativePath);
+  const pkgPath = path.join(cwd, "package.json");
+  const snapletSeedDestPath = path.join(
+    cwd,
+    "node_modules",
+    "@snaplet",
+    "seed",
+  );
+
+  await mkdirp(path.dirname(snapletSeedDestPath));
+
+  if (!(await pathExists(snapletSeedDestPath))) {
+    await symlink(ROOT_DIR, snapletSeedDestPath);
+  }
+
+  await writeFile(
+    tsConfigPath,
+    JSON.stringify({
+      extends: "@snaplet/tsconfig",
+      compilerOptions: {
+        noEmit: true,
+        emitDeclarationOnly: false,
+        allowImportingTsExtensions: true,
+      },
+      include: ["*.ts", clientWrapperRelativePath],
+    }),
+  );
+
+  await writeFile(
+    pkgPath,
+    JSON.stringify({
+      name: path.dirname(cwd),
+      type: "module",
+      imports: {
+        "#seed": clientWrapperRelativePath,
+      },
+    }),
+  );
+
+  if (props.seedConfig !== null) {
+    let seedConfig: string;
+    if (props.seedConfig !== undefined) {
+      if (typeof props.seedConfig === "function") {
+        seedConfig = props.seedConfig(props.connectionString);
+      } else {
+        seedConfig = props.seedConfig;
+      }
+    } else {
+      seedConfig = props.adapter.generateSeedConfig(props.connectionString);
+    }
+    await writeFile(path.join(cwd, "seed.config.ts"), seedConfig);
   }
 
   const generateOutputPath = "./seed";
   const generateOutputIndexPath = "./seed/index.js";
 
-  await runCLI(["introspect", "--database-url", props.connectionString], {
+  await writeFile(
+    clientWrapperPath,
+    adapter.generateClientWrapper({
+      generateOutputIndexPath,
+      connectionString,
+    }),
+  );
+
+  await runCLI(["introspect"], {
     cwd,
     env: props.env,
   });
@@ -76,8 +136,8 @@ export async function setupProject(props: {
   cwd?: string;
   databaseSchema?: string;
   env?: Record<string, string>;
+  seedConfig?: ((connectionString: string) => string) | null | string;
   seedScript?: string;
-  snapletConfig?: null | string;
 }) {
   const { adapter } = props;
   if (props.connectionString) {
@@ -88,22 +148,20 @@ export async function setupProject(props: {
     return {
       ...result,
       // If we provide the connection string of an existing database we don't create a new one and therefore we won't have a db client
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any, @typescript-eslint/no-unnecessary-type-arguments
-      db: undefined as any as DrizzleDbClient<any>,
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      db: undefined as any as DatabaseClient<any>,
     };
   } else {
     const { client, connectionString } = await adapter.createTestDb(
       props.databaseSchema ?? "",
     );
 
-    const db = adapter.createClient(client);
-
     const result = await seedSetup({
       ...props,
       connectionString,
     });
     return {
-      db,
+      db: client,
       ...result,
     };
   }

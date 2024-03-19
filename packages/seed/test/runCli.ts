@@ -57,6 +57,7 @@ export async function runCLI(args: Array<string>, options: RunCliOptions = {}) {
       stderr: "pipe",
       stdout: "pipe",
       cwd,
+      preferLocal: true,
       env: {
         ...env,
         DEBUG_COLORS: "1",

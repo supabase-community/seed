@@ -1,4 +1,4 @@
-import { type DrizzleDbClient } from "#core/adapters.js";
+import { type DatabaseClient } from "#core/databaseClient.js";
 import { escapeIdentifier } from "#dialects/sqlite/utils.js";
 import {
   FETCH_TABLE_COLUMNS_LIST,
@@ -14,7 +14,7 @@ export interface FetchSequencesResult {
   tableId: string;
 }
 
-export async function fetchSequences(client: DrizzleDbClient) {
+export async function fetchSequences(client: DatabaseClient) {
   const results: Array<FetchSequencesResult> = [];
   const tableColumnsInfos = await client.query<FetchTableAndColumnsResultRaw>(
     FETCH_TABLE_COLUMNS_LIST,

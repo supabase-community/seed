@@ -1,20 +1,16 @@
-import { type BaseSQLiteDatabase } from "drizzle-orm/sqlite-core";
 import { EOL } from "node:os";
-import { type DrizzleDbClient } from "#core/adapters.js";
+import { getDatabaseClient } from "#adapters/getDatabaseClient.js";
 import { SeedClientBase, setupClient } from "#core/client/client.js";
 import { type SeedClientOptions } from "#core/client/types.js";
 import { filterModelsBySelectConfig } from "#core/client/utils.js";
 import { type DataModel } from "#core/dataModel/types.js";
+import { type DatabaseClient } from "#core/databaseClient.js";
 import { type Fingerprint } from "#core/fingerprint/types.js";
 import { updateDataModelSequences } from "#core/sequences/updateDataModelSequences.js";
 import { type UserModels } from "#core/userModels/types.js";
-import { createDrizzleORMSqliteClient } from "./adapters.js";
 import { getDatamodel } from "./dataModel.js";
 import { SqliteStore } from "./store.js";
 import { escapeIdentifier } from "./utils.js";
-
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-type DrizzleSqliteDatabase = BaseSQLiteDatabase<any, unknown>;
 
 export function getSeedClient(props: {
   dataModel: DataModel;
@@ -22,18 +18,18 @@ export function getSeedClient(props: {
   userModels: UserModels;
 }) {
   class SqliteSeedClient extends SeedClientBase {
-    readonly db: DrizzleDbClient;
+    readonly db: DatabaseClient;
     readonly dryRun: boolean;
     readonly options?: SeedClientOptions;
 
-    constructor(db: DrizzleDbClient, options?: SeedClientOptions) {
+    constructor(databaseClient: DatabaseClient, options?: SeedClientOptions) {
       super({
         ...props,
         createStore: (dataModel: DataModel) => new SqliteStore(dataModel),
         runStatements: async (statements: Array<string>) => {
           if (!this.dryRun) {
             for (const statement of statements) {
-              await this.db.run(statement);
+              await this.db.execute(statement);
             }
           } else {
             console.log(statements.join(`;${EOL}`) + ";");
@@ -43,7 +39,7 @@ export function getSeedClient(props: {
       });
 
       this.dryRun = options?.dryRun ?? false;
-      this.db = db;
+      this.db = databaseClient;
       this.options = options;
     }
 
@@ -55,7 +51,7 @@ export function getSeedClient(props: {
           escapeIdentifier(model.tableName),
         );
         for (const table of tablesToTruncate) {
-          await this.db.run(`DELETE FROM ${table}`);
+          await this.db.execute(`DELETE FROM ${table}`);
         }
       }
     }
@@ -67,21 +63,16 @@ export function getSeedClient(props: {
     }
 
     async $transaction(cb: (seed: SqliteSeedClient) => Promise<void>) {
-      // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
-      await cb(await createSeedClient(this.db.adapter, this.options));
+      await cb(await createSeedClient(this.options));
     }
   }
 
-  const createSeedClient = async (
-    db: DrizzleSqliteDatabase,
-    options?: SeedClientOptions,
-  ) => {
+  const createSeedClient = async (options?: SeedClientOptions) => {
     return setupClient({
       dialect: "sqlite",
-      createClient() {
-        // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
-        const client = createDrizzleORMSqliteClient(db);
-        return new SqliteSeedClient(client, options);
+      async createClient() {
+        const databaseClient = options?.adapter ?? (await getDatabaseClient());
+        return new SqliteSeedClient(databaseClient, options);
       },
     });
   };

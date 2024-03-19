@@ -1,5 +1,5 @@
 import { sortBy } from "remeda";
-import { type DrizzleDbClient } from "#core/adapters.js";
+import { type DatabaseClient } from "#core/databaseClient.js";
 // We crawl over the types to get the common SQL types
 // so they must be ordered by
 export const COMMON_SQL_TYPES = [
@@ -208,7 +208,7 @@ ORDER BY
 `;
 
 export async function fetchTablesAndColumns(
-  client: DrizzleDbClient,
+  client: DatabaseClient,
 ): Promise<Array<FetchTableAndColumnsResult>> {
   const groupedResults: Record<string, FetchTableAndColumnsResult> = {};
   const resultsColumns = await client.query<FetchTableAndColumnsResultRaw>(

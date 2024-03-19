@@ -1,3 +1,4 @@
+import { type DialectId } from "#dialects/dialects.js";
 import { type DataModel } from "../dataModel/types.js";
 import { type Fingerprint } from "../fingerprint/types.js";
 import { getInitialConstraints } from "../plan/constraints.js";
@@ -132,7 +133,7 @@ interface SeedClient {
 
 export const setupClient = async <Client extends SeedClient>(props: {
   createClient: () => Client | Promise<Client>;
-  dialect: DataModel["dialect"];
+  dialect: DialectId;
 }): Promise<Client> => {
   const { createClient, dialect } = props;
 

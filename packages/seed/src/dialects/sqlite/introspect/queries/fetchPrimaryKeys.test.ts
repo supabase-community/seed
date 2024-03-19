@@ -1,18 +1,13 @@
-import { drizzle as drizzleBetterSqlite } from "drizzle-orm/better-sqlite3";
 import { describe, expect, test } from "vitest";
 import { sqlite } from "#test";
-import { createDrizzleORMSqliteClient } from "../../adapters.js";
 import { fetchPrimaryKeys } from "./fetchPrimaryKeys.js";
 
 const adapters = {
-  betterSqlite3: () => ({
-    ...sqlite.betterSqlite3,
-    drizzle: drizzleBetterSqlite,
-  }),
+  betterSqlite3: () => sqlite.betterSqlite3,
 };
 
 describe.each(["betterSqlite3"] as const)("fetchPrimaryKeys: %s", (adapter) => {
-  const { drizzle, createTestDb } = adapters[adapter]();
+  const { createTestDb } = adapters[adapter]();
 
   test("should get basics primary keys", async () => {
     const structure = `
@@ -27,9 +22,7 @@ describe.each(["betterSqlite3"] as const)("fetchPrimaryKeys: %s", (adapter) => {
       );
       `;
     const { client } = await createTestDb(structure);
-    const primaryKeys = await fetchPrimaryKeys(
-      createDrizzleORMSqliteClient(drizzle(client)),
-    );
+    const primaryKeys = await fetchPrimaryKeys(client);
     expect(primaryKeys).toEqual(
       expect.arrayContaining([
         {
@@ -76,9 +69,7 @@ describe.each(["betterSqlite3"] as const)("fetchPrimaryKeys: %s", (adapter) => {
       );
       `;
     const { client } = await createTestDb(structure);
-    const primaryKeys = await fetchPrimaryKeys(
-      createDrizzleORMSqliteClient(drizzle(client)),
-    );
+    const primaryKeys = await fetchPrimaryKeys(client);
     expect(primaryKeys).toEqual([
       {
         keys: [{ name: "CourseID", type: "INTEGER", affinity: "integer" }],
@@ -121,9 +112,7 @@ describe.each(["betterSqlite3"] as const)("fetchPrimaryKeys: %s", (adapter) => {
         );
       `;
     const { client } = await createTestDb(structure);
-    const primaryKeys = await fetchPrimaryKeys(
-      createDrizzleORMSqliteClient(drizzle(client)),
-    );
+    const primaryKeys = await fetchPrimaryKeys(client);
     expect(primaryKeys).toEqual(
       expect.arrayContaining([
         {
@@ -144,9 +133,7 @@ describe.each(["betterSqlite3"] as const)("fetchPrimaryKeys: %s", (adapter) => {
         ) WITHOUT ROWID;
       `;
     const { client } = await createTestDb(structure);
-    const primaryKeys = await fetchPrimaryKeys(
-      createDrizzleORMSqliteClient(drizzle(client)),
-    );
+    const primaryKeys = await fetchPrimaryKeys(client);
     expect(primaryKeys).toEqual(
       expect.arrayContaining([
         {
@@ -167,9 +154,7 @@ describe.each(["betterSqlite3"] as const)("fetchPrimaryKeys: %s", (adapter) => {
         ) WITHOUT ROWID;
       `;
     const { client } = await createTestDb(structure);
-    const primaryKeys = await fetchPrimaryKeys(
-      createDrizzleORMSqliteClient(drizzle(client)),
-    );
+    const primaryKeys = await fetchPrimaryKeys(client);
     expect(primaryKeys).toEqual(
       expect.arrayContaining([
         {

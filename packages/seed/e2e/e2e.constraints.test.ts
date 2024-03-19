@@ -69,7 +69,7 @@ for (const dialect of ["sqlite"] as Array<Dialect>) {
             await seed.members((x) => x(20), { connect: true })
           `,
         });
-        const members = await db.query<unknown>('SELECT * FROM "member"');
+        const members = await db.query('SELECT * FROM "member"');
         expect(members).toHaveLength(20);
       });
       test("unique constraints for scalar fields", async () => {
@@ -186,7 +186,7 @@ for (const dialect of ["sqlite"] as Array<Dialect>) {
           await seed.profiles((x) => x(2))
           `,
         });
-        const profiles = await db.query<unknown>('SELECT * FROM "profile"');
+        const profiles = await db.query('SELECT * FROM "profile"');
         expect(profiles).toHaveLength(2);
       });
       test("nullable relationship", async () => {
@@ -233,11 +233,11 @@ for (const dialect of ["sqlite"] as Array<Dialect>) {
         });
 
         // Check if the players table has been populated correctly
-        const players = await db.query<unknown>("SELECT * FROM player");
+        const players = await db.query("SELECT * FROM player");
         expect(players).toHaveLength(4);
 
         // Check if the teams table remains empty
-        const teams = await db.query<unknown>("SELECT * FROM team");
+        const teams = await db.query("SELECT * FROM team");
         expect(teams).toHaveLength(0);
       });
       test("unique constraint on nullable relationship", async () => {
@@ -285,11 +285,11 @@ for (const dialect of ["sqlite"] as Array<Dialect>) {
         });
 
         // Verify the correct number of entries in the player table
-        const players = await db.query<unknown>('SELECT * FROM "player"');
+        const players = await db.query('SELECT * FROM "player"');
         expect(players).toHaveLength(4);
 
         // Verify that the team table remains empty
-        const teams = await db.query<unknown>('SELECT * FROM "team"');
+        const teams = await db.query('SELECT * FROM "team"');
         expect(teams).toHaveLength(0);
       });
     },

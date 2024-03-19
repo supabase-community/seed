@@ -128,7 +128,6 @@ export function getSelectFilteredDataModel(
     dataModel.models,
   );
   const filteredDataModel: DataModel = {
-    dialect: dataModel.dialect,
     models: {},
     enums: dataModel.enums,
   };

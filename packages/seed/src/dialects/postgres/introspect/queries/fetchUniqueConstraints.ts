@@ -1,4 +1,4 @@
-import { type DrizzleDbClient } from "#core/adapters.js";
+import { type DatabaseClient } from "#core/databaseClient.js";
 import { buildSchemaExclusionClause } from "./utils.js";
 
 interface FetchUniqueConstraintsResult {
@@ -60,7 +60,7 @@ ORDER BY
     tc.constraint_name;
 `;
 
-export async function fetchUniqueConstraints(client: DrizzleDbClient) {
+export async function fetchUniqueConstraints(client: DatabaseClient) {
   const response = await client.query<FetchUniqueConstraintsResult>(
     FETCH_UNIQUE_CONSTRAINTS,
   );

@@ -4,17 +4,9 @@ export function introspectCommand(program: Argv) {
   return program.command(
     "introspect",
     "Introspect and generate the data model for your database",
-    (y) =>
-      y.option("database-url", {
-        alias: "c",
-        describe:
-          "The connection string to use for introspecting your database",
-        type: "string",
-        demandOption: true,
-      }),
-    async (args) => {
+    async () => {
       const { introspectHandler } = await import("./introspectHandler.js");
-      await introspectHandler(args);
+      await introspectHandler();
     },
   );
 }

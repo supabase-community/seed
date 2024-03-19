@@ -1,25 +1,27 @@
-import { relative, sep } from "node:path";
 import { cliTelemetry } from "#cli/lib/cliTelemetry.js";
-import { getSnapletSeedConfig } from "#config/seedConfig/seedConfig.js";
+import { getSeedConfig } from "#config/seedConfig/seedConfig.js";
 import { type CodegenContext, generateAssets } from "#core/codegen/codegen.js";
 import { getDataModel } from "#core/dataModel/dataModel.js";
-import { getDialect } from "#core/dialect/getDialect.js";
 import { getFingerprint } from "#core/fingerprint/fingerprint.js";
+import { getDialect } from "#dialects/getDialect.js";
 import { type TableShapePredictions } from "#trpc/shapes.js";
-import { bold, dim, link, spinner } from "../../lib/output.js";
+import { bold, link, spinner } from "../../lib/output.js";
 import { fetchShapeExamples } from "./fetchShapeExamples.js";
 import { fetchShapePredictions } from "./fetchShapePredictions.js";
 
 export async function generateHandler(args: { output?: string }) {
-  spinner.start(`Generating ${bold("Seed Client")}`);
+  spinner.start(`Generating your ${bold("Seed Client")}`);
 
   await cliTelemetry.captureEvent("$command:generate:start");
 
   const context = await computeCodegenContext({ outputDir: args.output });
+
   const outputDir = await generateAssets(context);
-  const relativeOutputDir = `.${sep}${relative(process.cwd(), outputDir)}`;
   spinner.succeed(
-    `Generated ${bold("Seed Client")} ${dim(`to ${link(relativeOutputDir, outputDir)}`)}`,
+    `Generated your ${bold("Seed Client")} to ${link(outputDir)}`,
+  );
+  spinner.info(
+    `You might want to reload your TypeScript Server to pick up the changes`,
   );
 
   await cliTelemetry.captureEvent("$command:generate:end");
@@ -31,8 +33,9 @@ async function computeCodegenContext(props: {
   const { outputDir } = props;
 
   const dataModel = await getDataModel();
-  const seedConfig = await getSnapletSeedConfig();
-  const dialect = await getDialect(dataModel.dialect);
+  const seedConfig = await getSeedConfig();
+  const dialect = await getDialect();
+
   let shapePredictions: Array<TableShapePredictions> = [];
   let shapeExamples: Array<{ examples: Array<string>; shape: string }> = [];
 

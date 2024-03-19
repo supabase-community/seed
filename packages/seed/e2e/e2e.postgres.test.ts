@@ -65,7 +65,6 @@ describe.concurrent(
             "id" uuid not null primary key
           );
         `,
-        snapletConfig: null,
         seedScript: `
           import { createSeedClient } from '#seed'
 
@@ -166,15 +165,16 @@ describe.concurrent(
       });
 
       test("should not reset config excluded schema", async () => {
-        const snapletConfig = `
-        import { defineConfig } from "@snaplet/seed/config";
+        const seedConfig = (connectionString: string) =>
+          adapter.generateSeedConfig(
+            connectionString,
+            `
+              select: {
+                'hdb_catalog.*': false,
+              },
+            `,
+          );
 
-        export default defineConfig({
-          select: {
-            'hdb_catalog.*': false,
-          },
-        })
-  `;
         const seedScript = `
         import { createSeedClient } from "#seed"
         const seed = await createSeedClient()
@@ -220,7 +220,7 @@ describe.concurrent(
               "id" INTEGER GENERATED ALWAYS AS IDENTITY PRIMARY KEY
             );
           `,
-          snapletConfig,
+          seedConfig,
           seedScript,
         });
         expect((await db.query('SELECT * FROM "Player"')).length).toEqual(6);
@@ -236,15 +236,15 @@ describe.concurrent(
       });
 
       test("should not reset config excluded table", async () => {
-        const snapletConfig = `
-        import { defineConfig } from "@snaplet/seed/config";
-
-        export default defineConfig({
-          select: {
-            "hdb_catalog.SystemSettings": false,
-          },
-        })
-  `;
+        const seedConfig = (connectionString: string) =>
+          adapter.generateSeedConfig(
+            connectionString,
+            `
+              select: {
+                "hdb_catalog.SystemSettings": false,
+              },
+            `,
+          );
         const seedScript = `
         import { createSeedClient } from "#seed"
         const seed = await createSeedClient()
@@ -290,7 +290,7 @@ describe.concurrent(
               "id" INTEGER GENERATED ALWAYS AS IDENTITY PRIMARY KEY
             );
           `,
-          snapletConfig,
+          seedConfig,
           seedScript,
         });
         expect((await db.query('SELECT * FROM "Player"')).length).toEqual(6);
