@@ -10,6 +10,8 @@ import { type UserModels } from "../userModels/types.js";
 import { mergeUserModels } from "../userModels/userModels.js";
 import { type ClientState, type SeedClientOptions } from "./types.js";
 
+const noop = () => ({});
+
 export abstract class SeedClientBase implements SeedClient {
   readonly createStore: (dataModel: DataModel) => Store;
   dataModel: DataModel;
@@ -29,11 +31,7 @@ export abstract class SeedClientBase implements SeedClient {
     runStatements: (statements: Array<string>) => Promise<void>;
     userModels: UserModels;
   }) {
-    this.emit =
-      props.emit ??
-      (() => {
-        /* stub */
-      });
+    this.emit = props.emit ?? noop;
 
     this.createStore = props.createStore;
     this.runStatements = props.runStatements;
