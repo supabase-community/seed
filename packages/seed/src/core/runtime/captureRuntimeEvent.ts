@@ -10,6 +10,14 @@ export const captureRuntimeEvent = async (
   event: string,
   properties: Record<string, unknown> = {},
 ) => {
+  const telemetry = createTelemetry({
+    source: "seed",
+  });
+
+  if (!telemetry.isEnabled()) {
+    return;
+  }
+
   const now = Date.now();
 
   const manifest = await readSystemManifest();
@@ -22,10 +30,6 @@ export const captureRuntimeEvent = async (
 
   lastEventTimestamps[event] = now;
   await updateSystemManifest({ lastEventTimestamps });
-
-  const telemetry = createTelemetry({
-    source: "seed",
-  });
 
   await telemetry.captureEvent(event, properties);
 

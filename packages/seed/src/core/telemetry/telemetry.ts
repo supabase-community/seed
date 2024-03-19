@@ -113,7 +113,10 @@ export const createTelemetry = (options: TelemetryOptions) => {
     await posthog?.shutdown();
   };
 
+  const isEnabled = () => Boolean(posthog);
+
   return {
+    isEnabled,
     captureEvent,
     captureUserLogin,
     teardownTelemetry,

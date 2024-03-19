@@ -67,7 +67,6 @@ export function getSeedClient(props: {
     }
 
     async $transaction(cb: (seed: SqliteSeedClient) => Promise<void>) {
-      // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
       await cb(await createSeedClient(this.db.adapter, this.options));
     }
   }
@@ -79,7 +78,6 @@ export function getSeedClient(props: {
     return setupClient({
       dialect: "sqlite",
       createClient() {
-        // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
         const client = createDrizzleORMSqliteClient(db);
         return new SqliteSeedClient(client, options);
       },
