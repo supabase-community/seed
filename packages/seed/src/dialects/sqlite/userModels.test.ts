@@ -391,7 +391,7 @@ describe.skip("SEED_SQLITE_TEMPLATES", () => {
           },
           "DRINKS": {
             "success": true,
-            "value": "Screwadapter",
+            "value": "Screwdriver",
           },
           "EMAIL": {
             "success": true,
@@ -1240,7 +1240,7 @@ describe.skip("SEED_SQLITE_TEMPLATES", () => {
           },
           "DRINKS": {
             "success": true,
-            "value": "Screwadapter",
+            "value": "Screwdriver",
           },
           "EMAIL": {
             "success": true,
@@ -2083,7 +2083,7 @@ describe.skip("SEED_SQLITE_TEMPLATES", () => {
           },
           "DRINKS": {
             "success": true,
-            "value": "Screwadapter",
+            "value": "Screwdriver",
           },
           "EMAIL": {
             "success": true,
@@ -2938,7 +2938,7 @@ describe.skip("SEED_SQLITE_TEMPLATES", () => {
           },
           "DRINKS": {
             "success": true,
-            "value": "Screwadapter",
+            "value": "Screwdriver",
           },
           "EMAIL": {
             "success": true,
@@ -4189,7 +4189,7 @@ describe.skip("SEED_SQLITE_TEMPLATES", () => {
           },
           "DRINKS": {
             "success": true,
-            "value": "Screwadapter",
+            "value": "Screwdriver",
           },
           "EMAIL": {
             "success": true,
@@ -5074,7 +5074,7 @@ describe.skip("SEED_SQLITE_TEMPLATES", () => {
           },
           "DRINKS": {
             "success": true,
-            "value": "Screwadapter",
+            "value": "Screwdriver",
           },
           "EMAIL": {
             "success": true,

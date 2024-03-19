@@ -19,6 +19,11 @@
       "development": "./src/index.ts",
       "default": "./dist/index.js"
     },
+    "./adapter": {
+      "types": "./dist/core/databaseClient.d.ts",
+      "development": "./src/core/databaseClient.ts",
+      "default": "./dist/core/databaseClient.js"
+    },
     "./adapter-better-sqlite3": {
       "types": "./dist/adapters/better-sqlite3/index.d.ts",
       "development": "./src/adapters/better-sqlite3/index.ts",
@@ -48,11 +53,6 @@
       "types": "./dist/cli/index.d.ts",
       "development": "./src/cli/index.ts",
       "default": "./dist/cli/index.js"
-    },
-    "./adapter": {
-      "types": "./dist/core/databaseClient.d.ts",
-      "development": "./src/core/databaseClient.ts",
-      "default": "./dist/core/databaseClient.js"
     },
     "./dialects/*": {
       "types": "./dist/dialects/*.d.ts",
@@ -90,7 +90,19 @@
     "vitest": "1.2.2"
   },
   "peerDependencies": {
-    "@snaplet/copycat": ">=2.0.0"
+    "@snaplet/copycat": ">=2",
+    "@types/better-sqlite3": "*",
+		"@types/pg": "*",
+    "better-sqlite3": ">=9",
+    "pg": ">=8",
+		"postgres": ">=3"
+  },
+  "peerDependenciesMeta": {
+    "@types/better-sqlite3": { "optional": true },
+		"@types/pg": { "optional": true },
+    "better-sqlite3": { "optional": true },
+    "pg": { "optional": true },
+		"postgres": { "optional": true }
   },
   "dependencies": {
     "@babel/types": "7.23.9",

@@ -40,7 +40,7 @@ export async function generateClientTypes(props: {
 }) {
   const { dataModel, fingerprint, seedConfig } = props;
   return [
-    'import { type DatabaseClient } from "@snaplet/seed/database-client";',
+    'import { type DatabaseClient } from "@snaplet/seed/adapter";',
     generateHelpers(),
     generateSelectTypes(dataModel, seedConfig?.select),
     generateStoreTypes(dataModel),

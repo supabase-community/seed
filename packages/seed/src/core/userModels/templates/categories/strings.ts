@@ -6142,7 +6142,7 @@ export const strings: TypeTemplates = {
         "Creme de Noyaux",
         "Orange Soda",
         "Negroni",
-        "Screwadapter",
+        "Screwdriver",
         "Red Wine",
         "Pineapple Soda",
         "Pineapple Gingerale",

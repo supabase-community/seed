@@ -277,28 +277,6 @@ for (const dialect of Object.keys(adapters) as Array<Dialect>) {
         expect(bookings[1].student_id).toEqual(students[0].student_id);
       });
 
-      // TODO: figure out if we can still have a 0 config seed but I doubt it
-      test.skip("works without seed.config.ts", async () => {
-        const { db } = await setupProject({
-          adapter,
-          databaseSchema: `
-          CREATE TABLE "Organization" (
-            "id" uuid not null primary key
-          );
-        `,
-          seedConfig: null,
-          seedScript: `
-          import { createSeedClient } from '#seed'
-          const seed = await createSeedClient()
-          await seed.organizations((x) => x(2))
-        `,
-        });
-
-        expect((await db.query('select * from "Organization"')).length).toEqual(
-          2,
-        );
-      });
-
       test("default field ordering for `data` in generate callback", async () => {
         const { db } = await setupProject({
           adapter,
