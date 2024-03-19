@@ -50,7 +50,7 @@ async function seedSetup(props: {
         emitDeclarationOnly: false,
         allowImportingTsExtensions: true,
       },
-      include: ["*.ts", clientWrapperRelativePath],
+      include: ["*.ts", "*.mts", clientWrapperRelativePath],
     }),
   );
 

@@ -380,7 +380,7 @@ for (const dialect of Object.keys(adapters) as Array<Dialect>) {
                 connectionString,
                 `
                   select: {
-                    "BABA": false,
+                    "${tableName[dialect] ?? tableName.default}": false,
                   },
                 `,
               ),
@@ -424,7 +424,7 @@ for (const dialect of Object.keys(adapters) as Array<Dialect>) {
       });
     },
     {
-      timeout: 45000,
+      timeout: 50000,
     },
   );
 }

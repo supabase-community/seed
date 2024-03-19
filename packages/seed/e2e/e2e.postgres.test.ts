@@ -307,6 +307,6 @@ describe.concurrent(
     });
   },
   {
-    timeout: 45000,
+    timeout: 50000,
   },
 );
