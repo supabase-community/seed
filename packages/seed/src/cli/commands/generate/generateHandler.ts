@@ -15,6 +15,9 @@ export async function generateHandler(args: { output?: string }) {
   spinner.succeed(
     `Generated ${bold("Seed Client")} ${dim(`to ${link(outputDir)}`)}`,
   );
+  spinner.info(
+    `You might want to reload your TypeScript Server to pick up the changes`,
+  );
 }
 
 async function computeCodegenContext(props: {

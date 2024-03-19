@@ -40,7 +40,7 @@ export async function seedConfigExists() {
 }
 
 export async function setSeedConfig(template: string) {
-  await writeFile(await getSeedConfigPath(), template, "utf8");
+  await writeFile(await getSeedConfigPath(), template);
 }
 
 export async function deleteSeedConfig() {

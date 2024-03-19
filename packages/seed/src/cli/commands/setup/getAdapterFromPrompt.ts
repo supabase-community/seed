@@ -12,7 +12,7 @@ import { dim } from "#cli/lib/output.js";
 
 export async function getAdapterFromPrompt() {
   const adapterId = await select<AdapterId>({
-    message: "What database client would you like to use?",
+    message: "Which database client would you like to use?",
     choices: [
       new Separator("ORM 🛠️"),
       ...formatAdapters(ormAdapters),

@@ -3,6 +3,7 @@ import { bold, highlight } from "../../lib/output.js";
 import { generateHandler } from "../generate/generateHandler.js";
 import { introspectHandler } from "../introspect/introspectHandler.js";
 import { loginHandler } from "../login/loginHandler.js";
+import { generateSeedScriptExample } from "./generateSeedScriptExample.js";
 import { getAdapter } from "./getAdapter.js";
 import { getUser } from "./getUser.js";
 import { installDependencies } from "./installDependencies.js";
@@ -23,7 +24,9 @@ export async function setupHandler() {
 
   await installDependencies();
 
-  if (!(await seedConfigExists())) {
+  const isFirstTimeSetup = !(await seedConfigExists());
+
+  if (isFirstTimeSetup) {
     const adapter = await getAdapter();
 
     await saveSeedConfig({ adapter });
@@ -32,4 +35,8 @@ export async function setupHandler() {
   await introspectHandler();
 
   await generateHandler({});
+
+  if (isFirstTimeSetup) {
+    await generateSeedScriptExample();
+  }
 }

@@ -1,5 +1,5 @@
 import assert from "node:assert";
-import { type DataModel } from "../dataModel/types.js";
+import { type DataModel, type DataModelModel } from "../dataModel/types.js";
 import { isError } from "../utils.js";
 
 interface INodeWithChildren<KeyType extends string, ValueType> {
@@ -164,5 +164,8 @@ export function sortModels(dataModel: DataModel) {
       }
     }
   }
-  return [...sortOp.sort().values()].reverse();
+
+  return [...sortOp.sort().values()]
+    .reverse()
+    .map((m) => m.node as DataModelModel & { modelName: string });
 }

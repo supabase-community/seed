@@ -1,10 +1,7 @@
 import { format, ident, literal } from "@scaleleap/pg-format";
 import { type Json } from "#core/data/types.js";
 import { isNullableParent as checkIsNullableParent } from "#core/dataModel/dataModel.js";
-import {
-  type DataModelModel,
-  type DataModelScalarField,
-} from "#core/dataModel/types.js";
+import { type DataModelScalarField } from "#core/dataModel/types.js";
 import { StoreBase } from "#core/store/store.js";
 import { sortModels } from "#core/store/topologicalSort.js";
 import { escapeIdentifier, escapeLiteral, serializeToSQL } from "./utils.js";
@@ -49,8 +46,7 @@ export class PgStore extends StoreBase {
     const sequenceFixerStatements: Array<string> = [];
     const errorsData: Array<ToSQLErrors> = [];
 
-    for (const entry of sortedModels) {
-      const model = entry.node as DataModelModel & { modelName: string };
+    for (const model of sortedModels) {
       const idFieldNames = this.dataModel.models[model.modelName].fields
         .filter((f) => f.kind === "scalar" && f.isId)
         .map((f) => f.name);
