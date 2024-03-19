@@ -54,7 +54,8 @@ export const createTelemetry = (options: TelemetryOptions) => {
     initPosthog();
   }
 
-  const captureUserLogin = async (userId: string) => {
+  const captureUserLogin = async (user: { email: string; id: string }) => {
+    const { id: userId, email } = user;
     // Cache the userId in the system configuration.
     await updateSystemConfig({ userId });
 
@@ -69,7 +70,12 @@ export const createTelemetry = (options: TelemetryOptions) => {
       });
     }
 
-    await captureEvent("$actions:user:login");
+    await captureEvent("$action:user:login", {
+      $set: {
+        userId,
+        email,
+      },
+    });
   };
 
   const captureEvent = async (

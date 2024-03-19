@@ -32,9 +32,10 @@ export async function loginHandler() {
   }
 
   await updateSystemConfig({
-    userId: user.id,
     accessToken,
   });
+
+  await cliTelemetry.captureUserLogin(user);
 
   spinner.stop();
   console.log(eraseLines(3));
