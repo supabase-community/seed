@@ -20,6 +20,6 @@ export async function getAdapter() {
     return libraryAdapters[0];
   }
 
-  // if more than one of no adapter is found, prompt the user
+  // if more than one or no adapter is found, prompt the user
   return getAdapterFromPrompt();
 }
