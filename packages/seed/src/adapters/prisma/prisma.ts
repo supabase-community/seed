@@ -55,6 +55,7 @@ export class SeedPrisma extends DatabaseClient<PrismaLikeClient> {
 
 export const prismaAdapter = {
   id: "prisma" as const,
+  name: "Prisma",
   packageName: "@prisma/client",
   template: (parameters = `/* connection parameters */`) => dedent`
     import { SeedPrisma } from "@snaplet/seed/adapter-prisma";

@@ -23,6 +23,7 @@ export class SeedBetterSqlite3 extends DatabaseClient<Database> {
 
 export const betterSqlite3Adapter = {
   id: "better-sqlite3" as const,
+  name: "better-sqlite3",
   packageName: "better-sqlite3",
   template: (parameters = `/* connection parameters */`) => dedent`
     import { SeedBetterSqlite3 } from "@snaplet/seed/adapter-better-sqlite3";

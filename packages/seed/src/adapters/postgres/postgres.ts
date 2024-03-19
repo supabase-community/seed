@@ -20,6 +20,7 @@ export class SeedPostgres extends DatabaseClient<Sql> {
 
 export const postgresAdapter = {
   id: "postgres" as const,
+  name: "Postgres.js",
   packageName: "postgres",
   template: (parameters = `/* connection parameters */`) => dedent`
     import { SeedPostgres } from "@snaplet/seed/adapter-postgres";

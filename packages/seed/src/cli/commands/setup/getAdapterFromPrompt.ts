@@ -1,21 +1,40 @@
-import { type AdapterId, adapters } from "#adapters/index.js";
-import { prompt } from "../../lib/output.js";
+import { Separator, select } from "@inquirer/prompts";
+import { gracefulExit } from "exit-hook";
+import {
+  type AdapterId,
+  adapters,
+  ormAdapters,
+  postgresAdapters,
+  sqliteAdapters,
+} from "#adapters/index.js";
+import { type Adapter } from "#adapters/types.js";
+import { dim } from "#cli/lib/output.js";
 
 export async function getAdapterFromPrompt() {
-  const adapterChoices = Object.keys(adapters)
-    .map((title) => ({ title }))
-    .sort((a, b) => a.title.localeCompare(b.title));
-
-  const { adapterIndex } = (await prompt({
-    type: "select",
-    name: "adapterIndex",
+  const adapterId = await select<AdapterId>({
     message: "What database client would you like to use?",
-    choices: adapterChoices,
-  })) as { adapterIndex: number };
-
-  const adapterId = adapterChoices[adapterIndex].title as AdapterId;
+    choices: [
+      new Separator("ORM 🛠️"),
+      ...formatAdapters(ormAdapters),
+      new Separator("PostgreSQL 🐘"),
+      ...formatAdapters(postgresAdapters),
+      new Separator("SQLite 🪶"),
+      ...formatAdapters(sqliteAdapters),
+    ],
+  }).catch(() => {
+    gracefulExit();
+  });
 
   const adapter = adapters[adapterId];
 
   return adapter;
+}
+
+function formatAdapters(adapters: Record<string, Adapter>) {
+  return Object.values(adapters)
+    .map(({ id, name, packageName }) => ({
+      value: id as AdapterId,
+      name: `${name} ${dim(`(${packageName})`)}`,
+    }))
+    .sort((a, b) => a.name.localeCompare(b.name));
 }

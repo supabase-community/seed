@@ -20,6 +20,7 @@ export class SeedPg extends DatabaseClient<Client> {
 
 export const pgAdapter = {
   id: "pg" as const,
+  name: "node-postgres",
   packageName: "pg",
   template: (parameters = `/* connection parameters */`) => dedent`
     import { SeedPg } from "@snaplet/seed/adapter-pg";

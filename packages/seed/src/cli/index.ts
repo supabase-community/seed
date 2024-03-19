@@ -13,6 +13,10 @@ introspectCommand(program);
 loginCommand(program);
 setupCommand(program);
 
-await program.parse();
-
-gracefulExit();
+try {
+  await program.parse();
+  gracefulExit();
+} catch (e) {
+  console.error((e as Error).message);
+  gracefulExit(1);
+}

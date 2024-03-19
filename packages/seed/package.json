@@ -94,6 +94,7 @@
   },
   "dependencies": {
     "@babel/types": "7.23.9",
+    "@inquirer/prompts": "4.3.0",
     "@scaleleap/pg-format": "^1.0.0",
     "@trpc/client": "10.45.1",
     "@trpc/server": "10.45.1",
@@ -108,7 +109,6 @@
     "kleur": "4.1.5",
     "ora": "8.0.1",
     "portfinder": "1.0.32",
-    "prompts": "2.4.2",
     "quicktype-core": "^23.0.104",
     "remeda": "^1.41.0",
     "terminal-link": "3.0.0",
