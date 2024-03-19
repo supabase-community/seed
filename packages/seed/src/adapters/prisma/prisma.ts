@@ -58,7 +58,6 @@ export const prismaAdapter = {
   name: "Prisma",
   packageName: "@prisma/client",
   template: (parameters = `/* connection parameters */`) => dedent`
-    /// <reference path=".snaplet/seed.config.d.ts" />
     import { SeedPrisma } from "@snaplet/seed/adapter-prisma";
     import { defineConfig } from "@snaplet/seed/config";
     import { PrismaClient } from "@prisma/client";

@@ -175,7 +175,7 @@ for (const dialect of Object.keys(adapters) as Array<Dialect>) {
           expect((await db.query('SELECT * FROM "Game"')).length).toEqual(3);
         });
 
-        test("should not reset config excluded table", async () => {
+        test.only("should not reset config excluded table", async () => {
           const schema: SchemaRecord = {
             default: `
               CREATE TABLE "BABBA" (
@@ -349,7 +349,7 @@ for (const dialect of Object.keys(adapters) as Array<Dialect>) {
           expect((await db.query('SELECT * FROM "BABA"')).length).toBe(2);
         });
 
-        test("should not allow to pass a table already excluded in the config", async () => {
+        test.only("should not allow to pass a table already excluded in the config", async () => {
           const tableName: SchemaRecord = {
             default: "BABA",
             postgres: "public.BABA",

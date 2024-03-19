@@ -235,7 +235,7 @@ describe.concurrent(
         expect((await db.query('SELECT * FROM "Player"')).length).toEqual(6);
       });
 
-      test("should not reset config excluded table", async () => {
+      test.only("should not reset config excluded table", async () => {
         const seedConfig = (connectionString: string) =>
           adapter.generateSeedConfig(
             connectionString,

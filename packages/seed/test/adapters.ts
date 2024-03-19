@@ -36,7 +36,6 @@ export const adapters = {
     return {
       createTestDb,
       generateSeedConfig: (connectionString: string, config?: string) => dedent`
-      /// <reference path="seed/seed.config.d.ts" />
       import { defineConfig } from "@snaplet/seed/config";
       import { SeedPostgres } from "@snaplet/seed/adapter-postgres";
       import postgres from "postgres";
@@ -51,7 +50,6 @@ export const adapters = {
         generateOutputIndexPath,
         connectionString,
       }) => dedent`
-        /// <reference path="seed/seed.config.d.ts" />
         import postgres from "postgres";
         import { SeedPostgres } from "@snaplet/seed/adapter-postgres"
         import { createSeedClient as baseCreateSeedClient } from "${generateOutputIndexPath}"
@@ -73,7 +71,6 @@ export const adapters = {
       createTestDb,
       createClient: (client) => new SeedBetterSqlite3(client),
       generateSeedConfig: (connectionString: string, config?: string) => dedent`
-        /// <reference path="seed/seed.config.d.ts" />
         import { defineConfig } from "@snaplet/seed/config";
         import { SeedBetterSqlite3 } from "@snaplet/seed/adapter-better-sqlite3";
         import Database from "better-sqlite3";
@@ -87,7 +84,6 @@ export const adapters = {
         generateOutputIndexPath,
         connectionString,
       }) => dedent`
-        /// <reference path="seed/seed.config.d.ts" />
         import Database from "better-sqlite3";
         import { SeedBetterSqlite3 } from "@snaplet/seed/adapter-better-sqlite3"
         import { createSeedClient as baseCreateSeedClient } from "${generateOutputIndexPath}"
