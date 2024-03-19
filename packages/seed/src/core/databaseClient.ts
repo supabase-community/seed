@@ -1,6 +1,7 @@
+export type DatabaseClientDialect = "postgres" | "sqlite";
 export abstract class DatabaseClient<T = unknown> {
   constructor(
-    public dialect: "postgres" | "sqlite",
+    public dialect: DatabaseClientDialect,
     public client: T,
   ) {}
   abstract execute(query: string): Promise<void>;
