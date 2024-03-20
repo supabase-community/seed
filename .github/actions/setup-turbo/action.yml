@@ -1,0 +1,7 @@
+name: Setup Turborepo Cache Server
+
+runs:
+  using: "composite"
+  steps:
+    - name: Setup Turborepo Cache Server
+      uses: dtinth/setup-github-actions-caching-for-turbo@v1
