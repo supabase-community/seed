@@ -103,6 +103,51 @@ describe.concurrent(
       expect((await db.query('SELECT * FROM "user"')).length).toEqual(2);
     });
 
+    test("inflection with singular vs plural", async () => {
+      const { db } = await setupProject({
+        adapter,
+        databaseSchema: `
+          CREATE TABLE public."user" (
+            "user_id" SERIAL PRIMARY KEY,
+            "foo" INTEGER NOT NULL
+          );
+          CREATE SCHEMA "auth";
+          CREATE TABLE auth."users" (
+            "user_id" SERIAL PRIMARY KEY,
+            "bar" INTEGER NOT NULL
+          );
+        `,
+        seedScript: `
+          import { createSeedClient } from "#seed"
+          const seed = await createSeedClient()
+          await seed.publicUsers(x => x(2))
+          await seed.authUsers(x => x(2))
+        `,
+      });
+
+      expect((await db.query('select * from public."user"')).length).toBe(2);
+      expect((await db.query('select * from auth."users"')).length).toBe(2);
+    });
+
+    test("`generate` shows error message for unsolvable model name conflicts", async () => {
+      await expect(
+        setupProject({
+          adapter,
+          databaseSchema: `
+      CREATE TABLE public."user" (
+        "user_id" SERIAL PRIMARY KEY
+      );
+  
+      CREATE TABLE public."users" (
+        "user_id" SERIAL PRIMARY KEY
+      );
+    `,
+        }),
+      ).rejects.toThrow(
+        /\* Alias "users" maps to: public\.user, public\.users/,
+      );
+    });
+
     describe("$resetDatabase", () => {
       test("should reset all schemas and tables per default", async () => {
         const seedScript = `

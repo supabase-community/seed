@@ -1,6 +1,7 @@
 import { gracefulExit } from "exit-hook";
 import yargs from "yargs";
 import { hideBin } from "yargs/helpers";
+import { SnapletError, isError } from "#core/utils.js";
 import { generateCommand } from "./commands/generate/generate.js";
 import { introspectCommand } from "./commands/introspect/introspect.js";
 import { loginCommand } from "./commands/login/login.js";
@@ -14,13 +15,26 @@ introspectCommand(program);
 loginCommand(program);
 setupCommand(program);
 
+const handleFailure = (message: null | string, error: unknown) => {
+  if (message != null) {
+    console.error(error);
+  }
+
+  if (SnapletError.instanceof(error)) {
+    console.error(error.toString());
+  } else if (isError(error)) {
+    console.error(error.stack);
+  } else if (error != null) {
+    console.error(String(error));
+    debug(error);
+  }
+
+  gracefulExit(1);
+};
+
 try {
-  await program.parse();
+  await program.fail(handleFailure).parseAsync();
   gracefulExit();
 } catch (e) {
-  if (e instanceof Error) {
-    console.error(e.message);
-  }
-  debug(e);
-  gracefulExit(1);
+  handleFailure(null, e);
 }
