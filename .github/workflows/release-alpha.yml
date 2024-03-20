@@ -31,9 +31,6 @@ jobs:
         id: short-sha
         run: echo "sha_short=$(git rev-parse --short HEAD)" >> $GITHUB_OUTPUT
 
-      - name: Clean build
-        run: pnpm clean
-
       - name: Publish alpha package
         working-directory: ./packages/seed
         run: pnpm run release:alpha

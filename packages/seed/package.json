@@ -1,7 +1,7 @@
 {
   "name": "@snaplet/seed",
   "type": "module",
-  "version": "0.89.3",
+  "version": "0.89.4",
   "sideEffects": false,
   "bin": {
     "seed": "bin/cli.js"
