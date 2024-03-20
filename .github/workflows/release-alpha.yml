@@ -15,7 +15,8 @@ defaults:
     shell: devenv {0}
 
 env:
-  NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+  TURBO_TOKEN: ${{ secrets.TURBO_TOKEN }}
+  TURBO_TEAM: ${{ vars.TURBO_TEAM }}
 
 jobs:
   build-and-publish:
@@ -32,8 +33,7 @@ jobs:
         run: echo "sha_short=$(git rev-parse --short HEAD)" >> $GITHUB_OUTPUT
 
       - name: Publish alpha package
-        working-directory: ./packages/seed
-        run: pnpm run release:alpha
+        run: pnpm -F @snaplet/seed run release:alpha
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
           GIT_HASH: ${{ steps.short-sha.outputs.sha_short }}
