@@ -1,4 +1,5 @@
-import { type DrizzleDbClient } from "#core/adapters.js";
+import { type DatabaseClient } from "#core/databaseClient.js";
+import { escapeIdentifier } from "#dialects/sqlite/utils.js";
 import {
   FETCH_TABLE_COLUMNS_LIST,
   type FetchTableAndColumnsResultRaw,
@@ -13,7 +14,7 @@ export interface FetchSequencesResult {
   tableId: string;
 }
 
-export async function fetchSequences(client: DrizzleDbClient) {
+export async function fetchSequences(client: DatabaseClient) {
   const results: Array<FetchSequencesResult> = [];
   const tableColumnsInfos = await client.query<FetchTableAndColumnsResultRaw>(
     FETCH_TABLE_COLUMNS_LIST,
@@ -42,7 +43,7 @@ export async function fetchSequences(client: DrizzleDbClient) {
     const pkKey =
       tablePk && tablePk.affinity === "integer" ? tablePk.colName : "rowid";
     const maxSeqRes = await client.query<{ currentSequenceValue: number }>(
-      `SELECT MAX(${pkKey}) + 1 as currentSequenceValue FROM ${tableId}`,
+      `SELECT MAX(${escapeIdentifier(pkKey)}) + 1 as currentSequenceValue FROM ${escapeIdentifier(tableId)}`,
     );
     const maxSeqNo = maxSeqRes[0];
     results.push({

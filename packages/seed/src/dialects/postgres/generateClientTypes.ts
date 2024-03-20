@@ -17,8 +17,6 @@ export function generateClientTypes(props: {
     ...props,
     database2tsType: pg2tsType,
     isJson,
-    databaseClientType: "PgDatabase<any>",
-    imports: "import { type PgDatabase } from 'drizzle-orm/pg-core';",
     refineType,
   });
 }

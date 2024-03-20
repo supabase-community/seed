@@ -1,4 +1,4 @@
-import { type DrizzleDbClient } from "#core/adapters.js";
+import { type DatabaseClient } from "#core/databaseClient.js";
 import { groupBy } from "../utils.js";
 import { groupParentsChildrenRelations } from "./groupParentsChildrenRelations.js";
 import { fetchDatabaseRelationships } from "./queries/fetchDatabaseRelationships.js";
@@ -14,14 +14,14 @@ export type Relationships = AsyncFunctionSuccessType<
 export type Relationship = Relationships[number];
 export type TableInfos = AsyncFunctionSuccessType<typeof fetchTablesAndColumns>;
 
-export async function basicIntrospectDatabase(client: DrizzleDbClient) {
+export async function basicIntrospectDatabase(client: DatabaseClient) {
   const tableInfos = await fetchTablesAndColumns(client);
   return {
     tables: tableInfos,
   };
 }
 
-export async function introspectDatabase(client: DrizzleDbClient) {
+export async function introspectDatabase(client: DatabaseClient) {
   const { tables: tablesInfos } = await basicIntrospectDatabase(client);
   const baseRelationships = await fetchDatabaseRelationships(client);
   const constraints = await fetchUniqueConstraints(client);

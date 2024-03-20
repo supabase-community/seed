@@ -1,3 +1,3 @@
-import * as postgresJs from "./postgres-js/index.js";
+import * as postgres from "./postgres/index.js";
 
-export { postgresJs };
+export { postgres };

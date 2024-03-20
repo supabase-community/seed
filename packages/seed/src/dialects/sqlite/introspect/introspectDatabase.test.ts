@@ -1,23 +1,18 @@
-import { drizzle as drizzleBetterSqlite } from "drizzle-orm/better-sqlite3";
 import { describe, expect, test } from "vitest";
 import { sqlite } from "#test";
-import { createDrizzleORMSqliteClient } from "../adapters.js";
 import {
   basicIntrospectDatabase,
   introspectDatabase,
 } from "./introspectDatabase.js";
 
 const adapters = {
-  betterSqlite3: () => ({
-    ...sqlite.betterSqlite3,
-    drizzle: drizzleBetterSqlite,
-  }),
+  betterSqlite3: () => sqlite.betterSqlite3,
 };
 
 describe.each(["betterSqlite3"] as const)(
   "introspectDatabase: %s",
   (adapter) => {
-    const { drizzle, createTestDb, createChinookSqliteTestDatabase } =
+    const { createTestDb, createChinookSqliteTestDatabase } =
       adapters[adapter]();
 
     test("basicIntrospectDatabase should return basic database structure", async () => {
@@ -29,9 +24,7 @@ describe.each(["betterSqlite3"] as const)(
   `;
       const { client } = await createTestDb(structure);
 
-      const result = await basicIntrospectDatabase(
-        createDrizzleORMSqliteClient(drizzle(client)),
-      );
+      const result = await basicIntrospectDatabase(client);
       expect(result).toEqual({
         tables: [
           {
@@ -76,9 +69,7 @@ describe.each(["betterSqlite3"] as const)(
   `;
       const { client } = await createTestDb(structure);
 
-      const result = await introspectDatabase(
-        createDrizzleORMSqliteClient(drizzle(client)),
-      );
+      const result = await introspectDatabase(client);
       expect(result).toEqual({
         sequences: [
           {
@@ -159,9 +150,7 @@ describe.each(["betterSqlite3"] as const)(
   `;
       const { client } = await createTestDb(structure);
 
-      const result = await introspectDatabase(
-        createDrizzleORMSqliteClient(drizzle(client)),
-      );
+      const result = await introspectDatabase(client);
       expect(result).toEqual({
         sequences: [
           {
@@ -241,9 +230,7 @@ describe.each(["betterSqlite3"] as const)(
   `;
       const { client } = await createTestDb(structure);
 
-      const result = await introspectDatabase(
-        createDrizzleORMSqliteClient(drizzle(client)),
-      );
+      const result = await introspectDatabase(client);
       expect(result).toEqual({
         sequences: [
           {
@@ -310,9 +297,7 @@ describe.each(["betterSqlite3"] as const)(
     test("basicIntrospectDatabase on chinook example database", async () => {
       const { client } = await createChinookSqliteTestDatabase();
 
-      const result = await basicIntrospectDatabase(
-        createDrizzleORMSqliteClient(drizzle(client)),
-      );
+      const result = await basicIntrospectDatabase(client);
 
       expect(result).toEqual({
         tables: [
@@ -1062,9 +1047,7 @@ describe.each(["betterSqlite3"] as const)(
     test("IntrospectDatabase on chinook example database", async () => {
       const { client } = await createChinookSqliteTestDatabase();
 
-      const result = await introspectDatabase(
-        createDrizzleORMSqliteClient(drizzle(client)),
-      );
+      const result = await introspectDatabase(client);
 
       expect(result).toEqual({
         tables: [

@@ -1,5 +1,5 @@
 import { getDataModelConfig } from "#config/dataModelConfig.js";
-import { getSnapletSeedConfig } from "../../config/seedConfig/seedConfig.js";
+import { getSeedConfig } from "../../config/seedConfig/seedConfig.js";
 import { getAliasedDataModel } from "./aliases.js";
 import { getSelectFilteredDataModel } from "./select.js";
 import {
@@ -32,6 +32,17 @@ export function isNullableParent(
   );
 }
 
+export async function getRawDataModel() {
+  const dataModel = await getDataModelConfig();
+  if (dataModel === null) {
+    // TODO: Add a better error
+    throw new Error(
+      "DataModel not found. Please run `snaplet introspect` to generate it.",
+    );
+  }
+  return dataModel;
+}
+
 export async function getDataModel() {
   const dataModelConfig = await getDataModelConfig();
 
@@ -42,7 +53,7 @@ export async function getDataModel() {
     );
   }
 
-  const snapletConfig = await getSnapletSeedConfig();
+  const snapletConfig = await getSeedConfig();
 
   const filteredDataModel = getSelectFilteredDataModel(
     dataModelConfig,

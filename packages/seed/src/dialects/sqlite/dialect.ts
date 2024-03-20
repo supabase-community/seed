@@ -1,13 +1,15 @@
 import { type Dialect } from "#core/dialect/types.js";
 import { getDatamodel } from "./dataModel.js";
+import { determineShapeFromType } from "./determineShapeFromType.js";
 import { generateClientTypes } from "./generateClientTypes.js";
+import { generateConfigTypes } from "./generateConfigTypes.js";
 import { SEED_SQLITE_TEMPLATES } from "./userModels.js";
-import { withDbClient } from "./withDbClient.js";
 
-export const dialect: Dialect = {
+export const sqliteDialect = {
+  id: "sqlite" as const,
   generateClientTypes,
-  determineShapeFromType: () => null,
+  generateConfigTypes,
+  determineShapeFromType,
   templates: SEED_SQLITE_TEMPLATES,
-  withDbClient,
   getDataModel: getDatamodel,
-};
+} satisfies Dialect;

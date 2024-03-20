@@ -1,20 +1,15 @@
-import { drizzle as drizzleBetterSqlite } from "drizzle-orm/better-sqlite3";
 import { describe, expect, test } from "vitest";
 import { sqlite } from "#test";
-import { createDrizzleORMSqliteClient } from "../../adapters.js";
 import { fetchDatabaseRelationships } from "./fetchDatabaseRelationships.js";
 
 const adapters = {
-  betterSqlite3: () => ({
-    ...sqlite.betterSqlite3,
-    drizzle: drizzleBetterSqlite,
-  }),
+  betterSqlite3: () => sqlite.betterSqlite3,
 };
 
 describe.each(["betterSqlite3"] as const)(
   "fetchDatabaseRelationships: %s",
   (adapter) => {
-    const { drizzle, createTestDb } = adapters[adapter]();
+    const { createTestDb } = adapters[adapter]();
     test("should return empty array if no relations", async () => {
       const structure = `
         CREATE TABLE "Courses" (
@@ -28,9 +23,7 @@ describe.each(["betterSqlite3"] as const)(
         );
       `;
       const { client } = await createTestDb(structure);
-      const relationships = await fetchDatabaseRelationships(
-        createDrizzleORMSqliteClient(drizzle(client)),
-      );
+      const relationships = await fetchDatabaseRelationships(client);
       expect(relationships.length).toEqual(0);
     });
 
@@ -62,9 +55,7 @@ describe.each(["betterSqlite3"] as const)(
         );
       `;
       const { client } = await createTestDb(structure);
-      const relationships = await fetchDatabaseRelationships(
-        createDrizzleORMSqliteClient(drizzle(client)),
-      );
+      const relationships = await fetchDatabaseRelationships(client);
       expect(relationships).toEqual(
         expect.arrayContaining([
           {
@@ -161,9 +152,7 @@ describe.each(["betterSqlite3"] as const)(
         );
       `;
       const { client } = await createTestDb(structure);
-      const relationships = await fetchDatabaseRelationships(
-        createDrizzleORMSqliteClient(drizzle(client)),
-      );
+      const relationships = await fetchDatabaseRelationships(client);
       expect(relationships).toEqual(
         expect.arrayContaining([
           {

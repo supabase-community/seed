@@ -1,11 +1,10 @@
 import c from "ansi-colors";
 import { execa } from "execa";
-import { mkdirp, pathExists, symlink, writeFile } from "fs-extra";
+import { writeFile } from "fs-extra";
 import path from "node:path";
 import tmp from "tmp-promise";
 import { expect } from "vitest";
 import { type Adapter } from "./adapters.js";
-import { ROOT_DIR } from "./constants.js";
 import { testDebug } from "./debug.js";
 
 const debugScriptRun = testDebug.extend("runSeedScript");
@@ -16,7 +15,6 @@ interface RunScriptProps {
   connectionString: string;
   cwd?: string;
   env?: Record<string, string>;
-  generateOutputIndexPath?: string;
   script: string;
 }
 
@@ -24,18 +22,12 @@ let scriptId = 0;
 
 export const runSeedScript = async ({
   script: inputScript,
-  adapter,
-  generateOutputIndexPath,
-  connectionString,
   cwd,
   env = {},
 }: RunScriptProps) => {
-  const script = [inputScript, 'await (await import("#seed")).end()'].join(
-    "\n",
-  );
+  const script = [inputScript, "process.exit()"].join("\n");
 
   cwd ??= (await tmp.dir()).path;
-  generateOutputIndexPath ??= "./__generateOutput/index.js";
 
   debugScriptRun(
     [
@@ -53,66 +45,22 @@ export const runSeedScript = async ({
   const scriptFilename = `${scriptName}.mts`;
 
   const scriptPath = path.join(cwd, scriptFilename);
-  const tsConfigPath = path.join(cwd, "tsconfig.json");
-  const clientWrapperRelativePath = "./__seed.ts";
-  const clientWrapperPath = path.join(cwd, clientWrapperRelativePath);
-  const pkgPath = path.join(cwd, "package.json");
-  const snapletSeedDestPath = path.join(
-    cwd,
-    "node_modules",
-    "@snaplet",
-    "seed",
-  );
-
-  await mkdirp(path.dirname(snapletSeedDestPath));
-
-  if (!(await pathExists(snapletSeedDestPath))) {
-    await symlink(ROOT_DIR, snapletSeedDestPath);
-  }
-
-  await writeFile(
-    tsConfigPath,
-    JSON.stringify({
-      extends: "@snaplet/tsconfig",
-      compilerOptions: {
-        noEmit: true,
-        emitDeclarationOnly: false,
-        allowImportingTsExtensions: true,
-      },
-      include: [scriptFilename, clientWrapperRelativePath],
-    }),
-  );
-
-  await writeFile(
-    pkgPath,
-    JSON.stringify({
-      name: scriptName,
-      type: "module",
-      imports: {
-        "#seed": clientWrapperRelativePath,
-      },
-    }),
-  );
-
-  await writeFile(
-    clientWrapperPath,
-    adapter.generateClientWrapper({
-      generateOutputIndexPath,
-      connectionString,
-    }),
-  );
   await writeFile(scriptPath, script);
 
-  const typecheckResult = execa("tsc", ["--project", tsConfigPath], {
-    stderr: "pipe",
-    stdout: "pipe",
-    extendEnv: true,
-    cwd,
-    env: {
-      DEBUG_COLORS: "1",
-      ...env,
+  const typecheckResult = execa(
+    "tsc",
+    ["--project", path.join(cwd, "tsconfig.json")],
+    {
+      stderr: "pipe",
+      stdout: "pipe",
+      extendEnv: true,
+      cwd,
+      env: {
+        DEBUG_COLORS: "1",
+        ...env,
+      },
     },
-  });
+  );
   typecheckResult.stdout?.on("data", (chunk: Buffer) => {
     debugScriptOutput(chunk.toString().trim());
   });
@@ -125,6 +73,8 @@ export const runSeedScript = async ({
     stderr: "pipe",
     stdout: "pipe",
     extendEnv: true,
+    cwd,
+    preferLocal: true,
     env: {
       DEBUG_COLORS: "1",
       ...env,

@@ -1,4 +1,4 @@
-import { type DrizzleDbClient } from "#core/adapters.js";
+import { type DatabaseClient } from "#core/databaseClient.js";
 import { buildSchemaExclusionClause } from "./utils.js";
 
 export const TYPE_CATEGORY_DISPLAY_NAMES = {
@@ -238,7 +238,7 @@ const FETCH_TABLES_AND_COLUMNS = `
     ORDER BY tables_with_bytes."tableName";
 `;
 
-export async function fetchTablesAndColumns(client: DrizzleDbClient) {
+export async function fetchTablesAndColumns(client: DatabaseClient) {
   const response = await client.query<{
     json_build_object: FetchTableAndColumnsResult;
   }>(FETCH_TABLES_AND_COLUMNS);

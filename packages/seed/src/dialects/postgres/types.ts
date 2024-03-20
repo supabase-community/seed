@@ -1,5 +1,5 @@
 export type DrizzleExecuteAdapterResults<T> =
-  // node-postgres
+  // pg
   | { rows: T }
-  // postgres-js
+  // postgres
   | T;

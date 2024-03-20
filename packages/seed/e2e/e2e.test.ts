@@ -80,7 +80,7 @@ for (const dialect of Object.keys(adapters) as Array<Dialect>) {
         expect((await db.query('select * from "Member"')).length).toEqual(0);
 
         for (const statement of stdout.split(";").filter(Boolean)) {
-          await db.run(statement);
+          await db.execute(statement);
         }
 
         expect((await db.query('select * from "Organization"')).length).toEqual(
@@ -277,27 +277,6 @@ for (const dialect of Object.keys(adapters) as Array<Dialect>) {
         expect(bookings[1].student_id).toEqual(students[0].student_id);
       });
 
-      test("works without seed.config.ts", async () => {
-        const { db } = await setupProject({
-          adapter,
-          databaseSchema: `
-          CREATE TABLE "Organization" (
-            "id" uuid not null primary key
-          );
-        `,
-          snapletConfig: null,
-          seedScript: `
-          import { createSeedClient } from '#seed'
-          const seed = await createSeedClient()
-          await seed.organizations((x) => x(2))
-        `,
-        });
-
-        expect((await db.query('select * from "Organization"')).length).toEqual(
-          2,
-        );
-      });
-
       test("default field ordering for `data` in generate callback", async () => {
         const { db } = await setupProject({
           adapter,
@@ -361,6 +340,9 @@ for (const dialect of Object.keys(adapters) as Array<Dialect>) {
       });
 
       test("compatibility with externally inserted data", async () => {
+        // context(justinvdm, 24 Jan 2024): We use `user_id` as a field name to
+        // make sure any field aliasing / renaming we do (e.g. to camel case)
+        // does not affect how sequences are found and updated
         const schema: DialectRecordWithDefault = {
           default: `
             CREATE TABLE "User" (
@@ -374,23 +356,26 @@ for (const dialect of Object.keys(adapters) as Array<Dialect>) {
           `,
         };
 
-        // context(justinvdm, 24 Jan 2024): We use `user_id` as a field name to
-        // make sure any field aliasing / renaming we do (e.g. to camel case)
-        // does not affect how sequences are found and updated
         const { db, runSeedScript } = await setupProject({
           adapter,
           databaseSchema: schema[dialect] ?? schema.default,
         });
 
-        await db.run('insert into "User" DEFAULT VALUES');
+        await db.execute('insert into "User" DEFAULT VALUES');
 
         await runSeedScript(`
-          import { createSeedClient, db } from "#seed"
+          import { createSeedClient } from "#seed"
 
           const seed = await createSeedClient()
 
-          await db.run('insert into "User" DEFAULT VALUES')
-          await db.run('insert into "User" DEFAULT VALUES')
+          // context(justinvdm, 19 Mar 2024): db is not typed as part of codegen-ed
+          // types since it is internal, but over here we need a way to execute
+          // queries against the same db, and db gives us a straightforward
+          // way to do this
+          const db = (seed as any).db
+
+          await db.execute('insert into "User" DEFAULT VALUES')
+          await db.execute('insert into "User" DEFAULT VALUES')
 
           await seed.$transaction(async seed => {
             await seed.users(x => x(2))

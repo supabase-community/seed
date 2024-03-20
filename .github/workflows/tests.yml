@@ -69,7 +69,7 @@ jobs:
   test-unit-integration:
     if: github.event.pull_request.draft == false
     name: Unit and integration tests
-    runs-on: ubuntu-latest
+    runs-on: buildjet-8vcpu-ubuntu-2204
     services:
       postgres:
         image: postgres:15

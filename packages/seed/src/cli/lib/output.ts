@@ -4,7 +4,7 @@ import ora from "ora";
 import terminalLink from "terminal-link";
 
 export function eraseLines(numberOfLines: number) {
-  return ansiEscapes.eraseLines(numberOfLines);
+  process.stdout.write(ansiEscapes.eraseLines(numberOfLines));
 }
 
 export function link(text: string, url?: string) {

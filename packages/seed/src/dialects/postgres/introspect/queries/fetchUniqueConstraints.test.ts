@@ -1,20 +1,15 @@
-import { drizzle as drizzleJs } from "drizzle-orm/postgres-js";
 import { describe, expect, test } from "vitest";
 import { postgres } from "#test";
-import { createDrizzleORMPgClient } from "../../adapters.js";
 import { fetchUniqueConstraints } from "./fetchUniqueConstraints.js";
 
 const adapters = {
-  postgresJs: () => ({
-    ...postgres.postgresJs,
-    drizzle: drizzleJs,
-  }),
+  postgres: () => postgres.postgres,
 };
 
-describe.each(["postgresJs"] as const)(
+describe.each(["postgres"] as const)(
   "fetchUniqueConstraints: %s",
   (adapter) => {
-    const { drizzle, createTestDb } = adapters[adapter]();
+    const { createTestDb } = adapters[adapter]();
 
     test("should get all unique constraints for tables primary key and unique composite and single", async () => {
       const structure = `
@@ -45,9 +40,7 @@ describe.each(["postgresJs"] as const)(
   `;
 
       const db = await createTestDb(structure);
-      const constraints = await fetchUniqueConstraints(
-        createDrizzleORMPgClient(drizzle(db.client)),
-      );
+      const constraints = await fetchUniqueConstraints(db.client);
 
       expect(constraints).toEqual([
         {
@@ -248,9 +241,7 @@ describe.each(["postgresJs"] as const)(
     );
   `;
       const db = await createTestDb(structure);
-      const constraints = await fetchUniqueConstraints(
-        createDrizzleORMPgClient(drizzle(db.client)),
-      );
+      const constraints = await fetchUniqueConstraints(db.client);
       expect(constraints).toEqual([
         {
           tableId: "private.Students",
@@ -295,9 +286,7 @@ describe.each(["postgresJs"] as const)(
     );
   `;
       const db = await createTestDb(structure);
-      const constraints = await fetchUniqueConstraints(
-        createDrizzleORMPgClient(drizzle(db.client)),
-      );
+      const constraints = await fetchUniqueConstraints(db.client);
       expect(constraints).toEqual([]);
     });
   },

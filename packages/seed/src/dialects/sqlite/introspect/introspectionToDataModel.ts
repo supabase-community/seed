@@ -85,7 +85,7 @@ function columnSequence(
 export function introspectionToDataModel(
   introspection: IntrospectedSqlite,
 ): DataModel {
-  const dataModel: DataModel = { dialect: "sqlite", models: {}, enums: {} };
+  const dataModel: DataModel = { models: {}, enums: {} };
 
   for (const table of introspection.tables) {
     const fields: Array<DataModelField> = [];

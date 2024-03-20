@@ -11,7 +11,7 @@ import globals from "globals";
 
 export const recommended = [
   {
-    ignores: ["**/{.cache,.dts,dist,node_modules,playwright,test-results}"],
+    ignores: ["**/{.cache,.dts,.tmp,dist,node_modules,playwright,test-results}"],
   },
   {
     linterOptions: {

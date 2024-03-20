@@ -286,7 +286,7 @@ for (const dialect of Object.keys(adapters) as Array<Dialect>) {
         });
 
         // Should be able to insert a new Player with the default database `nextval` call
-        await db.run(
+        await db.execute(
           `INSERT INTO "Player" ("teamId", name) VALUES (1, 'test')`,
         );
         expect(
@@ -344,7 +344,7 @@ for (const dialect of Object.keys(adapters) as Array<Dialect>) {
           });
 
           // Should be able to insert a new Player with the default database `nextval` call
-          await db.run(
+          await db.execute(
             `INSERT INTO "Player" ("teamId", name) VALUES (1, 'test')`,
           );
           // Should be able to run the seed script again
