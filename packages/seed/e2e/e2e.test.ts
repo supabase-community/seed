@@ -416,6 +416,74 @@ for (const dialect of Object.keys(adapters) as Array<Dialect>) {
         const rows = await db.query('select * from "users"');
         expect(rows.length).toEqual(2);
       });
+
+      test.only("table attributes (name, columns) contain spaces with inflection enabled", async () => {
+        const { db } = await setupProject({
+          adapter,
+          databaseSchema: `
+            create table "contracts " (
+              id uuid not null primary key,
+              "contract type" text not null
+            );
+            create table "yo lo" (
+              id uuid not null primary key
+            );
+          `,
+          seedScript: `
+            import { createSeedClient } from "#seed"
+            const seed = await createSeedClient()
+            await seed.$resetDatabase()
+            await seed.contracts([{ contractType: "VIP" }])
+            await seed.yoLos([{}])
+          `,
+        });
+
+        const contracts = await db.query(`select * from "contracts "`);
+        const yoLos = await db.query(`select * from "yo lo"`);
+        expect(contracts).toEqual([
+          expect.objectContaining({ "contract type": "VIP" }),
+        ]);
+        expect(yoLos.length).toEqual(1);
+      });
+
+      // TODO: support spaces when inflection is disabled
+      test.skip("table attributes (name, columns) contain spaces with inflection disabled", async () => {
+        const { db } = await setupProject({
+          adapter,
+          seedConfig: (connectionString) =>
+            adapter.generateSeedConfig(
+              connectionString,
+              `
+              alias: {
+                inflection: false,
+              },
+            `,
+            ),
+          databaseSchema: `
+            create table "contracts " (
+              id uuid not null primary key,
+              "contract type" text not null
+            );
+            create table "yo lo" (
+              id uuid not null primary key
+            );
+          `,
+          seedScript: `
+            import { createSeedClient } from "#seed"
+            const seed = await createSeedClient()
+            await seed.$resetDatabase()
+            await seed["contracts "]([{ "contract type": "VIP" }])
+            await seed["yo lo"]([{}])
+          `,
+        });
+
+        const contracts = await db.query(`select * from "contracts "`);
+        const yoLos = await db.query(`select * from "yo lo"`);
+        expect(contracts).toEqual([
+          expect.objectContaining({ "contract type": "VIP" }),
+        ]);
+        expect(yoLos.length).toEqual(1);
+      });
     },
     {
       timeout: 45000,
