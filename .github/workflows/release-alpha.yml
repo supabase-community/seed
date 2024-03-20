@@ -1,4 +1,4 @@
-name: Build and Publish alpha release
+name: Release Alpha
 
 on:
   push:
@@ -7,7 +7,7 @@ on:
       - chore/setup-alpha-releases
 
 concurrency:
-  group: publish-alpha-${{ github.ref }}
+  group: release-alpha-${{ github.ref }}
   cancel-in-progress: true
 
 defaults:
@@ -19,7 +19,7 @@ env:
 
 jobs:
   build-and-publish:
-    runs-on: ubuntu-latest
+    runs-on: buildjet-4vcpu-ubuntu-2204
     steps:
       - name: Checkout
         uses: actions/checkout@v4
