@@ -229,9 +229,6 @@ importers:
       '@tsconfig/strictest':
         specifier: 2.0.3
         version: 2.0.3
-      '@tsconfig/vite-react':
-        specifier: 3.0.1
-        version: 3.0.1
 
 packages:
 
@@ -1300,10 +1297,6 @@ packages:
 
   /@tsconfig/strictest@2.0.3:
     resolution: {integrity: sha512-MroLvRhMbqtXI5WBSwoomro6OQS4xnCoudUrMb20JO0vLKUs0bAaCEcvM/immEBSJjFAK1l6jW1oAO8q3Ancrg==}
-    dev: false
-
-  /@tsconfig/vite-react@3.0.1:
-    resolution: {integrity: sha512-yrAEQWgWZdbfNt/11TrvUPkh0AJrJy+DP9qc4c5zPt8POGwYfEp8dB2LnBC9DBm/zpycsasRJh8Z9uVB17yxCw==}
     dev: false
 
   /@types/better-sqlite3@7.6.9:
