@@ -7,12 +7,7 @@ import { type DatabaseClient } from "../databaseClient.js";
 
 export type NestedType = string;
 
-export type WithDbClient = <Result>(props: {
-  databaseUrl: string;
-  fn: (client: DatabaseClient) => Promise<Result> | Result;
-}) => Promise<Result>;
-
-export type GetDataModel = (client: DatabaseClient) => Promise<DataModel>;
+type GetDataModel = (client: DatabaseClient) => Promise<DataModel>;
 
 export interface Dialect {
   determineShapeFromType: DetermineShapeFromType;
@@ -28,13 +23,13 @@ export interface Dialect {
 // shape and we should instead use the default template for the type
 export type DetermineShapeFromType = (type: string) => Shape | null;
 
-export type GenerateClientTypes = (props: {
+type GenerateClientTypes = (props: {
   dataModel: DataModel;
   fingerprint?: Fingerprint;
   seedConfig?: SeedConfig;
 }) => Promise<string> | string;
 
-export type GenerateConfigTypes = (props: {
+type GenerateConfigTypes = (props: {
   dataModel: DataModel;
   rawDataModel: DataModel;
 }) => Promise<string> | string;

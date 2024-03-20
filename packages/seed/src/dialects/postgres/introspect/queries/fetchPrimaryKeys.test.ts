@@ -1,9 +1,9 @@
 import { describe, expect, test } from "vitest";
-import { postgres } from "#test";
+import { postgres } from "#test/postgres/postgres/index.js";
 import { fetchPrimaryKeys } from "./fetchPrimaryKeys.js";
 
 const adapters = {
-  postgres: () => postgres.postgres,
+  postgres: () => postgres,
 };
 
 describe.each(["postgres"] as const)("fetchPrimaryKeys: %s", (adapter) => {

@@ -52,7 +52,7 @@ export function escapeKey(key: string): string {
   }
 }
 
-export const ERROR_CODES = {
+const ERROR_CODES = {
   SEED_ALIAS_MODEL_NAME_CONFLICTS: 9300,
   SEED_SELECT_RELATIONSHIP_ERROR: 9301,
 
@@ -61,12 +61,12 @@ export const ERROR_CODES = {
 
 type CodeType = keyof typeof ERROR_CODES;
 
-export interface AliasModelNameConflict {
+interface AliasModelNameConflict {
   aliasName: string;
   models: Map<string, DataModelModel>;
 }
 
-export interface SeedSelectRelationshipError {
+interface SeedSelectRelationshipError {
   relationName: string;
   relationToTable: string;
 }
@@ -124,7 +124,7 @@ ${conflicts}
   },
 };
 
-export interface SnapletErrorBase<Code extends CodeType = CodeType> {
+interface SnapletErrorBase<Code extends CodeType = CodeType> {
   readonly _tag: string;
   code: Code;
   data: Data[Code];
@@ -169,13 +169,5 @@ export class SnapletError<Code extends CodeType = CodeType>
     } else {
       return `Unknown error code: ${this.code}`;
     }
-  }
-}
-
-export async function assertPackage(packageName: string) {
-  try {
-    await import(packageName);
-  } catch (e) {
-    throw new SnapletError("PACKAGE_NOT_EXISTS", { packageName });
   }
 }

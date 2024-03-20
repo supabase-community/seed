@@ -1,7 +1,7 @@
 import { flatten } from "remeda";
 import { type Json } from "#core/data/types.js";
 
-export const isNestedArrayPgType = (pgType: string): boolean =>
+const isNestedArrayPgType = (pgType: string): boolean =>
   pgType.startsWith("_") || pgType.endsWith("[]");
 
 type Serializer = (v: Json) => string;
@@ -15,7 +15,7 @@ const SERIALIZERS: Serializers = {
   Json: (v) => JSON.stringify(v),
 };
 
-export const getPgTypeArrayDimensions = (pgType: string): number => {
+const getPgTypeArrayDimensions = (pgType: string): number => {
   if (pgType.startsWith("_")) {
     return 1;
   }
@@ -176,31 +176,6 @@ export const serializeToSQL = (type: string, value: Json): Json => {
  */
 export const escapeIdentifier = function (str: string) {
   return '"' + str.replace(/"/g, '""') + '"';
-};
-export const escapeLiteral = function (str: string) {
-  var hasBackslash = false;
-  var escaped = "'";
-
-  // eslint-disable-next-line @typescript-eslint/prefer-for-of
-  for (var i = 0; i < str.length; i++) {
-    var c = str[i];
-    if (c === "'") {
-      escaped += c + c;
-    } else if (c === "\\") {
-      escaped += c + c;
-      hasBackslash = true;
-    } else {
-      escaped += c;
-    }
-  }
-
-  escaped += "'";
-
-  if (hasBackslash) {
-    escaped = " E" + escaped;
-  }
-
-  return escaped;
 };
 
 export const PG_DATE_TYPES = new Set([

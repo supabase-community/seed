@@ -50,7 +50,7 @@ export function computeIncludedTables(
   });
 }
 
-export function getTableRelationsErrors(
+function getTableRelationsErrors(
   includedTableIds: Set<string>,
   models: DataModel["models"],
   groupedFields: {
@@ -70,7 +70,7 @@ export function getTableRelationsErrors(
   return errors;
 }
 
-export function checkParentRelations(
+function checkParentRelations(
   includedTableIds: Set<string>,
   models: DataModel["models"],
 ) {

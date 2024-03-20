@@ -7,7 +7,7 @@ import {
   mapCommonTypesToAffinity,
 } from "./fetchTablesAndColumns.js";
 
-export interface RelationKeyInfos {
+interface RelationKeyInfos {
   fkAffinity: SQLiteAffinity;
   fkColumn: string;
   fkType: string;

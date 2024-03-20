@@ -17,7 +17,7 @@ const TEST_DATABASE_SERVER =
   "postgres://postgres@localhost/postgres";
 const TEST_DATABASE_PREFIX = "testdb";
 
-export const defineCreateTestDb = (state: State) => {
+const defineCreateTestDb = (state: State) => {
   const connString = TEST_DATABASE_SERVER;
   const dbServerClient = new SeedPostgres(postgres(connString, { max: 1 }));
   const createTestDb = async (structure?: string) => {

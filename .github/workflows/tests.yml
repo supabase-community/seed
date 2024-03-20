@@ -51,20 +51,20 @@ jobs:
 
       - name: Lint
         run: pnpm lint
-  # TODO: uncomment when knip configuration is ready 
-  # test-lint-monorepo:
-  #   if: github.event.pull_request.draft == false
-  #   name: Lint monorepo
-  #   runs-on: ubuntu-latest
-  #   steps:
-  #     - name: Checkout
-  #       uses: actions/checkout@v4
 
-  #     - name: Setup
-  #       uses: ./.github/actions/setup
+  test-lint-monorepo:
+    if: github.event.pull_request.draft == false
+    name: Lint monorepo
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
 
-  #     - name: Lint monorepo
-  #       run: pnpm lint-monorepo
+      - name: Setup
+        uses: ./.github/actions/setup
+
+      - name: Lint monorepo
+        run: pnpm lint-monorepo
 
   test-unit-integration:
     if: github.event.pull_request.draft == false
@@ -91,10 +91,9 @@ jobs:
         uses: ./.github/actions/setup
 
       - name: Run dev API in background
-        working-directory: ./packages/seed
         run: |
-          pnpm start:server &
-          npx wait-on -d 5000 -i 2000 -t 20000 http://localhost:3000 --log --verbose
+          pnpm -F @snaplet/seed run start:server &
+          npx --yes wait-on -d 5000 -i 2000 -t 20000 http://localhost:3000 --log --verbose
 
       - name: Run unit and integration tests
         run: pnpm test
