@@ -1,10 +1,24 @@
 {
   "name": "@snaplet/seed",
   "type": "module",
-  "version": "1.0.0",
+  "version": "0.89.4-alpha",
   "sideEffects": false,
   "bin": "./bin/cli.js",
   "types": "./dist/index.d.ts",
+  "author": {
+    "name": "Snaplet",
+    "url": "https://snaplet.dev"
+  },
+  "engines": {
+    "node": ">=18.5.0"
+  },
+  "files": [
+    "dist",
+    "README.md"
+  ],
+  "description": "An auto-generated ORM-like library for generating seed data tailored to your own database",
+  "homepage": "https://snaplet.dev",
+  "license": "MIT",
   "imports": {
     "#*": {
       "development": "./src/*",
