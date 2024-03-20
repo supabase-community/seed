@@ -36,7 +36,7 @@ jobs:
 
       - name: Publish alpha package
         working-directory: ./packages/seed
-        run: npx tsx ./scripts/release-alpha.mts
+        run: pnpm run release:alpha
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
           GIT_HASH: ${{ steps.short-sha.outputs.sha_short }}

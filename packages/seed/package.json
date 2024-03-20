@@ -80,7 +80,6 @@
     "@snaplet/copycat": "5.0.0",
     "@snaplet/eslint-config": "workspace:*",
     "@snaplet/tsconfig": "workspace:*",
-    "@total-typescript/ts-reset": "0.5.1",
     "@types/better-sqlite3": "7.6.9",
     "@types/debug": "4.1.12",
     "@types/fs-extra": "11.0.4",
@@ -90,16 +89,13 @@
     "@types/yargs": "17.0.32",
     "ansi-colors": "4.1.3",
     "better-sqlite3": "9.4.3",
-    "debug": "4.3.4",
     "dedent": "1.5.1",
     "eslint": "8.57.0",
-    "execa": "8.0.1",
     "pg": "8.11.3",
     "postgres": "3.4.3",
     "tmp-promise": "3.0.3",
     "tsx": "4.7.1",
     "typescript": "5.4.2",
-    "uuid": "9.0.1",
     "vitest": "1.4.0"
   },
   "peerDependencies": {
@@ -128,6 +124,11 @@
     }
   },
   "dependencies": {
+    "fs-extra": "11.2.0",
+    "debug": "4.3.4",
+    "execa": "8.0.1",
+    "uuid": "9.0.1",
+    "@total-typescript/ts-reset": "0.5.1",
     "@inquirer/prompts": "4.3.0",
     "@scaleleap/pg-format": "1.0.0",
     "@trpc/client": "10.45.2",
@@ -150,7 +151,6 @@
     "remeda": "1.55.0",
     "terminal-link": "3.0.0",
     "yargs": "17.7.2",
-    "fs-extra": "11.2.0",
     "zod": "3.22.4"
   },
   "scripts": {
@@ -161,6 +161,7 @@
     "start": "node dist/cli/index.js",
     "start:dev": "tsx --conditions development src/cli/index.ts",
     "start:server": "tsx --conditions development src/trpc/server.ts",
+    "release:alpha": "tsx scripts/release-alpha.mts",
     "type-check": "tsc --build",
     "test": "vitest run src",
     "test:e2e": "vitest run e2e",

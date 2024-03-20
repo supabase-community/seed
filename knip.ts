@@ -12,7 +12,7 @@ const optionalPeerDeps = Object.keys(
 const config: KnipConfig = {
   ignoreBinaries: ["nix"],
   ignoreDependencies: optionalPeerDeps,
-  ignore: ["./packages/seed/src/index.ts"],
+  ignore: ["./packages/seed/src/index.ts", ".github/*", "knip.ts"],
 };
 
 export default config;
