@@ -8,7 +8,7 @@ import { loginCommand } from "./commands/login/login.js";
 import { syncCommand } from "./commands/sync/sync.js";
 import { debug } from "./lib/debug.js";
 
-const program = yargs(hideBin(process.argv)).scriptName("@snaplet/seed");
+const program = yargs(hideBin(process.argv)).scriptName("seed");
 
 initCommand(program);
 generateCommand(program);
