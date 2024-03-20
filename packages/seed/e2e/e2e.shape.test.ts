@@ -90,7 +90,8 @@ for (const dialect of Object.keys(adapters) as Array<Dialect>) {
           databaseSchema: `
           CREATE TABLE "User" (
             "fullName" text NOT NULL,
-            "email" text NOT NULL
+            "email" text NOT NULL,
+            "createdAt" timestamp with time zone NOT NULL
           );
         `,
           seedScript: `
@@ -109,10 +110,12 @@ for (const dialect of Object.keys(adapters) as Array<Dialect>) {
             email: "Tito.Kessler12280@cruel-symbol.biz",
             fullName:
               "Percipi nulla in quos effloresse es sit, et linis invitamot sunt perin.",
+            createdAt: expect.any(Date),
           },
           {
             email: "Antwon_Wehner56302@waltzwater.com",
             fullName: "Quam in unt locus mihi.",
+            createdAt: expect.any(Date),
           },
         ]);
       });
