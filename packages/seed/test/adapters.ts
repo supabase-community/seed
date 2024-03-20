@@ -17,18 +17,19 @@ export interface Adapter<Client = AnyClient> {
   skipReason?: string;
 }
 
-export type Adapters = typeof adapters;
+type Adapters = typeof adapters;
 
 export type Dialect = keyof Adapters;
 
-export type AnyClient =
+type AnyClient =
   Awaited<ReturnType<Adapters[Dialect]>> extends Adapter<infer Client>
     ? Client
     : never;
 
 export const adapters = {
   async postgres(): Promise<Adapter<postgres.Sql>> {
-    const { createTestDb } = (await import("#test/postgres/index.js")).postgres;
+    const { createTestDb } = (await import("#test/postgres/postgres/index.js"))
+      .postgres;
     return {
       createTestDb,
       generateSeedConfig: (connectionString: string, config?: string) => dedent`
@@ -45,8 +46,9 @@ export const adapters = {
     };
   },
   async sqlite(): Promise<Adapter<import("better-sqlite3").Database>> {
-    const { createTestDb } = (await import("#test/sqlite/index.js"))
-      .betterSqlite3;
+    const { createTestDb } = (
+      await import("#test/sqlite/better-sqlite3/index.js")
+    ).betterSqlite3;
     return {
       createTestDb,
       createClient: (client) => new SeedBetterSqlite3(client),

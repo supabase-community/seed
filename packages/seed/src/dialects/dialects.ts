@@ -1,7 +1,7 @@
 import { postgresDialect } from "./postgres/dialect.js";
 import { sqliteDialect } from "./sqlite/dialect.js";
 
-export const dialects = {
+const dialects = {
   [postgresDialect.id]: postgresDialect,
   [sqliteDialect.id]: sqliteDialect,
 };

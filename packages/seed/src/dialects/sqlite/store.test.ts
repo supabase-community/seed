@@ -1,11 +1,11 @@
 import { describe, expect, test } from "vitest";
-import { sqlite } from "#test";
+import { betterSqlite3 } from "#test/sqlite/better-sqlite3/index.js";
 import { type DatabaseClient } from "../../core/databaseClient.js";
 import { getDatamodel } from "./dataModel.js";
 import { SqliteStore } from "./store.js";
 
 const adapters = {
-  betterSqlite3: () => sqlite.betterSqlite3,
+  betterSqlite3: () => betterSqlite3,
 };
 
 async function execQueries(client: DatabaseClient, queries: Array<string>) {

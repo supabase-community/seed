@@ -1,4 +1,4 @@
-export type ShapeContext =
+type ShapeContext =
   | "AUTHENTICATION"
   | "FINANCE"
   | "GENERAL"
@@ -6,7 +6,7 @@ export type ShapeContext =
   | "LEGAL"
   | "PERSON";
 
-export const GenerateShapes = [
+const GenerateShapes = [
   "VEHICLE_VRM",
   "VEHICLE_NAME",
   "VEHICLE_TYPE",
@@ -199,7 +199,7 @@ export const GenerateShapes = [
 
 export type Shape = "__DEFAULT" | (typeof GenerateShapes)[number];
 
-export interface PredictedShape {
+interface PredictedShape {
   column: string;
   confidence?: number;
   confidenceContext?: number;

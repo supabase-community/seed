@@ -2,7 +2,7 @@ import { getSeedConfig } from "#config/seedConfig/seedConfig.js";
 import { postgresDialect } from "./postgres/dialect.js";
 import { sqliteDialect } from "./sqlite/dialect.js";
 
-export async function getDialectId() {
+async function getDialectId() {
   const seedConfig = await getSeedConfig();
   const databaseClient = await seedConfig.adapter();
 

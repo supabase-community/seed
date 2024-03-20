@@ -1,11 +1,11 @@
 import { describe, expect, test } from "vitest";
 import { type DatabaseClient } from "#core/databaseClient.js";
-import { postgres } from "#test";
+import { postgres } from "#test/postgres/postgres/index.js";
 import { getDatamodel } from "./dataModel.js";
 import { PgStore } from "./store.js";
 
 const adapters = {
-  postgres: () => postgres.postgres,
+  postgres: () => postgres,
 };
 
 async function execQueries(client: DatabaseClient, queries: Array<string>) {

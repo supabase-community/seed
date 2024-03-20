@@ -7,7 +7,7 @@ import {
   type DataModelObjectField,
 } from "./types.js";
 
-export type Aliases = Record<
+type Aliases = Record<
   string,
   {
     fields: Record<string, string>;
@@ -15,13 +15,13 @@ export type Aliases = Record<
   }
 >;
 
-export interface AliasModelNameConflict {
+interface AliasModelNameConflict {
   aliasName: string;
   models: Map<string, DataModelModel>;
 }
 
 // inspired by https://www.graphile.org/postgraphile/inflection/
-export interface Inflection {
+interface Inflection {
   childField: (
     field: Field,
     oppositeField: Field,
@@ -38,7 +38,7 @@ export interface Inflection {
   ) => string;
 }
 
-export const OPPOSITE_BASE_NAME_MAP: Record<string, string> = {
+const OPPOSITE_BASE_NAME_MAP: Record<string, string> = {
   parent: "child",
   child: "parent",
   author: "authored",
@@ -46,7 +46,7 @@ export const OPPOSITE_BASE_NAME_MAP: Record<string, string> = {
   reviewer: "reviewed",
 };
 
-export const standardInflection: Inflection = {
+const standardInflection: Inflection = {
   modelName: computeModelNameAlias,
   scalarField: computeScalarFieldAlias,
   parentField: computeParentFieldAlias,
@@ -54,7 +54,7 @@ export const standardInflection: Inflection = {
   oppositeBaseNameMap: OPPOSITE_BASE_NAME_MAP,
 };
 
-export const identityInflection: Inflection = {
+const identityInflection: Inflection = {
   modelName: (modelName) => modelName,
   scalarField: (field) => field.name,
   parentField: (field) => field.name,
@@ -62,7 +62,7 @@ export const identityInflection: Inflection = {
   oppositeBaseNameMap: {},
 };
 
-export function computeAliases(dataModel: DataModel, inflection: Inflection) {
+function computeAliases(dataModel: DataModel, inflection: Inflection) {
   const aliases: Aliases = {};
 
   for (const [modelName, modelValues] of Object.entries(dataModel.models)) {
@@ -284,10 +284,7 @@ function computeChildFieldAlias(
   return camelize(`${fieldAlias}_by_${fromField}`, true);
 }
 
-export function applyAliasesToDataModel(
-  dataModel: DataModel,
-  aliases: Aliases,
-) {
+function applyAliasesToDataModel(dataModel: DataModel, aliases: Aliases) {
   const aliasedDataModel: DataModel = {
     models: {},
     enums: dataModel.enums,

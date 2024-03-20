@@ -24,8 +24,7 @@ export function getAccessTokenFromHttpServer(port: number) {
     server.on("request", (req, res) => {
       if (req.method === "POST" && req.url === "/cli-token") {
         let body = "";
-        req.on("data", (chunk) => {
-          // eslint-disable-next-line @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access
+        req.on("data", (chunk: { toString(): string }) => {
           body += chunk.toString();
         });
         req.on("end", () => {

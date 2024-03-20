@@ -13,7 +13,7 @@ const getSystemManifestPath = () => {
   return path.resolve(systemDir, SYSTEM_MANIFEST_FILENAME);
 };
 
-export const saveSystemManifest = async (next: SystemManifest) => {
+const saveSystemManifest = async (next: SystemManifest) => {
   await writeFile(getSystemManifestPath(), JSON.stringify(next));
 };
 

@@ -10,7 +10,7 @@ const systemConfigSchema = z.object({
   userId: z.string().optional(),
 });
 
-export type SystemConfig = z.infer<typeof systemConfigSchema>;
+type SystemConfig = z.infer<typeof systemConfigSchema>;
 
 let cachedSystemConfig: SystemConfig | null = null;
 
@@ -18,7 +18,7 @@ export function getSystemPath(baseDir: string = homedir()) {
   return join(baseDir, ".config", "snaplet");
 }
 
-export function getSystemConfigPath(baseName = "system") {
+function getSystemConfigPath(baseName = "system") {
   return join(getSystemPath(), `${baseName}.json`);
 }
 
@@ -60,7 +60,7 @@ export async function getSystemConfig(
   };
 }
 
-export async function setSystemConfig(systemConfig: SystemConfig) {
+async function setSystemConfig(systemConfig: SystemConfig) {
   const systemConfigPath = getSystemConfigPath();
 
   if (!(await pathExists(systemConfigPath))) {

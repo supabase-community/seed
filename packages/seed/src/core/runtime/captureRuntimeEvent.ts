@@ -4,7 +4,7 @@ import {
 } from "#config/systemManifest.js";
 import { createTelemetry } from "#core/telemetry/telemetry.js";
 
-export const EVENT_THROTTLE_INTERVAL = 1000 * 60 * 60 * 24;
+const EVENT_THROTTLE_INTERVAL = 1000 * 60 * 60 * 24;
 
 export const captureRuntimeEvent = async (
   event: string,
