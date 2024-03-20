@@ -10,6 +10,10 @@ concurrency:
   group: publish-alpha-${{ github.ref }}
   cancel-in-progress: true
 
+defaults:
+  run:
+    shell: devenv {0}
+
 env:
   NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
 
@@ -27,8 +31,8 @@ jobs:
         id: short-sha
         run: echo "sha_short=$(git rev-parse --short HEAD)" >> $GITHUB_OUTPUT
 
-      - name: check pnpm
-        run: which pnpm && pnpm --version 
+      - name: Clean build
+        run: pnpm clean
 
       - name: Publish alpha package
         working-directory: ./packages/seed
