@@ -8,6 +8,8 @@ import { getDialect } from "#dialects/getDialect.js";
 import { link, spinner } from "../../lib/output.js";
 
 export async function introspectHandler() {
+  spinner.start(`Introspecting your database`);
+
   const dialect = await getDialect();
   const databaseClient = await getDatabaseClient();
   const dataModel = await dialect.getDataModel(databaseClient);
