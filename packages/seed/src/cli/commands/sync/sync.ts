@@ -11,11 +11,11 @@ export function syncCommand(program: Argv) {
         describe: "A custom directory path to output the generated assets to",
         type: "string",
       }),
-    async () => {
+    async (args) => {
       const { syncHandler } = await import("./syncHandler.js");
       const { cliTelemetry } = await import("../../lib/cliTelemetry.js");
       await cliTelemetry.captureEvent("$command:sync:start");
-      await syncHandler();
+      await syncHandler(args);
       await cliTelemetry.captureEvent("$command:sync:end");
     },
   );

@@ -31,7 +31,7 @@ export async function initHandler() {
     await saveSeedConfig({ adapter });
   }
 
-  await syncHandler();
+  await syncHandler({});
 
   if (isFirstTimeInit) {
     await generateSeedScriptExample();
