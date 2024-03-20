@@ -3,7 +3,7 @@ import { type Argv } from "yargs";
 export function syncCommand(program: Argv) {
   return program.command(
     "sync",
-    "Synchronize your database structure with Snaplet Seed",
+    "Synchronize your database structure with your Seed Client",
     (y) =>
       y.option("output", {
         hidden: true,

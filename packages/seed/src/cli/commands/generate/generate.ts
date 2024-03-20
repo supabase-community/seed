@@ -3,7 +3,7 @@ import { type Argv } from "yargs";
 export function generateCommand(program: Argv) {
   return program.command(
     "generate",
-    "Generates the assets needed by @snaplet/seed",
+    "Generate artifacts (e.g. Seed Client)",
     (y) =>
       y.option("output", {
         hidden: true,
