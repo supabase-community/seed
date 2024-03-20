@@ -1,23 +1,20 @@
-import { cliTelemetry } from "#cli/lib/cliTelemetry.js";
 import { seedConfigExists } from "#config/seedConfig/seedConfig.js";
-import { bold, highlight } from "../../lib/output.js";
+import { highlight } from "../../lib/output.js";
 import { generateHandler } from "../generate/generateHandler.js";
-import { introspectHandler } from "../introspect/introspectHandler.js";
 import { loginHandler } from "../login/loginHandler.js";
+import { introspectHandler } from "../sync/introspectHandler.js";
 import { generateSeedScriptExample } from "./generateSeedScriptExample.js";
 import { getAdapter } from "./getAdapter.js";
 import { getUser } from "./getUser.js";
 import { installDependencies } from "./installDependencies.js";
 import { saveSeedConfig } from "./saveSeedConfig.js";
 
-export async function setupHandler() {
-  await cliTelemetry.captureEvent("$command:setup:start");
-
+export async function initHandler() {
   const user = await getUser();
 
   const welcomeText = user
     ? `Welcome back ${highlight(user.email)}! 😻`
-    : `Welcome to ${bold("@snaplet/seed")}, your best data buddy! 😸`;
+    : `Snaplet Seed is a generative AI tool for your data, it's like Faker and your ORM had a baby! 🐣`;
 
   console.log(welcomeText);
 
@@ -27,9 +24,9 @@ export async function setupHandler() {
 
   await installDependencies();
 
-  const isFirstTimeSetup = !(await seedConfigExists());
+  const isFirstTimeInit = !(await seedConfigExists());
 
-  if (isFirstTimeSetup) {
+  if (isFirstTimeInit) {
     const adapter = await getAdapter();
 
     await saveSeedConfig({ adapter });
@@ -39,9 +36,7 @@ export async function setupHandler() {
 
   await generateHandler({});
 
-  if (isFirstTimeSetup) {
+  if (isFirstTimeInit) {
     await generateSeedScriptExample();
   }
-
-  await cliTelemetry.captureEvent("$command:setup:end");
 }

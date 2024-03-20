@@ -7,8 +7,6 @@ import { eraseLines, highlight, link, spinner } from "../../lib/output.js";
 import { getAccessTokenFromHttpServer } from "./getAccessTokenFromHttpServer.js";
 
 export async function loginHandler() {
-  await cliTelemetry.captureEvent("$command:login:start");
-
   const port = await getPort();
 
   const accessTokenUrl = `${SNAPLET_APP_URL}/access-token/cli?port=${port}`;
@@ -37,6 +35,4 @@ export async function loginHandler() {
   spinner.stop();
   eraseLines(3);
   spinner.succeed(`Logged in as ${highlight(user.email)}`);
-
-  await cliTelemetry.captureEvent("$command:login:end");
 }

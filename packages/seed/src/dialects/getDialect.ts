@@ -1,8 +1,15 @@
+import { getDataModelConfig } from "#config/dataModelConfig.js";
 import { getSeedConfig } from "#config/seedConfig/seedConfig.js";
 import { postgresDialect } from "./postgres/dialect.js";
 import { sqliteDialect } from "./sqlite/dialect.js";
 
 async function getDialectId() {
+  const dataModelConfig = await getDataModelConfig();
+
+  if (dataModelConfig) {
+    return dataModelConfig.dialect;
+  }
+
   const seedConfig = await getSeedConfig();
   const databaseClient = await seedConfig.adapter();
 

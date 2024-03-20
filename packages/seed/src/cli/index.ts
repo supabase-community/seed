@@ -3,17 +3,17 @@ import yargs from "yargs";
 import { hideBin } from "yargs/helpers";
 import { SnapletError, isError } from "#core/utils.js";
 import { generateCommand } from "./commands/generate/generate.js";
-import { introspectCommand } from "./commands/introspect/introspect.js";
+import { initCommand } from "./commands/init/init.js";
 import { loginCommand } from "./commands/login/login.js";
-import { setupCommand } from "./commands/setup/setup.js";
+import { syncCommand } from "./commands/sync/sync.js";
 import { debug } from "./lib/debug.js";
 
 const program = yargs(hideBin(process.argv)).scriptName("@snaplet/seed");
 
+initCommand(program);
 generateCommand(program);
-introspectCommand(program);
 loginCommand(program);
-setupCommand(program);
+syncCommand(program);
 
 const handleFailure = (message: null | string, error: unknown) => {
   if (message != null) {

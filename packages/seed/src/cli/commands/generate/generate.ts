@@ -11,8 +11,11 @@ export function generateCommand(program: Argv) {
         type: "string",
       }),
     async (args) => {
+      const { cliTelemetry } = await import("../../lib/cliTelemetry.js");
       const { generateHandler } = await import("./generateHandler.js");
+      await cliTelemetry.captureEvent("$command:generate:start");
       await generateHandler(args);
+      await cliTelemetry.captureEvent("$command:generate:end");
     },
   );
 }
