@@ -1,8 +1,7 @@
 import { seedConfigExists } from "#config/seedConfig/seedConfig.js";
 import { highlight } from "../../lib/output.js";
-import { generateHandler } from "../generate/generateHandler.js";
 import { loginHandler } from "../login/loginHandler.js";
-import { introspectHandler } from "../sync/introspectHandler.js";
+import { syncHandler } from "../sync/syncHandler.js";
 import { generateSeedScriptExample } from "./generateSeedScriptExample.js";
 import { getAdapter } from "./getAdapter.js";
 import { getUser } from "./getUser.js";
@@ -32,9 +31,7 @@ export async function initHandler() {
     await saveSeedConfig({ adapter });
   }
 
-  await introspectHandler();
-
-  await generateHandler({});
+  await syncHandler();
 
   if (isFirstTimeInit) {
     await generateSeedScriptExample();
