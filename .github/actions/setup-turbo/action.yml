@@ -5,3 +5,5 @@ runs:
   steps:
     - name: Setup Turborepo Cache Server
       uses: dtinth/setup-github-actions-caching-for-turbo@v1
+      with:
+        cache-prefix: cache-${{ runner.os }}-turborepo-
