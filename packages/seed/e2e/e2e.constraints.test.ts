@@ -3,8 +3,7 @@ import { describe, expect, test } from "vitest";
 import { type Dialect, adapters } from "#test/adapters.js";
 import { setupProject } from "#test/setupProject.js";
 
-// for (const dialect of Object.keys(adapters) as Array<Dialect>) {
-for (const dialect of ["sqlite"] as Array<Dialect>) {
+for (const dialect of Object.keys(adapters) as Array<Dialect>) {
   const adapter = await adapters[dialect]();
 
   if (adapter.skipReason) {
