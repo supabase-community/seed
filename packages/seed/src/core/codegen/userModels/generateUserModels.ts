@@ -15,7 +15,7 @@ import { type Shape, type TableShapePredictions } from "#trpc/shapes.js";
 import { shouldGenerateFieldValue } from "../../dataModel/shouldGenerateFieldValue.js";
 import { generateJsonField } from "./generateJsonField.js";
 
-export const SHAPE_PREDICTION_CONFIDENCE_THRESHOLD = 0.65;
+const SHAPE_PREDICTION_CONFIDENCE_THRESHOLD = 0.65;
 
 const findEnumType = (dataModel: DataModel, field: DataModelField) =>
   Object.entries(dataModel.enums).find(
@@ -130,7 +130,7 @@ const generateDefaultsForModel = (props: {
   return fields;
 };
 
-export const generateDefaultsForModels = (props: {
+const generateDefaultsForModels = (props: {
   dataModel: DataModel;
   dialect: Dialect;
   fingerprint: Fingerprint;

@@ -1,12 +1,12 @@
 import { describe, expect, test } from "vitest";
-import { sqlite } from "#test";
+import { betterSqlite3 } from "#test/sqlite/better-sqlite3/index.js";
 import {
   basicIntrospectDatabase,
   introspectDatabase,
 } from "./introspectDatabase.js";
 
 const adapters = {
-  betterSqlite3: () => sqlite.betterSqlite3,
+  betterSqlite3: () => betterSqlite3,
 };
 
 describe.each(["betterSqlite3"] as const)(

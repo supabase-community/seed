@@ -1,6 +1,6 @@
 import { loadConfig } from "c12";
 import { existsSync } from "node:fs";
-import { rm, writeFile } from "node:fs/promises";
+import { writeFile } from "node:fs/promises";
 import { join } from "node:path";
 import * as z from "zod";
 import { getRootPath } from "#config/utils.js";
@@ -41,8 +41,4 @@ export async function seedConfigExists() {
 
 export async function setSeedConfig(template: string) {
   await writeFile(await getSeedConfigPath(), template);
-}
-
-export async function deleteSeedConfig() {
-  await rm(await getSeedConfigPath());
 }

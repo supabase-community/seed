@@ -14,7 +14,7 @@ const TEST_DATABASE_SERVER =
   "postgres://postgres@localhost/postgres";
 const TEST_ROLE_PREFIX = "testrole";
 
-export const defineCreateTestRole = (state: State) => {
+const defineCreateTestRole = (state: State) => {
   const serverClient = postgres(TEST_DATABASE_SERVER, { max: 1 });
   const serverDatabaseClient = new SeedPostgres(serverClient);
   const createTestRole = async (client: postgres.Sql) => {
