@@ -6,6 +6,7 @@ export function generateCommand(program: Argv) {
     "Generates the assets needed by @snaplet/seed",
     (y) =>
       y.option("output", {
+        hidden: true,
         alias: "o",
         describe: "A custom directory path to output the generated assets to",
         type: "string",
