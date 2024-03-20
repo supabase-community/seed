@@ -3,8 +3,7 @@
   "version": "1.0.0",
   "type": "module",
   "exports": {
-    ".": "./tsconfig.json",
-    "./react": "./tsconfig.react.json"
+    ".": "./tsconfig.json"
   },
   "dependencies": {
     "@tsconfig/node18": "18.2.2",
