@@ -12,8 +12,9 @@ export async function getDatabaseClient() {
   const seedConfig = await getSeedConfig();
 
   try {
-    databaseClient = await seedConfig.adapter();
-    await databaseClient.query("SELECT 1");
+    const _databaseClient = await seedConfig.adapter();
+    await _databaseClient.query("SELECT 1");
+    databaseClient = _databaseClient;
   } catch (error) {
     throw new SnapletError("SEED_ADAPTER_CANNOT_CONNECT", {
       error: error as Error,
