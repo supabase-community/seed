@@ -3,7 +3,9 @@
   "type": "module",
   "version": "0.89.3",
   "sideEffects": false,
-  "bin": "./bin/cli.js",
+  "bin": {
+    "seed": "bin/cli.js"
+  },
   "types": "./dist/index.d.ts",
   "author": {
     "name": "Snaplet",
@@ -92,7 +94,6 @@
     "dedent": "1.5.1",
     "eslint": "8.57.0",
     "execa": "8.0.1",
-    "fs-extra": "11.2.0",
     "pg": "8.11.3",
     "postgres": "3.4.3",
     "tmp-promise": "3.0.3",
@@ -149,6 +150,7 @@
     "remeda": "1.55.0",
     "terminal-link": "3.0.0",
     "yargs": "17.7.2",
+    "fs-extra": "11.2.0",
     "zod": "3.22.4"
   },
   "scripts": {
