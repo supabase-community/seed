@@ -417,7 +417,7 @@ for (const dialect of Object.keys(adapters) as Array<Dialect>) {
         expect(rows.length).toEqual(2);
       });
 
-      test.only("table attributes (name, columns) contain spaces with inflection enabled", async () => {
+      test("table attributes (name, columns) contain spaces with inflection enabled", async () => {
         const { db } = await setupProject({
           adapter,
           databaseSchema: `
