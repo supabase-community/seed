@@ -9,10 +9,10 @@
     "@snaplet/eslint-config": "workspace:*",
     "@snaplet/tsconfig": "workspace:*",
     "eslint": "8.57.0",
-    "knip": "5.1.4",
+    "knip": "5.1.5",
     "skott": "0.33.2",
     "turbo": "1.12.5",
-    "typescript": "5.4.2",
+    "typescript": "5.4.3",
     "vitest": "1.4.0"
   },
   "scripts": {
@@ -24,7 +24,8 @@
     "lint-monorepo": "knip && knip --production --strict --include=unlisted",
     "test": "turbo run test",
     "test:e2e": "turbo run test:e2e",
-    "type-check": "tsc --build",
+    "type-check": "turbo run type-check",
+    "type-check:watch": "tsc --build --watch",
     "update-deps": "pnpm update --interactive --recursive --latest",
     "update-infra": "nix flake update",
     "visualize-deps": "skott --displayMode=webapp --trackBuiltinDependencies --trackThirdPartyDependencies"
