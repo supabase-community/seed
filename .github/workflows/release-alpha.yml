@@ -24,7 +24,7 @@ jobs:
         uses: ./.github/actions/setup
     
       - name: Clean builds
-        run: pnpm clean
+        run: pnpm run clean
 
       - name: Publish alpha package
         working-directory: ./packages/seed
