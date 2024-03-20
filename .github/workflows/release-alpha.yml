@@ -27,6 +27,9 @@ jobs:
         id: short-sha
         run: echo "sha_short=$(git rev-parse --short HEAD)" >> $GITHUB_OUTPUT
 
+      - name: check pnpm
+        run: which pnpm && pnpm --version 
+
       - name: Publish alpha package
         working-directory: ./packages/seed
         run: npx tsx ./scripts/release-alpha.mts
