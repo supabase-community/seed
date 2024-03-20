@@ -119,6 +119,7 @@
     "@trpc/server": "10.45.2",
     "ansi-escapes": "6.2.0",
     "c12": "1.10.0",
+    "camelcase": "8.0.0",
     "ci-info": "4.0.0",
     "dedent": "1.5.1",
     "deepmerge": "4.3.1",
