@@ -8,3 +8,6 @@ runs:
 
     - name: Install dependencies
       uses: ./.github/actions/install
+
+    - name: Setup Turborepo Cache Server
+      uses: ./.github/actions/setup-turbo
