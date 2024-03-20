@@ -25,6 +25,7 @@ export const getPgTypeArrayDimensions = (pgType: string): number => {
 
 const JS_TO_PG_TYPES = {
   string: [
+    "char",
     "bpchar",
     "character_data",
     "varchar",

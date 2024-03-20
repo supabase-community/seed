@@ -23,8 +23,9 @@ export const getPgTypeArrayDimensions = (pgType: string): number => {
   return pgType.split("[]").length - 1;
 };
 
-const JS_TO_PG_TYPES = {
+export const JS_TO_PG_TYPES = {
   string: [
+    "char",
     "bpchar",
     "character_data",
     "varchar",
