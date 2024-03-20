@@ -88,15 +88,27 @@ const errorToStringMappings: {
   [K in CodeType]: (data: Data[K]) => string;
 } = {
   SEED_ALIAS_MODEL_NAME_CONFLICTS: (data) => {
-    const conflictDetails = data.conflicts
-      .map((conflict) => {
-        const models = Array.from(conflict.models.entries())
-          .map(([modelName, model]) => `${modelName}: ${model.id}`)
-          .join(", ");
-        return `Alias Name: ${conflict.aliasName}, Models: { ${models} }`;
-      })
-      .join("; ");
-    return `Details: [${conflictDetails}]`;
+    const conflicts = data.conflicts
+      .map(
+        (conflict) => `* Alias "${conflict.aliasName}" maps to: ${[
+          ...conflict.models.values(),
+        ]
+          .map((model) =>
+            [model.schemaName, model.tableName].filter(Boolean).join("."),
+          )
+          .join(", ")}
+`,
+      )
+      .join("\n");
+
+    return `
+Your database has some table names that would end up being aliased to the same names. To resolve this, add alias \`overrides\` for these tables in your \`snaplet.config.ts\` file.
+
+More on this in the docs: https://docs.snaplet.dev/core-concepts/seed#override
+
+The following table names conflict:
+${conflicts}
+`;
   },
   SEED_SELECT_RELATIONSHIP_ERROR: (data) => {
     const errorDetails = data.errors
@@ -135,6 +147,18 @@ export class SnapletError<Code extends CodeType = CodeType>
 
     this.code = code;
     this.data = data;
+  }
+
+  static instanceof<Code extends CodeType = CodeType>(
+    err: unknown,
+    code?: Code,
+  ): err is SnapletError<Code> {
+    const isSnapletError =
+      (err as Record<string, unknown> | undefined)?.["_tag"] === "SnapletError";
+
+    return (
+      isSnapletError && (code == null || (err as SnapletError).code === code)
+    );
   }
 
   override toString(): string {
