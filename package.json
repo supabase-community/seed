@@ -29,7 +29,7 @@
     "update-infra": "nix flake update",
     "visualize-deps": "skott --displayMode=webapp --trackBuiltinDependencies --trackThirdPartyDependencies"
   },
-  "packageManager": "pnpm@8.15.1",
+  "packageManager": "pnpm@8.15.5",
   "engines": {
     "node": ">=20.9.0"
   }

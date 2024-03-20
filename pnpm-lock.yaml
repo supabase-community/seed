@@ -82,7 +82,7 @@ importers:
         specifier: 4.3.0
         version: 4.3.0
       '@scaleleap/pg-format':
-        specifier: ^1.0.0
+        specifier: 1.0.0
         version: 1.0.0
       '@trpc/client':
         specifier: 10.45.2
@@ -112,7 +112,7 @@ importers:
         specifier: 7.0.0
         version: 7.0.0
       inflection:
-        specifier: ^3.0.0
+        specifier: 3.0.0
         version: 3.0.0
       javascript-stringify:
         specifier: 2.1.0
@@ -133,16 +133,16 @@ importers:
         specifier: 4.0.0
         version: 4.0.0(debug@4.3.4)
       quicktype-core:
-        specifier: ^23.0.107
+        specifier: 23.0.107
         version: 23.0.107
       remeda:
-        specifier: ^1.55.0
+        specifier: 1.55.0
         version: 1.55.0
       terminal-link:
         specifier: 3.0.0
         version: 3.0.0
       yargs:
-        specifier: ^17.7.2
+        specifier: 17.7.2
         version: 17.7.2
       zod:
         specifier: 3.22.4
@@ -2540,15 +2540,9 @@ packages:
       '@esbuild/win32-ia32': 0.19.12
       '@esbuild/win32-x64': 0.19.12
 
-  /escalade@3.1.1:
-    resolution: {integrity: sha512-k0er2gUkLf8O0zKJiAhmkTnJlTvINGv7ygDNPbeIsX/TJjGJZHuh9B2UxbsaEkmlEo9MfhrSzmhIlhRlI2GXnw==}
-    engines: {node: '>=6'}
-    dev: false
-
   /escalade@3.1.2:
     resolution: {integrity: sha512-ErCHMCae19vR8vQGe50xIsVomy19rg6gFu3+r3jkEO46suLMWBksvVyoGgQV+jOfl84ZSOSlmv6Gxa89PmTGmA==}
     engines: {node: '>=6'}
-    dev: true
 
   /escape-string-regexp@1.0.5:
     resolution: {integrity: sha512-vbRorB5FUQWvla16U8R/qgaFIya2qGzwDrNmCZuYKrbdSUMG6I1ZCGQRefkRVhuOkIGVne7BQ35DSfo1qvJqFg==}
@@ -5707,7 +5701,7 @@ packages:
     engines: {node: '>=12'}
     dependencies:
       cliui: 8.0.1
-      escalade: 3.1.1
+      escalade: 3.1.2
       get-caller-file: 2.0.5
       require-directory: 2.1.1
       string-width: 4.2.3
