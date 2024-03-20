@@ -71,6 +71,11 @@ for (const dialect of Object.keys(adapters) as Array<Dialect>) {
                           confidence: 0.99,
                           shape: "EMAIL",
                         },
+                        {
+                          column: "createdAt",
+                          confidence: 0.99,
+                          shape: "DATE",
+                        },
                       ],
                     },
                   ] as Array<TableShapePredictions>,
@@ -90,7 +95,8 @@ for (const dialect of Object.keys(adapters) as Array<Dialect>) {
           databaseSchema: `
           CREATE TABLE "User" (
             "fullName" text NOT NULL,
-            "email" text NOT NULL
+            "email" text NOT NULL,
+            "createdAt" timestamp with time zone NOT NULL
           );
         `,
           seedScript: `
@@ -104,15 +110,21 @@ for (const dialect of Object.keys(adapters) as Array<Dialect>) {
           },
         });
 
-        expect(await db.query('SELECT * from "User"')).toEqual([
+        // context(justinvdm, 20 Mar 2024): Postgres client gives back Date instance
+        // while sqlite client gives back string, so we JSON stringify and parse to normalize
+        expect(
+          JSON.parse(JSON.stringify(await db.query('SELECT * from "User"'))),
+        ).toEqual([
           {
             email: "Tito.Kessler12280@cruel-symbol.biz",
             fullName:
               "Percipi nulla in quos effloresse es sit, et linis invitamot sunt perin.",
+            createdAt: "2020-04-04T04:00:44.000Z",
           },
           {
             email: "Antwon_Wehner56302@waltzwater.com",
             fullName: "Quam in unt locus mihi.",
+            createdAt: "2020-12-04T11:47:53.000Z",
           },
         ]);
       });

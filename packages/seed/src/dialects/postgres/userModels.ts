@@ -35,6 +35,7 @@ export const SEED_PG_TEMPLATES: Templates<PgTypeName> = {
   float8: floats(8),
   money: floats(8),
   bpchar: strings,
+  char: strings,
   character: strings,
   "character varying": strings,
   varchar: strings,
