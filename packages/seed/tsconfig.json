@@ -4,6 +4,7 @@
     "outDir": ".dts",
   },
   "exclude": [
-    "**/dist/*"
+    "**/dist/*",
+    "**/.tmp/*",
   ]
 }
