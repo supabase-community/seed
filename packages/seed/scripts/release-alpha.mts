@@ -33,7 +33,6 @@ try {
         "npm",
         [
           "publish",
-          "--dry-run",
           // We tag the version as alpha on npm so we can always install the latest alpha via
           // npm install @snaplet/seed@alpha
           "--tag=alpha",
