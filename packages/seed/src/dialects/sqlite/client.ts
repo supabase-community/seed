@@ -50,9 +50,12 @@ export function getSeedClient(props: {
         const tablesToTruncate = filteredModels.map((model) =>
           escapeIdentifier(model.tableName),
         );
+        // We need to disable foreign keys to truncate tables to avoid integrity errors
+        await this.db.execute("PRAGMA foreign_keys = OFF");
         for (const table of tablesToTruncate) {
           await this.db.execute(`DELETE FROM ${table}`);
         }
+        await this.db.execute("PRAGMA foreign_keys = ON");
       }
     }
 
