@@ -1,9 +1,11 @@
 import { betterSqlite3Adapter } from "./better-sqlite3/better-sqlite3.js";
+import { drizzleAdapter } from "./drizzle/drizzle.js";
 import { pgAdapter } from "./pg/pg.js";
 import { postgresAdapter } from "./postgres/postgres.js";
 import { prismaAdapter } from "./prisma/prisma.js";
 
 export const ormAdapters = {
+  [drizzleAdapter.id]: drizzleAdapter,
   [prismaAdapter.id]: prismaAdapter,
 };
 

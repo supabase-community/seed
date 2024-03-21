@@ -81,6 +81,9 @@ importers:
       '@inquirer/prompts':
         specifier: ^4.3.0
         version: 4.3.0
+      '@prisma/client':
+        specifier: '>=5'
+        version: 5.11.0
       '@scaleleap/pg-format':
         specifier: ^1.0.0
         version: 1.0.0
@@ -172,6 +175,9 @@ importers:
       '@snaplet/eslint-config':
         specifier: workspace:*
         version: link:../eslint-config
+      '@snaplet/seed':
+        specifier: workspace:0.89.4
+        version: 'link:'
       '@snaplet/tsconfig':
         specifier: workspace:*
         version: link:../tsconfig
@@ -1158,6 +1164,17 @@ packages:
   /@polka/url@1.0.0-next.25:
     resolution: {integrity: sha512-j7P6Rgr3mmtdkeDGTe0E/aYyWEWVtc5yFXtHCRHs28/jptDEWfaVOc5T7cblqy1XKPPfCxJc/8DwQ5YgLOZOVQ==}
     dev: true
+
+  /@prisma/client@5.11.0:
+    resolution: {integrity: sha512-SWshvS5FDXvgJKM/a0y9nDC1rqd7KG0Q6ZVzd+U7ZXK5soe73DJxJJgbNBt2GNXOa+ysWB4suTpdK5zfFPhwiw==}
+    engines: {node: '>=16.13'}
+    requiresBuild: true
+    peerDependencies:
+      prisma: '*'
+    peerDependenciesMeta:
+      prisma:
+        optional: true
+    dev: false
 
   /@rollup/rollup-android-arm-eabi@4.13.0:
     resolution: {integrity: sha512-5ZYPOuaAqEH/W3gYsRkxQATBW3Ii1MfaT4EQstTnLKViLi2gLSQmlmtTpGucNP3sXEpOiI5tdGhjdE111ekyEg==}

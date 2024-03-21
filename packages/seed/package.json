@@ -45,6 +45,11 @@
       "development": "./src/adapters/better-sqlite3/index.ts",
       "default": "./dist/adapters/better-sqlite3/index.js"
     },
+    "./adapter-drizzle": {
+      "types": "./dist/adapters/drizzle/index.d.ts",
+      "development": "./src/adapters/drizzle/index.ts",
+      "default": "./dist/adapters/drizzle/index.js"
+    },
     "./adapter-pg": {
       "types": "./dist/adapters/pg/index.d.ts",
       "development": "./src/adapters/pg/index.ts",
@@ -79,6 +84,7 @@
   "devDependencies": {
     "@snaplet/copycat": "5.0.0",
     "@snaplet/eslint-config": "workspace:*",
+    "@snaplet/seed": "workspace:0.89.4",
     "@snaplet/tsconfig": "workspace:*",
     "@types/better-sqlite3": "7.6.9",
     "@types/debug": "4.1.12",
@@ -102,14 +108,19 @@
     "vitest": "1.4.0"
   },
   "peerDependencies": {
+    "@prisma/client": ">=5",
     "@snaplet/copycat": ">=2",
     "@types/better-sqlite3": "*",
     "@types/pg": "*",
     "better-sqlite3": ">=9",
+    "drizzle-orm": ">=0.30",
     "pg": ">=8",
     "postgres": ">=3"
   },
   "peerDependenciesMeta": {
+    "@prisma/client": {
+      "optional": true
+    },
     "@types/better-sqlite3": {
       "optional": true
     },
@@ -117,6 +128,9 @@
       "optional": true
     },
     "better-sqlite3": {
+      "optional": true
+    },
+    "drizzle-orm": {
       "optional": true
     },
     "pg": {
