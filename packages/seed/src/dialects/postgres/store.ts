@@ -127,8 +127,7 @@ export class PgStore extends StoreBase {
                       [idFieldName]: serializeToSQL(
                         // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
                         fieldMap.get(idFieldName)!.type,
-                        // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-                        row[idFieldName]!,
+                        row[idFieldName],
                       ),
                     }),
                     {},
