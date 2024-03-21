@@ -4,7 +4,6 @@ on:
   push:
     branches:
       - main
-      - chore/setup-alpha-releases
 
 concurrency:
   group: release-alpha-${{ github.ref }}
