@@ -32,12 +32,14 @@ jobs:
         id: short-sha
         run: echo "sha_short=$(git rev-parse --short HEAD)" >> $GITHUB_OUTPUT
 
-      - name: Publish alpha package
+      - name: Setup npmrc auth for publish
         run: |
           echo '//registry.npmjs.org/:_authToken=${NODE_AUTH_TOKEN}' >> .npmrc && \
           echo "registry=https://registry.npmjs.org/" >> .npmrc && \
-          echo "always-auth=true" >> .npmrc && \
-          cat .npmrc
+          echo "always-auth=true" >> .npmrc
+      
+      - name: Publish alpha package
+        run: pnpm -F @snaplet/seed run release:alpha
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
           GIT_HASH: ${{ steps.short-sha.outputs.sha_short }}
