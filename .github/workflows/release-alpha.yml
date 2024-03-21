@@ -1,0 +1,44 @@
+name: Release Alpha
+
+on:
+  push:
+    branches:
+      - main
+
+concurrency:
+  group: release-alpha-${{ github.ref }}
+  cancel-in-progress: true
+
+defaults:
+  run:
+    shell: devenv {0}
+
+env:
+  TURBO_TOKEN: ${{ secrets.TURBO_TOKEN }}
+  TURBO_TEAM: ${{ vars.TURBO_TEAM }}
+
+jobs:
+  build-and-publish:
+    runs-on: buildjet-4vcpu-ubuntu-2204
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup
+        uses: ./.github/actions/setup
+    
+      - name: Set short-sha
+        id: short-sha
+        run: echo "sha_short=$(git rev-parse --short HEAD)" >> $GITHUB_OUTPUT
+
+      - name: Setup npmrc auth for publish
+        run: |
+          echo '//registry.npmjs.org/:_authToken=${NODE_AUTH_TOKEN}' >> .npmrc && \
+          echo "registry=https://registry.npmjs.org/" >> .npmrc && \
+          echo "always-auth=true" >> .npmrc
+      
+      - name: Publish alpha package
+        run: pnpm -F @snaplet/seed run release:alpha
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+          GIT_HASH: ${{ steps.short-sha.outputs.sha_short }}

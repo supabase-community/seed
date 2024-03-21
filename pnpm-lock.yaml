@@ -84,6 +84,9 @@ importers:
       '@scaleleap/pg-format':
         specifier: 1.0.0
         version: 1.0.0
+      '@total-typescript/ts-reset':
+        specifier: 0.5.1
+        version: 0.5.1
       '@trpc/client':
         specifier: 10.45.2
         version: 10.45.2(@trpc/server@10.45.2)
@@ -102,18 +105,27 @@ importers:
       ci-info:
         specifier: 4.0.0
         version: 4.0.0
+      debug:
+        specifier: 4.3.4
+        version: 4.3.4
       dedent:
         specifier: 1.5.1
         version: 1.5.1
       deepmerge:
         specifier: 4.3.1
         version: 4.3.1
+      execa:
+        specifier: 8.0.1
+        version: 8.0.1
       exit-hook:
         specifier: 4.0.0
         version: 4.0.0
       find-up:
         specifier: 7.0.0
         version: 7.0.0
+      fs-extra:
+        specifier: 11.2.0
+        version: 11.2.0
       inflection:
         specifier: 3.0.0
         version: 3.0.0
@@ -144,6 +156,9 @@ importers:
       terminal-link:
         specifier: 3.0.0
         version: 3.0.0
+      uuid:
+        specifier: 9.0.1
+        version: 9.0.1
       yargs:
         specifier: 17.7.2
         version: 17.7.2
@@ -160,9 +175,6 @@ importers:
       '@snaplet/tsconfig':
         specifier: workspace:*
         version: link:../tsconfig
-      '@total-typescript/ts-reset':
-        specifier: 0.5.1
-        version: 0.5.1
       '@types/better-sqlite3':
         specifier: 7.6.9
         version: 7.6.9
@@ -190,18 +202,9 @@ importers:
       better-sqlite3:
         specifier: 9.4.3
         version: 9.4.3
-      debug:
-        specifier: 4.3.4
-        version: 4.3.4
       eslint:
         specifier: 8.57.0
         version: 8.57.0
-      execa:
-        specifier: 8.0.1
-        version: 8.0.1
-      fs-extra:
-        specifier: 11.2.0
-        version: 11.2.0
       pg:
         specifier: 8.11.3
         version: 8.11.3
@@ -217,9 +220,6 @@ importers:
       typescript:
         specifier: 5.4.3
         version: 5.4.3
-      uuid:
-        specifier: 9.0.1
-        version: 9.0.1
       vitest:
         specifier: 1.4.0
         version: 1.4.0(@types/node@20.11.30)
@@ -1280,7 +1280,7 @@ packages:
 
   /@total-typescript/ts-reset@0.5.1:
     resolution: {integrity: sha512-AqlrT8YA1o7Ff5wPfMOL0pvL+1X+sw60NN6CcOCqs658emD6RfiXhF7Gu9QcfKBH7ELY2nInLhKSCWVoNL70MQ==}
-    dev: true
+    dev: false
 
   /@trpc/client@10.45.2(@trpc/server@10.45.2):
     resolution: {integrity: sha512-ykALM5kYWTLn1zYuUOZ2cPWlVfrXhc18HzBDyRhoPYN0jey4iQHEFSEowfnhg1RvYnrAVjNBgHNeSAXjrDbGwg==}
@@ -3059,7 +3059,7 @@ packages:
       graceful-fs: 4.2.11
       jsonfile: 6.1.0
       universalify: 2.0.1
-    dev: true
+    dev: false
 
   /fs-minipass@2.1.0:
     resolution: {integrity: sha512-V/JgOLFCS+R6Vcq0slCuaeWEdNC3ouDlJMNIsacH2VtALiu9mV4LPrHc5cDl8k5aw6J8jwgWWpiTo5RYhmIzvg==}
@@ -3209,7 +3209,6 @@ packages:
 
   /graceful-fs@4.2.11:
     resolution: {integrity: sha512-RbJ5/jmFcNNCcDV5o9eTnBLJ/HszWV0P73bc+Ff4nS/rJj+YaS6IGyiOL0VoBYX+l1Wrl3k63h/KrH+nhJ0XvQ==}
-    dev: true
 
   /graphemer@1.4.0:
     resolution: {integrity: sha512-EtKwoO6kxCL9WO5xipiHTZlSzBm7WLT627TqC/uVRd0HKmq8NXyebnNYxDoBi7wt8eTWrUrKXCOVaFq9x1kgag==}
@@ -3534,7 +3533,6 @@ packages:
       universalify: 2.0.1
     optionalDependencies:
       graceful-fs: 4.2.11
-    dev: true
 
   /keyv@4.5.4:
     resolution: {integrity: sha512-oxVHkHR/EJf2CNXnWxRLW6mg7JyCCUcG0DtEGmL2ctUo1PNTin1PUil+r/+4r5MpVgC/fn1kjsx7mjSujKqIpw==}
@@ -5395,7 +5393,6 @@ packages:
   /universalify@2.0.1:
     resolution: {integrity: sha512-gptHNQghINnc/vTGIk0SOFGFNXw7JVrlRUtConJRlvaw6DuX0wO5Jeko9sWrMBhh+PsYAZ7oXAiOnf/UKogyiw==}
     engines: {node: '>= 10.0.0'}
-    dev: true
 
   /uri-js@4.4.1:
     resolution: {integrity: sha512-7rKUyy33Q1yc98pQ1DAmLtwX109F7TIfWlW1Ydo8Wl1ii1SeHieeh0HHfPeL2fMXK6z0s8ecKs9frCuLJvndBg==}
@@ -5418,7 +5415,7 @@ packages:
   /uuid@9.0.1:
     resolution: {integrity: sha512-b+1eJOlsR9K8HJpow9Ok3fiWOWSIcIzXodvv0rQjVoOVNpWMpxf1wZNpt4y9h10odCNrqnYp1OBzRktckBe3sA==}
     hasBin: true
-    dev: true
+    dev: false
 
   /valid-url@1.0.9:
     resolution: {integrity: sha512-QQDsV8OnSf5Uc30CKSwG9lnhMPe6exHtTXLRYX8uMwKENy640pU+2BgBL0LRbDh/eYRahNCS7aewCx0wf3NYVA==}

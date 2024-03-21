@@ -30,7 +30,7 @@ jobs:
   test-type-check:
     if: github.event.pull_request.draft == false
     name: Type check
-    runs-on: ubuntu-latest
+    runs-on: buildjet-4vcpu-ubuntu-2204
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -44,7 +44,7 @@ jobs:
   test-lint:
     if: github.event.pull_request.draft == false
     name: Lint
-    runs-on: ubuntu-latest
+    runs-on: buildjet-4vcpu-ubuntu-2204
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -58,7 +58,7 @@ jobs:
   test-lint-monorepo:
     if: github.event.pull_request.draft == false
     name: Lint monorepo
-    runs-on: ubuntu-latest
+    runs-on: buildjet-4vcpu-ubuntu-2204
     steps:
       - name: Checkout
         uses: actions/checkout@v4

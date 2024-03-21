@@ -21,7 +21,7 @@
     "clean-monorepo": "git clean -dfX -e \\!.env.local",
     "dev": "turbo run dev",
     "lint": "eslint --cache . --max-warnings 0 && turbo run lint",
-    "lint-monorepo": "knip",
+    "lint-monorepo": "knip && knip --production --strict --include=unlisted",
     "test": "turbo run test",
     "test:e2e": "turbo run test:e2e",
     "type-check": "turbo run type-check",
