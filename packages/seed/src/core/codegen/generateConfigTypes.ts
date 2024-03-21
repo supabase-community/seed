@@ -128,7 +128,11 @@ ${dataModel.models[modelName].fields
 function generateDefineConfigTypes() {
   return `
 type TypedConfig = {
-  adapter: import("@snaplet/seed/config").TypedConfig["adapter"];
+  /**
+   * Parameter to define your database client adapter.
+   * {@link https://docs.snaplet.dev/core-concepts/seed}
+   */
+  adapter: () => import("@snaplet/seed/adapter").DatabaseClient | Promise<import("@snaplet/seed/adapter").DatabaseClient>;
   /**
    * Parameter to customize fields and relationships names.
    * {@link https://docs.snaplet.dev/core-concepts/seed}
