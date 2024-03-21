@@ -6,8 +6,8 @@ import { generateCommand } from "./commands/generate/generate.js";
 import { initCommand } from "./commands/init/init.js";
 import { loginCommand } from "./commands/login/login.js";
 import { syncCommand } from "./commands/sync/sync.js";
-import { debug } from "./lib/debug.js";
 import { versionOption } from "./commands/version.js";
+import { debug } from "./lib/debug.js";
 
 const program = yargs(hideBin(process.argv)).scriptName("npx @snaplet/seed");
 
