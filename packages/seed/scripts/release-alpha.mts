@@ -1,12 +1,15 @@
 import { execaSync } from "execa";
+import semver from "semver";
 import { readPkg, writePkg } from "../src/core/version.js";
 
 const seedPackage = readPkg<{ version: string }>();
 
 // At this point we should alwas have the latest stable version of our package
 console.log("Release alpha version for ", seedPackage.version);
+// We bump the alpha to the next minor version
+const nextMinorVersion = semver.inc(seedPackage.version, "minor");
 // We append "alpha" to the current version so it doesn't take over the stable version by semver rules
-const alphaVersion = `${seedPackage.version}-alpha`;
+const alphaVersion = `${nextMinorVersion}-alpha`;
 // We append the git hash to the alpha version if it is available so we can deploy multiples alpha versions on the same stable version
 const gitAlphaVersion = process.env["GIT_HASH"]
   ? `${alphaVersion}-${process.env["GIT_HASH"]}`
