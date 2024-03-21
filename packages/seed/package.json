@@ -3,7 +3,9 @@
   "type": "module",
   "version": "1.0.0",
   "sideEffects": false,
-  "bin": "./bin/cli.js",
+  "bin": {
+    "snaplet-seed": "./bin/cli.js"
+  },
   "types": "./dist/index.d.ts",
   "imports": {
     "#*": {

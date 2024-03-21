@@ -4,7 +4,7 @@ import { telemetryMiddleware } from "#cli/lib/middlewares/telemetry.js";
 export function syncCommand(program: Argv) {
   return program.command(
     "sync",
-    "Synchronize your database structure with your Seed Client",
+    "Synchronize your database schema with Seed Client",
     {
       output: {
         hidden: true,
