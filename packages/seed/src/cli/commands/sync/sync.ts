@@ -1,22 +1,21 @@
 import { type Argv } from "yargs";
+import { telemetryMiddleware } from "#cli/lib/middlewares/telemetry.js";
 
 export function syncCommand(program: Argv) {
   return program.command(
     "sync",
     "Synchronize your database structure with your Seed Client",
-    (y) =>
-      y.option("output", {
+    {
+      output: {
         hidden: true,
         alias: "o",
         describe: "A custom directory path to output the generated assets to",
         type: "string",
-      }),
-    async (args) => {
-      const { syncHandler } = await import("./syncHandler.js");
-      const { cliTelemetry } = await import("../../lib/cliTelemetry.js");
-      await cliTelemetry.captureEvent("$command:sync:start");
-      await syncHandler(args);
-      await cliTelemetry.captureEvent("$command:sync:end");
+      },
     },
+    telemetryMiddleware(async (args) => {
+      const { syncHandler } = await import("./syncHandler.js");
+      await syncHandler(args);
+    }),
   );
 }
