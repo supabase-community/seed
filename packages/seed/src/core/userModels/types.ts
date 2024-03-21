@@ -1,4 +1,5 @@
-import { type ScalarField, type Serializable } from "../plan/types.js";
+import { type Serializable } from "#core/data/types.js";
+import { type ScalarField } from "../plan/types.js";
 import { type Store } from "../store/store.js";
 
 interface ConnectCallbackContext {
