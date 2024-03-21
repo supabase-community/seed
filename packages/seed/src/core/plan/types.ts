@@ -103,7 +103,7 @@ export type GenerateCallback = (
   ctx: GenerateCallbackContext,
 ) => Promise<Serializable> | Serializable;
 
-export type ModelData = Record<string, Json | undefined>;
+export type ModelData = Record<string, Json | bigint | undefined>;
 
 export interface PlanOptions {
   connect?: Record<string, Array<Record<string, Json>>> | true;

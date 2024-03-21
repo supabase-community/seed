@@ -101,7 +101,7 @@ export async function checkConstraints(
     }
 
     const hash = getHash(
-      constraint.fields.map((f) => JSON.stringify(props.modelData[f])),
+      constraint.fields.map((f) => hashModelData(props.modelData[f])),
     );
     const constraintStore =
       props.constraintsStores[props.model][constraint.name];
@@ -229,7 +229,7 @@ export async function checkConstraints(
           [
             `Unique constraint "${constraint.name}" violated for model "${props.model}" on fields (${constraint.fields.join(",")}) with values (${values.join(",")})`,
             `Seed: ${props.modelSeed}`,
-            `Model data: ${JSON.stringify(props.modelData, null, 2)}`,
+            `Model data: ${JSON.stringify(props.modelData, jsonReplacer, 2)}`,
           ].join(EOL),
         );
       }
@@ -239,13 +239,21 @@ export async function checkConstraints(
         props.modelData[column] = constraintData[column];
       }
       const finalHash = getHash(
-        constraint.fields.map((f) => JSON.stringify(constraintData[f])),
+        constraint.fields.map((f) => hashModelData(constraintData[f])),
       );
       constraintStore.add(finalHash);
     } else {
       constraintStore.add(hash);
     }
   }
+}
+
+function jsonReplacer(_: string, value: ModelData[string]) {
+  return typeof value === "bigint" ? value.toString() : value;
+}
+
+function hashModelData(modelData: ModelData[string]) {
+  return JSON.stringify(modelData, jsonReplacer);
 }
 
 function getHash(values: Array<string>) {
@@ -310,7 +318,7 @@ async function cartesianProduct(
 
       const hash = getHash(
         props.constraint.fields.map((c) =>
-          JSON.stringify(props.constraintData[c]),
+          hashModelData(props.constraintData[c]),
         ),
       );
 
@@ -337,7 +345,7 @@ async function cartesianProduct(
 
       const hash = getHash(
         props.constraint.fields.map((f) =>
-          JSON.stringify(props.constraintData[f]),
+          hashModelData(props.constraintData[f]),
         ),
       );
 
