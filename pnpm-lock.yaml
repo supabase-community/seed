@@ -175,9 +175,6 @@ importers:
       '@snaplet/eslint-config':
         specifier: workspace:*
         version: link:../eslint-config
-      '@snaplet/seed':
-        specifier: workspace:0.89.4
-        version: 'link:'
       '@snaplet/tsconfig':
         specifier: workspace:*
         version: link:../tsconfig
