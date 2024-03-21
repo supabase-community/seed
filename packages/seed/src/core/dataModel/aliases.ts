@@ -287,8 +287,8 @@ function computeChildFieldAlias(
 
 function applyAliasesToDataModel(dataModel: DataModel, aliases: Aliases) {
   const aliasedDataModel: DataModel = {
+    ...dataModel,
     models: {},
-    enums: dataModel.enums,
   };
 
   for (const [modelName, modelValues] of Object.entries(dataModel.models)) {

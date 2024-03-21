@@ -1,3 +1,4 @@
+import { EOL } from "node:os";
 import { type DataModelModel } from "./dataModel/types.js";
 
 export const dedupePreferLast = <Value>(values: Array<Value>): Array<Value> =>
@@ -55,6 +56,7 @@ export function escapeKey(key: string): string {
 const ERROR_CODES = {
   SEED_ALIAS_MODEL_NAME_CONFLICTS: 9300,
   SEED_SELECT_RELATIONSHIP_ERROR: 9301,
+  SEED_ADAPTER_CANNOT_CONNECT: 9302,
 
   PACKAGE_NOT_EXISTS: 9400,
 };
@@ -74,6 +76,9 @@ interface SeedSelectRelationshipError {
 interface Data extends Record<CodeType, unknown> {
   PACKAGE_NOT_EXISTS: {
     packageName: string;
+  };
+  SEED_ADAPTER_CANNOT_CONNECT: {
+    error: Error;
   };
   SEED_ALIAS_MODEL_NAME_CONFLICTS: {
     conflicts: Array<AliasModelNameConflict>;
@@ -119,6 +124,11 @@ ${conflicts}
       .join("; ");
     return `Select configuration cause constraint relationship error\nDetails: ${errorDetails}`;
   },
+  SEED_ADAPTER_CANNOT_CONNECT: (data) =>
+    [
+      `Unable to connect to the database. Please check the \`adapter\` key in your \`seed.config.ts\` file`,
+      `Details: ${data.error}`,
+    ].join(EOL),
   PACKAGE_NOT_EXISTS: (data) => {
     return `Please install required package: '${data.packageName}'`;
   },

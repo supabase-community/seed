@@ -128,8 +128,8 @@ export function getSelectFilteredDataModel(
     dataModel.models,
   );
   const filteredDataModel: DataModel = {
+    ...dataModel,
     models: {},
-    enums: dataModel.enums,
   };
   // We rebuild the data model with only the included tables
   for (const [key, model] of Object.entries(relationsFilteredDataModel)) {

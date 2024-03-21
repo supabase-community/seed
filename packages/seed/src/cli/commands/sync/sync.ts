@@ -1,10 +1,10 @@
 import { type Argv } from "yargs";
-import { telemetryMiddleware } from "../../lib/middlewares/telemetry.js";
+import { telemetryMiddleware } from "#cli/lib/middlewares/telemetry.js";
 
-export function generateCommand(program: Argv) {
+export function syncCommand(program: Argv) {
   return program.command(
-    "generate",
-    "Generate artifacts (e.g. Seed Client)",
+    "sync",
+    "Synchronize your database schema with Seed Client",
     {
       output: {
         hidden: true,
@@ -14,8 +14,8 @@ export function generateCommand(program: Argv) {
       },
     },
     telemetryMiddleware(async (args) => {
-      const { generateHandler } = await import("./generateHandler.js");
-      await generateHandler(args);
+      const { syncHandler } = await import("./syncHandler.js");
+      await syncHandler(args);
     }),
   );
 }
