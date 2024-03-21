@@ -9,7 +9,7 @@
     "@snaplet/eslint-config": "workspace:*",
     "@snaplet/tsconfig": "workspace:*",
     "eslint": "8.57.0",
-    "knip": "5.1.5",
+    "knip": "5.2.0",
     "skott": "0.33.2",
     "turbo": "1.12.5",
     "typescript": "5.4.3",
