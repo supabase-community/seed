@@ -1,5 +1,5 @@
 import { EOL } from "node:os";
-import { SELECT_WILDCARD_STRING } from "../../config/seedConfig/selectConfig.js";
+import { SELECT_WILDCARD_STRING } from "#config/seedConfig/selectConfig.js";
 import { type DataModel, type DataModelField } from "../dataModel/types.js";
 import { escapeKey } from "../utils.js";
 
@@ -58,7 +58,7 @@ type Inflection = {
   const override = `type Override = {
 ${Object.keys(dataModel.models)
   .map(
-    (modelName) => `  ${modelName}?: {
+    (modelName) => `  ${escapeKey(modelName)}?: {
     name?: string;
     fields?: {
 ${dataModel.models[modelName].fields
@@ -103,7 +103,7 @@ function generateFingerprintTypes(props: {
   const fingerprint = `export interface Fingerprint {
 ${Object.keys(dataModel.models)
   .map(
-    (modelName) => `  ${modelName}?: {
+    (modelName) => `  ${escapeKey(modelName)}?: {
 ${dataModel.models[modelName].fields
   .map((f) => {
     const fieldType = computeFingerprintFieldTypeName(f);
@@ -128,7 +128,11 @@ ${dataModel.models[modelName].fields
 function generateDefineConfigTypes() {
   return `
 type TypedConfig = {
-  adapter: import("@snaplet/seed/config").TypedConfig["adapter"];
+  /**
+   * Parameter to define your database client adapter.
+   * {@link https://docs.snaplet.dev/core-concepts/seed}
+   */
+  adapter: () => import("@snaplet/seed/adapter").DatabaseClient | Promise<import("@snaplet/seed/adapter").DatabaseClient>;
   /**
    * Parameter to customize fields and relationships names.
    * {@link https://docs.snaplet.dev/core-concepts/seed}

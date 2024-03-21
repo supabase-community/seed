@@ -20,6 +20,7 @@
     "test": {
       "dependsOn": ["build"]
     },
-    "test:e2e": {}
+    "test:e2e": {},
+    "type-check": {}
   }
 }

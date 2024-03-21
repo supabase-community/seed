@@ -1,4 +1,3 @@
-import { z } from "zod";
 import { type DatabaseClient } from "#core/databaseClient.js";
 import { groupBy } from "../utils.js";
 import { groupParentsChildrenRelations } from "./groupParentsChildrenRelations.js";
@@ -17,7 +16,7 @@ type UniqueConstraints = Array<
 type Tables = AsyncFunctionSuccessType<typeof fetchTablesAndColumns>;
 type Enums = Array<AsyncFunctionSuccessType<typeof fetchEnums>[number]>;
 type Sequences = AsyncFunctionSuccessType<typeof fetchSequences>;
-export type Relationships = AsyncFunctionSuccessType<
+type Relationships = AsyncFunctionSuccessType<
   typeof fetchDatabaseRelationships
 >;
 export type Relationship = Relationships[number];
@@ -26,10 +25,8 @@ type GroupedRelationshipsValue = NonNullable<
   ReturnType<GroupedRelationships["get"]>
 >;
 export type IntrospectedTableColumn = Tables[number]["columns"][number];
-export type IntrospectedEnum = Enums[number];
-export type IntrospectedTable = Tables[number];
 
-export interface IntrospectedStructureBase {
+interface IntrospectedStructureBase {
   enums: Enums;
   tables: Tables;
 }
@@ -92,159 +89,3 @@ export async function introspectDatabase(
     sequences: sequencesGroupesBySchema,
   };
 }
-
-const introspectedStructureBaseSchema = z.object({
-  tables: z.array(
-    z.object({
-      id: z.string(),
-      name: z.string(),
-      schema: z.string(),
-      rows: z.number().nullable(),
-      bytes: z.number(),
-      columns: z.array(
-        z.object({
-          id: z.string(),
-          name: z.string(),
-          type: z.string(),
-          typeId: z.string(),
-          table: z.string(),
-          schema: z.string(),
-          nullable: z.boolean(),
-          default: z.string().nullable(),
-          generated: z.union([z.literal("ALWAYS"), z.literal("NEVER")]),
-          maxLength: z.number().nullable(),
-          identity: z
-            .object({
-              sequenceName: z.string(),
-              generated: z.union([
-                z.literal("ALWAYS"),
-                z.literal("BY DEFAULT"),
-              ]),
-              increment: z.number(),
-              current: z.number(),
-            })
-            .nullable(),
-          typeCategory: z.union([
-            z.literal("A"),
-            z.literal("B"),
-            z.literal("C"),
-            z.literal("D"),
-            z.literal("E"),
-            z.literal("G"),
-            z.literal("I"),
-            z.literal("N"),
-            z.literal("P"),
-            z.literal("R"),
-            z.literal("S"),
-            z.literal("T"),
-            z.literal("U"),
-            z.literal("V"),
-            z.literal("X"),
-            z.literal("Z"),
-          ]),
-          constraints: z.array(
-            z.union([
-              z.literal("p"),
-              z.literal("f"),
-              z.literal("u"),
-              z.literal("c"),
-              z.literal("t"),
-              z.literal("x"),
-            ]),
-          ),
-        }),
-      ),
-      partitioned: z.boolean(),
-      primaryKeys: z
-        .object({
-          tableId: z.string(),
-          schema: z.string(),
-          table: z.string(),
-          dirty: z.boolean(),
-          keys: z.array(
-            z.object({
-              name: z.string(),
-              type: z.string(),
-            }),
-          ),
-        })
-        .nullable(),
-      parents: z.array(
-        z.object({
-          id: z.string(),
-          fkTable: z.string(),
-          targetTable: z.string(),
-          keys: z.array(
-            z.object({
-              fkColumn: z.string(),
-              fkType: z.string(),
-              targetColumn: z.string(),
-              targetType: z.string(),
-              nullable: z.boolean(),
-            }),
-          ),
-        }),
-      ),
-      children: z.array(
-        z.object({
-          id: z.string(),
-          fkTable: z.string(),
-          targetTable: z.string(),
-          keys: z.array(
-            z.object({
-              fkColumn: z.string(),
-              fkType: z.string(),
-              targetColumn: z.string(),
-              targetType: z.string(),
-              nullable: z.boolean(),
-            }),
-          ),
-        }),
-      ),
-      uniqueConstraints: z
-        .array(
-          z.object({
-            tableId: z.string(),
-            schema: z.string(),
-            table: z.string(),
-            dirty: z.boolean(),
-            name: z.string(),
-            nullNotDistinct: z.boolean().default(false),
-            columns: z.array(z.string()),
-          }),
-        )
-        .optional(),
-    }),
-  ),
-  enums: z.array(
-    z.object({
-      id: z.string(),
-      schema: z.string(),
-      name: z.string(),
-      values: z.array(z.string()),
-    }),
-  ),
-  // satisfies allow us to ensure that zod schema always match
-  // the actual type of IntrospectedStructure, if the type change and the schema does not
-  // it'll raise an error at type-checking time
-}) satisfies z.ZodType<IntrospectedStructureBase>;
-
-export const introspectedStructureSchema = z.object({
-  ...introspectedStructureBaseSchema.shape,
-  sequences: z
-    .record(
-      z.string(),
-      z.array(
-        z.object({
-          schema: z.string(),
-          name: z.string(),
-          start: z.number(),
-          current: z.number(),
-          min: z.number(),
-          max: z.number(),
-          interval: z.number(),
-        }),
-      ),
-    )
-    .optional(),
-}) satisfies z.ZodType<IntrospectedStructure>;

@@ -1,10 +1,10 @@
 import { describe, expect, test } from "vitest";
 import { SeedPostgres } from "#adapters/postgres/index.js";
-import { postgres } from "#test";
+import { postgres } from "#test/postgres/postgres/index.js";
 import { fetchEnums } from "./fetchEnums.js";
 
 const adapters = {
-  postgres: () => postgres.postgres,
+  postgres: () => postgres,
 };
 
 describe.each(["postgres"] as const)("fetchEnums: %s", (adapter) => {

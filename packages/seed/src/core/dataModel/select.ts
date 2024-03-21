@@ -50,7 +50,7 @@ export function computeIncludedTables(
   });
 }
 
-export function getTableRelationsErrors(
+function getTableRelationsErrors(
   includedTableIds: Set<string>,
   models: DataModel["models"],
   groupedFields: {
@@ -70,7 +70,7 @@ export function getTableRelationsErrors(
   return errors;
 }
 
-export function checkParentRelations(
+function checkParentRelations(
   includedTableIds: Set<string>,
   models: DataModel["models"],
 ) {
@@ -128,8 +128,8 @@ export function getSelectFilteredDataModel(
     dataModel.models,
   );
   const filteredDataModel: DataModel = {
+    ...dataModel,
     models: {},
-    enums: dataModel.enums,
   };
   // We rebuild the data model with only the included tables
   for (const [key, model] of Object.entries(relationsFilteredDataModel)) {

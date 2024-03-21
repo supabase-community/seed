@@ -92,12 +92,7 @@ async function seedSetup(props: {
     await writeFile(path.join(cwd, "seed.config.ts"), seedConfig);
   }
 
-  await runCLI(["introspect"], {
-    cwd,
-    env: props.env,
-  });
-
-  await runCLI(["generate", "--output", "./__seed"], {
+  await runCLI(["sync", "--output", "./__seed"], {
     cwd,
     env: props.env,
   });

@@ -159,12 +159,11 @@ for (const dialect of Object.keys(adapters) as Array<Dialect>) {
         }));
         await seed.games((x) => x(3));
       `;
-          const { db, runSeedScript, stdout } = await setupProject({
+          const { db, runSeedScript } = await setupProject({
             adapter,
             databaseSchema: schema[dialect] ?? schema.default,
             seedScript,
           });
-          console.log(stdout);
           expect((await db.query('SELECT * FROM "Player"')).length).toEqual(6);
           expect((await db.query('SELECT * FROM "Team"')).length).toEqual(2);
           expect((await db.query('SELECT * FROM "Game"')).length).toEqual(3);
@@ -287,10 +286,7 @@ for (const dialect of Object.keys(adapters) as Array<Dialect>) {
           await db.execute(`INSERT INTO "BABA" DEFAULT VALUES`);
           await db.execute(`INSERT INTO "BABA" DEFAULT VALUES`);
 
-          const { stdout } = await runSeedScript(
-            seedScript[dialect] ?? seedScript.default,
-          );
-          console.log(stdout);
+          await runSeedScript(seedScript[dialect] ?? seedScript.default);
 
           expect((await db.query('SELECT * FROM "BABBA"')).length).toBe(0);
           expect((await db.query('SELECT * FROM "BABA"')).length).toBe(2);
@@ -420,6 +416,83 @@ for (const dialect of Object.keys(adapters) as Array<Dialect>) {
           ).rejects.toThrow(
             `'"${tableName[dialect] ?? tableName.default}"' does not exist in type 'SelectConfig'`,
           );
+        });
+        test("reset tables even if there is data with foreign keys in it", async () => {
+          const schema: SchemaRecord = {
+            default: `
+              -- CreateTable
+              CREATE TABLE "Account" (
+                  "id" TEXT NOT NULL,
+                  "email" TEXT NOT NULL,
+                  CONSTRAINT "Account_pkey" PRIMARY KEY ("id")
+              );
+              
+              -- CreateTable
+              CREATE TABLE "Password" (
+                  "id" TEXT NOT NULL,
+                  "salt" TEXT NOT NULL,
+                  "hash" TEXT NOT NULL,
+                  "accountId" TEXT NOT NULL,
+                  CONSTRAINT "Password_pkey" PRIMARY KEY ("id"),
+                  CONSTRAINT "Password_accountId_fkey" FOREIGN KEY ("accountId") REFERENCES "Account"("id") ON DELETE RESTRICT ON UPDATE CASCADE
+              );
+              
+              -- CreateIndex
+              CREATE UNIQUE INDEX "Account_email_key" ON "Account"("email");
+              
+              -- CreateIndex
+              CREATE UNIQUE INDEX "Password_accountId_key" ON "Password"("accountId");
+            `,
+            sqlite: `
+              -- CreateTable
+              CREATE TABLE "Account" (
+                  "id" TEXT NOT NULL PRIMARY KEY,
+                  "email" TEXT NOT NULL
+              );
+              
+              -- CreateTable
+              CREATE TABLE "Password" (
+                  "id" TEXT NOT NULL PRIMARY KEY,
+                  "salt" TEXT NOT NULL,
+                  "hash" TEXT NOT NULL,
+                  "accountId" TEXT NOT NULL,
+                  CONSTRAINT "Password_accountId_fkey" FOREIGN KEY ("accountId") REFERENCES "Account" ("id") ON DELETE RESTRICT ON UPDATE CASCADE
+              );
+              
+              -- CreateIndex
+              CREATE UNIQUE INDEX "Account_email_key" ON "Account"("email");
+              
+              -- CreateIndex
+              CREATE UNIQUE INDEX "Password_accountId_key" ON "Password"("accountId");
+            `,
+          };
+
+          const seedScript: SeedScriptRecord = {
+            default: `
+              import { createSeedClient } from '#seed'
+        
+              const seed = await createSeedClient()
+              await seed.$resetDatabase()
+            `,
+          };
+
+          const { db, runSeedScript } = await setupProject({
+            adapter,
+            databaseSchema: schema[dialect] ?? schema.default,
+          });
+
+          // We insert some data in our database
+          await db.execute(
+            `INSERT INTO "Account" (id,email) VALUES ('cc7ebf70-44ca-5e4a-a8f3-37def829095a', 'Donny.Keeling37878@likely-umbrella.net');`,
+          );
+          await db.execute(
+            `INSERT INTO "Password" (id,salt,hash,"accountId") VALUES ('4a96e682-0766-5a91-8e43-faea1fb340a1', '1234567', '123456', 'cc7ebf70-44ca-5e4a-a8f3-37def829095a');`,
+          );
+
+          await runSeedScript(seedScript[dialect] ?? seedScript.default);
+
+          expect((await db.query('SELECT * FROM "Account"')).length).toBe(0);
+          expect((await db.query('SELECT * FROM "Password"')).length).toBe(0);
         });
       });
     },

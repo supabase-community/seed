@@ -10,9 +10,7 @@ import {
 } from "./introspectDatabase.js";
 import { type AsyncFunctionSuccessType } from "./types.js";
 
-export type IntrospectedSqlite = AsyncFunctionSuccessType<
-  typeof introspectDatabase
->;
+type IntrospectedSqlite = AsyncFunctionSuccessType<typeof introspectDatabase>;
 
 function getParentRelationAndFieldName({
   table,
@@ -85,7 +83,7 @@ function columnSequence(
 export function introspectionToDataModel(
   introspection: IntrospectedSqlite,
 ): DataModel {
-  const dataModel: DataModel = { models: {}, enums: {} };
+  const dataModel: DataModel = { dialect: "sqlite", models: {}, enums: {} };
 
   for (const table of introspection.tables) {
     const fields: Array<DataModelField> = [];

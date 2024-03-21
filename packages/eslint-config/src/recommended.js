@@ -80,7 +80,8 @@ export const recommended = [
       ...prettierConfig.rules,
       ...prettierPlugin.configs.recommended.rules,
       "dot-notation": "off",
-      "@typescript-eslint/dot-notation": "error"
+      "@typescript-eslint/dot-notation": "error",
+      "@typescript-eslint/restrict-template-expressions": "off",
     },
   },
   {

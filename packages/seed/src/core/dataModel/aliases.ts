@@ -1,4 +1,5 @@
-import { camelize, pluralize, singularize, underscore } from "inflection";
+import camelize from "camelcase";
+import { pluralize, singularize, underscore } from "inflection";
 import { merge } from "remeda";
 import { SnapletError } from "../utils.js";
 import {
@@ -7,7 +8,7 @@ import {
   type DataModelObjectField,
 } from "./types.js";
 
-export type Aliases = Record<
+type Aliases = Record<
   string,
   {
     fields: Record<string, string>;
@@ -15,13 +16,13 @@ export type Aliases = Record<
   }
 >;
 
-export interface AliasModelNameConflict {
+interface AliasModelNameConflict {
   aliasName: string;
   models: Map<string, DataModelModel>;
 }
 
 // inspired by https://www.graphile.org/postgraphile/inflection/
-export interface Inflection {
+interface Inflection {
   childField: (
     field: Field,
     oppositeField: Field,
@@ -38,7 +39,7 @@ export interface Inflection {
   ) => string;
 }
 
-export const OPPOSITE_BASE_NAME_MAP: Record<string, string> = {
+const OPPOSITE_BASE_NAME_MAP: Record<string, string> = {
   parent: "child",
   child: "parent",
   author: "authored",
@@ -46,7 +47,7 @@ export const OPPOSITE_BASE_NAME_MAP: Record<string, string> = {
   reviewer: "reviewed",
 };
 
-export const standardInflection: Inflection = {
+const standardInflection: Inflection = {
   modelName: computeModelNameAlias,
   scalarField: computeScalarFieldAlias,
   parentField: computeParentFieldAlias,
@@ -54,7 +55,7 @@ export const standardInflection: Inflection = {
   oppositeBaseNameMap: OPPOSITE_BASE_NAME_MAP,
 };
 
-export const identityInflection: Inflection = {
+const identityInflection: Inflection = {
   modelName: (modelName) => modelName,
   scalarField: (field) => field.name,
   parentField: (field) => field.name,
@@ -62,7 +63,7 @@ export const identityInflection: Inflection = {
   oppositeBaseNameMap: {},
 };
 
-export function computeAliases(dataModel: DataModel, inflection: Inflection) {
+function computeAliases(dataModel: DataModel, inflection: Inflection) {
   const aliases: Aliases = {};
 
   for (const [modelName, modelValues] of Object.entries(dataModel.models)) {
@@ -185,13 +186,13 @@ interface Field {
 }
 
 function computeModelNameAlias(modelName: string) {
-  return pluralize(camelize(modelName, true));
+  return pluralize(camelize(modelName));
 }
 
 function computeScalarFieldAlias(
   field: Omit<Field, "relationFromFields" | "relationToFields">,
 ) {
-  return camelize(field.name, true);
+  return camelize(field.name);
 }
 
 function getBaseName(field: Field) {
@@ -233,7 +234,7 @@ function computeParentFieldAlias(
 
   // { fromField: 'author_id' } -> author
   if (baseName) {
-    return singularize(camelize(baseName, true));
+    return singularize(camelize(baseName));
   }
 
   // { fromField: 'valitated_by' } -> validator
@@ -243,12 +244,12 @@ function computeParentFieldAlias(
       ([_, _oppositeBaseName]) => oppositeBaseName === _oppositeBaseName,
     );
     if (baseNameEntry) {
-      return camelize(baseNameEntry[0], true);
+      return camelize(baseNameEntry[0]);
     }
   }
 
   const tableName = singularize(underscore(field.type));
-  return camelize(`${tableName}_by_${fromField}`, true);
+  return camelize(`${tableName}_by_${fromField}`);
 }
 
 function computeChildFieldAlias(
@@ -269,7 +270,7 @@ function computeChildFieldAlias(
   // { fromField: 'validated_by' } -> validatedPosts
   if (fromField.endsWith("_by")) {
     const oppositeBaseName = fromField.slice(0, -"_by".length);
-    return camelize(`${oppositeBaseName}_${fieldAlias}`, true);
+    return camelize(`${oppositeBaseName}_${fieldAlias}`);
   }
 
   // { baseName: 'author' } -> authoredPosts
@@ -277,20 +278,17 @@ function computeChildFieldAlias(
   if (baseName) {
     const oppositeBaseName = oppositeBaseNameMap[baseName];
     if (oppositeBaseName) {
-      return camelize(`${oppositeBaseName}_${fieldAlias}`, true);
+      return camelize(`${oppositeBaseName}_${fieldAlias}`);
     }
   }
 
-  return camelize(`${fieldAlias}_by_${fromField}`, true);
+  return camelize(`${fieldAlias}_by_${fromField}`);
 }
 
-export function applyAliasesToDataModel(
-  dataModel: DataModel,
-  aliases: Aliases,
-) {
+function applyAliasesToDataModel(dataModel: DataModel, aliases: Aliases) {
   const aliasedDataModel: DataModel = {
+    ...dataModel,
     models: {},
-    enums: dataModel.enums,
   };
 
   for (const [modelName, modelValues] of Object.entries(dataModel.models)) {
@@ -322,7 +320,6 @@ export function applyAliasesToDataModel(
           };
         }),
         uniqueConstraints: modelValues.uniqueConstraints.map((constraint) => {
-          // TODO: maybe change the shape of uniqueConstraints to be more consistent with fields
           return {
             ...constraint,
             fields: constraint.fields.map((column) => fields[column]),

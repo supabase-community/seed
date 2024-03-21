@@ -8,12 +8,12 @@
   "devDependencies": {
     "@snaplet/eslint-config": "workspace:*",
     "@snaplet/tsconfig": "workspace:*",
-    "eslint": "8.56.0",
-    "knip": "5.0.1",
-    "skott": "0.32.1",
-    "turbo": "1.12.4",
-    "typescript": "5.3.3",
-    "vitest": "1.2.2"
+    "eslint": "8.57.0",
+    "knip": "5.2.0",
+    "skott": "0.33.2",
+    "turbo": "1.12.5",
+    "typescript": "5.4.3",
+    "vitest": "1.4.0"
   },
   "scripts": {
     "build": "turbo run build",
@@ -21,15 +21,16 @@
     "clean-monorepo": "git clean -dfX -e \\!.env.local",
     "dev": "turbo run dev",
     "lint": "eslint --cache . --max-warnings 0 && turbo run lint",
-    "lint-monorepo": "knip",
+    "lint-monorepo": "knip && knip --production --strict --include=unlisted",
     "test": "turbo run test",
     "test:e2e": "turbo run test:e2e",
-    "type-check": "tsc --build",
+    "type-check": "turbo run type-check",
+    "type-check:watch": "tsc --build --watch",
     "update-deps": "pnpm update --interactive --recursive --latest",
     "update-infra": "nix flake update",
     "visualize-deps": "skott --displayMode=webapp --trackBuiltinDependencies --trackThirdPartyDependencies"
   },
-  "packageManager": "pnpm@8.15.1",
+  "packageManager": "pnpm@8.15.5",
   "engines": {
     "node": ">=20.9.0"
   }
