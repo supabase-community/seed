@@ -75,7 +75,7 @@ jobs:
     runs-on: buildjet-8vcpu-ubuntu-2204
     services:
       postgres:
-        image: postgres:14
+        image: postgres:16
         credentials:
           username: ${{ secrets.DOCKER_HUB_USERNAME }}
           password: ${{ secrets.DOCKER_HUB_PASSWORD }}

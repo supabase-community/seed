@@ -148,6 +148,30 @@ export class PgStore extends StoreBase {
               });
             }
           }
+          // If the field is a nullable parent with a defined value, we check if it's part of a unique constraint with a nullNotDistinct
+          // if that's the case we already tried to solve the unique constraint for it so we can use it's value since null fallback will likely not be possible
+          if (
+            isNullableParent &&
+            value !== null &&
+            model.uniqueConstraints.length > 0
+          ) {
+            const constraintsForField = model.uniqueConstraints.filter((c) =>
+              c.fields.includes(fieldName),
+            );
+            const hasNullNotDistinctConstraint = constraintsForField.some(
+              (c) => c.nullNotDistinct,
+            );
+            if (hasNullNotDistinctConstraint) {
+              insertRowValues.push(
+                serializeToSQL(
+                  // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+                  fieldMap.get(fieldName)!.type,
+                  value as Json,
+                ),
+              );
+              continue;
+            }
+          }
           insertRowValues.push(
             serializeToSQL(
               // eslint-disable-next-line @typescript-eslint/no-non-null-assertion

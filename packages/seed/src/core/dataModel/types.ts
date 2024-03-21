@@ -22,6 +22,7 @@ export interface DataModelModel {
 export interface DataModelUniqueConstraint {
   fields: Array<string>;
   name: string;
+  nullNotDistinct?: boolean;
 }
 
 export interface DataModelSequence {
