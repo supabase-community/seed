@@ -1,5 +1,5 @@
 import { flatten } from "remeda";
-import { type Json } from "#core/data/types.js";
+import { type Json, type Serializable } from "#core/data/types.js";
 
 const isNestedArrayPgType = (pgType: string): boolean =>
   pgType.startsWith("_") || pgType.endsWith("[]");
@@ -159,9 +159,9 @@ const serializeArrayColumn = (value: Json, pgType: string): string => {
   return jsType === "string" ? JSON.stringify(result) : result;
 };
 
-export const serializeToSQL = (type: string, value: Json): Json => {
+export const serializeToSQL = (type: string, value: Serializable) => {
   if (isNestedArrayPgType(type)) {
-    return serializeArrayColumn(value, type);
+    return serializeArrayColumn(value as string, type);
   }
 
   if (["json", "jsonb"].includes(type)) {
