@@ -149,9 +149,7 @@ describe.each(["postgres"] as const)(
   `;
 
       const db = await createTestDb(structure);
-      const constraints = await fetchUniqueConstraints(
-        createDrizzleORMPgClient(drizzle(db.client)),
-      );
+      const constraints = await fetchUniqueConstraints(db.client);
 
       expect(constraints).toEqual([
         {
