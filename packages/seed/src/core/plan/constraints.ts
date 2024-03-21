@@ -101,7 +101,7 @@ export async function checkConstraints(
     }
 
     const hash = getHash(
-      constraint.fields.map((f) => hashModelData(props.modelData[f])),
+      constraint.fields.map((f) => serializeModelData(props.modelData[f])),
     );
     const constraintStore =
       props.constraintsStores[props.model][constraint.name];
@@ -239,7 +239,7 @@ export async function checkConstraints(
         props.modelData[column] = constraintData[column];
       }
       const finalHash = getHash(
-        constraint.fields.map((f) => hashModelData(constraintData[f])),
+        constraint.fields.map((f) => serializeModelData(constraintData[f])),
       );
       constraintStore.add(finalHash);
     } else {
@@ -252,7 +252,7 @@ function jsonReplacer(_: string, value: ModelData[string]) {
   return typeof value === "bigint" ? value.toString() : value;
 }
 
-function hashModelData(modelData: ModelData[string]) {
+function serializeModelData(modelData: ModelData[string]) {
   return JSON.stringify(modelData, jsonReplacer);
 }
 
@@ -318,7 +318,7 @@ async function cartesianProduct(
 
       const hash = getHash(
         props.constraint.fields.map((c) =>
-          hashModelData(props.constraintData[c]),
+          serializeModelData(props.constraintData[c]),
         ),
       );
 
@@ -345,7 +345,7 @@ async function cartesianProduct(
 
       const hash = getHash(
         props.constraint.fields.map((f) =>
-          hashModelData(props.constraintData[f]),
+          serializeModelData(props.constraintData[f]),
         ),
       );
 
