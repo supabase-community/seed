@@ -3,14 +3,16 @@ import {
   getPackageManager,
   getRootPath,
 } from "#config/utils.js";
+import { getVersion } from "#core/version.js";
 import { spinner } from "../../lib/output.js";
 
 export async function installDependencies() {
   const installedDependencies = await getInstalledDependencies();
 
-  const devDependenciesToInstall = ["@snaplet/copycat", "@snaplet/seed"].filter(
-    (d) => !installedDependencies[d],
-  );
+  const devDependenciesToInstall = [
+    "@snaplet/copycat",
+    `@snaplet/seed@${getVersion()}`,
+  ].filter((d) => !installedDependencies[d]);
 
   if (devDependenciesToInstall.length === 0) {
     return;
