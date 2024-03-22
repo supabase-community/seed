@@ -70,10 +70,15 @@
       "development": "./src/cli/index.ts",
       "default": "./dist/cli/index.js"
     },
-    "./dialects/*/client": {
-      "types": "./dist/dialects/*/client.d.ts",
-      "development": "./src/dialects/*/client.ts",
-      "default": "./dist/dialects/*/client.js"
+    "./dialects/postgres/client": {
+      "types": "./dist/dialects/postgres/client.d.ts",
+      "development": "./src/dialects/postgres/client.ts",
+      "default": "./dist/dialects/postgres/client.js"
+    },
+    "./dialects/sqlite/client": {
+      "types": "./dist/dialects/sqlite/client.d.ts",
+      "development": "./src/dialects/sqlite/client.ts",
+      "default": "./dist/dialects/sqlite/client.js"
     }
   },
   "devDependencies": {
