@@ -7,6 +7,7 @@ import { type SeedConfig } from "#config/seedConfig/seedConfig.js";
 import { type DataModel } from "#core/dataModel/types.js";
 import { type Dialect } from "#core/dialect/types.js";
 import { type Fingerprint } from "#core/fingerprint/types.js";
+import { jsonStringify } from "#core/utils.js";
 import { type TableShapePredictions } from "#trpc/shapes.js";
 import { generateUserModels } from "./userModels/generateUserModels.js";
 
@@ -86,7 +87,7 @@ const FILES = {
   DATA_MODEL: {
     name: "dataModel.json",
     template({ dataModel }: CodegenContext) {
-      return JSON.stringify(dataModel);
+      return jsonStringify(dataModel);
     },
   },
   USER_MODELS: {
@@ -98,7 +99,7 @@ const FILES = {
   SHAPE_EXAMPLES: {
     name: "shapeExamples.json",
     template({ shapeExamples }: CodegenContext) {
-      return JSON.stringify(shapeExamples);
+      return jsonStringify(shapeExamples);
     },
   },
 } as const;

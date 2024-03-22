@@ -1,5 +1,6 @@
 import { flatten } from "remeda";
 import { type Json, type Serializable } from "#core/data/types.js";
+import { jsonStringify } from "#core/utils.js";
 
 export const isNestedArrayPgType = (pgType: string): boolean =>
   pgType.startsWith("_") || pgType.endsWith("[]");
@@ -12,7 +13,7 @@ const SERIALIZERS: Serializers = {
   string: String,
   number: String,
   boolean: (v) => (v ? "t" : "f"),
-  Json: (v) => JSON.stringify(v),
+  Json: (v) => jsonStringify(v),
 };
 
 export const getPgTypeArrayDimensions = (pgType: string): number => {
@@ -133,7 +134,7 @@ const serializeArrayColumn = (value: Json, pgType: string): string => {
   }
 
   if (arrayDimension === 0 && jsType === "Json") {
-    return JSON.stringify(JSON.stringify(value));
+    return jsonStringify(jsonStringify(value));
   }
 
   if (Array.isArray(value)) {
@@ -149,14 +150,14 @@ const serializeArrayColumn = (value: Json, pgType: string): string => {
 
   // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
   if (!jsType) {
-    return JSON.stringify(String(value));
+    return jsonStringify(String(value));
   }
 
   const serializer = SERIALIZERS[jsType];
 
   const result = !serializer ? String(value) : serializer(value);
 
-  return jsType === "string" ? JSON.stringify(result) : result;
+  return jsType === "string" ? jsonStringify(result) : result;
 };
 
 export const serializeToSQL = (type: string, value: Serializable) => {
@@ -165,7 +166,7 @@ export const serializeToSQL = (type: string, value: Serializable) => {
   }
 
   if (["json", "jsonb"].includes(type)) {
-    return JSON.stringify(value);
+    return jsonStringify(value);
   }
 
   return value;

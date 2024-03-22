@@ -2,6 +2,7 @@ import { pathExists } from "find-up";
 import { readFile, writeFile } from "node:fs/promises";
 import { join } from "node:path";
 import { type DataModel } from "#core/dataModel/types.js";
+import { jsonStringify } from "#core/utils.js";
 import { ensureDotSnapletPath, getDotSnapletPath } from "./dotSnaplet.js";
 
 export async function getDataModelConfig() {
@@ -27,7 +28,7 @@ export async function setDataModelConfig(dataModelConfig: DataModel) {
   const dataModelConfigPath = join(dotSnapletPath, "dataModel.json");
   await writeFile(
     dataModelConfigPath,
-    JSON.stringify(dataModelConfig, null, 2),
+    jsonStringify(dataModelConfig, undefined, 2),
     "utf8",
   );
 }

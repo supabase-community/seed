@@ -42,7 +42,10 @@ export async function fetchSequences(client: DatabaseClient) {
     // used as a sequence
     const pkKey =
       tablePk && tablePk.affinity === "integer" ? tablePk.colName : "rowid";
-    const maxSeqRes = await client.query<{ currentSequenceValue: number }>(
+    const maxSeqRes = await client.query<{
+      // prisma adapter can return bigint as number, so we need to handle both
+      currentSequenceValue: bigint | number;
+    }>(
       `SELECT MAX(${escapeIdentifier(pkKey)}) + 1 as currentSequenceValue FROM ${escapeIdentifier(tableId)}`,
     );
     const maxSeqNo = maxSeqRes[0];
@@ -50,7 +53,7 @@ export async function fetchSequences(client: DatabaseClient) {
       colId: pkKey,
       tableId,
       name: `${tableId}_${pkKey}_seq`,
-      current: maxSeqNo.currentSequenceValue || 1,
+      current: Number(maxSeqNo.currentSequenceValue) || 1,
     });
   }
   return results;

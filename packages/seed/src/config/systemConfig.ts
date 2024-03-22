@@ -3,6 +3,7 @@ import { mkdir, readFile, writeFile } from "node:fs/promises";
 import { homedir } from "node:os";
 import { dirname, join } from "node:path";
 import * as z from "zod";
+import { jsonStringify } from "#core/utils.js";
 
 const systemConfigSchema = z.object({
   accessToken: z.string().optional(),
@@ -69,7 +70,7 @@ async function setSystemConfig(systemConfig: SystemConfig) {
 
   await writeFile(
     systemConfigPath,
-    JSON.stringify(systemConfig, null, 2),
+    jsonStringify(systemConfig, undefined, 2),
     "utf8",
   );
 

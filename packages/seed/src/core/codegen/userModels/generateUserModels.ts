@@ -11,6 +11,7 @@ import { isJsonField } from "#core/fingerprint/fingerprint.js";
 import { type Fingerprint } from "#core/fingerprint/types.js";
 import { generateCodeFromTemplate } from "#core/userModels/templates/codegen.js";
 import { type UserModels } from "#core/userModels/types.js";
+import { jsonStringify } from "#core/utils.js";
 import { type Shape, type TableShapePredictions } from "#trpc/shapes.js";
 import { shouldGenerateFieldValue } from "../../dataModel/shouldGenerateFieldValue.js";
 import { generateJsonField } from "./generateJsonField.js";
@@ -36,7 +37,7 @@ const generateDefaultForField = (props: {
   const matchEnum = findEnumType(dataModel, field);
 
   if (matchEnum) {
-    return `({ seed }) => copycat.oneOf(seed, ${JSON.stringify(
+    return `({ seed }) => copycat.oneOf(seed, ${jsonStringify(
       matchEnum.values.map((v) => v.name),
     )})`;
   }
@@ -52,7 +53,7 @@ const generateDefaultForField = (props: {
 
   if (shape && fieldShapeExamples != null && fieldShapeExamples.length > 0) {
     if (field.maxLength) {
-      return `({ seed }) => copycat.oneOfString(seed, getExamples('${shape}'), { limit: ${JSON.stringify(field.maxLength)} })`;
+      return `({ seed }) => copycat.oneOfString(seed, getExamples('${shape}'), { limit: ${jsonStringify(field.maxLength)} })`;
     } else {
       return `({ seed }) => copycat.oneOfString(seed, getExamples('${shape}'))`;
     }

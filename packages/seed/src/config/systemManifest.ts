@@ -1,5 +1,6 @@
 import { readFile, writeFile } from "node:fs/promises";
 import path from "node:path";
+import { jsonStringify } from "#core/utils.js";
 import { getSystemPath } from "./systemConfig.js";
 
 const SYSTEM_MANIFEST_FILENAME = "system-manifest.json";
@@ -14,7 +15,7 @@ const getSystemManifestPath = () => {
 };
 
 const saveSystemManifest = async (next: SystemManifest) => {
-  await writeFile(getSystemManifestPath(), JSON.stringify(next));
+  await writeFile(getSystemManifestPath(), jsonStringify(next));
 };
 
 export const updateSystemManifest = async (
