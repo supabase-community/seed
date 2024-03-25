@@ -1,6 +1,7 @@
 import { copycat } from "@snaplet/copycat";
 import { EOL } from "node:os";
 import { intersection, sortBy } from "remeda";
+import { jsonStringify } from "#core/utils.js";
 import { serializeValue } from "../data/data.js";
 import { isParentField } from "../dataModel/dataModel.js";
 import {
@@ -101,7 +102,7 @@ export async function checkConstraints(
     }
 
     const hash = getHash(
-      constraint.fields.map((f) => serializeModelData(props.modelData[f])),
+      constraint.fields.map((f) => jsonStringify(props.modelData[f])),
     );
     const constraintStore =
       props.constraintsStores[props.model][constraint.name];
@@ -229,7 +230,7 @@ export async function checkConstraints(
           [
             `Unique constraint "${constraint.name}" violated for model "${props.model}" on fields (${constraint.fields.join(",")}) with values (${values.join(",")})`,
             `Seed: ${props.modelSeed}`,
-            `Model data: ${JSON.stringify(props.modelData, jsonReplacer, 2)}`,
+            `Model data: ${jsonStringify(props.modelData, undefined, 2)}`,
           ].join(EOL),
         );
       }
@@ -239,21 +240,13 @@ export async function checkConstraints(
         props.modelData[column] = constraintData[column];
       }
       const finalHash = getHash(
-        constraint.fields.map((f) => serializeModelData(constraintData[f])),
+        constraint.fields.map((f) => jsonStringify(constraintData[f])),
       );
       constraintStore.add(finalHash);
     } else {
       constraintStore.add(hash);
     }
   }
-}
-
-function jsonReplacer(_: string, value: ModelData[string]) {
-  return typeof value === "bigint" ? value.toString() : value;
-}
-
-function serializeModelData(modelData: ModelData[string]) {
-  return JSON.stringify(modelData, jsonReplacer);
 }
 
 function getHash(values: Array<string>) {
@@ -318,7 +311,7 @@ async function cartesianProduct(
 
       const hash = getHash(
         props.constraint.fields.map((c) =>
-          serializeModelData(props.constraintData[c]),
+          jsonStringify(props.constraintData[c]),
         ),
       );
 
@@ -345,7 +338,7 @@ async function cartesianProduct(
 
       const hash = getHash(
         props.constraint.fields.map((f) =>
-          serializeModelData(props.constraintData[f]),
+          jsonStringify(props.constraintData[f]),
         ),
       );
 

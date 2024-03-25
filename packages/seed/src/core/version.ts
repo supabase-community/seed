@@ -1,6 +1,7 @@
 import { readFileSync, writeFileSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
+import { jsonStringify } from "./utils.js";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
@@ -8,7 +9,7 @@ const __dirname = dirname(__filename);
 let version: string | undefined;
 
 export const writePkg = (data: Record<string, unknown>) => {
-  const content = JSON.stringify(data, null, 2);
+  const content = jsonStringify(data, undefined, 2);
   writeFileSync(join(__dirname, "..", "..", "package.json"), content);
 };
 

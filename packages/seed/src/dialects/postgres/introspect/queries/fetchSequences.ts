@@ -2,8 +2,8 @@ import { type DatabaseClient } from "#core/databaseClient.js";
 import { buildSchemaExclusionClause } from "./utils.js";
 
 interface FetchSequencesResult {
-  current: number;
-  interval: number;
+  current: bigint | number;
+  interval: bigint | number;
   name: string;
   schema: string;
   start: number;

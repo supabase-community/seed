@@ -181,3 +181,18 @@ export class SnapletError<Code extends CodeType = CodeType>
     }
   }
 }
+
+function jsonReplacer(_key: string, value: unknown) {
+  // If the type is a bigint we convert it to a number to jsonify it like a number
+  // if the number is above max Number value, we don't handle it and it'll be saved as 3.123e+23
+  // which is not the best but will at least be converted back to a number when parsed
+  return typeof value === "bigint" ? Number(value) : value;
+}
+
+export function jsonStringify(
+  value: unknown,
+  replacer = jsonReplacer,
+  space = 0,
+) {
+  return JSON.stringify(value, replacer, space);
+}

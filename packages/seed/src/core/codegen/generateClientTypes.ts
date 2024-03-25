@@ -13,7 +13,7 @@ import {
   jsonSchemaToTypescriptType,
 } from "../fingerprint/fingerprint.js";
 import { type Fingerprint } from "../fingerprint/types.js";
-import { escapeKey } from "../utils.js";
+import { escapeKey, jsonStringify } from "../utils.js";
 import { generateSelectTypeFromTableIds } from "./generateConfigTypes.js";
 
 type Database2tsType = (
@@ -405,7 +405,7 @@ ${(
         if (isJson(f.type) && isJsonField(fingerprintField)) {
           const jsonSchemaType = await jsonSchemaToTypescriptType(
             `${modelName}_${f.name}`,
-            JSON.stringify(fingerprintField.schema),
+            jsonStringify(fingerprintField.schema),
           );
           jsonSchemaTypes.push(jsonSchemaType.types);
           const type = refineType(jsonSchemaType.name, f.type, f.isRequired);
