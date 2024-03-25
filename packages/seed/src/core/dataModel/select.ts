@@ -77,10 +77,13 @@ function checkParentRelations(
   const errors: Array<{ relationName: string; relationToTable: string }> = [];
 
   for (const [_, model] of Object.entries(models)) {
-    const groupedFields = groupFields(model.fields);
-    errors.push(
-      ...getTableRelationsErrors(includedTableIds, models, groupedFields),
-    );
+    // We only check the relations of the tables that are included
+    if (includedTableIds.has(model.id)) {
+      const groupedFields = groupFields(model.fields);
+      errors.push(
+        ...getTableRelationsErrors(includedTableIds, models, groupedFields),
+      );
+    }
   }
   if (errors.length > 0) {
     throw new SnapletError("SEED_SELECT_RELATIONSHIP_ERROR", { errors });
@@ -120,6 +123,7 @@ export function getSelectFilteredDataModel(
   const tableIds = Object.values(dataModel.models).map((model) => model.id);
 
   const includedTables = new Set(computeIncludedTables(tableIds, selectConfig));
+  console.log("includedTables", includedTables);
   // Check that the select doesn't break the relationships constraints
   // will throw an error if the select is invalid
   checkParentRelations(includedTables, dataModel.models);
