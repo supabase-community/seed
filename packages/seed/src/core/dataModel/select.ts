@@ -77,10 +77,13 @@ function checkParentRelations(
   const errors: Array<{ relationName: string; relationToTable: string }> = [];
 
   for (const [_, model] of Object.entries(models)) {
-    const groupedFields = groupFields(model.fields);
-    errors.push(
-      ...getTableRelationsErrors(includedTableIds, models, groupedFields),
-    );
+    // We only check the relations of the tables that are included
+    if (includedTableIds.has(model.id)) {
+      const groupedFields = groupFields(model.fields);
+      errors.push(
+        ...getTableRelationsErrors(includedTableIds, models, groupedFields),
+      );
+    }
   }
   if (errors.length > 0) {
     throw new SnapletError("SEED_SELECT_RELATIONSHIP_ERROR", { errors });

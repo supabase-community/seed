@@ -23,16 +23,31 @@ const findEnumType = (dataModel: DataModel, field: DataModelField) =>
     ([enumName]) => enumName === field.type,
   )?.[1];
 
+const hasUniqueConstraint = (model: DataModelModel, field: DataModelField) => {
+  const hasUniqueConstraint = model.uniqueConstraints.find((constraint) =>
+    constraint.fields.includes(field.name),
+  );
+  return Boolean(hasUniqueConstraint);
+};
+
 const generateDefaultForField = (props: {
   dataModel: DataModel;
   dialect: Dialect;
   field: DataModelField;
   fieldShapeExamples: Array<string> | null;
   fingerprint: Fingerprint[string][string] | null;
+  model: DataModelModel;
   shape: Shape | null;
 }) => {
-  const { field, dataModel, shape, fingerprint, fieldShapeExamples, dialect } =
-    props;
+  const {
+    field,
+    dataModel,
+    shape,
+    fingerprint,
+    fieldShapeExamples,
+    dialect,
+    model,
+  } = props;
 
   const matchEnum = findEnumType(dataModel, field);
 
@@ -51,7 +66,13 @@ const generateDefaultForField = (props: {
     return null;
   }
 
-  if (shape && fieldShapeExamples != null && fieldShapeExamples.length > 0) {
+  if (
+    shape &&
+    fieldShapeExamples != null &&
+    fieldShapeExamples.length > 0 &&
+    // If the field has a unique constraint, we don't want to use the shape examples as they will be repeated
+    !hasUniqueConstraint(model, field)
+  ) {
     if (field.maxLength) {
       return `({ seed }) => copycat.oneOfString(seed, getExamples('${shape}'), { limit: ${jsonStringify(field.maxLength)} })`;
     } else {
@@ -63,7 +84,7 @@ const generateDefaultForField = (props: {
     input: "seed",
     type: field.type,
     maxLength: field.maxLength ?? null,
-    shape,
+    shape: shape,
     templates: dialect.templates,
     optionsInput: "options",
   });
@@ -125,6 +146,7 @@ const generateDefaultsForModel = (props: {
         fieldShapeExamples,
         fingerprint: fieldFingerprint,
         dialect,
+        model,
       });
     }
   }
