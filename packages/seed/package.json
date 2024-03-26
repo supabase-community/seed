@@ -15,6 +15,7 @@
     "node": ">=18.5.0"
   },
   "files": [
+    "bin",
     "dist",
     "README.md"
   ],
