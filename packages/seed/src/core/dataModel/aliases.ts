@@ -16,7 +16,7 @@ type Aliases = Record<
   }
 >;
 
-export type AliasOverrides = Record<
+type AliasOverrides = Record<
   string,
   {
     fields?: Record<string, string>;
