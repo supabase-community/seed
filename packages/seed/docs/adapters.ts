@@ -1,6 +1,11 @@
 import { globby } from "globby";
 import { basename, join } from "node:path";
-import { Project, SyntaxKind, type VariableDeclaration } from "ts-morph";
+import {
+  type ClassDeclaration,
+  Project,
+  SyntaxKind,
+  type VariableDeclaration,
+} from "ts-morph";
 
 /**
  * This script generates a description of all the adapters available from our source code.
@@ -12,7 +17,11 @@ interface Adapter {
   packageName: string;
 }
 
-const adapters: Array<Adapter> = [];
+const adapters: Record<string, Array<Adapter>> = {
+  ORM: [],
+  PostgreSQL: [],
+  SQLite: [],
+};
 
 const adaptersPaths = (
   await globby("src/adapters/*", { onlyDirectories: true })
@@ -31,7 +40,6 @@ for (const sourceFile of project.getSourceFiles()) {
       ed.isKind(SyntaxKind.VariableDeclaration) &&
       ed.getName().endsWith("Adapter"),
   ) as VariableDeclaration | undefined;
-
   if (!adapterDefinition) {
     throw new Error(
       `Adapter definition not found for file ${sourceFile.getFilePath()}`,
@@ -57,7 +65,47 @@ for (const sourceFile of project.getSourceFiles()) {
     .getFirstDescendantByKindOrThrow(SyntaxKind.StringLiteral)
     .getLiteralValue();
 
-  adapters.push({
+  const classDefinition = exportedDeclarations.find(
+    (ed) =>
+      ed.isKind(SyntaxKind.ClassDeclaration) &&
+      ed.getName()?.startsWith("Seed"),
+  ) as ClassDeclaration | undefined;
+  if (!classDefinition) {
+    throw new Error(
+      `Adapter class definition not found for file ${sourceFile.getFilePath()}`,
+    );
+  }
+
+  const superCalls = classDefinition
+    .getFirstDescendantByKindOrThrow(SyntaxKind.Constructor)
+    .getFirstChildByKindOrThrow(SyntaxKind.Block)
+    .getDescendantsOfKind(SyntaxKind.SuperKeyword);
+
+  let adapterCategory: string;
+  if (superCalls.length > 1) {
+    adapterCategory = "ORM";
+  } else if (superCalls.length === 1) {
+    const dialect = superCalls[0]
+      .getFirstAncestorByKindOrThrow(SyntaxKind.CallExpression)
+      .getArguments()[0]
+      .asKindOrThrow(SyntaxKind.StringLiteral)
+      .getLiteralValue();
+    if (dialect === "postgres") {
+      adapterCategory = "PostgreSQL";
+    } else if (dialect === "sqlite") {
+      adapterCategory = "SQLite";
+    } else {
+      throw new Error(
+        `Unknown dialect ${dialect} for file ${sourceFile.getFilePath()}`,
+      );
+    }
+  } else {
+    throw new Error(
+      `Adapter class definition is missing a super() call to determine the adapter category for file ${sourceFile.getFilePath()}`,
+    );
+  }
+
+  adapters[adapterCategory].push({
     id: adapterId,
     name: adapterName,
     packageName: adapterPackageName,
