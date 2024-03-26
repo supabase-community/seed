@@ -2,10 +2,10 @@ import { gracefulExit } from "exit-hook";
 import yargs from "yargs";
 import { hideBin } from "yargs/helpers";
 import { SnapletError, isError } from "#core/utils.js";
-import { generateCommand } from "./commands/generate/generate.js";
-import { initCommand } from "./commands/init/init.js";
-import { loginCommand } from "./commands/login/login.js";
-import { syncCommand } from "./commands/sync/sync.js";
+import { generateCommand } from "./commands/generate/generateCommand.js";
+import { initCommand } from "./commands/init/initCommand.js";
+import { loginCommand } from "./commands/login/loginCommand.js";
+import { syncCommand } from "./commands/sync/syncCommand.js";
 import { versionOption } from "./commands/version.js";
 import { debug } from "./lib/debug.js";
 

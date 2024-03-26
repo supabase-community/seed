@@ -97,10 +97,12 @@
     "better-sqlite3": "9.4.3",
     "dedent": "1.5.1",
     "eslint": "8.57.0",
+    "globby": "^14.0.1",
     "pg": "8.11.3",
     "postgres": "3.4.3",
     "semver": "^7.6.0",
     "tmp-promise": "3.0.3",
+    "ts-morph": "^22.0.0",
     "tsx": "4.7.1",
     "typescript": "5.4.3",
     "vitest": "1.4.0"
