@@ -28,7 +28,9 @@ export function getSeedClient(props: {
         createStore: (dataModel: DataModel) => new PgStore(dataModel),
         runStatements: async (statements: Array<string>) => {
           if (!this.dryRun) {
-            await this.db.execute(statements.join(";"));
+            for (const statement of statements) {
+              await this.db.execute(statement);
+            }
           } else {
             console.log(statements.join(`;${EOL}`) + ";");
           }
