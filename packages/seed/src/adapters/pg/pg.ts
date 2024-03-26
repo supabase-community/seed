@@ -1,10 +1,10 @@
 import dedent from "dedent";
-import { type Client } from "pg";
+import { type Client, type Pool } from "pg";
 import { DatabaseClient } from "#core/databaseClient.js";
 import { type Adapter } from "../types.js";
 
-export class SeedPg extends DatabaseClient<Client> {
-  constructor(client: Client) {
+export class SeedPg extends DatabaseClient<Client | Pool> {
+  constructor(client: Client | Pool) {
     super("postgres", client);
   }
 
