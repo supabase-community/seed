@@ -1,38 +1,35 @@
 // context(justinvdm, 7 Mar 2024): Disabled to allow for per-adapter type references inline
+import { type Database } from "better-sqlite3";
 /* eslint-disable @typescript-eslint/consistent-type-imports */
-import type postgres from "postgres";
 import dedent from "dedent";
+import { Sql } from "postgres";
 import { SeedBetterSqlite3 } from "#adapters/better-sqlite3/better-sqlite3.js";
 import { SeedPostgres } from "#adapters/postgres/postgres.js";
-import { type DatabaseClient } from "#core/databaseClient.js";
+import { DatabaseClient } from "#core/databaseClient.js";
+import { Dialect } from "#core/dialect/types.js";
+import { DialectId } from "../src/dialects/dialects.js";
+import { postgresDialect } from "../src/dialects/postgres/dialect.js";
+import { sqliteDialect } from "../src/dialects/sqlite/dialect.js";
+import { createTestDb as postgresCreateTestDb } from "./postgres/postgres/createTestDatabase.js";
+import { createTestDb as sqliteCreateTestDb } from "./sqlite/better-sqlite3/createTestDatabase.js";
 
-export interface Adapter<Client = AnyClient> {
+export interface Adapter<Client = unknown> {
   createClient(client: Client): DatabaseClient;
   createTestDb(structure?: string): Promise<{
     client: DatabaseClient;
     connectionString: string;
     name: string;
   }>;
+  dialect: Dialect;
   generateSeedConfig(connectionString: string, config?: string): string;
   skipReason?: string;
 }
 
-type Adapters = typeof adapters;
-
-export type Dialect = keyof Adapters;
-
-type AnyClient =
-  Awaited<ReturnType<Adapters[Dialect]>> extends Adapter<infer Client>
-    ? Client
-    : never;
-
-export const adapters = {
-  async postgres(): Promise<Adapter<postgres.Sql>> {
-    const { createTestDb } = (await import("#test/postgres/postgres/index.js"))
-      .postgres;
-    return {
-      createTestDb,
-      generateSeedConfig: (connectionString: string, config?: string) => dedent`
+export const adapters: Record<DialectId, Adapter> = {
+  postgres: {
+    dialect: postgresDialect,
+    createTestDb: postgresCreateTestDb,
+    generateSeedConfig: (connectionString: string, config?: string) => dedent`
       import { defineConfig } from "@snaplet/seed/config";
       import { SeedPostgres } from "@snaplet/seed/adapter-postgres";
       import postgres from "postgres";
@@ -42,17 +39,13 @@ export const adapters = {
         ${config ?? ""}
       })
     `,
-      createClient: (client) => new SeedPostgres(client),
-    };
+    createClient: (client: Sql) => new SeedPostgres(client),
   },
-  async sqlite(): Promise<Adapter<import("better-sqlite3").Database>> {
-    const { createTestDb } = (
-      await import("#test/sqlite/better-sqlite3/index.js")
-    ).betterSqlite3;
-    return {
-      createTestDb,
-      createClient: (client) => new SeedBetterSqlite3(client),
-      generateSeedConfig: (connectionString: string, config?: string) => dedent`
+  sqlite: {
+    dialect: sqliteDialect,
+    createTestDb: sqliteCreateTestDb,
+    createClient: (client: Database) => new SeedBetterSqlite3(client),
+    generateSeedConfig: (connectionString: string, config?: string) => dedent`
         import { defineConfig } from "@snaplet/seed/config";
         import { SeedBetterSqlite3 } from "@snaplet/seed/adapter-better-sqlite3";
         import Database from "better-sqlite3";
@@ -62,6 +55,9 @@ export const adapters = {
           ${config ?? ""}
         })
       `,
-    };
   },
-} as const;
+};
+
+export const adapterEntries = Object.entries(adapters) as Array<
+  [DialectId, Adapter]
+>;
