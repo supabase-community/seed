@@ -23,7 +23,8 @@ export async function generateSeedScriptExample() {
 
     const seed = await createSeedClient({
       // Optional, the data will be printed to the console instead of being persisted to the database
-      dryRun: true,
+      // except if the DRY environment variable is set to 0
+      dryRun: process.env.DRY != '0',
     });
 
     // Truncate all tables in the database
