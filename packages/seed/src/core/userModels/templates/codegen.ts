@@ -1,22 +1,13 @@
 import { type NestedType } from "#core/dialect/types.js";
 import { unpackNestedType } from "#core/dialect/unpackNestedType.js";
 import { type Shape } from "#trpc/shapes.js";
+import { encloseValueInArray } from "../encloseValueInArray.js";
 import {
   type TemplateContext,
   type TemplateFn,
   type TemplateInput,
   type Templates,
 } from "./types.js";
-
-function encloseValueInArray(value: string, dimensions: number) {
-  if (dimensions === 0) {
-    return value;
-  }
-
-  return Array(dimensions)
-    .fill(undefined)
-    .reduce<string>((acc) => `[${acc}]`, value);
-}
 
 export const generateCodeFromTemplate = <Type extends string>(props: {
   input: TemplateInput;
