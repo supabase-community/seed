@@ -6,9 +6,6 @@
   "eslint.experimental.useFlatConfig": true,
   "eslint.workingDirectories": [
     {
-      "pattern": "./apps/*"
-    },
-    {
       "pattern": "./packages/*"
     },
   ],
