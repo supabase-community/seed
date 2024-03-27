@@ -211,6 +211,80 @@ for (const [dialect, adapter] of adapterEntries) {
           },
         ]);
       });
+
+      test.runIf(dialect !== "sqlite")("handles array fields", async () => {
+        const server = await createServer({
+          router: createCliRouter({
+            publicProcedure: trpc.procedure.use(async (context) => {
+              const schemaName = dialect === "postgres" ? "public" : "";
+              const result = await context.next();
+              let nextData;
+
+              if (context.path === "predictions.predictionsRoute") {
+                nextData = {
+                  tableShapePredictions: [
+                    {
+                      schemaName,
+                      tableName: "Tmp",
+                      predictions: [
+                        {
+                          column: "values",
+                          confidence: 0.99,
+                          shape: "PERSON_FIRST_NAME",
+                        },
+                      ],
+                    },
+                  ] as Array<TableShapePredictions>,
+                };
+              } else if (context.path === "predictions.seedShapeRoute") {
+                nextData = {
+                  result: [
+                    {
+                      examples: ["Foo Bar"],
+                      shape: "PERSON_FIRST_NAME",
+                    },
+                  ] as Array<{
+                    examples: Array<string>;
+                    shape: string;
+                  }>,
+                };
+              }
+
+              if (nextData) {
+                (result as { data: unknown }).data = nextData;
+              }
+              return result;
+            }),
+          }),
+        });
+
+        const { db } = await setupProject({
+          adapter,
+          databaseSchema: `
+          CREATE TABLE "Tmp" (
+            "values" text[] NOT NULL
+          );
+        `,
+          seedScript: `
+          import { createSeedClient } from '#seed'
+
+          const seed = await createSeedClient()
+          await seed.tmps((x) => x(2));
+        `,
+          env: {
+            SNAPLET_API_URL: server.url,
+          },
+        });
+
+        expect(await db.query('SELECT * from "Tmp"')).toEqual([
+          {
+            values: ["Foo Bar"],
+          },
+          {
+            values: ["Foo Bar"],
+          },
+        ]);
+      });
     },
     {
       timeout: 45000,
