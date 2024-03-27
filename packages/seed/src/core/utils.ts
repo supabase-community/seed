@@ -9,7 +9,7 @@ export const dedupePreferLast = <Value>(values: Array<Value>): Array<Value> =>
 // * Our code and libraries (e.g. @snaplet/seed) used inside of jest - jest overrides global objects
 // * Dual package hazard: (https://nodejs.org/api/packages.html#dual-package-hazard) - this can happen, for e.g, if
 // for some reason two versions of our packages or their dependencies end up in the same runtime for a user
-// * Comparing values created inside of a sandbox (e.g. an evaluated snaplet.config.ts file) with constructors created
+// * Comparing values created inside of a sandbox (e.g. an evaluated seed.config.ts file) with constructors created
 // outside of that sandbox
 export const isInstanceOf = <
   Constructor extends new (...args: Array<unknown>) => unknown,
@@ -107,7 +107,7 @@ const errorToStringMappings: {
       .join("\n");
 
     return `
-Your database has some table names that would end up being aliased to the same names. To resolve this, add alias \`overrides\` for these tables in your \`snaplet.config.ts\` file.
+Your database has some table names that would end up being aliased to the same names. To resolve this, add alias \`overrides\` for these tables in your \`seed.config.ts\` file.
 
 More on this in the docs: https://docs.snaplet.dev/core-concepts/seed#override
 
