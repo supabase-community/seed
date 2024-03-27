@@ -86,6 +86,22 @@ for (const [dialect, adapter] of adapterEntries) {
         // Clear all tables
         await seed.$resetDatabase();
         
+        // Create 5 users
+        await seed.User(
+            (x) => x(5, {
+            // Each can have up to 5 posts
+            Post: (x) => x({min: 0, max: 5},
+                () => ({
+                    // Each post can be associated with up to 3 tags
+                    PostTags: (x) => x({min: 0, max: 3})
+                })
+            )}))`;
+        const many_to_many_pool_script = `
+        import { createSeedClient } from '#seed'
+        const seed = await createSeedClient()
+        // Clear all tables
+        await seed.$resetDatabase();
+        
         // Initially, create a pool of 5 tags for post association
         const { Tag } = await seed.Tag((x) => x(5))
         
@@ -116,16 +132,29 @@ for (const [dialect, adapter] of adapterEntries) {
         const users = await db.query('select * from "User"');
         const posts = await db.query('select * from "Post"');
         const postTags = await db.query('select * from "PostTags"');
+        const tags = await db.query('select * from "Tag"');
         expect(users.length).toEqual(5);
         expect(posts.length).toEqual(17);
         expect(postTags.length).toEqual(0);
+        expect(tags.length).toEqual(0);
         await runSeedScript(many_to_many_script);
         const users2 = await db.query('select * from "User"');
         const posts2 = await db.query('select * from "Post"');
         const postTags2 = await db.query('select * from "PostTags"');
+        const tags2 = await db.query('select * from "Tag"');
         expect(users2.length).toEqual(5);
         expect(posts2.length).toEqual(17);
         expect(postTags2.length).toEqual(30);
+        expect(tags2.length).toEqual(30);
+        await runSeedScript(many_to_many_pool_script);
+        const users3 = await db.query('select * from "User"');
+        const posts3 = await db.query('select * from "Post"');
+        const postTags3 = await db.query('select * from "PostTags"');
+        const tags3 = await db.query('select * from "Tag"');
+        expect(users3.length).toEqual(5);
+        expect(posts3.length).toEqual(17);
+        expect(postTags3.length).toEqual(30);
+        expect(tags3.length).toEqual(5);
       });
     },
     {
