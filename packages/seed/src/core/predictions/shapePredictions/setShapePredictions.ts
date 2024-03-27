@@ -7,7 +7,7 @@ import { jsonStringify } from "#core/utils.js";
 export async function setShapePredictions(shapePredictions: ShapePredictions) {
   const dotSnapletPath = await ensureDotSnapletPath();
 
-  const shapePredictionsPath = join(dotSnapletPath, "shapePrediction.json");
+  const shapePredictionsPath = join(dotSnapletPath, "shapePredictions.json");
 
   await writeFile(
     shapePredictionsPath,
