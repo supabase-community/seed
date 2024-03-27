@@ -137,7 +137,7 @@ describe.concurrent(
       CREATE TABLE public."user" (
         "user_id" SERIAL PRIMARY KEY
       );
-  
+
       CREATE TABLE public."users" (
         "user_id" SERIAL PRIMARY KEY
       );
@@ -211,14 +211,9 @@ describe.concurrent(
 
       test("should not reset config excluded schema", async () => {
         const seedConfig = (connectionString: string) =>
-          adapter.generateSeedConfig(
-            connectionString,
-            `
-              select: {
-                'hdb_catalog.*': false,
-              },
-            `,
-          );
+          adapter.generateSeedConfig(connectionString, {
+            select: `{ "hdb_catalog.*": false }`,
+          });
 
         const seedScript = `
         import { createSeedClient } from "#seed"
@@ -282,14 +277,9 @@ describe.concurrent(
 
       test("should not reset config excluded table", async () => {
         const seedConfig = (connectionString: string) =>
-          adapter.generateSeedConfig(
-            connectionString,
-            `
-              select: {
-                "hdb_catalog.SystemSettings": false,
-              },
-            `,
-          );
+          adapter.generateSeedConfig(connectionString, {
+            select: `{ "hdb_catalog.SystemSettings": false }`,
+          });
         const seedScript = `
         import { createSeedClient } from "#seed"
         const seed = await createSeedClient()
@@ -371,7 +361,7 @@ describe.concurrent(
 
             const seed = await createSeedClient({ dryRun: false })
             // There is maximum 2 possible combinations of nulls not distinct
-            await seed.matches((x) => x(2, 
+            await seed.matches((x) => x(2,
               () => ({
                 teamId: ({seed}) => copycat.oneOf(seed, [null, 1]),
               })
@@ -422,7 +412,7 @@ describe.concurrent(
 
             const seed = await createSeedClient({ dryRun: false })
             // There is maximum 2 possible combinations of nulls not distinct this should fail
-            await seed.matches((x) => x(3, 
+            await seed.matches((x) => x(3,
               () => ({
                 teamId: ({seed}) => copycat.oneOf(seed, [null, 1]),
               })
@@ -452,7 +442,7 @@ describe.concurrent(
 
             const seed = await createSeedClient({ dryRun: false })
             // There is maximum 4 possible combinations of nulls not distinct
-            await seed.matches((x) => x(4, 
+            await seed.matches((x) => x(4,
               () => ({
                 teamId: ({seed}) => copycat.oneOf(seed, [null, 1]),
                 gameId: ({seed}) => copycat.oneOf(seed, [null, 1]),
@@ -496,7 +486,7 @@ describe.concurrent(
 
             const seed = await createSeedClient({ dryRun: false })
             // There is maximum 4 possible combinations of nulls not distinct this should fail
-            await seed.matches((x) => x(5, 
+            await seed.matches((x) => x(5,
               () => ({
                 teamId: ({seed}) => copycat.oneOf(seed, [null, 1]),
                 gameId: ({seed}) => copycat.oneOf(seed, [null, 1]),

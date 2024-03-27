@@ -196,23 +196,13 @@ for (const [dialect, adapter] of adapterEntries) {
 
           const seedConfig: SeedConfigRecord = {
             default: (connectionString) =>
-              adapter.generateSeedConfig(
-                connectionString,
-                `
-                  select: {
-                    "BABA": false,
-                  },
-                `,
-              ),
+              adapter.generateSeedConfig(connectionString, {
+                select: `{ "BABA": false }`,
+              }),
             postgres: (connectionString) =>
-              adapter.generateSeedConfig(
-                connectionString,
-                `
-                  select: {
-                    "public.BABA": false,
-                  },
-                `,
-              ),
+              adapter.generateSeedConfig(connectionString, {
+                select: `{ "public.BABA": false }`,
+              }),
           };
 
           const { db, runSeedScript } = await setupProject({
@@ -371,23 +361,13 @@ for (const [dialect, adapter] of adapterEntries) {
 
           const seedConfig: SeedConfigRecord = {
             default: (connectionString) =>
-              adapter.generateSeedConfig(
-                connectionString,
-                `
-                  select: {
-                    "${tableName[dialect] ?? tableName.default}": false,
-                  },
-                `,
-              ),
+              adapter.generateSeedConfig(connectionString, {
+                select: `{ "${tableName[dialect] ?? tableName.default}": false }`,
+              }),
             postgres: (connectionString) =>
-              adapter.generateSeedConfig(
-                connectionString,
-                `
-                  select: {
-                    "${tableName[dialect] ?? tableName.default}": false,
-                  },
-                `,
-              ),
+              adapter.generateSeedConfig(connectionString, {
+                select: `{ "${tableName[dialect] ?? tableName.default}": false }`,
+              }),
           };
 
           const seedScript: SeedScriptRecord = {
@@ -425,7 +405,7 @@ for (const [dialect, adapter] of adapterEntries) {
                   "email" TEXT NOT NULL,
                   CONSTRAINT "Account_pkey" PRIMARY KEY ("id")
               );
-              
+
               -- CreateTable
               CREATE TABLE "Password" (
                   "id" TEXT NOT NULL,
@@ -435,10 +415,10 @@ for (const [dialect, adapter] of adapterEntries) {
                   CONSTRAINT "Password_pkey" PRIMARY KEY ("id"),
                   CONSTRAINT "Password_accountId_fkey" FOREIGN KEY ("accountId") REFERENCES "Account"("id") ON DELETE RESTRICT ON UPDATE CASCADE
               );
-              
+
               -- CreateIndex
               CREATE UNIQUE INDEX "Account_email_key" ON "Account"("email");
-              
+
               -- CreateIndex
               CREATE UNIQUE INDEX "Password_accountId_key" ON "Password"("accountId");
             `,
@@ -448,7 +428,7 @@ for (const [dialect, adapter] of adapterEntries) {
                   "id" TEXT NOT NULL PRIMARY KEY,
                   "email" TEXT NOT NULL
               );
-              
+
               -- CreateTable
               CREATE TABLE "Password" (
                   "id" TEXT NOT NULL PRIMARY KEY,
@@ -457,10 +437,10 @@ for (const [dialect, adapter] of adapterEntries) {
                   "accountId" TEXT NOT NULL,
                   CONSTRAINT "Password_accountId_fkey" FOREIGN KEY ("accountId") REFERENCES "Account" ("id") ON DELETE RESTRICT ON UPDATE CASCADE
               );
-              
+
               -- CreateIndex
               CREATE UNIQUE INDEX "Account_email_key" ON "Account"("email");
-              
+
               -- CreateIndex
               CREATE UNIQUE INDEX "Password_accountId_key" ON "Password"("accountId");
             `,
@@ -469,7 +449,7 @@ for (const [dialect, adapter] of adapterEntries) {
           const seedScript: SeedScriptRecord = {
             default: `
               import { createSeedClient } from '#seed'
-        
+
               const seed = await createSeedClient()
               await seed.$resetDatabase()
             `,
