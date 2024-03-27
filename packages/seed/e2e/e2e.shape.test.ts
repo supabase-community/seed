@@ -2,14 +2,12 @@ import { createHTTPServer } from "@trpc/server/adapters/standalone";
 import { type AddressInfo, type Server } from "node:net";
 import { promisify } from "node:util";
 import { afterEach, beforeEach, describe, expect, test } from "vitest";
-import { type Dialect, adapters } from "#test/adapters.js";
+import { adapterEntries } from "#test/adapters.js";
 import { setupProject } from "#test/setupProject.js";
 import { type cliRouter, createCliRouter, trpc } from "#trpc/router.js";
 import { type TableShapePredictions } from "#trpc/shapes.js";
 
-for (const dialect of Object.keys(adapters) as Array<Dialect>) {
-  const adapter = await adapters[dialect]();
-
+for (const [dialect, adapter] of adapterEntries) {
   let servers: Array<Server>;
 
   const createServer = async ({ router }: { router: typeof cliRouter }) => {
