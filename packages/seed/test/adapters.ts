@@ -21,7 +21,13 @@ export interface Adapter<Client = unknown> {
     name: string;
   }>;
   dialect: Dialect;
-  generateSeedConfig(connectionString: string, config?: string): string;
+  generateSeedConfig(
+    connectionString: string,
+    config?: {
+      alias?: string;
+      select?: string;
+    },
+  ): string;
   skipReason?: string;
 }
 
@@ -29,32 +35,42 @@ export const adapters: Record<DialectId, Adapter> = {
   postgres: {
     dialect: postgresDialect,
     createTestDb: postgresCreateTestDb,
-    generateSeedConfig: (connectionString: string, config?: string) => dedent`
+    generateSeedConfig: (connectionString, config) => {
+      const alias = `alias: ${config?.alias ?? `{ inflection: true }`},`;
+      const select = config?.select ? `select: ${config.select},` : "";
+      return dedent`
       import { defineConfig } from "@snaplet/seed/config";
       import { SeedPostgres } from "@snaplet/seed/adapter-postgres";
       import postgres from "postgres";
 
       export default defineConfig({
         adapter: () => new SeedPostgres(postgres("${connectionString}")),
-        ${config ?? ""}
+        ${alias}
+        ${select}
       })
-    `,
+    `;
+    },
     createClient: (client: Sql) => new SeedPostgres(client),
   },
   sqlite: {
     dialect: sqliteDialect,
     createTestDb: sqliteCreateTestDb,
     createClient: (client: Database) => new SeedBetterSqlite3(client),
-    generateSeedConfig: (connectionString: string, config?: string) => dedent`
+    generateSeedConfig: (connectionString, config) => {
+      const alias = `alias: ${config?.alias ?? `{ inflection: true }`},`;
+      const select = config?.select ? `select: ${config.select},` : "";
+      return dedent`
         import { defineConfig } from "@snaplet/seed/config";
         import { SeedBetterSqlite3 } from "@snaplet/seed/adapter-better-sqlite3";
         import Database from "better-sqlite3";
 
         export default defineConfig({
           adapter: () => new SeedBetterSqlite3(new Database(new URL("${connectionString}").pathname)),
-          ${config ?? ""}
+          ${alias}
+          ${select}
         })
-      `,
+      `;
+    },
   },
 };
 

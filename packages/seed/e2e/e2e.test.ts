@@ -439,14 +439,9 @@ for (const [dialect, adapter] of adapterEntries) {
         const { db } = await setupProject({
           adapter,
           seedConfig: (connectionString) =>
-            adapter.generateSeedConfig(
-              connectionString,
-              `
-              alias: {
-                inflection: false,
-              },
-            `,
-            ),
+            adapter.generateSeedConfig(connectionString, {
+              alias: "{ inflection: false }",
+            }),
           databaseSchema: `
             create table "contracts " (
               id uuid not null primary key,

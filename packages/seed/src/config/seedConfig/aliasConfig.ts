@@ -49,7 +49,7 @@ export const aliasConfigSchema = z.object({
       z.boolean(),
     ])
     .optional()
-    .default(true),
+    .default(false),
   override: z
     .record(
       z.string(),
