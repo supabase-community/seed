@@ -14,7 +14,7 @@ async function execQueries(client: DatabaseClient, queries: Array<string>) {
   }
 }
 
-describe.each(["postgres"] as const)("store: %s", (adapter) => {
+describe.concurrent.each(["postgres"] as const)("store: %s", (adapter) => {
   const { createTestDb } = adapters[adapter]();
   describe("SQL -> Store -> SQL", () => {
     test("should be able to insert basic rows into table", async () => {
