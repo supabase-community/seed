@@ -49,7 +49,7 @@ export async function getDataModel() {
   if (dataModelConfig === null) {
     // TODO: Add a better error
     throw new Error(
-      "DataModel not found. Please run `snaplet introspect` to generate it.",
+      "DataModel not found. Please run `snaplet sync` to generate it.",
     );
   }
 

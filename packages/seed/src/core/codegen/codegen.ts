@@ -96,12 +96,6 @@ const FILES = {
       return generateUserModels(context);
     },
   },
-  SHAPE_EXAMPLES: {
-    name: "shapeExamples.json",
-    template({ shapeExamples }: CodegenContext) {
-      return jsonStringify(shapeExamples);
-    },
-  },
 } as const;
 
 const findPackageDirPath = async () => {
