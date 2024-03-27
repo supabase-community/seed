@@ -18,6 +18,10 @@ export async function saveSeedConfig({ adapter }: { adapter: Adapter }) {
     `Please enter your database connection details by editing ${link("seed.config.ts", seedConfigPath)}`,
   );
 
+  if (await isConnected()) {
+    spinner.stop();
+  }
+
   const watcher = watch(seedConfigPath);
   for await (const event of watcher) {
     if (event.eventType === "change" && (await isConnected())) {
