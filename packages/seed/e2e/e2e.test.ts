@@ -3,8 +3,12 @@ import { adapterEntries } from "#test/adapters.js";
 import { setupProject } from "#test/setupProject.js";
 import { type DialectRecordWithDefault } from "#test/types.js";
 
-describe.concurrent.each(adapterEntries)(
+describe.each(adapterEntries)(
   `e2e: %s`,
+  {
+    concurrent: true,
+    timeout: 45000,
+  },
   (dialect, adapter) => {
     test("generates", async () => {
       const { db } = await setupProject({
@@ -463,8 +467,5 @@ describe.concurrent.each(adapterEntries)(
       ]);
       expect(yoLos.length).toEqual(1);
     });
-  },
-  {
-    timeout: 45000,
   },
 );

@@ -7,8 +7,12 @@ import { setupProject } from "#test/setupProject.js";
 import { type cliRouter, createCliRouter, trpc } from "#trpc/router.js";
 import { type TableShapePredictions } from "#trpc/shapes.js";
 
-describe.concurrent.each(adapterEntries)(
+describe.each(adapterEntries)(
   `e2e: shapes: %s`,
+  {
+    concurrent: true,
+    timeout: 45000,
+  },
   (dialect, adapter) => {
     let servers: Array<Server>;
 
@@ -284,8 +288,5 @@ describe.concurrent.each(adapterEntries)(
         },
       ]);
     });
-  },
-  {
-    timeout: 45000,
   },
 );

@@ -3,8 +3,12 @@ import { adapterEntries } from "#test/adapters.js";
 import { setupProject } from "#test/setupProject.js";
 import { type DialectRecordWithDefault } from "#test/types.js";
 
-describe.concurrent.each(adapterEntries)(
+describe.each(adapterEntries)(
   `e2e: keys: %s`,
+  {
+    concurrent: true,
+    timeout: 45000,
+  },
   (dialect, adapter) => {
     test("work as expected with composites primary keys", async () => {
       const schema: DialectRecordWithDefault = {
@@ -1257,8 +1261,5 @@ describe.concurrent.each(adapterEntries)(
         );
       },
     );
-  },
-  {
-    timeout: 45000,
   },
 );

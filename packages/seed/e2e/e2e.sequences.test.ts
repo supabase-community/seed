@@ -3,8 +3,12 @@ import { adapterEntries } from "#test/adapters.js";
 import { setupProject } from "#test/setupProject.js";
 import { type DialectRecordWithDefault } from "#test/types.js";
 
-describe.concurrent.each(adapterEntries)(
+describe.each(adapterEntries)(
   `e2e: sequences: %s`,
+  {
+    concurrent: true,
+    timeout: 45000,
+  },
   (dialect, adapter) => {
     test("generates valid sequences", async () => {
       const schema: DialectRecordWithDefault = {
@@ -339,8 +343,5 @@ describe.concurrent.each(adapterEntries)(
       },
       { timeout: 70000 },
     );
-  },
-  {
-    timeout: 45000,
   },
 );

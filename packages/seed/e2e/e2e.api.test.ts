@@ -11,8 +11,12 @@ type SeedConfigRecord = DialectRecordWithDefault<
   (connectionString: string) => string
 >;
 
-describe.concurrent.each(adapterEntries)(
+describe.each(adapterEntries)(
   `e2e: api: %s`,
+  {
+    concurrent: true,
+    timeout: 50000,
+  },
   (dialect, adapter) => {
     test("seed.$reset works as expected", async () => {
       const schema: SchemaRecord = {
@@ -473,8 +477,5 @@ describe.concurrent.each(adapterEntries)(
         expect((await db.query('SELECT * FROM "Password"')).length).toBe(0);
       });
     });
-  },
-  {
-    timeout: 50000,
   },
 );

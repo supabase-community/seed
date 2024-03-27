@@ -4,8 +4,12 @@ import { setupProject } from "#test/setupProject.js";
 
 const adapter = adapters.postgres;
 
-describe.concurrent(
+describe(
   `e2e: postgres-specific`,
+  {
+    concurrent: true,
+    timeout: 50000,
+  },
   () => {
     test("generates valid sequences for tables with ids as sequences or identity", async () => {
       const { db } = await setupProject({
@@ -618,8 +622,5 @@ describe.concurrent(
         );
       });
     });
-  },
-  {
-    timeout: 50000,
   },
 );

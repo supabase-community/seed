@@ -6,7 +6,7 @@ const adapters = {
   betterSqlite3: () => betterSqlite3,
 };
 
-describe.concurrent.each(["betterSqlite3"] as const)(
+describe.each(["betterSqlite3"] as const)(
   "fetchUniqueConstraints: %s",
   (adapter) => {
     const { createTestDb } = adapters[adapter]();

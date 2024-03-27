@@ -14,7 +14,7 @@ async function execQueries(client: DatabaseClient, queries: Array<string>) {
   }
 }
 
-describe.concurrent.each(["betterSqlite3"] as const)("store: %s", (adapter) => {
+describe.each(["betterSqlite3"] as const)("store: %s", (adapter) => {
   const { createTestDb } = adapters[adapter]();
 
   describe("SQL -> Store -> SQL", () => {

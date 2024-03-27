@@ -4,8 +4,12 @@ import { adapterEntries } from "#test/adapters.js";
 import { setupProject } from "#test/setupProject.js";
 import { type DialectRecordWithDefault } from "../test/types.js";
 
-describe.concurrent.each(adapterEntries)(
+describe.each(adapterEntries)(
   `e2e: constraints: %s`,
+  {
+    concurrent: true,
+    timeout: 45000,
+  },
   (dialect, adapter) => {
     test("unique constraints for parent fields", async () => {
       const schema: DialectRecordWithDefault = {
@@ -281,8 +285,5 @@ describe.concurrent.each(adapterEntries)(
       const teams = await db.query('SELECT * FROM "team"');
       expect(teams).toHaveLength(0);
     });
-  },
-  {
-    timeout: 45000,
   },
 );
