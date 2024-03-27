@@ -14,8 +14,4 @@
   ],
   "typescript.disableAutomaticTypeAcquisition": true,
   "typescript.tsdk": "node_modules/typescript/lib",
-  "vitest.include": [
-    "apps/{api,cli}/**/*.test.ts",
-    "packages/seed/**/*.test.ts",
-  ],
 }
