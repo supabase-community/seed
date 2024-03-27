@@ -18,14 +18,12 @@ export async function generateSeedScriptExample() {
   const dataModel = await getDataModel();
   const [model] = sortModels(dataModel);
   const template = dedent`
+    // ! Executing this script will delete all data in your database and seed it with 10 ${model.modelName}.
+    // ! Make sure to adjust the script to your needs.
     // Use any TypeScript runner to run this script, for example: \`npx tsx seed.mts\`
     import { createSeedClient } from "@snaplet/seed";
 
-    const seed = await createSeedClient({
-      // Optional, the data will be printed to the console instead of being persisted to the database
-      // except if the DRY environment variable is set to 0
-      dryRun: process.env.DRY != '0',
-    });
+    const seed = await createSeedClient();
 
     // Truncate all tables in the database
     await seed.$resetDatabase();
@@ -33,14 +31,18 @@ export async function generateSeedScriptExample() {
     // Seed the database with 10 ${model.modelName}
     await seed.${model.modelName}((x) => x(10));
 
-    // Learn more about the \`seed\` client by following our guide: https://docs.snaplet.dev/seed/getting-started
+    // Learn more about the Seed Client by following our guide: https://docs.snaplet.dev/seed/getting-started
 
     process.exit();
   `;
 
   await writeFile(seedScriptPath, template);
 
-  spinner.succeed(
-    `Generated a seed script example to ${link(seedScriptPath)}, you can start playing with it! 🌱`,
+  spinner.succeed(`Generated a seed script example to ${link(seedScriptPath)}`);
+
+  spinner.warn(
+    `Executing this script will delete all data in your database and seed it with 10 ${model.modelName}. Make sure to adjust the script to your needs.`,
   );
+
+  console.log("Happy seeding! 🌱");
 }
