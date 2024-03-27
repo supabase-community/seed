@@ -215,16 +215,10 @@ export const generateUserModels = (context: CodegenContext) => {
       "  ",
     ) ?? "";
   return `
-import { readFileSync } from "node:fs";
-import { dirname, join } from "node:path";
-import { fileURLToPath } from "node:url";
-
 import { copycat } from "@snaplet/copycat"
+import { getShapeExamples } from "@snaplet/seed/core/predictions/shapeExamples/getShapeExamples";
 
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = dirname(__filename);
-
-const shapeExamples = JSON.parse(readFileSync(join(__dirname, "shapeExamples.json")));
+const shapeExamples = await getShapeExamples();
 
 const getExamples = (shape) => shapeExamples.find((e) => e.shape === shape)?.examples ?? [];
 
