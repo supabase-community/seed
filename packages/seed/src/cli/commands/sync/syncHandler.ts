@@ -4,6 +4,10 @@ import { predictHandler } from "../predict/predictHandler.js";
 
 export async function syncHandler(args: { output?: string }) {
   await introspectHandler();
-  await predictHandler();
+
+  if (!process.env["SNAPLET_DISABLE_SHAPE_PREDICTION"]) {
+    await predictHandler();
+  }
+
   await generateHandler(args);
 }
