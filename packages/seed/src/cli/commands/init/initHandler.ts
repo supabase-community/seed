@@ -36,4 +36,6 @@ export async function initHandler() {
   if (isFirstTimeInit) {
     await generateSeedScriptExample();
   }
+
+  console.log("Happy seeding! 🌱");
 }
