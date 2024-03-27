@@ -5,7 +5,7 @@ import { type DialectRecordWithDefault } from "#test/types.js";
 
 for (const [dialect, adapter] of adapterEntries) {
   describe.concurrent(
-    `e2e: $dialect`,
+    `e2e: ${dialect}`,
     () => {
       test("generates", async () => {
         const { db } = await setupProject({
