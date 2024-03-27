@@ -14,13 +14,13 @@ export async function saveSeedConfig({ adapter }: { adapter: Adapter }) {
 
   spinner.succeed(`Seed configuration saved to ${link(seedConfigPath)}`);
 
+  if (await isConnected()) {
+    return;
+  }
+
   spinner.start(
     `Please enter your database connection details by editing ${link("seed.config.ts", seedConfigPath)}`,
   );
-
-  if (await isConnected()) {
-    spinner.stop();
-  }
 
   const watcher = watch(seedConfigPath);
   for await (const event of watcher) {
