@@ -1,21 +1,9 @@
 import { describe, expect, test } from "vitest";
-import { type Dialect, adapters } from "#test/adapters.js";
+import { adapterEntries } from "#test/adapters.js";
 import { setupProject } from "#test/setupProject.js";
+import { type DialectRecordWithDefault } from "#test/types.js";
 
-type DialectRecordWithDefault = Partial<Record<Dialect, string>> &
-  Record<"default", string>;
-
-for (const dialect of Object.keys(adapters) as Array<Dialect>) {
-  const adapter = await adapters[dialect]();
-
-  if (adapter.skipReason) {
-    describe.skip(`e2e: ${dialect} (${adapter.skipReason})`, () => {
-      null;
-    });
-
-    continue;
-  }
-
+for (const [dialect, adapter] of adapterEntries) {
   describe.concurrent(
     `e2e keys: ${dialect}`,
     () => {

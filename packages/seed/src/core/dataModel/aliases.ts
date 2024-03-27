@@ -1,6 +1,6 @@
 import camelize from "camelcase";
 import { pluralize, singularize, underscore } from "inflection";
-import { merge } from "remeda";
+import { mergeDeep } from "remeda";
 import { SnapletError } from "../utils.js";
 import {
   type DataModel,
@@ -13,6 +13,14 @@ type Aliases = Record<
   {
     fields: Record<string, string>;
     name: string;
+  }
+>;
+
+type AliasOverrides = Record<
+  string,
+  {
+    fields?: Record<string, string>;
+    name?: string;
   }
 >;
 
@@ -47,7 +55,7 @@ const OPPOSITE_BASE_NAME_MAP: Record<string, string> = {
   reviewer: "reviewed",
 };
 
-const standardInflection: Inflection = {
+export const standardInflection: Inflection = {
   modelName: computeModelNameAlias,
   scalarField: computeScalarFieldAlias,
   parentField: computeParentFieldAlias,
@@ -63,8 +71,12 @@ const identityInflection: Inflection = {
   oppositeBaseNameMap: {},
 };
 
-function computeAliases(dataModel: DataModel, inflection: Inflection) {
-  const aliases: Aliases = {};
+export function computeAliases(
+  dataModel: DataModel,
+  inflection: Inflection,
+  overrides: AliasOverrides = {},
+) {
+  let aliases: Aliases = {};
 
   for (const [modelName, modelValues] of Object.entries(dataModel.models)) {
     const name = inflection.modelName(modelName);
@@ -103,6 +115,7 @@ function computeAliases(dataModel: DataModel, inflection: Inflection) {
     aliases[modelName].fields = aliasedFields;
   }
 
+  aliases = mergeDeep(aliases, overrides) as Aliases;
   let conflicts = computeModelNameConflicts(dataModel, aliases);
 
   conflicts = attemptResolveModelNameConflicts(conflicts, aliases, inflection);
@@ -362,9 +375,6 @@ export function getAliasedDataModel(
     };
   }
 
-  const aliases = merge(
-    computeAliases(dataModel, inflection),
-    options?.override,
-  );
+  const aliases = computeAliases(dataModel, inflection, options?.override);
   return applyAliasesToDataModel(dataModel, aliases);
 }

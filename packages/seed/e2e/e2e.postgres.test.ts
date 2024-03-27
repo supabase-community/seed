@@ -2,7 +2,7 @@ import { describe, expect, test } from "vitest";
 import { adapters } from "#test/adapters.js";
 import { setupProject } from "#test/setupProject.js";
 
-const adapter = await adapters.postgres();
+const adapter = adapters.postgres;
 
 describe.concurrent(
   `e2e: postgres-specific`,

@@ -1,24 +1,15 @@
 import dedent from "dedent";
 import { describe, expect, test } from "vitest";
-import { type Dialect, adapters } from "#test/adapters.js";
+import { adapterEntries } from "#test/adapters.js";
 import { setupProject } from "#test/setupProject.js";
+import { type DialectRecordWithDefault } from "../test/types.js";
 
-for (const dialect of Object.keys(adapters) as Array<Dialect>) {
-  const adapter = await adapters[dialect]();
-
-  if (adapter.skipReason) {
-    describe.skip(`e2e: ${dialect} (${adapter.skipReason})`, () => {
-      null;
-    });
-
-    continue;
-  }
-
+for (const [dialect, adapter] of adapterEntries) {
   describe.concurrent(
     `e2e constraints: ${dialect}`,
     () => {
       test("unique constraints for parent fields", async () => {
-        const schema: Partial<Record<"default" | Dialect, string>> = {
+        const schema: DialectRecordWithDefault = {
           default: `
           create table organization (
             id serial not null primary key
@@ -72,7 +63,7 @@ for (const dialect of Object.keys(adapters) as Array<Dialect>) {
         expect(members).toHaveLength(20);
       });
       test("unique constraints for scalar fields", async () => {
-        const schema: Partial<Record<"default" | Dialect, string>> = {
+        const schema: DialectRecordWithDefault = {
           default: `
             CREATE TABLE "user" (
               id SERIAL NOT NULL PRIMARY KEY,
@@ -113,7 +104,7 @@ for (const dialect of Object.keys(adapters) as Array<Dialect>) {
         expect(uniqueEmails.size).toEqual(users.length);
       });
       test("error is thrown when unique constraints are violated", async () => {
-        const schema: Partial<Record<"default" | Dialect, string>> = {
+        const schema: DialectRecordWithDefault = {
           default: `
             CREATE TABLE "user" (
               id SERIAL NOT NULL PRIMARY KEY,
@@ -148,7 +139,7 @@ for (const dialect of Object.keys(adapters) as Array<Dialect>) {
           }`);
       });
       test("unique constraints for default fields", async () => {
-        const schema: Partial<Record<"default" | Dialect, string>> = {
+        const schema: DialectRecordWithDefault = {
           default: `
           create or replace function generate_referral_code() returns text as $$
             begin
@@ -189,7 +180,7 @@ for (const dialect of Object.keys(adapters) as Array<Dialect>) {
         expect(profiles).toHaveLength(2);
       });
       test("nullable relationship", async () => {
-        const schema: Partial<Record<"default" | Dialect, string>> = {
+        const schema: DialectRecordWithDefault = {
           default: `
           create table team (
             id serial primary key
@@ -240,7 +231,7 @@ for (const dialect of Object.keys(adapters) as Array<Dialect>) {
         expect(teams).toHaveLength(0);
       });
       test("unique constraint on nullable relationship", async () => {
-        const schema: Partial<Record<"default" | Dialect, string>> = {
+        const schema: DialectRecordWithDefault = {
           default: `
           create table team (
             id serial primary key

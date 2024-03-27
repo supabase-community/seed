@@ -1,8 +1,9 @@
 import { describe, expect, test } from "vitest";
-import { type Dialect, adapters } from "#test/adapters.js";
+import { type DialectId } from "#dialects/dialects.js";
+import { adapterEntries } from "#test/adapters.js";
 import { setupProject } from "#test/setupProject.js";
 
-type DialectRecordWithDefault<T> = Partial<Record<Dialect, T>> &
+type DialectRecordWithDefault<T> = Partial<Record<DialectId, T>> &
   Record<"default", T>;
 type SchemaRecord = DialectRecordWithDefault<string>;
 type SeedScriptRecord = DialectRecordWithDefault<string>;
@@ -10,9 +11,7 @@ type SeedConfigRecord = DialectRecordWithDefault<
   (connectionString: string) => string
 >;
 
-for (const dialect of Object.keys(adapters) as Array<Dialect>) {
-  const adapter = await adapters[dialect]();
-
+for (const [dialect, adapter] of adapterEntries) {
   describe.concurrent(
     `e2e: api: ${dialect}`,
     () => {
