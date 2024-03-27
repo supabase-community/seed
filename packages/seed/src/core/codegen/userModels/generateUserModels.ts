@@ -14,6 +14,8 @@ import { type UserModels } from "#core/userModels/types.js";
 import { jsonStringify } from "#core/utils.js";
 import { type Shape, type TableShapePredictions } from "#trpc/shapes.js";
 import { shouldGenerateFieldValue } from "../../dataModel/shouldGenerateFieldValue.js";
+import { unpackNestedType } from "../../dialect/unpackNestedType.js";
+import { encloseValueInArray } from "../../userModels/encloseValueInArray.js";
 import { generateJsonField } from "./generateJsonField.js";
 
 const SHAPE_PREDICTION_CONFIDENCE_THRESHOLD = 0.65;
@@ -73,11 +75,17 @@ const generateDefaultForField = (props: {
     // If the field has a unique constraint, we don't want to use the shape examples as they will be repeated
     !hasUniqueConstraint(model, field)
   ) {
+    const [, dimensions] = unpackNestedType(field.type);
+    let resultCode;
+
     if (field.maxLength) {
-      return `({ seed }) => copycat.oneOfString(seed, getExamples('${shape}'), { limit: ${jsonStringify(field.maxLength)} })`;
+      resultCode = `copycat.oneOfString(seed, getExamples('${shape}'), { limit: ${jsonStringify(field.maxLength)} })`;
     } else {
-      return `({ seed }) => copycat.oneOfString(seed, getExamples('${shape}'))`;
+      resultCode = `copycat.oneOfString(seed, getExamples('${shape}'))`;
     }
+
+    resultCode = encloseValueInArray(resultCode, dimensions);
+    return `({ seed }) => ${resultCode}`;
   }
 
   const code = generateCodeFromTemplate({
