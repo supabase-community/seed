@@ -7,7 +7,7 @@ import { jsonStringify } from "#core/utils.js";
 export async function setDataExamples(shapeExamples: Array<DataExample>) {
   const dotSnapletPath = await ensureDotSnapletPath();
 
-  const shapeExamplesPath = join(dotSnapletPath, "shapeExamples.json");
+  const shapeExamplesPath = join(dotSnapletPath, "dataExamples.json");
 
   await writeFile(
     shapeExamplesPath,

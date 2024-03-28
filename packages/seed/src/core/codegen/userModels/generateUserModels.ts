@@ -245,6 +245,7 @@ import { getShapeExamples } from "@snaplet/seed/core/predictions/shapeExamples/g
 
 const shapeExamples = await getShapeExamples();
 
+const getCustomExamples = (input) => shapeExamples.find((e) => e.input === input)?.examples ?? []
 const getExamples = (shape) => shapeExamples.find((e) => e.shape === shape)?.examples ?? [];
 
 export const userModels = ${stringifiedDefaults};
