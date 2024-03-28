@@ -90,7 +90,6 @@
   "devDependencies": {
     "@snaplet/copycat": "5.0.0",
     "@snaplet/eslint-config": "workspace:*",
-    "@snaplet/seed": "workspace:0.89.4",
     "@snaplet/tsconfig": "workspace:*",
     "@types/better-sqlite3": "7.6.9",
     "@types/debug": "4.1.12",
