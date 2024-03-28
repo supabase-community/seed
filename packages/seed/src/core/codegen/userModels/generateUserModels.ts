@@ -244,9 +244,9 @@ export const generateUserModels = (context: CodegenContext) => {
     ) ?? "";
   return `
 import { copycat } from "@snaplet/copycat"
-import { getShapeExamples } from "@snaplet/seed/core/predictions/shapeExamples/getShapeExamples";
+import { getDataExamples } from "@snaplet/seed/core/predictions/shapeExamples/getDataExamples";
 
-const shapeExamples = await getShapeExamples();
+const shapeExamples = await getDataExamples();
 
 const getCustomExamples = (input) => shapeExamples.find((e) => e.input === input)?.examples ?? []
 const getExamples = (shape) => shapeExamples.find((e) => e.shape === shape)?.examples ?? [];
