@@ -1,4 +1,4 @@
-import { snakeCase } from "lodash";
+import { snakeCase } from "change-case";
 import { shouldGenerateFieldValue } from "#core/dataModel/shouldGenerateFieldValue.js";
 import { type DataModel } from "#core/dataModel/types.js";
 import { type DetermineShapeFromType } from "#core/dialect/types.js";

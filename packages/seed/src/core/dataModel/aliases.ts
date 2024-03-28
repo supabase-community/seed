@@ -1,4 +1,4 @@
-import camelize from "camelcase";
+import { camelCase } from "change-case";
 import { pluralize, singularize, underscore } from "inflection";
 import { mergeDeep } from "remeda";
 import { SnapletError } from "../utils.js";
@@ -199,13 +199,13 @@ interface Field {
 }
 
 function computeModelNameAlias(modelName: string) {
-  return pluralize(camelize(modelName));
+  return pluralize(camelCase(modelName));
 }
 
 function computeScalarFieldAlias(
   field: Omit<Field, "relationFromFields" | "relationToFields">,
 ) {
-  return camelize(field.name);
+  return camelCase(field.name);
 }
 
 function getBaseName(field: Field) {
@@ -247,7 +247,7 @@ function computeParentFieldAlias(
 
   // { fromField: 'author_id' } -> author
   if (baseName) {
-    return singularize(camelize(baseName));
+    return singularize(camelCase(baseName));
   }
 
   // { fromField: 'valitated_by' } -> validator
@@ -257,12 +257,12 @@ function computeParentFieldAlias(
       ([_, _oppositeBaseName]) => oppositeBaseName === _oppositeBaseName,
     );
     if (baseNameEntry) {
-      return camelize(baseNameEntry[0]);
+      return camelCase(baseNameEntry[0]);
     }
   }
 
   const tableName = singularize(underscore(field.type));
-  return camelize(`${tableName}_by_${fromField}`);
+  return camelCase(`${tableName}_by_${fromField}`);
 }
 
 function computeChildFieldAlias(
@@ -283,7 +283,7 @@ function computeChildFieldAlias(
   // { fromField: 'validated_by' } -> validatedPosts
   if (fromField.endsWith("_by")) {
     const oppositeBaseName = fromField.slice(0, -"_by".length);
-    return camelize(`${oppositeBaseName}_${fieldAlias}`);
+    return camelCase(`${oppositeBaseName}_${fieldAlias}`);
   }
 
   // { baseName: 'author' } -> authoredPosts
@@ -291,11 +291,11 @@ function computeChildFieldAlias(
   if (baseName) {
     const oppositeBaseName = oppositeBaseNameMap[baseName];
     if (oppositeBaseName) {
-      return camelize(`${oppositeBaseName}_${fieldAlias}`);
+      return camelCase(`${oppositeBaseName}_${fieldAlias}`);
     }
   }
 
-  return camelize(`${fieldAlias}_by_${fromField}`);
+  return camelCase(`${fieldAlias}_by_${fromField}`);
 }
 
 function applyAliasesToDataModel(dataModel: DataModel, aliases: Aliases) {
