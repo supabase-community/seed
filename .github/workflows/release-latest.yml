@@ -1,0 +1,53 @@
+name: Release latest
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - main
+      - chore/setup-latest-release
+    paths:
+      - 'packages/seed/package.json'
+
+concurrency:
+  group: release-latest-${{ github.ref }}
+  cancel-in-progress: true
+
+defaults:
+  run:
+    shell: devenv {0}
+
+env:
+  TURBO_TOKEN: ${{ secrets.TURBO_TOKEN }}
+  TURBO_TEAM: ${{ vars.TURBO_TEAM }}
+  NODE_ENV: production
+
+jobs:
+  build-and-publish:
+    runs-on: buildjet-4vcpu-ubuntu-2204
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Check package version
+        id: cpv
+        uses: PostHog/check-package-version@v2
+        with:
+          path: packages/seed
+      
+      - name: Setup
+        if: steps.cpv.outputs.is-new-version == 'true'
+        uses: ./.github/actions/setup
+
+      - name: Setup npmrc auth for publish
+        if: steps.cpv.outputs.is-new-version == 'true'
+        run: |
+          echo '//registry.npmjs.org/:_authToken=${NODE_AUTH_TOKEN}' >> .npmrc && \
+          echo "registry=https://registry.npmjs.org/" >> .npmrc && \
+          echo "always-auth=true" >> .npmrc
+      
+      - name: Publish latest package
+        if: steps.cpv.outputs.is-new-version == 'true'
+        run: pnpm -F @snaplet/seed run release:latest
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}

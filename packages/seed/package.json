@@ -176,6 +176,7 @@
     "start:dev": "tsx --conditions development src/cli/index.ts",
     "start:server": "tsx --conditions development src/trpc/server.ts",
     "release:alpha": "tsx scripts/release-alpha.mts",
+    "release:latest": "tsx scripts/release-latest.mts",
     "type-check": "tsc --build",
     "test": "vitest run src",
     "test:e2e": "vitest run e2e",
