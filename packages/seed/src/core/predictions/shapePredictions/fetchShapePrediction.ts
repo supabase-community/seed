@@ -1,46 +1,17 @@
-import { shouldGenerateFieldValue } from "#core/dataModel/shouldGenerateFieldValue.js";
-import { type DataModel } from "#core/dataModel/types.js";
-import { type DetermineShapeFromType } from "#core/dialect/types.js";
 import { trpc } from "#trpc/client.js";
 import {
   type StartPredictionsColumn,
   type TableShapePredictions,
 } from "#trpc/shapes.js";
 
-export const fetchShapePredictions = async (props: {
-  dataModel: DataModel;
-  determineShapeFromType: DetermineShapeFromType;
-}): Promise<Array<TableShapePredictions>> => {
-  const { determineShapeFromType, dataModel } = props;
-  const allColumns: Array<StartPredictionsColumn> = [];
+export const fetchShapePredictions = async (
+  allColumnToPredict: Array<StartPredictionsColumn>,
+): Promise<Array<TableShapePredictions>> => {
   const shapePredictions: Array<TableShapePredictions> = [];
-
-  for (const model of Object.values(dataModel.models)) {
-    const columns = model.fields
-      .map((field) => {
-        if (
-          field.kind !== "scalar" ||
-          !shouldGenerateFieldValue(field) ||
-          determineShapeFromType(field.type) !== null
-        ) {
-          return null;
-        }
-
-        return {
-          schemaName: model.schemaName ?? "",
-          tableName: model.tableName,
-          columnName: field.columnName,
-          pgType: field.type,
-        };
-      })
-      .filter(Boolean);
-
-    allColumns.push(...columns);
-  }
 
   const { predictionJobId } =
     await trpc.predictions.startPredictionJobRoute.mutate({
-      columns: allColumns,
+      columns: allColumnToPredict,
       modelInfo: {
         version: "20240801",
         engine: "FINETUNED_DISTI_BERT_SEED_ONLY",
@@ -67,10 +38,13 @@ export const fetchShapePredictions = async (props: {
   const batchSize = 100;
   for (
     let startIndex = 0;
-    startIndex < allColumns.length;
+    startIndex < allColumnToPredict.length;
     startIndex += batchSize
   ) {
-    const columns = allColumns.slice(startIndex, startIndex + batchSize);
+    const columns = allColumnToPredict.slice(
+      startIndex,
+      startIndex + batchSize,
+    );
     const predictions = await trpc.predictions.predictionsRoute.mutate({
       columns,
       forGenerate: true,

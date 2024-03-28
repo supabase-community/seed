@@ -7,18 +7,19 @@ import { type SeedConfig } from "#config/seedConfig/seedConfig.js";
 import { type DataModel } from "#core/dataModel/types.js";
 import { type Dialect } from "#core/dialect/types.js";
 import { type Fingerprint } from "#core/fingerprint/types.js";
+import { type DataExample } from "#core/predictions/types.js";
 import { jsonStringify } from "#core/utils.js";
 import { type TableShapePredictions } from "#trpc/shapes.js";
 import { generateUserModels } from "./userModels/generateUserModels.js";
 
 export interface CodegenContext {
+  dataExamples: Array<DataExample>;
   dataModel: DataModel;
   dialect: Dialect;
   fingerprint: Fingerprint;
   outputDir?: string;
   rawDataModel: DataModel;
   seedConfig: SeedConfig;
-  shapeExamples: Array<{ examples: Array<string>; shape: string }>;
   shapePredictions: Array<TableShapePredictions>;
 }
 

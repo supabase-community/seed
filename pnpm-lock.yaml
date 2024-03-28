@@ -138,6 +138,9 @@ importers:
       kleur:
         specifier: ^4.1.5
         version: 4.1.5
+      lodash:
+        specifier: ^4.17.21
+        version: 4.17.21
       ora:
         specifier: ^8.0.1
         version: 8.0.1
@@ -184,6 +187,9 @@ importers:
       '@types/fs-extra':
         specifier: 11.0.4
         version: 11.0.4
+      '@types/lodash':
+        specifier: ^4.17.0
+        version: 4.17.0
       '@types/node':
         specifier: 20.11.30
         version: 20.11.30
@@ -1343,6 +1349,10 @@ packages:
     resolution: {integrity: sha512-D5qGUYwjvnNNextdU59/+fI+spnwtTFmyQP0h+PfIOSkNfpU6AOICUOkm4i0OnSk+NyjdPJrxCDro0sJsWlRpQ==}
     dependencies:
       '@types/node': 20.11.30
+    dev: true
+
+  /@types/lodash@4.17.0:
+    resolution: {integrity: sha512-t7dhREVv6dbNj0q17X12j7yDG4bD/DHYX7o5/DbDxobP0HnGPgpRz2Ej77aL7TZT3DSw13fqUTj8J4mMnqa7WA==}
     dev: true
 
   /@types/minimatch@3.0.5:
