@@ -14,9 +14,9 @@ export async function predictHandler() {
   const dataModel = await getDataModel();
   const dialect = await getDialect();
   const dataExamples: Array<DataExample> = [];
-  // Here we need to get the project from the config file
-  // but first we need to select the project in the setup
-  // and save the projectId.
+  // The long term plan is to allow the user to select the project
+  // during init phase and save the projectID in the config
+  // For now we use the first project
   const projects = await trpc.project.list.query();
   let selectedProject = projects[0];
 
