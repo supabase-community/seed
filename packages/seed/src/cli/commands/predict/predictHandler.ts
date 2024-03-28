@@ -34,7 +34,10 @@ export async function predictHandler() {
     });
     dataExamples.push(...customDataSet);
   }
-  const shapePredictions = await fetchShapePredictions(columns);
+  const shapePredictions = await fetchShapePredictions(
+    columns,
+    selectedProject.id,
+  );
   await setShapePredictions(shapePredictions);
 
   const shapeExamples = await fetchShapeExamples(shapePredictions);

@@ -63,6 +63,7 @@ export const createCliRouter = ({ publicProcedure = t.procedure } = {}) =>
                 engine: z.string(),
               })
               .optional(),
+            projectId: z.string().optional(),
           }),
         )
         .mutation(() => {

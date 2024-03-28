@@ -6,6 +6,7 @@ import {
 
 export const fetchShapePredictions = async (
   allColumnToPredict: Array<StartPredictionsColumn>,
+  projectId?: string,
 ): Promise<Array<TableShapePredictions>> => {
   const shapePredictions: Array<TableShapePredictions> = [];
 
@@ -16,6 +17,7 @@ export const fetchShapePredictions = async (
         version: "20240801",
         engine: "FINETUNED_DISTI_BERT_SEED_ONLY",
       },
+      projectId,
     });
 
   let done = false;
