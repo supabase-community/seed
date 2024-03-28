@@ -94,13 +94,16 @@ const generateDefaultForField = (props: {
     resultCode = encloseValueInArray(resultCode, dimensions);
     return `({ seed }) => ${resultCode}`;
   }
-  // Use shape based on type then generate code from the associated template
-  const shape = dialect.determineShapeFromType(field.type);
+
+  if (!predictionData.shape) {
+    // Still do not have a shape, use shape based on type
+    predictionData.shape = dialect.determineShapeFromType(field.type);
+  }
   const code = generateCodeFromTemplate({
     input: "seed",
     type: field.type,
     maxLength: field.maxLength ?? null,
-    shape: shape,
+    shape: predictionData.shape,
     templates: dialect.templates,
     optionsInput: "options",
   });
