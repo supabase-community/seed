@@ -20,7 +20,6 @@ defaults:
 env:
   TURBO_TOKEN: ${{ secrets.TURBO_TOKEN }}
   TURBO_TEAM: ${{ vars.TURBO_TEAM }}
-  NODE_ENV: production
 
 jobs:
   build-and-publish:
@@ -51,3 +50,4 @@ jobs:
         run: pnpm -F @snaplet/seed run release:latest
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+          NODE_ENV: production
