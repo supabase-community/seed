@@ -5,6 +5,7 @@ on:
   push:
     branches:
       - main
+      - chore/setup-latest-release
     paths:
       - 'packages/seed/package.json'
 
@@ -50,3 +51,12 @@ jobs:
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
           NODE_ENV: production
+      
+      - name: Push a new tag on git repo
+        if: steps.cpv.outputs.is-new-version == 'true'
+        uses: Klemensas/action-autotag@stable
+        env:
+          GITHUB_TOKEN: "${{ secrets.GITHUB_TOKEN }}"
+        with:
+          package_root: "packages/seed"
+          tag_prefix: "v"
