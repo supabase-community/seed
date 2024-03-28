@@ -467,5 +467,33 @@ describe.each(adapterEntries)(
       ]);
       expect(yoLos.length).toEqual(1);
     });
+
+    test("null field overrides", async () => {
+      const { db } = await setupProject({
+        adapter,
+        databaseSchema: `
+          CREATE TABLE "Tmp" (
+            "value" text
+          );
+        `,
+        seedScript: `
+          import { createSeedClient } from '#seed'
+
+          const seed = await createSeedClient({
+            models: {
+              tmps: {
+                data: {
+                  value: null,
+                }
+              }
+            }
+          })
+
+          await seed.tmps([{}])
+        `,
+      });
+
+      expect(await db.query('select * from "Tmp"')).toEqual([{ value: null }]);
+    });
   },
 );
