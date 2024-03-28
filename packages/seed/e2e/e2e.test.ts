@@ -3,14 +3,17 @@ import { adapterEntries } from "#test/adapters.js";
 import { setupProject } from "#test/setupProject.js";
 import { type DialectRecordWithDefault } from "#test/types.js";
 
-for (const [dialect, adapter] of adapterEntries) {
-  describe.concurrent(
-    `e2e: ${dialect}`,
-    () => {
-      test("generates", async () => {
-        const { db } = await setupProject({
-          adapter,
-          databaseSchema: `
+describe.each(adapterEntries)(
+  `e2e: %s`,
+  {
+    concurrent: true,
+    timeout: 45000,
+  },
+  (dialect, adapter) => {
+    test("generates", async () => {
+      const { db } = await setupProject({
+        adapter,
+        databaseSchema: `
           CREATE TABLE "Organization" (
             "id" uuid not null primary key
           );
@@ -20,7 +23,7 @@ for (const [dialect, adapter] of adapterEntries) {
             "name" text not null
           );
         `,
-          seedScript: `
+        seedScript: `
           import { createSeedClient } from '#seed'
 
           const seed = await createSeedClient()
@@ -29,18 +32,18 @@ for (const [dialect, adapter] of adapterEntries) {
             members: (x) => x(3)
           }))
         `,
-        });
-
-        expect((await db.query('select * from "Organization"')).length).toEqual(
-          2,
-        );
-        expect((await db.query('select * from "Member"')).length).toEqual(6);
       });
 
-      test("dryRun outputs sql statements to stdout", async () => {
-        const { db, stdout } = await setupProject({
-          adapter,
-          databaseSchema: `
+      expect((await db.query('select * from "Organization"')).length).toEqual(
+        2,
+      );
+      expect((await db.query('select * from "Member"')).length).toEqual(6);
+    });
+
+    test("dryRun outputs sql statements to stdout", async () => {
+      const { db, stdout } = await setupProject({
+        adapter,
+        databaseSchema: `
             CREATE TABLE "Organization" (
               "id" uuid not null primary key
             );
@@ -50,7 +53,7 @@ for (const [dialect, adapter] of adapterEntries) {
               "name" text not null
             );
           `,
-          seedScript: `
+        seedScript: `
             import { createSeedClient } from '#seed'
 
             const seed = await createSeedClient({ dryRun: true })
@@ -59,29 +62,29 @@ for (const [dialect, adapter] of adapterEntries) {
               members: (x) => x(3)
             }))
           `,
-        });
-
-        expect((await db.query('select * from "Organization"')).length).toEqual(
-          0,
-        );
-
-        expect((await db.query('select * from "Member"')).length).toEqual(0);
-
-        for (const statement of stdout.split(";").filter(Boolean)) {
-          await db.execute(statement);
-        }
-
-        expect((await db.query('select * from "Organization"')).length).toEqual(
-          2,
-        );
-
-        expect((await db.query('select * from "Member"')).length).toEqual(6);
       });
 
-      test("handle existing data in the database", async () => {
-        const { db } = await setupProject({
-          adapter,
-          databaseSchema: `
+      expect((await db.query('select * from "Organization"')).length).toEqual(
+        0,
+      );
+
+      expect((await db.query('select * from "Member"')).length).toEqual(0);
+
+      for (const statement of stdout.split(";").filter(Boolean)) {
+        await db.execute(statement);
+      }
+
+      expect((await db.query('select * from "Organization"')).length).toEqual(
+        2,
+      );
+
+      expect((await db.query('select * from "Member"')).length).toEqual(6);
+    });
+
+    test("handle existing data in the database", async () => {
+      const { db } = await setupProject({
+        adapter,
+        databaseSchema: `
           CREATE TABLE "Organization" (
             "id" uuid not null primary key
           );
@@ -92,51 +95,48 @@ for (const [dialect, adapter] of adapterEntries) {
           );
           INSERT INTO "Organization" VALUES ('18bcdaf9-afae-4b03-a7aa-203491acc950');
         `,
-          seedScript: `
+        seedScript: `
           import { createSeedClient } from '#seed'
 
           const seed = await createSeedClient()
 
           await seed.members((x) => x(5), { connect: { organizations: [{ id: '18bcdaf9-afae-4b03-a7aa-203491acc950' }] } })
         `,
-        });
-
-        expect((await db.query('select * from "Organization"')).length).toEqual(
-          1,
-        );
-
-        expect((await db.query('select * from "Member"')).length).toEqual(5);
       });
 
-      test.runIf(dialect !== "sqlite")(
-        "generates for char limits",
-        async () => {
-          const { db } = await setupProject({
-            adapter,
-            databaseSchema: `
+      expect((await db.query('select * from "Organization"')).length).toEqual(
+        1,
+      );
+
+      expect((await db.query('select * from "Member"')).length).toEqual(5);
+    });
+
+    test.runIf(dialect !== "sqlite")("generates for char limits", async () => {
+      const { db } = await setupProject({
+        adapter,
+        databaseSchema: `
           CREATE TABLE "User" (
             "id" uuid not null,
             "fullName" varchar(5) not null
           );
         `,
-            seedScript: `
+        seedScript: `
           import { createSeedClient } from '#seed'
           const seed = await createSeedClient()
           await seed.users([{}])
         `,
-          });
+      });
 
-          const [{ fullName }] = await db.query<{ fullName: string }>(
-            'select * from "User"',
-          );
-          expect(fullName.length).toBeLessThanOrEqual(5);
-        },
+      const [{ fullName }] = await db.query<{ fullName: string }>(
+        'select * from "User"',
       );
+      expect(fullName.length).toBeLessThanOrEqual(5);
+    });
 
-      test("option overriding", async () => {
-        const { db } = await setupProject({
-          adapter,
-          databaseSchema: `
+    test("option overriding", async () => {
+      const { db } = await setupProject({
+        adapter,
+        databaseSchema: `
           CREATE TABLE "Thing" (
             "id" uuid not null primary key,
             "a" text not null,
@@ -144,7 +144,7 @@ for (const [dialect, adapter] of adapterEntries) {
             "c" text not null
           );
         `,
-          seedScript: `
+        seedScript: `
           import { createSeedClient } from '#seed'
 
           const seed = await createSeedClient({
@@ -168,19 +168,19 @@ for (const [dialect, adapter] of adapterEntries) {
             }
           })
         `,
-        });
-
-        expect(await db.query('select * from "Thing"')).toEqual([
-          expect.objectContaining({
-            a: "client-a",
-            b: "plan-b",
-          }),
-        ]);
       });
 
-      test("connect option", async () => {
-        const schema: DialectRecordWithDefault = {
-          default: `
+      expect(await db.query('select * from "Thing"')).toEqual([
+        expect.objectContaining({
+          a: "client-a",
+          b: "plan-b",
+        }),
+      ]);
+    });
+
+    test("connect option", async () => {
+      const schema: DialectRecordWithDefault = {
+        default: `
               CREATE TABLE student (
                 student_id SERIAL PRIMARY KEY,
                 first_name VARCHAR(50) NOT NULL,
@@ -209,7 +209,7 @@ for (const [dialect, adapter] of adapterEntries) {
                 booking_date TIMESTAMP NOT NULL
               );
             `,
-          sqlite: `
+        sqlite: `
               CREATE TABLE student (
                 student_id INTEGER PRIMARY KEY AUTOINCREMENT,
                 first_name TEXT NOT NULL,
@@ -238,37 +238,37 @@ for (const [dialect, adapter] of adapterEntries) {
                 booking_date TIMESTAMP NOT NULL
               );
             `,
-        };
-        const { db } = await setupProject({
-          adapter,
-          databaseSchema: schema[dialect] ?? schema.default,
-          seedScript: `
+      };
+      const { db } = await setupProject({
+        adapter,
+        databaseSchema: schema[dialect] ?? schema.default,
+        seedScript: `
           import { createSeedClient } from '#seed'
           const seed = await createSeedClient()
           await seed.tutors([{}, {}])
           await seed.students(c => c(1))
           await seed.bookings(c => c(2), { connect: true })
         `,
-        });
-
-        const tutors = await db.query('select * from "tutor"');
-        const students = await db.query<{ student_id: string }>(
-          'select * from "student"',
-        );
-        const bookings = await db.query<{ student_id: string }>(
-          'select * from "booking"',
-        );
-        expect(tutors.length).toEqual(2);
-        expect(students.length).toEqual(1);
-        expect(bookings.length).toEqual(2);
-        expect(bookings[0].student_id).toEqual(students[0].student_id);
-        expect(bookings[1].student_id).toEqual(students[0].student_id);
       });
 
-      test("default field ordering for `data` in generate callback", async () => {
-        const { db } = await setupProject({
-          adapter,
-          databaseSchema: `
+      const tutors = await db.query('select * from "tutor"');
+      const students = await db.query<{ student_id: string }>(
+        'select * from "student"',
+      );
+      const bookings = await db.query<{ student_id: string }>(
+        'select * from "booking"',
+      );
+      expect(tutors.length).toEqual(2);
+      expect(students.length).toEqual(1);
+      expect(bookings.length).toEqual(2);
+      expect(bookings[0].student_id).toEqual(students[0].student_id);
+      expect(bookings[1].student_id).toEqual(students[0].student_id);
+    });
+
+    test("default field ordering for `data` in generate callback", async () => {
+      const { db } = await setupProject({
+        adapter,
+        databaseSchema: `
           CREATE TABLE "Organization" (
             "id" serial not null primary key
           );
@@ -283,7 +283,7 @@ for (const [dialect, adapter] of adapterEntries) {
             "notInPlanDescription" text not null
           );
         `,
-          seedScript: `
+        seedScript: `
           import { createSeedClient } from "#seed"
 
           const seed = await createSeedClient({
@@ -310,48 +310,48 @@ for (const [dialect, adapter] of adapterEntries) {
             }
           })
         `,
-        });
-
-        const [row] = await db.query<{ result: string }>(
-          'SELECT result FROM "Member"',
-        );
-
-        expect(JSON.parse(row.result)).toEqual([
-          "organizationId",
-          "id",
-          "notInPlanDescription",
-          "fromClientOptions",
-          "fromPlanOptions",
-          "fromPlanDescription1",
-          "fromPlanDescription2",
-        ]);
       });
 
-      test("compatibility with externally inserted data", async () => {
-        // context(justinvdm, 24 Jan 2024): We use `user_id` as a field name to
-        // make sure any field aliasing / renaming we do (e.g. to camel case)
-        // does not affect how sequences are found and updated
-        const schema: DialectRecordWithDefault = {
-          default: `
+      const [row] = await db.query<{ result: string }>(
+        'SELECT result FROM "Member"',
+      );
+
+      expect(JSON.parse(row.result)).toEqual([
+        "organizationId",
+        "id",
+        "notInPlanDescription",
+        "fromClientOptions",
+        "fromPlanOptions",
+        "fromPlanDescription1",
+        "fromPlanDescription2",
+      ]);
+    });
+
+    test("compatibility with externally inserted data", async () => {
+      // context(justinvdm, 24 Jan 2024): We use `user_id` as a field name to
+      // make sure any field aliasing / renaming we do (e.g. to camel case)
+      // does not affect how sequences are found and updated
+      const schema: DialectRecordWithDefault = {
+        default: `
             CREATE TABLE "User" (
               "user_id" SERIAL PRIMARY KEY
             );
             `,
-          sqlite: `
+        sqlite: `
             CREATE TABLE "User" (
               "user_id" INTEGER PRIMARY KEY AUTOINCREMENT
             );
           `,
-        };
+      };
 
-        const { db, runSeedScript } = await setupProject({
-          adapter,
-          databaseSchema: schema[dialect] ?? schema.default,
-        });
+      const { db, runSeedScript } = await setupProject({
+        adapter,
+        databaseSchema: schema[dialect] ?? schema.default,
+      });
 
-        await db.execute('insert into "User" DEFAULT VALUES');
+      await db.execute('insert into "User" DEFAULT VALUES');
 
-        await runSeedScript(`
+      await runSeedScript(`
           import { createSeedClient } from "#seed"
 
           const seed = await createSeedClient()
@@ -370,21 +370,21 @@ for (const [dialect, adapter] of adapterEntries) {
           })
         `);
 
-        const rows = await db.query('select * from "User"');
+      const rows = await db.query('select * from "User"');
 
-        expect(rows).toEqual([
-          { user_id: 1 },
-          { user_id: 2 },
-          { user_id: 3 },
-          { user_id: 4 },
-          { user_id: 5 },
-        ]);
-      });
+      expect(rows).toEqual([
+        { user_id: 1 },
+        { user_id: 2 },
+        { user_id: 3 },
+        { user_id: 4 },
+        { user_id: 5 },
+      ]);
+    });
 
-      test("seeds are unique per seed.<modelName> call", async () => {
-        const { db } = await setupProject({
-          adapter,
-          databaseSchema: `
+    test("seeds are unique per seed.<modelName> call", async () => {
+      const { db } = await setupProject({
+        adapter,
+        databaseSchema: `
             create table users (
               id uuid not null primary key,
               confirmation_token text
@@ -392,23 +392,23 @@ for (const [dialect, adapter] of adapterEntries) {
 
             create unique index confirmation_token_idx on users (confirmation_token);
           `,
-          seedScript: `
+        seedScript: `
         import { createSeedClient } from "#seed"
         const seed = await createSeedClient()
         await seed.$resetDatabase()
         await seed.users([{}])
         await seed.users([{}])
       `,
-        });
-
-        const rows = await db.query('select * from "users"');
-        expect(rows.length).toEqual(2);
       });
 
-      test("table attributes (name, columns) contain spaces with inflection enabled", async () => {
-        const { db } = await setupProject({
-          adapter,
-          databaseSchema: `
+      const rows = await db.query('select * from "users"');
+      expect(rows.length).toEqual(2);
+    });
+
+    test("table attributes (name, columns) contain spaces with inflection enabled", async () => {
+      const { db } = await setupProject({
+        adapter,
+        databaseSchema: `
             create table "contracts " (
               id uuid not null primary key,
               "contract type" text not null
@@ -417,32 +417,32 @@ for (const [dialect, adapter] of adapterEntries) {
               id uuid not null primary key
             );
           `,
-          seedScript: `
+        seedScript: `
             import { createSeedClient } from "#seed"
             const seed = await createSeedClient()
             await seed.$resetDatabase()
             await seed.contracts([{ contractType: "VIP" }])
             await seed.yoLos([{}])
           `,
-        });
-
-        const contracts = await db.query(`select * from "contracts "`);
-        const yoLos = await db.query(`select * from "yo lo"`);
-        expect(contracts).toEqual([
-          expect.objectContaining({ "contract type": "VIP" }),
-        ]);
-        expect(yoLos.length).toEqual(1);
       });
 
-      // TODO: support spaces when inflection is disabled
-      test.skip("table attributes (name, columns) contain spaces with inflection disabled", async () => {
-        const { db } = await setupProject({
-          adapter,
-          seedConfig: (connectionString) =>
-            adapter.generateSeedConfig(connectionString, {
-              alias: "{ inflection: false }",
-            }),
-          databaseSchema: `
+      const contracts = await db.query(`select * from "contracts "`);
+      const yoLos = await db.query(`select * from "yo lo"`);
+      expect(contracts).toEqual([
+        expect.objectContaining({ "contract type": "VIP" }),
+      ]);
+      expect(yoLos.length).toEqual(1);
+    });
+
+    // TODO: support spaces when inflection is disabled
+    test.skip("table attributes (name, columns) contain spaces with inflection disabled", async () => {
+      const { db } = await setupProject({
+        adapter,
+        seedConfig: (connectionString) =>
+          adapter.generateSeedConfig(connectionString, {
+            alias: "{ inflection: false }",
+          }),
+        databaseSchema: `
             create table "contracts " (
               id uuid not null primary key,
               "contract type" text not null
@@ -451,25 +451,21 @@ for (const [dialect, adapter] of adapterEntries) {
               id uuid not null primary key
             );
           `,
-          seedScript: `
+        seedScript: `
             import { createSeedClient } from "#seed"
             const seed = await createSeedClient()
             await seed.$resetDatabase()
             await seed["contracts "]([{ "contract type": "VIP" }])
             await seed["yo lo"]([{}])
           `,
-        });
-
-        const contracts = await db.query(`select * from "contracts "`);
-        const yoLos = await db.query(`select * from "yo lo"`);
-        expect(contracts).toEqual([
-          expect.objectContaining({ "contract type": "VIP" }),
-        ]);
-        expect(yoLos.length).toEqual(1);
       });
-    },
-    {
-      timeout: 45000,
-    },
-  );
-}
+
+      const contracts = await db.query(`select * from "contracts "`);
+      const yoLos = await db.query(`select * from "yo lo"`);
+      expect(contracts).toEqual([
+        expect.objectContaining({ "contract type": "VIP" }),
+      ]);
+      expect(yoLos.length).toEqual(1);
+    });
+  },
+);
