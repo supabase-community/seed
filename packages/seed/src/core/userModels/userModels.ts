@@ -44,7 +44,7 @@ const mergeUserModelsData = (
   const keys = dedupePreferLast([...Object.keys(data1), ...Object.keys(data2)]);
 
   for (const key of keys) {
-    results[key] = data2[key] ?? data1[key];
+    results[key] = Object.hasOwn(data2, key) ? data2[key] : data1[key];
   }
 
   return results;

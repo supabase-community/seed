@@ -91,6 +91,8 @@ export const recommended = [
     },
     rules: {
       ...vitestPlugin.configs.recommended.rules,
+      // This rule is not working for `describe.each`
+      "vitest/valid-describe-callback": "off",
       // Disable the rule for expect.arrayContainting matcher to not cause issue
       "@typescript-eslint/no-unsafe-assignment": "off",
     },
