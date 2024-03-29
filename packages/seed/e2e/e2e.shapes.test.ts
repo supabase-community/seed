@@ -11,7 +11,6 @@ describe.each(adapterEntries)(
   `e2e: shapes: %s`,
   {
     concurrent: true,
-    timeout: 45000,
   },
   (dialect, adapter) => {
     let servers: Array<Server>;

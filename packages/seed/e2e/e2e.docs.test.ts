@@ -9,7 +9,6 @@ describe.each(adapterEntries)(
   `e2e docs: %s`,
   {
     concurrent: true,
-    timeout: 60000,
   },
   (dialect, adapter) => {
     test("classical relationships examples", async () => {

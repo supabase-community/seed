@@ -13,5 +13,6 @@ export default defineProject({
   test: {
     name: pkg.name,
     root,
+    testTimeout: 60_000,
   },
 });

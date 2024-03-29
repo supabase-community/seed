@@ -8,7 +8,6 @@ describe.each(adapterEntries)(
   `e2e: constraints: %s`,
   {
     concurrent: true,
-    timeout: 45000,
   },
   (dialect, adapter) => {
     test("unique constraints for parent fields", async () => {

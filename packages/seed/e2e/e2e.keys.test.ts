@@ -7,7 +7,6 @@ describe.each(adapterEntries)(
   `e2e: keys: %s`,
   {
     concurrent: true,
-    timeout: 45000,
   },
   (dialect, adapter) => {
     test("work as expected with composites primary keys", async () => {

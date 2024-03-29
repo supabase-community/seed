@@ -15,7 +15,6 @@ describe.each(adapterEntries)(
   `e2e: api: %s`,
   {
     concurrent: true,
-    timeout: 50000,
   },
   (dialect, adapter) => {
     test("seed.$reset works as expected", async () => {

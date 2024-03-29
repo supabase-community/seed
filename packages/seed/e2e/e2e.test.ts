@@ -7,7 +7,6 @@ describe.each(adapterEntries)(
   `e2e: %s`,
   {
     concurrent: true,
-    timeout: 45000,
   },
   (dialect, adapter) => {
     test("generates", async () => {

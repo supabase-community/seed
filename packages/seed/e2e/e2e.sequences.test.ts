@@ -7,7 +7,6 @@ describe.each(adapterEntries)(
   `e2e: sequences: %s`,
   {
     concurrent: true,
-    timeout: 45000,
   },
   (dialect, adapter) => {
     test("generates valid sequences", async () => {
@@ -278,18 +277,16 @@ describe.each(adapterEntries)(
     });
     // TODO: allow to progamatically continue the sequence without having to regenerate the client
     // something like seed.$introspect() that would update the dataModel and call seed.$reset()
-    test(
-      "should be able to insert sequential data twice regenerating the client in between",
-      async () => {
-        const seedScript = `
+    test("should be able to insert sequential data twice regenerating the client in between", async () => {
+      const seedScript = `
         import { createSeedClient } from '#seed'
         const seed = await createSeedClient()
         await seed.teams((x) => x(2, {
           players: (x) => x(3)
         }));
         await seed.games((x) => x(3));`;
-        const schema: DialectRecordWithDefault = {
-          default: `
+      const schema: DialectRecordWithDefault = {
+        default: `
             CREATE TABLE "Team" (
               "id" SERIAL PRIMARY KEY
             );
@@ -302,7 +299,7 @@ describe.each(adapterEntries)(
               "id" INTEGER GENERATED ALWAYS AS IDENTITY PRIMARY KEY
             );
             `,
-          sqlite: `
+        sqlite: `
           CREATE TABLE "Team" (
             "id" INTEGER PRIMARY KEY AUTOINCREMENT
           );
@@ -315,33 +312,31 @@ describe.each(adapterEntries)(
           CREATE TABLE "Game" (
             "id" INTEGER PRIMARY KEY AUTOINCREMENT
           );`,
-        };
-        const { db, connectionString } = await setupProject({
-          adapter,
-          databaseSchema: schema[dialect] ?? schema.default,
-          seedScript,
-        });
+      };
+      const { db, connectionString } = await setupProject({
+        adapter,
+        databaseSchema: schema[dialect] ?? schema.default,
+        seedScript,
+      });
 
-        // Should be able to insert a new Player with the default database `nextval` call
-        await db.execute(
-          `INSERT INTO "Player" ("teamId", name) VALUES (1, 'test')`,
-        );
-        // Should be able to run the seed script again
-        await setupProject({
-          adapter,
-          connectionString,
-          seedScript,
-        });
+      // Should be able to insert a new Player with the default database `nextval` call
+      await db.execute(
+        `INSERT INTO "Player" ("teamId", name) VALUES (1, 'test')`,
+      );
+      // Should be able to run the seed script again
+      await setupProject({
+        adapter,
+        connectionString,
+        seedScript,
+      });
 
-        expect(
-          (
-            await db.query<{ id: number; name: string; teamId: number }>(
-              `SELECT * FROM "Player"`,
-            )
-          ).length,
-        ).toEqual(13);
-      },
-      { timeout: 70000 },
-    );
+      expect(
+        (
+          await db.query<{ id: number; name: string; teamId: number }>(
+            `SELECT * FROM "Player"`,
+          )
+        ).length,
+      ).toEqual(13);
+    });
   },
 );
