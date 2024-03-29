@@ -4,7 +4,7 @@ import { adapterEntries } from "#test/adapters.js";
 import { setupProject } from "#test/setupProject.js";
 import { type DialectRecordWithDefault } from "../test/types.js";
 
-describe.each(adapterEntries)(
+describe.concurrent.each(adapterEntries)(
   `e2e: constraints: %s`,
   {
     concurrent: true,

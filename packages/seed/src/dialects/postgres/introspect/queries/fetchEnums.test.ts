@@ -7,7 +7,7 @@ const adapters = {
   postgres: () => postgres,
 };
 
-describe.each(["postgres"] as const)("fetchEnums: %s", (adapter) => {
+describe.concurrent.each(["postgres"] as const)("fetchEnums: %s", (adapter) => {
   const { createTestDb, createTestRole } = adapters[adapter]();
   test("should fetch basic enums", async () => {
     const structure = `

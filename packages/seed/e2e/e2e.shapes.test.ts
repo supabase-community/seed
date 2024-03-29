@@ -7,7 +7,7 @@ import { setupProject } from "#test/setupProject.js";
 import { type cliRouter, createCliRouter, trpc } from "#trpc/router.js";
 import { type TableShapePredictions } from "#trpc/shapes.js";
 
-describe.each(adapterEntries)(
+describe.concurrent.each(adapterEntries)(
   `e2e: shapes: %s`,
   {
     concurrent: true,

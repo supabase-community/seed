@@ -5,7 +5,7 @@ import { type DialectRecordWithDefault } from "#test/types.js";
 
 // Used to have the tests code we use in documentation always in check
 // with the latest behaviour. Avoiding to break the documentation by introducing a different behaviour.
-describe.each(adapterEntries)(
+describe.concurrent.each(adapterEntries)(
   `e2e docs: %s`,
   {
     concurrent: true,

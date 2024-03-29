@@ -11,7 +11,7 @@ type SeedConfigRecord = DialectRecordWithDefault<
   (connectionString: string) => string
 >;
 
-describe.each(adapterEntries)(
+describe.concurrent.each(adapterEntries)(
   `e2e: api: %s`,
   {
     concurrent: true,
