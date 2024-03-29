@@ -48,6 +48,7 @@ async function seedSetup(props: {
           noEmit: true,
           emitDeclarationOnly: false,
         },
+        exclude: ["**/*.js"],
       },
       null,
       2,
