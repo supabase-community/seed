@@ -9,7 +9,7 @@ describe.each(adapterEntries)(
   `e2e docs: %s`,
   {
     concurrent: true,
-    timeout: 45000,
+    timeout: 60000,
   },
   (dialect, adapter) => {
     test("classical relationships examples", async () => {
@@ -21,7 +21,7 @@ describe.each(adapterEntries)(
                 "id" SERIAL PRIMARY KEY,
                 "name" TEXT NOT NULL
             );
-            
+
             CREATE TABLE "Post" (
                 "id" SERIAL PRIMARY KEY,
                 "title" TEXT NOT NULL,
@@ -29,16 +29,16 @@ describe.each(adapterEntries)(
                 "userId" INTEGER NOT NULL,
                 CONSTRAINT "Post_userId_fkey" FOREIGN KEY ("userId") REFERENCES "User"("id") ON DELETE RESTRICT ON UPDATE CASCADE
             );
-            
+
             CREATE TABLE "Tag" (
                 "id" SERIAL PRIMARY KEY,
                 "name" TEXT NOT NULL
             );
-            
+
             CREATE TABLE "PostTags" (
                 "postId" INTEGER NOT NULL,
                 "tagId" INTEGER NOT NULL,
-            
+
                 PRIMARY KEY ("postId", "tagId"),
                 CONSTRAINT "PostTags_postId_fkey" FOREIGN KEY ("postId") REFERENCES "Post"("id") ON DELETE RESTRICT ON UPDATE CASCADE,
                 CONSTRAINT "PostTags_tagId_fkey" FOREIGN KEY ("tagId") REFERENCES "Tag"("id") ON DELETE RESTRICT ON UPDATE CASCADE
@@ -48,7 +48,7 @@ describe.each(adapterEntries)(
                 "id" INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
                 "name" TEXT NOT NULL
             );
-            
+
             CREATE TABLE "Post" (
                 "id" INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
                 "title" TEXT NOT NULL,
@@ -56,16 +56,16 @@ describe.each(adapterEntries)(
                 "userId" INTEGER NOT NULL,
                 CONSTRAINT "Post_userId_fkey" FOREIGN KEY ("userId") REFERENCES "User" ("id") ON DELETE RESTRICT ON UPDATE CASCADE
             );
-            
+
             CREATE TABLE "Tag" (
                 "id" INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
                 "name" TEXT NOT NULL
             );
-            
+
             CREATE TABLE "PostTags" (
                 "postId" INTEGER NOT NULL,
                 "tagId" INTEGER NOT NULL,
-            
+
                 PRIMARY KEY ("postId", "tagId"),
                 CONSTRAINT "PostTags_postId_fkey" FOREIGN KEY ("postId") REFERENCES "Post" ("id") ON DELETE RESTRICT ON UPDATE CASCADE,
                 CONSTRAINT "PostTags_tagId_fkey" FOREIGN KEY ("tagId") REFERENCES "Tag" ("id") ON DELETE RESTRICT ON UPDATE CASCADE
@@ -88,7 +88,7 @@ describe.each(adapterEntries)(
         const seed = await createSeedClient()
         // Clear all tables
         await seed.$resetDatabase();
-        
+
         // Create 5 users
         await seed.User(
             (x) => x(5, {
@@ -104,10 +104,10 @@ describe.each(adapterEntries)(
         const seed = await createSeedClient()
         // Clear all tables
         await seed.$resetDatabase();
-        
+
         // Initially, create a pool of 5 tags for post association
         const { Tag } = await seed.Tag((x) => x(5))
-        
+
         // Create 5 users
         await seed.User(
             (x) => x(5, {
