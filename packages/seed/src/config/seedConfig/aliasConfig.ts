@@ -24,6 +24,36 @@ const objectFieldSchema = z.intersection(
 
 const oppositeBaseNameMapSchema = z.record(z.string(), z.string());
 
+export interface InflectionStrategy {
+  childField?: (
+    field: {
+      name: string;
+      relationFromFields: Array<string>;
+      relationToFields: Array<string>;
+      type: string;
+    },
+    oppositeField: {
+      name: string;
+      relationFromFields: Array<string>;
+      relationToFields: Array<string>;
+      type: string;
+    },
+    oppositeBaseNameMap: Record<string, string>,
+  ) => string;
+  modelName?: (name: string) => string;
+  oppositeBaseNameMap?: Record<string, string>;
+  parentField?: (
+    field: {
+      name: string;
+      relationFromFields: Array<string>;
+      relationToFields: Array<string>;
+      type: string;
+    },
+    oppositeBaseNameMap: Record<string, string>,
+  ) => string;
+  scalarField?: (field: { name: string; type: string }) => string;
+}
+
 export const aliasConfigSchema = z.object({
   inflection: z
     .union([
