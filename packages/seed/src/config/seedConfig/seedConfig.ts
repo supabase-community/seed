@@ -4,8 +4,9 @@ import { writeFile } from "node:fs/promises";
 import { join } from "node:path";
 import * as z from "zod";
 import { getRootPath } from "#config/utils.js";
+import { type Inflection } from "#core/dataModel/aliases.js";
 import { adapterConfigSchema } from "./adapterConfig.js";
-import { type InflectionStrategy, aliasConfigSchema } from "./aliasConfig.js";
+import { aliasConfigSchema } from "./aliasConfig.js";
 import { fingerprintConfigSchema } from "./fingerprintConfig.js";
 import { selectConfigSchema } from "./selectConfig.js";
 
@@ -64,7 +65,7 @@ export interface SeedConfig {
      * });
      * ```
      */
-    inflection?: InflectionStrategy | boolean;
+    inflection?: Partial<Inflection> | boolean;
     /**
      * Rename specific tables and columns in the generated Seed Client.
      * This option is useful for resolving renaming conflicts that can arise when using `alias.inflection`.

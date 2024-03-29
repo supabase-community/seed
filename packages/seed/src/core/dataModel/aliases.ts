@@ -30,7 +30,7 @@ interface AliasModelNameConflict {
 }
 
 // inspired by https://www.graphile.org/postgraphile/inflection/
-interface Inflection {
+export interface Inflection {
   childField: (
     field: Field,
     oppositeField: Field,
