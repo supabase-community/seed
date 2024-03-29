@@ -11,7 +11,7 @@ const PG_GEOMETRY_TYPES = new Set([
   "circle",
 ]);
 
-const STRING_TYPES = new Set<string>(JS_TO_PG_TYPES.string);
+const STRING_TYPES = new Set(JS_TO_PG_TYPES.string);
 
 export const determineShapeFromType: DetermineShapeFromType = (
   wrappedType: string,
