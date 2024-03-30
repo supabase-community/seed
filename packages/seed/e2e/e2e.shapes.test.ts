@@ -1,27 +1,13 @@
 import { createHTTPServer } from "@trpc/server/adapters/standalone";
-import { type Server } from "node:http";
 import { type AddressInfo } from "node:net";
 import { promisify } from "node:util";
-import { test as _test, type TestFunction, afterAll, expect } from "vitest";
+import { test as _test, type TestFunction, expect } from "vitest";
 import { adapterEntries } from "#test/adapters.js";
 import { setupProject } from "#test/setupProject.js";
 import { type cliRouter, createCliRouter, trpc } from "#trpc/router.js";
 import { type TableShapePredictions } from "#trpc/shapes.js";
 
-interface ServerContext {
-  close: () => Promise<void>;
-  server: Server;
-  url: string;
-}
-
-let servers: Array<ServerContext> = [];
-
-// Once vitest supports "using" it will be way better!
-const getServer = async ({
-  router,
-}: {
-  router: typeof cliRouter;
-}): Promise<ServerContext> => {
+const getServer = async ({ router }: { router: typeof cliRouter }) => {
   const httpServer = createHTTPServer({
     router,
   }).server;
@@ -32,22 +18,14 @@ const getServer = async ({
     });
   });
 
-  const server = {
+  return {
     url: `http://localhost:${(httpServer.address() as AddressInfo).port}`,
     server: httpServer,
-    close: async () => {
+    [Symbol.asyncDispose]: async () => {
       await promisify(httpServer.close.bind(httpServer))();
     },
   };
-
-  servers.push(server);
-
-  return server;
 };
-
-afterAll(async () => {
-  await Promise.all(servers.map((server) => server.close()));
-});
 
 for (const [dialect, adapter] of adapterEntries) {
   const computeName = (name: string) =>
@@ -58,7 +36,7 @@ for (const [dialect, adapter] of adapterEntries) {
   };
 
   test("generates data using shapes given back by predictions api", async () => {
-    const server = await getServer({
+    await using server = await getServer({
       router: createCliRouter({
         publicProcedure: trpc.procedure.use(async (context) => {
           const result = await context.next();
@@ -141,7 +119,7 @@ for (const [dialect, adapter] of adapterEntries) {
   });
 
   test("generates data using shape examples given back by predictions api", async () => {
-    const server = await getServer({
+    await using server = await getServer({
       router: createCliRouter({
         publicProcedure: trpc.procedure.use(async (context) => {
           const schemaName = dialect === "postgres" ? "public" : "";
@@ -227,7 +205,7 @@ for (const [dialect, adapter] of adapterEntries) {
 
   if (dialect !== "sqlite") {
     test("handles array fields", async () => {
-      const server = await getServer({
+      await using server = await getServer({
         router: createCliRouter({
           publicProcedure: trpc.procedure.use(async (context) => {
             // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
