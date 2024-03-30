@@ -14,6 +14,7 @@ export default defineProject({
     name: pkg.name,
     root,
     testTimeout: 120_000,
-    maxConcurrency: process.env["CI"] ? 6 : 5,
+    // increase maxConcurrency for CI
+    maxConcurrency: process.env["CI"] ? 7 : 5,
   },
 });
