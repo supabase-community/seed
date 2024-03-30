@@ -15,6 +15,7 @@ export default defineProject({
     name: pkg.name,
     root,
     testTimeout: 120_000,
+    maxConcurrency: 7,
   },
   plugins: [
     // add support for "using" in test files
