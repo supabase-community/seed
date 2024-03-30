@@ -17,12 +17,28 @@ const TEST_DATABASE_SERVER =
   "postgres://postgres@127.0.0.1:5432/postgres";
 const TEST_DATABASE_PREFIX = "testdb";
 
+/**
+ * We get a notice logged in the console if the database does not exist.
+ * To avoid that we made this helper.
+ */
+const dropDatabaseIfExists = async (client: DatabaseClient, dbName: string) => {
+  const dbExists =
+    (
+      await client.query(
+        `SELECT 1 FROM pg_database WHERE datname = '${dbName}'`,
+      )
+    ).length > 0;
+  if (dbExists) {
+    await client.execute(`DROP DATABASE IF EXISTS "${dbName}" WITH (force)`);
+  }
+};
+
 const defineCreateTestDb = (state: State) => {
   const connString = TEST_DATABASE_SERVER;
   const dbServerClient = new SeedPostgres(postgres(connString, { max: 1 }));
   const createTestDb = async (structure?: string) => {
     const dbName = `${TEST_DATABASE_PREFIX}${v4()}`;
-    await dbServerClient.execute(`DROP DATABASE IF EXISTS "${dbName}"`);
+    await dropDatabaseIfExists(dbServerClient, dbName);
     await dbServerClient.execute(`CREATE DATABASE "${dbName}"`);
     const client = new SeedPostgres(
       postgres(connString, { max: 1, database: dbName }),
@@ -51,9 +67,7 @@ const defineCreateTestDb = (state: State) => {
     // Close all pools connections on the database, if there is more than one to be able to drop it
     for (const { name } of dbs) {
       try {
-        await dbServerClient.execute(
-          `DROP DATABASE IF EXISTS "${name}" WITH (force)`,
-        );
+        await dropDatabaseIfExists(dbServerClient, name);
       } catch (error) {
         failures.push({
           dbName: name,
