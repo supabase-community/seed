@@ -1,4 +1,3 @@
-import { transform } from "esbuild";
 import { readFileSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
@@ -17,20 +16,7 @@ export default defineProject({
     testTimeout: 120_000,
     maxConcurrency: 7,
   },
-  plugins: [
-    // add support for "using" in test files
-    {
-      name: "esbuild-transform",
-      async transform(code, id) {
-        if (id.endsWith(".test.ts")) {
-          code = (
-            await transform(code, {
-              target: "es2022",
-            })
-          ).code;
-        }
-        return code;
-      },
-    },
-  ],
+  esbuild: {
+    target: "es2022",
+  },
 });
