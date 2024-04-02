@@ -4,7 +4,6 @@
     "@tsconfig/node20"
   ],
   "compilerOptions": {
-    "allowJs": true,
     "composite": true,
     "customConditions": [
       "development"

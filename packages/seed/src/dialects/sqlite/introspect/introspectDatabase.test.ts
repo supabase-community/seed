@@ -9,7 +9,7 @@ const adapters = {
   betterSqlite3: () => betterSqlite3,
 };
 
-describe.each(["betterSqlite3"] as const)(
+describe.concurrent.each(["betterSqlite3"] as const)(
   "introspectDatabase: %s",
   (adapter) => {
     const { createTestDb, createChinookSqliteTestDatabase } =
