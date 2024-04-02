@@ -14,13 +14,10 @@ const scalarFieldSchema = z.object({
   type: z.string(),
 });
 
-const objectFieldSchema = z.intersection(
-  scalarFieldSchema,
-  z.object({
-    relationFromFields: z.array(z.string()),
-    relationToFields: z.array(z.string()),
-  }),
-);
+const objectFieldSchema = scalarFieldSchema.extend({
+  relationFromFields: z.array(z.string()),
+  relationToFields: z.array(z.string()),
+});
 
 const oppositeBaseNameMapSchema = z.record(z.string(), z.string());
 

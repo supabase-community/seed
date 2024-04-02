@@ -47,13 +47,23 @@ async function seedSetup(props: {
         compilerOptions: {
           noEmit: true,
           emitDeclarationOnly: false,
-          allowImportingTsExtensions: true,
         },
-        include: ["*.ts", "*.mts"],
+        exclude: ["**/*.js"],
       },
       null,
       2,
     ),
+  );
+
+  await writeFile(
+    path.join(cwd, "globals.d.ts"),
+    dedent`
+      import "@total-typescript/ts-reset";
+
+      module "exit-hook" {
+        export function gracefulExit(signal?: number): never;
+      }
+    `,
   );
 
   await writeFile(
