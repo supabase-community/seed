@@ -25,7 +25,7 @@ export async function findProjectPath(
       `The specified 'SNAPLET_CWD' directory '${cwd}' does not exist.`,
     );
   }
-  return findUp(".snaplet", { cwd });
+  return findUp(".snaplet", { cwd, type: "directory" });
 }
 
 export async function getProjectConfigPath(projectBase?: string) {
