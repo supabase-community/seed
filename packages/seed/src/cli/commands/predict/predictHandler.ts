@@ -1,3 +1,4 @@
+import { getProjectConfig } from "#config/project/projectConfig.js";
 import { getDataModel } from "#core/dataModel/dataModel.js";
 import { fetchShapeExamples } from "#core/predictions/shapeExamples/fetchShapeExamples.js";
 import { setDataExamples } from "#core/predictions/shapeExamples/setDataExamples.js";
@@ -14,18 +15,18 @@ export async function predictHandler() {
   const dataModel = await getDataModel();
   const dialect = await getDialect();
   const dataExamples: Array<DataExample> = [];
-  // The long term plan is to allow the user to select the project
-  // during init phase and save the projectID in the config
-  // For now we use the first project
-  const projects = await trpc.project.list.query();
-  let selectedProject = projects[0];
+  const projectConfig = await getProjectConfig();
+  if (!projectConfig || !projectConfig.projectId) {
+    spinner.fail("No project found, please run `npx @snaplet/seed init` first");
+    return;
+  }
 
   let columns = columnsToPredict(dataModel, dialect.determineShapeFromType);
   const customDataSet = await trpc.predictions.customSeedDatasetRoute.mutate({
     inputs: columns.map((c) =>
       formatInput([c.schemaName, c.tableName, c.columnName]),
     ),
-    projectId: selectedProject.id,
+    projectId: projectConfig.projectId,
   });
   if (customDataSet.length > 0) {
     columns = columns.filter((c) => {
@@ -36,7 +37,7 @@ export async function predictHandler() {
   }
   const shapePredictions = await fetchShapePredictions(
     columns,
-    selectedProject.id,
+    projectConfig.projectId,
   );
   await setShapePredictions(shapePredictions);
 

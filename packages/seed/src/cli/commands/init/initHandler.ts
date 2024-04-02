@@ -1,3 +1,8 @@
+import {
+  getProjectConfig,
+  saveProjectConfig,
+  selectProject,
+} from "#config/project/projectConfig.js";
 import { seedConfigExists } from "#config/seedConfig/seedConfig.js";
 import { highlight } from "../../lib/output.js";
 import { loginHandler } from "../login/loginHandler.js";
@@ -5,7 +10,6 @@ import { syncHandler } from "../sync/syncHandler.js";
 import { generateSeedScriptExample } from "./generateSeedScriptExample.js";
 import { getAdapter } from "./getAdapter.js";
 import { getUser } from "./getUser.js";
-import { installDependencies } from "./installDependencies.js";
 import { saveSeedConfig } from "./saveSeedConfig.js";
 
 export async function initHandler() {
@@ -23,11 +27,14 @@ export async function initHandler() {
 
   await installDependencies();
 
-  const isFirstTimeInit = !(await seedConfigExists());
+  const isFirstTimeInit =
+    !(await seedConfigExists()) || !(await getProjectConfig());
 
   if (isFirstTimeInit) {
-    const adapter = await getAdapter();
+    const projectId = await selectProject();
+    await saveProjectConfig({ config: { projectId } });
 
+    const adapter = await getAdapter();
     await saveSeedConfig({ adapter });
   }
 
