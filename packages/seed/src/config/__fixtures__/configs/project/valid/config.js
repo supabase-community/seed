@@ -1,5 +1,5 @@
 const x = {
-  projectId: '123',
-}
+  projectId: "123",
+};
 
-module.exports = x
+module.exports = x;
