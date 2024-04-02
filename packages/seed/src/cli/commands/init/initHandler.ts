@@ -10,6 +10,7 @@ import { syncHandler } from "../sync/syncHandler.js";
 import { generateSeedScriptExample } from "./generateSeedScriptExample.js";
 import { getAdapter } from "./getAdapter.js";
 import { getUser } from "./getUser.js";
+import { installDependencies } from "./installDependencies.js";
 import { saveSeedConfig } from "./saveSeedConfig.js";
 
 export async function initHandler() {
