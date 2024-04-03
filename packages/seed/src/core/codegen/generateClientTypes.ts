@@ -589,11 +589,6 @@ ${Object.keys(dataModel.models)
   )
   .join(EOL)}
   /**
-   * Reset the client's state.
-   */
-  $reset(): void;
-
-  /**
    * Delete all data in the database while preserving the database structure.
    */
   $resetDatabase(selectConfig?: SelectConfig): Promise<unknown>;
@@ -602,11 +597,6 @@ ${Object.keys(dataModel.models)
    * Get the global store.
    */
   $store: Store;
-
-  /**
-   * Get a new client. This is useful if you don't want to alter the current client's state.
-   */
-  $transaction<T>(callback: (seed: SeedClient) => Promise<T>): Promise<T>;
 }`;
 }
 
