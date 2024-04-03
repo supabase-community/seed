@@ -16,17 +16,28 @@ export function generateSelectTypeFromTableIds(
   tableIds: Array<string>,
 ): string {
   const uniqueTableIds = Array.from(new Set(tableIds));
+
+  const wildcardPatterns = `\`\${string}${SELECT_WILDCARD_STRING}\` | \`${SELECT_WILDCARD_STRING}\${string}\` | \`${SELECT_WILDCARD_STRING}\${string}${SELECT_WILDCARD_STRING}\``;
+
+  let selectOptions: string;
+  if (uniqueTableIds.length > 0) {
+    selectOptions = [
+      `type TablesOptions = ${EOL}${uniqueTableIds.map((id) => `  "${id}"`).join(` |${EOL}`)}`,
+      `type SelectOptions = TablesOptions | ${wildcardPatterns}`,
+    ].join(EOL);
+  } else {
+    selectOptions = `type SelectOptions = ${wildcardPatterns}`;
+  }
+
   return [
     `//#region selectTypes`,
     `type PartialRecord<K extends keyof any, T> = {
       [P in K]?: T;
   };`,
-    uniqueTableIds.length > 0
-      ? `type TablesOptions = \n${uniqueTableIds.map((id) => `\t"${id}"`).join(" |\n")}\ntype SelectOptions = TablesOptions | \`\${string}${SELECT_WILDCARD_STRING}\``
-      : `type SelectOptions = \`\${string}${SELECT_WILDCARD_STRING}\``,
+    selectOptions,
     `type SelectConfig = PartialRecord<SelectOptions, boolean>`,
     `//#endregion`,
-  ].join("\n");
+  ].join(EOL);
 }
 
 function generateSelectTypes(dataModel: DataModel): string {
