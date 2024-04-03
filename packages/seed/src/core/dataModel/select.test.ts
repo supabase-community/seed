@@ -5,7 +5,7 @@ import { type SelectConfig } from "#config/seedConfig/selectConfig.js";
 import { computeIncludedTables, getSelectFilteredDataModel } from "./select.js";
 import { type DataModel } from "./types.js";
 
-describe.only("computeIncludedTables", () => {
+describe("computeIncludedTables", () => {
   test("basic test 1", () => {
     const tableIds = [
       "public.table1",
