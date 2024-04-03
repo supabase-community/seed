@@ -113,10 +113,6 @@ export abstract class SeedClientBase implements SeedClient {
   ): Promise<void>;
 
   abstract $syncDatabase(): Promise<void>;
-
-  abstract $transaction(
-    _cb: (snaplet: SeedClient) => Promise<void>,
-  ): Promise<void>;
 }
 
 interface SeedClient {
@@ -127,8 +123,6 @@ interface SeedClient {
   $store: Store["_store"];
 
   $syncDatabase: () => Promise<void>;
-
-  $transaction: (_cb: (seed: SeedClient) => Promise<void>) => Promise<void>;
 }
 
 export const setupClient = async <Client extends SeedClient>(props: {
