@@ -1,9 +1,10 @@
+import { type SelectConfig } from "#config/seedConfig/selectConfig.js";
 import { computeIncludedTables } from "#core/dataModel/select.js";
 import { type DataModelModel } from "#core/dataModel/types.js";
 
 export function filterModelsBySelectConfig(
   models: Array<DataModelModel>,
-  selectConfig?: Record<string, boolean>,
+  selectConfig?: SelectConfig,
 ) {
   let filteredModels = Object.values(models);
   if (selectConfig !== undefined) {
