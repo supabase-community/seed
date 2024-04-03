@@ -1,5 +1,4 @@
 import { EOL } from "node:os";
-import { SELECT_WILDCARD_STRING } from "#config/seedConfig/selectConfig.js";
 import { type DataModel, type DataModelField } from "../dataModel/types.js";
 import { escapeKey } from "../utils.js";
 
@@ -16,17 +15,21 @@ export function generateSelectTypeFromTableIds(
   tableIds: Array<string>,
 ): string {
   const uniqueTableIds = Array.from(new Set(tableIds));
+
+  const selectOptions =
+    uniqueTableIds.length > 0
+      ? `type SelectOptions = TablesOptions | string`
+      : `type SelectOptions = string`;
+
   return [
     `//#region selectTypes`,
     `type PartialRecord<K extends keyof any, T> = {
       [P in K]?: T;
   };`,
-    uniqueTableIds.length > 0
-      ? `type TablesOptions = \n${uniqueTableIds.map((id) => `\t"${id}"`).join(" |\n")}\ntype SelectOptions = TablesOptions | \`\${string}${SELECT_WILDCARD_STRING}\``
-      : `type SelectOptions = \`\${string}${SELECT_WILDCARD_STRING}\``,
-    `type SelectConfig = PartialRecord<SelectOptions, boolean>`,
+    selectOptions,
+    `type SelectConfig = Array<SelectOptions>`,
     `//#endregion`,
-  ].join("\n");
+  ].join(EOL);
 }
 
 function generateSelectTypes(dataModel: DataModel): string {
@@ -202,19 +205,24 @@ type TypedConfig = {
    */
   fingerprint?: Fingerprint;
   /**
-   * Exclude tables from the generated Seed Client.
-   * For excluding multiple tables at once, you can use a wildcard character \`*\` at the end of the table name.
+   * Exclude or include tables from the generated Seed Client.
+   * You can specify glob patterns to match tables. The patterns are executed in order.
    *
-   * @example
+   * @example Exclude all tables containing \`access_logs\` and all tables in the \`auth\` schema:
    * \`\`\`ts seed.client.ts
    * import { defineConfig } from "@snaplet/seed/config";
    *
    * export default defineConfig({
-   *   select: {
-   *     "archive*": false,
-   *     "access_logs": false,
-   *     "auth.*": false,
-   *   },
+   *   select: ["!*access_logs*", "!auth.*"],
+   * });
+   * \`\`\`
+   *
+   * @example Exclude all tables except the \`public\` schema:
+   * \`\`\`ts seed.client.ts
+   * import { defineConfig } from "@snaplet/seed/config";
+   *
+   * export default defineConfig({
+   *   select: ["!*", "public.*"],
    * });
    * \`\`\`
    */
