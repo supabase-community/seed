@@ -130,7 +130,6 @@ const generateDefaultsForModel = (props: {
   ) as Array<DataModelScalarField>;
 
   for (const field of scalarFields) {
-    console.log("field", field.name);
     const predictionData: {
       examples: Array<string>;
       input?: string;
@@ -142,14 +141,11 @@ const generateDefaultsForModel = (props: {
         (prediction) => prediction.column === field.columnName,
       ) ?? null;
 
-    console.log("fieldShapePrediction", fieldShapePrediction);
-
     const customExample = props.dataExamples.find(
       (e) =>
         e.input ===
         formatInput([model.schemaName ?? "", model.tableName, field.name]),
     );
-    console.log("customExample", customExample);
     if (customExample) {
       predictionData.input = customExample.input;
       predictionData.examples = customExample.examples;
@@ -165,7 +161,6 @@ const generateDefaultsForModel = (props: {
             ?.examples ?? [];
       }
     }
-    console.log("predictionData", JSON.stringify(predictionData, null, 2));
     const fieldFingerprint = fingerprint?.[field.name] ?? null;
 
     if (!shouldGenerateFieldValue(field)) {
