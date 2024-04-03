@@ -1,7 +1,5 @@
-import {
-  SELECT_WILDCARD_STRING,
-  type SelectConfig,
-} from "../../config/seedConfig/selectConfig.js";
+import multimatch from "multimatch";
+import { type SelectConfig } from "../../config/seedConfig/selectConfig.js";
 import { SnapletError } from "../utils.js";
 import { type DataModel, type DataModelObjectField } from "./types.js";
 import { groupFields } from "./utils.js";
@@ -10,44 +8,31 @@ export function computeIncludedTables(
   tableIds: Array<string>,
   selectConfig: SelectConfig,
 ) {
-  const wildcardSelect = Object.fromEntries(
-    Object.entries(selectConfig).filter(([key]) =>
-      key.endsWith(SELECT_WILDCARD_STRING),
-    ),
-  );
-  const strictSelect = Object.fromEntries(
-    Object.entries(selectConfig).filter(
-      ([key]) => !key.endsWith(SELECT_WILDCARD_STRING),
-    ),
-  );
-  const wildcardMatchers = Object.keys(wildcardSelect).map((key) =>
-    // We remve the * from the key to match the tableIds with startsWith
-    key.slice(0, -SELECT_WILDCARD_STRING.length),
-  );
-  return tableIds.filter((tableId) => {
-    const tableStrictSelect = strictSelect[tableId];
-    // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
-    if (tableStrictSelect !== undefined) {
-      return tableStrictSelect;
-    }
-    // We get all the wildcard matchers that match the tableId
-    const matchingWildcard = wildcardMatchers.filter((matcher) =>
-      tableId.startsWith(matcher),
+  const tables = tableIds.reduce<Record<string, boolean>>((acc, tableId) => {
+    acc[tableId] = true;
+    return acc;
+  }, {});
+
+  for (const pattern of selectConfig) {
+    const matches = multimatch(
+      tableIds,
+      pattern.startsWith("!") ? ["*", pattern] : pattern,
     );
-    // We choose the most specific wildcard matcher for the tableId by sorting
-    // them by length and taking the last one
-    const mostSpecificWildcard = matchingWildcard.sort(
-      (a, b) => b.length - a.length,
-    )[0];
-    // If we have a most specific wildcard matcher we return its value
-    // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
-    if (mostSpecificWildcard !== undefined) {
-      return wildcardSelect[`${mostSpecificWildcard}${SELECT_WILDCARD_STRING}`];
+    // If the pattern starts with a ! we pass all the unmatched tables to false
+    if (pattern.startsWith("!")) {
+      for (const tableId of tableIds) {
+        if (!matches.includes(tableId)) {
+          tables[tableId] = false;
+        }
+      }
+    } else {
+      for (const tableId of matches) {
+        tables[tableId] = true;
+      }
     }
-    // If we don't have a most specific wildcard matcher we return true
-    // to include the table by default
-    return true;
-  });
+  }
+
+  return tableIds.filter((tableId) => tables[tableId]);
 }
 
 function getTableRelationsErrors(

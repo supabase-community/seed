@@ -1,11 +1,11 @@
 import { readFileSync } from "fs-extra";
 import path from "node:path";
 import { describe, expect, test } from "vitest";
-import { SELECT_WILDCARD_STRING } from "../../config/seedConfig/selectConfig.js";
+import { type SelectConfig } from "#config/seedConfig/selectConfig.js";
 import { computeIncludedTables, getSelectFilteredDataModel } from "./select.js";
 import { type DataModel } from "./types.js";
 
-describe("computeIncludedTables", () => {
+describe.only("computeIncludedTables", () => {
   test("basic test 1", () => {
     const tableIds = [
       "public.table1",
@@ -14,11 +14,7 @@ describe("computeIncludedTables", () => {
       "public._table4",
       "public._table5",
     ];
-    const selectConfig = {
-      [`public${SELECT_WILDCARD_STRING}`]: false,
-      "public.table1": true,
-      [`public._${SELECT_WILDCARD_STRING}`]: false,
-    };
+    const selectConfig = ["!public*", "public.table1", "!public._*"];
     const result = computeIncludedTables(tableIds, selectConfig);
     expect(result).toEqual(["public.table1"]);
   });
@@ -30,10 +26,7 @@ describe("computeIncludedTables", () => {
       "public._table4",
       "public._table5",
     ];
-    const selectConfig = {
-      "public.table1": true,
-      [`public._${SELECT_WILDCARD_STRING}`]: false,
-    };
+    const selectConfig = ["public.table1", "!public._*"];
     const result = computeIncludedTables(tableIds, selectConfig);
     expect(result).toEqual(["public.table1", "public.table2", "public.table3"]);
   });
@@ -45,10 +38,7 @@ describe("computeIncludedTables", () => {
       "public._table4",
       "public._table5",
     ];
-    const selectConfig = {
-      "public.table1": false,
-      [`public._${SELECT_WILDCARD_STRING}`]: false,
-    };
+    const selectConfig = ["!public.table1", "!public._*"];
     const result = computeIncludedTables(tableIds, selectConfig);
     expect(result).toEqual(["public.table2", "public.table3"]);
   });
@@ -60,11 +50,7 @@ describe("computeIncludedTables", () => {
       "public._table4",
       "public._prisma_migrations",
     ];
-    const selectConfig = {
-      "public.table1": false,
-      [`public._${SELECT_WILDCARD_STRING}`]: false,
-      [`public._prisma${SELECT_WILDCARD_STRING}`]: true,
-    };
+    const selectConfig = ["!public.table1", "!public._*", "public._prisma*"];
     const result = computeIncludedTables(tableIds, selectConfig);
     expect(result).toEqual([
       "public.table2",
@@ -80,7 +66,7 @@ describe("computeIncludedTables", () => {
       "public._table4",
       "public._prisma_migrations",
     ];
-    const selectConfig = {};
+    const selectConfig: Array<string> = [];
     const result = computeIncludedTables(tableIds, selectConfig);
     expect(result).toEqual([
       "public.table1",
@@ -102,9 +88,7 @@ describe("getSelectFilteredDataModel", () => {
     ),
   ) as DataModel;
   test("should remove children relationship when the target table is excluded", () => {
-    const selectConfig = {
-      test_order: false,
-    };
+    const selectConfig: SelectConfig = ["!test_order"];
     expect(getSelectFilteredDataModel(sqliteDataModel, selectConfig)).toEqual(
       expect.objectContaining({
         models: {
@@ -167,15 +151,13 @@ describe("getSelectFilteredDataModel", () => {
     );
   });
   test("should throw error if we exclude a table with parent relations to other tables", () => {
-    const selectConfig = {
-      test_customer: false,
-    };
+    const selectConfig: SelectConfig = ["!test_customer"];
     expect(() =>
       getSelectFilteredDataModel(sqliteDataModel, selectConfig),
     ).toThrowErrorMatchingInlineSnapshot("[SnapletError]");
   });
   test("should untouch with empty select", () => {
-    const selectConfig = {};
+    const selectConfig: SelectConfig = [];
     expect(getSelectFilteredDataModel(sqliteDataModel, selectConfig)).toEqual(
       expect.objectContaining(sqliteDataModel),
     );

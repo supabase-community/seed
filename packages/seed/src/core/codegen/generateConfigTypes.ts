@@ -1,5 +1,4 @@
 import { EOL } from "node:os";
-import { SELECT_WILDCARD_STRING } from "#config/seedConfig/selectConfig.js";
 import { type DataModel, type DataModelField } from "../dataModel/types.js";
 import { escapeKey } from "../utils.js";
 
@@ -17,21 +16,10 @@ export function generateSelectTypeFromTableIds(
 ): string {
   const uniqueTableIds = Array.from(new Set(tableIds));
 
-  const wildcardPatterns = [
-    `\`\${string}${SELECT_WILDCARD_STRING}\``,
-    `\`${SELECT_WILDCARD_STRING}\${string}\``,
-    `\`${SELECT_WILDCARD_STRING}\${string}${SELECT_WILDCARD_STRING}\``,
-  ].join(" | ");
-
-  let selectOptions: string;
-  if (uniqueTableIds.length > 0) {
-    selectOptions = [
-      `type TablesOptions = ${EOL}${uniqueTableIds.map((id) => `  "${id}"`).join(` |${EOL}`)}`,
-      `type SelectOptions = TablesOptions | ${wildcardPatterns}`,
-    ].join(EOL);
-  } else {
-    selectOptions = `type SelectOptions = ${wildcardPatterns}`;
-  }
+  const selectOptions =
+    uniqueTableIds.length > 0
+      ? `type SelectOptions = TablesOptions | string`
+      : `type SelectOptions = string`;
 
   return [
     `//#region selectTypes`,
@@ -39,7 +27,7 @@ export function generateSelectTypeFromTableIds(
       [P in K]?: T;
   };`,
     selectOptions,
-    `type SelectConfig = PartialRecord<SelectOptions, boolean>`,
+    `type SelectConfig = Array<SelectOptions>`,
     `//#endregion`,
   ].join(EOL);
 }

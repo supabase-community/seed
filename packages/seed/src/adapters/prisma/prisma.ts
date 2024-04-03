@@ -67,9 +67,7 @@ export const prismaAdapter = {
         const client = new PrismaClient(${parameters});
         return new SeedPrisma(client);
       },
-      select: {
-        "*_prisma_migrations": false,
-      },
+      select: ["!*_prisma_migrations"],
     });
   `,
 } satisfies Adapter;
