@@ -205,19 +205,24 @@ type TypedConfig = {
    */
   fingerprint?: Fingerprint;
   /**
-   * Exclude tables from the generated Seed Client.
-   * For excluding multiple tables at once, you can use a wildcard character \`*\` at the end of the table name.
+   * Exclude or include tables from the generated Seed Client.
+   * You can specify glob patterns to match tables. The patterns are executed in order.
    *
-   * @example
+   * @example Exclude all tables containing \`access_logs\` and all tables in the \`auth\` schema:
    * \`\`\`ts seed.client.ts
    * import { defineConfig } from "@snaplet/seed/config";
    *
    * export default defineConfig({
-   *   select: {
-   *     "archive*": false,
-   *     "access_logs": false,
-   *     "auth.*": false,
-   *   },
+   *   select: ["!*access_logs*", "!auth.*"],
+   * });
+   * \`\`\`
+   *
+   * @example Exclude all tables except the \`public\` schema:
+   * \`\`\`ts seed.client.ts
+   * import { defineConfig } from "@snaplet/seed/config";
+   *
+   * export default defineConfig({
+   *   select: ["!*", "public.*"],
    * });
    * \`\`\`
    */
