@@ -1,7 +1,7 @@
 {
   "name": "@snaplet/seed",
   "type": "module",
-  "version": "0.89.4",
+  "version": "0.90.0",
   "sideEffects": false,
   "bin": {
     "snaplet-seed": "./bin/cli.js"
@@ -20,7 +20,7 @@
     "README.md"
   ],
   "description": "An auto-generated ORM-like library for generating seed data tailored to your own database",
-  "homepage": "https://snaplet.dev",
+  "homepage": "https://snaplet.dev/seed",
   "license": "MIT",
   "imports": {
     "#*": {
@@ -112,6 +112,7 @@
     "vitest": "1.4.0"
   },
   "peerDependencies": {
+    "@prisma/client": ">=5",
     "@snaplet/copycat": ">=2",
     "@types/better-sqlite3": "*",
     "@types/pg": "*",
@@ -120,6 +121,9 @@
     "postgres": ">=3"
   },
   "peerDependenciesMeta": {
+    "@prisma/client": {
+      "optional": true
+    },
     "@types/better-sqlite3": {
       "optional": true
     },
@@ -157,6 +161,7 @@
     "javascript-stringify": "^2.1.0",
     "json-schema-library": "^9.3.1",
     "kleur": "^4.1.5",
+    "multimatch": "^7.0.0",
     "ora": "^8.0.1",
     "portfinder": "^1.0.32",
     "posthog-node": "^4.0.0",
@@ -177,6 +182,7 @@
     "start:dev": "tsx --conditions development src/cli/index.ts",
     "start:server": "tsx --conditions development src/trpc/server.ts",
     "release:alpha": "tsx scripts/release-alpha.mts",
+    "release:latest": "tsx scripts/release-latest.mts",
     "type-check": "tsc --build",
     "test": "vitest run src",
     "test:e2e": "vitest run e2e",

@@ -1,3 +1,4 @@
+import { type SelectConfig } from "#config/seedConfig/selectConfig.js";
 import { type DialectId } from "#dialects/dialects.js";
 import { type DataModel } from "../dataModel/types.js";
 import { type Fingerprint } from "../fingerprint/types.js";
@@ -108,9 +109,7 @@ export abstract class SeedClientBase implements SeedClient {
     return this.state.store._store;
   }
 
-  abstract $resetDatabase(
-    selectConfig?: Record<string, boolean>,
-  ): Promise<void>;
+  abstract $resetDatabase(selectConfig?: SelectConfig): Promise<void>;
 
   abstract $syncDatabase(): Promise<void>;
 }
@@ -118,7 +117,7 @@ export abstract class SeedClientBase implements SeedClient {
 interface SeedClient {
   $reset: () => void;
 
-  $resetDatabase: (selectConfig?: Record<string, boolean>) => Promise<void>;
+  $resetDatabase: (selectConfig?: SelectConfig) => Promise<void>;
 
   $store: Store["_store"];
 
