@@ -17,7 +17,11 @@ export function generateSelectTypeFromTableIds(
 ): string {
   const uniqueTableIds = Array.from(new Set(tableIds));
 
-  const wildcardPatterns = `\`\${string}${SELECT_WILDCARD_STRING}\` | \`${SELECT_WILDCARD_STRING}\${string}\` | \`${SELECT_WILDCARD_STRING}\${string}${SELECT_WILDCARD_STRING}\``;
+  const wildcardPatterns = [
+    `\`\${string}${SELECT_WILDCARD_STRING}\``,
+    `\`${SELECT_WILDCARD_STRING}\${string}\``,
+    `\`${SELECT_WILDCARD_STRING}\${string}${SELECT_WILDCARD_STRING}\``,
+  ].join(" | ");
 
   let selectOptions: string;
   if (uniqueTableIds.length > 0) {
