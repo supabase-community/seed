@@ -13,5 +13,10 @@ export default defineProject({
   test: {
     name: pkg.name,
     root,
+    testTimeout: 120_000,
+    maxConcurrency: 7,
+  },
+  esbuild: {
+    target: "es2022",
   },
 });

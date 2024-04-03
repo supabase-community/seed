@@ -6,7 +6,7 @@ const adapters = {
   postgres: () => postgres,
 };
 
-describe.each(["postgres"] as const)(
+describe.concurrent.each(["postgres"] as const)(
   "fetchUniqueConstraints: %s",
   (adapter) => {
     const { createTestDb } = adapters[adapter]();

@@ -70,7 +70,52 @@ ${dataModel.models[modelName].fields
   .join(EOL)}}`;
 
   const alias = `export type Alias = {
+  /**
+   * Apply a global renaming strategy to all tables and columns in the generated Seed Client.
+   *
+   * When \`true\`, a default strategy is applied:
+   *
+   * - **Model names:** pluralized and camelCased.
+   * - **Scalar field names:** camelCased.
+   * - **Parent field names (one to one relationships):** singularized and camelCased.
+   * - **Child field names (one to many relationships):** pluralized and camelCased.
+   * - We also support prefix extraction and opposite baseName for foreign keys inspired by [PostGraphile](https://github.com/graphile/pg-simplify-inflector#naming-your-foreign-key-fields).
+   *
+   * @example
+   * \`\`\`ts seed.client.ts
+   * import { defineConfig } from "@snaplet/seed/config";
+   *
+   * export default defineConfig({
+   *   alias: {
+   *     inflection: true,
+   *   },
+   * });
+   * \`\`\`
+   */
   inflection?: Inflection | boolean;
+  /**
+   * Rename specific tables and columns in the generated Seed Client.
+   * This option is useful for resolving renaming conflicts that can arise when using \`alias.inflection\`.
+   *
+   * @example
+   * \`\`\`ts seed.client.ts
+   * import { defineConfig } from "@snaplet/seed/config";
+   *
+   * export default defineConfig({
+   *   alias: {
+   *     override: {
+   *       Book: {
+   *         name: "books",
+   *         fields: {
+   *           User: "author",
+   *           published_at: "publishedAt",
+   *         },
+   *       },
+   *     },
+   *   },
+   * });
+   * \`\`\`
+   */
   override?: Override;
 };`;
 
@@ -129,23 +174,49 @@ function generateDefineConfigTypes() {
   return `
 type TypedConfig = {
   /**
-   * Parameter to define your database client adapter.
-   * {@link https://docs.snaplet.dev/core-concepts/seed}
+   * The database adapter to use.
+   *
+   * @example
+   * \`\`\`ts seed.config.ts
+   * import { SeedPostgres } from "@snaplet/seed/adapter-postgres";
+   * import { defineConfig } from "@snaplet/seed/config";
+   * import postgres from "postgres";
+   *
+   * export default defineConfig({
+   *   adapter: () => {
+   *     const client = postgres(process.env.DATABASE_URL);
+   *     return new SeedPostgres(client);
+   *   },
+   * });
+   * \`\`\`
+   *
+   * To learn more about the available adapters, see the [Adapters](https://docs.snaplet.dev/seed/reference/adapters) reference.
    */
   adapter: () => import("@snaplet/seed/adapter").DatabaseClient | Promise<import("@snaplet/seed/adapter").DatabaseClient>;
   /**
-   * Parameter to customize fields and relationships names.
-   * {@link https://docs.snaplet.dev/core-concepts/seed}
+   * Customize fields and relationships names.
    */
   alias?: Alias;
   /**
-   * Parameter to customize the fingerprinting.
-   * {@link https://docs.snaplet.dev/core-concepts/seed}
+   * Customize the fingerprinting.
    */
   fingerprint?: Fingerprint;
   /**
-   * Parameter to configure the inclusion/exclusion of schemas and tables from the seeds.
-   * {@link https://docs.snaplet.dev/reference/configuration#select}
+   * Exclude tables from the generated Seed Client.
+   * For excluding multiple tables at once, you can use a wildcard character \`*\` at the end of the table name.
+   *
+   * @example
+   * \`\`\`ts seed.client.ts
+   * import { defineConfig } from "@snaplet/seed/config";
+   *
+   * export default defineConfig({
+   *   select: {
+   *     "archive*": false,
+   *     "access_logs": false,
+   *     "auth.*": false,
+   *   },
+   * });
+   * \`\`\`
    */
     select?: SelectConfig;
   };
