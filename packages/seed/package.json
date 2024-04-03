@@ -20,7 +20,7 @@
     "README.md"
   ],
   "description": "An auto-generated ORM-like library for generating seed data tailored to your own database",
-  "homepage": "https://snaplet.dev",
+  "homepage": "https://snaplet.dev/seed",
   "license": "MIT",
   "imports": {
     "#*": {
@@ -112,6 +112,7 @@
     "vitest": "1.4.0"
   },
   "peerDependencies": {
+    "@prisma/client": ">=5",
     "@snaplet/copycat": ">=2",
     "@types/better-sqlite3": "*",
     "@types/pg": "*",
@@ -120,6 +121,9 @@
     "postgres": ">=3"
   },
   "peerDependenciesMeta": {
+    "@prisma/client": {
+      "optional": true
+    },
     "@types/better-sqlite3": {
       "optional": true
     },
