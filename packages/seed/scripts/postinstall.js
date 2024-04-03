@@ -2,10 +2,10 @@
 /* eslint-disable @typescript-eslint/no-unsafe-argument */
 /* eslint-disable @typescript-eslint/prefer-promise-reject-errors */
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
-/* eslint-disable @typescript-eslint/no-var-requires */
-const childProcess = require("node:child_process");
-const fs = require("node:fs");
-const path = require("node:path");
+
+import childProcess from "node:child_process";
+import fs from "node:fs";
+import path from "node:path";
 
 // @ts-expect-error - No types
 function run(cmd, params, cwd = process.cwd()) {
@@ -41,6 +41,19 @@ function addPackageJSON(pth) {
 }
 
 /**
+ * Read the content of a package.json
+ * @param {string} pth - Path to the `package.json`
+ * @returns {any | null}
+ */
+function readPackageJSON(pth) {
+  try {
+    return JSON.parse(fs.readFileSync(pth, "utf-8"));
+  } catch {
+    return null;
+  }
+}
+
+/**
  * Looks up for a `package.json` which is not `@prisma/cli` or `prisma` and returns the directory of the package
  * @param {string | null} startPath - Path to Start At
  * @param {number} limit - Find Up limit
@@ -54,7 +67,7 @@ function findPackageRoot(startPath, limit = 10) {
     const pkgPath = addPackageJSON(currentPath);
     if (fs.existsSync(pkgPath)) {
       try {
-        const pkg = require(pkgPath);
+        const pkg = readPackageJSON(pkgPath);
         if (pkg.name && !["@snaplet/seed"].includes(pkg.name)) {
           return pkgPath.replace("package.json", "");
         }
@@ -83,15 +96,15 @@ function haveValidSeedProject(root) {
 }
 
 async function main() {
-  const root = findPackageRoot(process.cwd(), 10);
-  if (!root) {
-    return 0;
+  try {
+    const root = findPackageRoot(process.cwd(), 10);
+    if (root && haveValidSeedProject(root)) {
+      await run("npx", ["@snaplet/seed", "generate"], root);
+    }
+  } catch (e) {
+    console.error("An error occurred while running postinstall script", e);
   }
-  if (!haveValidSeedProject(root)) {
-    await run("npx", ["@snaplet/seed", "generate"], root);
-    return 0;
-  }
-  return 1;
+  return 0;
 }
 
 void main();
