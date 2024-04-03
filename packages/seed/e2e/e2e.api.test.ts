@@ -18,84 +18,6 @@ for (const [dialect, adapter] of adapterEntries) {
     _test.concurrent(computeName(name), fn);
   };
 
-  test("seed.$reset works as expected", async () => {
-    const schema: SchemaRecord = {
-      default: `
-          CREATE TABLE "user" (
-            "id" SERIAL PRIMARY KEY,
-            "email" text NOT NULL
-          );
-        `,
-      sqlite: `
-          CREATE TABLE "user" (
-            "id" INTEGER PRIMARY KEY AUTOINCREMENT,
-            "email" text NOT NULL
-          );
-          `,
-    };
-
-    const { db } = await setupProject({
-      adapter,
-      databaseSchema: schema[dialect] ?? schema.default,
-      seedScript: `
-        import { createSeedClient } from "#seed"
-
-        const seed = await createSeedClient()
-        await seed.users((x) => x(2))
-
-        seed.$reset()
-
-        try {
-          await seed.users((x) => x(2))
-        } catch (e) {
-          console.log(e)
-        }
-      `,
-    });
-
-    // Check if the tables have been populated with the correct number of entries
-    expect((await db.query('SELECT * FROM "user"')).length).toEqual(2);
-  });
-
-  test("seed.$transaction works as expected", async () => {
-    const schema: SchemaRecord = {
-      default: `
-          CREATE TABLE "user" (
-            "id" SERIAL PRIMARY KEY,
-            "email" text NOT NULL
-          );
-        `,
-      sqlite: `
-          CREATE TABLE "user" (
-            "id" INTEGER PRIMARY KEY AUTOINCREMENT,
-            "email" text NOT NULL
-          );
-          `,
-    };
-
-    const { db } = await setupProject({
-      adapter,
-      databaseSchema: schema[dialect] ?? schema.default,
-      seedScript: `
-        import { createSeedClient } from "#seed"
-
-        const seed = await createSeedClient()
-        await seed.$transaction(async (seed) => {
-          await seed.users((x) => x(3))
-        })
-
-        try {
-          await seed.users((x) => x(3))
-        } catch (e) {
-          console.log(e)
-        }
-      `,
-    });
-
-    // Check if the tables have been populated with the correct number of entries
-    expect((await db.query('SELECT * FROM "user"')).length).toEqual(3);
-  });
-
   test("seed.<model> supports async column generate callbacks", async () => {
     const { db } = await setupProject({
       adapter,
@@ -199,11 +121,11 @@ for (const [dialect, adapter] of adapterEntries) {
     const seedConfig: SeedConfigRecord = {
       default: (connectionString) =>
         adapter.generateSeedConfig(connectionString, {
-          select: `{ "BABA": false }`,
+          select: `["!BABA"]`,
         }),
       postgres: (connectionString) =>
         adapter.generateSeedConfig(connectionString, {
-          select: `{ "public.BABA": false }`,
+          select: `["!public.BABA"]`,
         }),
     };
 
@@ -256,13 +178,13 @@ for (const [dialect, adapter] of adapterEntries) {
           import { createSeedClient } from '#seed'
 
           const seed = await createSeedClient()
-          await seed.$resetDatabase({ "BABA": false })
+          await seed.$resetDatabase(["!BABA"])
         `,
       postgres: `
           import { createSeedClient } from '#seed'
 
           const seed = await createSeedClient()
-          await seed.$resetDatabase({ "public.BABA": false })
+          await seed.$resetDatabase(["!public.BABA"])
         `,
     };
 
@@ -309,13 +231,13 @@ for (const [dialect, adapter] of adapterEntries) {
           import { createSeedClient } from '#seed'
 
           const seed = await createSeedClient()
-          await seed.$resetDatabase({ "BA*": false })
+          await seed.$resetDatabase(["!BA*"])
         `,
       postgres: `
           import { createSeedClient } from '#seed'
 
           const seed = await createSeedClient()
-          await seed.$resetDatabase({ "public.BA*": false })
+          await seed.$resetDatabase(["!public.BA*"])
         `,
     };
 
@@ -334,69 +256,6 @@ for (const [dialect, adapter] of adapterEntries) {
 
     expect((await db.query('SELECT * FROM "BABBA"')).length).toBe(2);
     expect((await db.query('SELECT * FROM "BABA"')).length).toBe(2);
-  });
-
-  test("seed.$resetDatabase should not allow to pass a table already excluded in the config", async () => {
-    const tableName: SchemaRecord = {
-      default: "BABA",
-      postgres: "public.BABA",
-    };
-    const schema: SchemaRecord = {
-      default: `
-          CREATE TABLE "BABBA" (
-            "id" SERIAL PRIMARY KEY
-          );
-
-          CREATE TABLE "BABA" (
-            "id" SERIAL PRIMARY KEY
-          );
-        `,
-      sqlite: `
-          CREATE TABLE "BABBA" (
-            "id" INTEGER PRIMARY KEY AUTOINCREMENT
-          );
-          CREATE TABLE "BABA" (
-            "id" INTEGER PRIMARY KEY AUTOINCREMENT
-          );
-        `,
-    };
-
-    const seedConfig: SeedConfigRecord = {
-      default: (connectionString) =>
-        adapter.generateSeedConfig(connectionString, {
-          select: `{ "${tableName[dialect] ?? tableName.default}": false }`,
-        }),
-      postgres: (connectionString) =>
-        adapter.generateSeedConfig(connectionString, {
-          select: `{ "${tableName[dialect] ?? tableName.default}": false }`,
-        }),
-    };
-
-    const seedScript: SeedScriptRecord = {
-      default: `
-          import { createSeedClient } from '#seed'
-
-          const seed = await createSeedClient()
-          await seed.$resetDatabase({ "BABA": false })
-        `,
-      postgres: `
-          import { createSeedClient } from '#seed'
-
-          const seed = await createSeedClient()
-          await seed.$resetDatabase({ "${tableName[dialect] ?? tableName.default}": false })
-        `,
-    };
-
-    await expect(() =>
-      setupProject({
-        adapter,
-        seedConfig: seedConfig[dialect] ?? seedConfig.default,
-        databaseSchema: schema[dialect] ?? schema.default,
-        seedScript: seedScript[dialect] ?? seedScript.default,
-      }),
-    ).rejects.toThrow(
-      `'"${tableName[dialect] ?? tableName.default}"' does not exist in type 'SelectConfig'`,
-    );
   });
 
   test("seed.$resetDatabase reset tables even if there is data with foreign keys in it", async () => {
@@ -541,7 +400,7 @@ for (const [dialect, adapter] of adapterEntries) {
     test("seed.$resetDatabase should not reset config excluded schema", async () => {
       const seedConfig = (connectionString: string) =>
         adapter.generateSeedConfig(connectionString, {
-          select: `{ "hdb_catalog.*": false }`,
+          select: `["!hdb_catalog.*"]`,
         });
 
       const seedScript = `
@@ -607,7 +466,7 @@ for (const [dialect, adapter] of adapterEntries) {
     test("seed.$resetDatabase should not reset config excluded table", async () => {
       const seedConfig = (connectionString: string) =>
         adapter.generateSeedConfig(connectionString, {
-          select: `{ "hdb_catalog.SystemSettings": false }`,
+          select: `["!hdb_catalog.SystemSettings"]`,
         });
       const seedScript = `
       import { createSeedClient } from "#seed"

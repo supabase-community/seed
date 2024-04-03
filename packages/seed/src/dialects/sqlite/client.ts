@@ -1,5 +1,6 @@
 import { EOL } from "node:os";
 import { getDatabaseClient } from "#adapters/getDatabaseClient.js";
+import { type SelectConfig } from "#config/seedConfig/selectConfig.js";
 import { SeedClientBase, setupClient } from "#core/client/client.js";
 import { type SeedClientOptions } from "#core/client/types.js";
 import { filterModelsBySelectConfig } from "#core/client/utils.js";
@@ -43,7 +44,7 @@ export function getSeedClient(props: {
       this.options = options;
     }
 
-    async $resetDatabase(selectConfig?: Record<string, boolean>) {
+    async $resetDatabase(selectConfig?: SelectConfig) {
       const models = Object.values(this.dataModel.models);
       const filteredModels = filterModelsBySelectConfig(models, selectConfig);
       if (!this.dryRun) {
@@ -63,10 +64,6 @@ export function getSeedClient(props: {
       // TODO: fix this, it's a hack
       const nextDataModel = await getDatamodel(this.db);
       this.dataModel = updateDataModelSequences(this.dataModel, nextDataModel);
-    }
-
-    async $transaction(cb: (seed: SqliteSeedClient) => Promise<void>) {
-      await cb(await createSeedClient(this.options));
     }
   }
 
