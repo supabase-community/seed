@@ -54,7 +54,7 @@ function readPackageJSON(pth) {
 }
 
 /**
- * Looks up for a `package.json` which is not `@prisma/cli` or `prisma` and returns the directory of the package
+ * Looks up for a `package.json` which is not `@snaplet/seed` and returns the directory of the package
  * @param {string | null} startPath - Path to Start At
  * @param {number} limit - Find Up limit
  * @returns {string | null}
