@@ -66,10 +66,6 @@ export function getSeedClient(props: {
       const nextDataModel = await getDatamodel(this.db);
       this.dataModel = updateDataModelSequences(this.dataModel, nextDataModel);
     }
-
-    async $transaction(cb: (seed: PgSeedClient) => Promise<void>) {
-      await cb(await createSeedClient(this.options));
-    }
   }
 
   const createSeedClient = async (options?: SeedClientOptions) => {
