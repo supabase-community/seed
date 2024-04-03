@@ -9,7 +9,7 @@ import { getAccessTokenFromHttpServer } from "./getAccessTokenFromHttpServer.js"
 export async function loginHandler() {
   const port = await getPort();
 
-  const accessTokenUrl = `${SNAPLET_APP_URL}/access-token/cli?port=${port}`;
+  const accessTokenUrl = `${SNAPLET_APP_URL}/access-token/cli-auto?port=${port}`;
 
   console.log(`Please visit the following URL in your web browser:`);
   console.log(link(accessTokenUrl));
