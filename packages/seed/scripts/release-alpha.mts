@@ -22,7 +22,7 @@ const versionToRelease = gitAlphaVersion;
 const channel = "alpha";
 
 try {
-  releaseSnapletSeed({ versionToRelease, channel, dryRun: false });
+  releaseSnapletSeed({ versionToRelease, channel, dryRun: true });
   process.exit(0);
 } catch (error) {
   process.exit(1);
