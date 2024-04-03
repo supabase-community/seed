@@ -17,11 +17,12 @@
   "files": [
     "bin",
     "dist",
+    "LICENSE.md",
     "README.md"
   ],
   "description": "An auto-generated ORM-like library for generating seed data tailored to your own database",
   "homepage": "https://snaplet.dev/seed",
-  "license": "MIT",
+  "license": "FSL-1.1-MIT",
   "imports": {
     "#*": {
       "development": "./src/*",
