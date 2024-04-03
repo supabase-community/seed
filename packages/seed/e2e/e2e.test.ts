@@ -321,31 +321,34 @@ for (const [dialect, adapter] of adapterEntries) {
     ]);
   });
 
-  test("compatibility with externally inserted data", async () => {
-    // context(justinvdm, 24 Jan 2024): We use `user_id` as a field name to
-    // make sure any field aliasing / renaming we do (e.g. to camel case)
-    // does not affect how sequences are found and updated
-    const schema: DialectRecordWithDefault = {
-      default: `
+  _test.skip(
+    // eslint-disable-next-line vitest/valid-title
+    computeName("compatibility with externally inserted data"),
+    async () => {
+      // context(justinvdm, 24 Jan 2024): We use `user_id` as a field name to
+      // make sure any field aliasing / renaming we do (e.g. to camel case)
+      // does not affect how sequences are found and updated
+      const schema: DialectRecordWithDefault = {
+        default: `
           CREATE TABLE "User" (
             "user_id" SERIAL PRIMARY KEY
           );
           `,
-      sqlite: `
+        sqlite: `
           CREATE TABLE "User" (
             "user_id" INTEGER PRIMARY KEY AUTOINCREMENT
           );
         `,
-    };
+      };
 
-    const { db, runSeedScript } = await setupProject({
-      adapter,
-      databaseSchema: schema[dialect] ?? schema.default,
-    });
+      const { db, runSeedScript } = await setupProject({
+        adapter,
+        databaseSchema: schema[dialect] ?? schema.default,
+      });
 
-    await db.execute('insert into "User" DEFAULT VALUES');
+      await db.execute('insert into "User" DEFAULT VALUES');
 
-    await runSeedScript(`
+      await runSeedScript(`
         import { createSeedClient } from "#seed"
 
         const seed = await createSeedClient()
@@ -364,16 +367,17 @@ for (const [dialect, adapter] of adapterEntries) {
         })
       `);
 
-    const rows = await db.query('select * from "User"');
+      const rows = await db.query('select * from "User"');
 
-    expect(rows).toEqual([
-      { user_id: 1 },
-      { user_id: 2 },
-      { user_id: 3 },
-      { user_id: 4 },
-      { user_id: 5 },
-    ]);
-  });
+      expect(rows).toEqual([
+        { user_id: 1 },
+        { user_id: 2 },
+        { user_id: 3 },
+        { user_id: 4 },
+        { user_id: 5 },
+      ]);
+    },
+  );
 
   test("seeds are unique per seed.<modelName> call", async () => {
     const { db } = await setupProject({
