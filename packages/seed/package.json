@@ -17,11 +17,13 @@
   "files": [
     "bin",
     "dist",
+    "scripts/postinstall.js",
+    "LICENSE.md",
     "README.md"
   ],
   "description": "An auto-generated ORM-like library for generating seed data tailored to your own database",
   "homepage": "https://snaplet.dev/seed",
-  "license": "MIT",
+  "license": "FSL-1.1-MIT",
   "imports": {
     "#*": {
       "development": "./src/*",
@@ -173,6 +175,7 @@
     "zod": "^3.22.4"
   },
   "scripts": {
+    "postinstall": "node ./scripts/postinstall.js",
     "build": "tsc --build tsconfig.build.json && tsx scripts/patch-defineConfig.mts",
     "clean": "rm -rf .dts .turbo dist .eslintcache",
     "lint": "eslint --cache . --max-warnings 0",
