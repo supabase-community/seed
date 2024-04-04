@@ -175,20 +175,20 @@
     "zod": "^3.22.4"
   },
   "scripts": {
-    "postinstall": "echo 'stubbed command since seed in new repo:' node ./scripts/postinstall.js",
-    "build": "echo 'stubbed command since seed in new repo:' tsc --build tsconfig.build.json && tsx scripts/patch-defineConfig.mts",
-    "clean": "echo 'stubbed command since seed in new repo:' rm -rf .dts .turbo dist .eslintcache",
-    "lint": "echo 'stubbed command since seed in new repo:' eslint --cache . --max-warnings 0",
-    "lint:fix": "echo 'stubbed command since seed in new repo:' eslint --cache . --max-warnings 0 --fix",
-    "start": "echo 'stubbed command since seed in new repo:' node dist/cli/index.js",
-    "start:dev": "echo 'stubbed command since seed in new repo:' tsx --conditions development src/cli/index.ts",
-    "start:server": "echo 'stubbed command since seed in new repo:' tsx --conditions development src/trpc/server.ts",
-    "release:alpha": "echo 'stubbed command since seed in new repo:' tsx scripts/release-alpha.mts",
-    "release:latest": "echo 'stubbed command since seed in new repo:' tsx scripts/release-latest.mts",
-    "type-check": "echo 'stubbed command since seed in new repo:' tsc --build",
-    "test": "echo 'stubbed command since seed in new repo:' vitest run src",
-    "test:e2e": "echo 'stubbed command since seed in new repo:' vitest run e2e",
-    "test:debug": "echo 'stubbed command since seed in new repo:' vitest run",
-    "test:watch": "echo 'stubbed command since seed in new repo:' vitest"
+    "postinstall": "node ./scripts/postinstall.js",
+    "build": "tsc --build tsconfig.build.json && tsx scripts/patch-defineConfig.mts",
+    "clean": "rm -rf .dts .turbo dist .eslintcache",
+    "lint": "eslint --cache . --max-warnings 0",
+    "lint:fix": "eslint --cache . --max-warnings 0 --fix",
+    "start": "node dist/cli/index.js",
+    "start:dev": "tsx --conditions development src/cli/index.ts",
+    "start:server": "tsx --conditions development src/trpc/server.ts",
+    "release:alpha": "tsx scripts/release-alpha.mts",
+    "release:latest": "tsx scripts/release-latest.mts",
+    "type-check": "tsc --build",
+    "test": "vitest run src",
+    "test:e2e": "vitest run e2e",
+    "test:debug": "vitest run",
+    "test:watch": "vitest"
   }
 }
