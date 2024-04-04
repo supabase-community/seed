@@ -1,5 +1,6 @@
 import { type copycat } from "@snaplet/copycat";
 import { type Json } from "#core/data/types.js";
+import { jsonStringify } from "#core/utils.js";
 import { type TemplateContext, type TemplateFn } from "./types.js";
 
 type Copycat = typeof copycat;
@@ -75,9 +76,9 @@ export const generateCopycatCall = <
   let optionsArg: null | string = null;
 
   if (optionsInput != null && hasOwnOptions) {
-    optionsArg = `{ ...${JSON.stringify(options)}, ...${optionsInput} }`;
+    optionsArg = `{ ...${jsonStringify(options)}, ...${optionsInput} }`;
   } else if (optionsInput == null && hasOwnOptions) {
-    optionsArg = JSON.stringify(options);
+    optionsArg = jsonStringify(options);
   } else if (optionsInput != null && !hasOwnOptions) {
     optionsArg = optionsInput;
   }
@@ -104,9 +105,7 @@ export const copycatTemplate = <MethodName extends CopycatMethodName>(
   options?: CopycatTemplateOptions<MethodName>,
 ): TemplateFn => {
   const { wrap } = options ?? {};
-  const serializedArgs = (options?.args ?? []).map((arg) =>
-    JSON.stringify(arg),
-  );
+  const serializedArgs = (options?.args ?? []).map((arg) => jsonStringify(arg));
 
   const templateFn: TemplateFn = (context) => {
     const code = generateCopycatCall({

@@ -11,7 +11,7 @@ import globals from "globals";
 
 export const recommended = [
   {
-    ignores: ["**/{.cache,.dts,dist,node_modules,playwright,test-results}"],
+    ignores: ["**/{.cache,.dts,.tmp,dist,node_modules,playwright,test-results}"],
   },
   {
     linterOptions: {
@@ -80,7 +80,8 @@ export const recommended = [
       ...prettierConfig.rules,
       ...prettierPlugin.configs.recommended.rules,
       "dot-notation": "off",
-      "@typescript-eslint/dot-notation": "error"
+      "@typescript-eslint/dot-notation": "error",
+      "@typescript-eslint/restrict-template-expressions": "off",
     },
   },
   {
@@ -90,6 +91,8 @@ export const recommended = [
     },
     rules: {
       ...vitestPlugin.configs.recommended.rules,
+      // This rule is not working for `describe.each`
+      "vitest/valid-describe-callback": "off",
       // Disable the rule for expect.arrayContainting matcher to not cause issue
       "@typescript-eslint/no-unsafe-assignment": "off",
     },

@@ -1,5 +1,6 @@
-import { type Shape } from "#trpc/shapes.js";
-import { unpackNestedType } from "../../core/dialect/unpackNestedType.js";
+import { type DetermineShapeFromType } from "#core/dialect/types.js";
+import { unpackNestedType } from "#core/dialect/unpackNestedType.js";
+import { JS_TO_PG_TYPES } from "./utils.js";
 
 const PG_GEOMETRY_TYPES = new Set([
   "point",
@@ -10,9 +11,11 @@ const PG_GEOMETRY_TYPES = new Set([
   "circle",
 ]);
 
-export const determineShapeFromType = (
+const STRING_TYPES = new Set(JS_TO_PG_TYPES.string);
+
+export const determineShapeFromType: DetermineShapeFromType = (
   wrappedType: string,
-): "__DEFAULT" | Shape | null => {
+) => {
   const [type] = unpackNestedType(wrappedType);
 
   // Return deterministic shapes based on type
@@ -27,6 +30,10 @@ export const determineShapeFromType = (
   }
 
   if (PG_GEOMETRY_TYPES.has(type)) {
+    return "__DEFAULT";
+  }
+
+  if (!STRING_TYPES.has(type)) {
     return "__DEFAULT";
   }
 

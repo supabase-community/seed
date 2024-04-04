@@ -1,3 +1,4 @@
+import { EOL } from "node:os";
 import { type DataModelModel } from "./dataModel/types.js";
 
 export const dedupePreferLast = <Value>(values: Array<Value>): Array<Value> =>
@@ -8,7 +9,7 @@ export const dedupePreferLast = <Value>(values: Array<Value>): Array<Value> =>
 // * Our code and libraries (e.g. @snaplet/seed) used inside of jest - jest overrides global objects
 // * Dual package hazard: (https://nodejs.org/api/packages.html#dual-package-hazard) - this can happen, for e.g, if
 // for some reason two versions of our packages or their dependencies end up in the same runtime for a user
-// * Comparing values created inside of a sandbox (e.g. an evaluated snaplet.config.ts file) with constructors created
+// * Comparing values created inside of a sandbox (e.g. an evaluated seed.config.ts file) with constructors created
 // outside of that sandbox
 export const isInstanceOf = <
   Constructor extends new (...args: Array<unknown>) => unknown,
@@ -52,21 +53,22 @@ export function escapeKey(key: string): string {
   }
 }
 
-export const ERROR_CODES = {
+const ERROR_CODES = {
   SEED_ALIAS_MODEL_NAME_CONFLICTS: 9300,
   SEED_SELECT_RELATIONSHIP_ERROR: 9301,
+  SEED_ADAPTER_CANNOT_CONNECT: 9302,
 
   PACKAGE_NOT_EXISTS: 9400,
 };
 
 type CodeType = keyof typeof ERROR_CODES;
 
-export interface AliasModelNameConflict {
+interface AliasModelNameConflict {
   aliasName: string;
   models: Map<string, DataModelModel>;
 }
 
-export interface SeedSelectRelationshipError {
+interface SeedSelectRelationshipError {
   relationName: string;
   relationToTable: string;
 }
@@ -74,6 +76,9 @@ export interface SeedSelectRelationshipError {
 interface Data extends Record<CodeType, unknown> {
   PACKAGE_NOT_EXISTS: {
     packageName: string;
+  };
+  SEED_ADAPTER_CANNOT_CONNECT: {
+    error: Error;
   };
   SEED_ALIAS_MODEL_NAME_CONFLICTS: {
     conflicts: Array<AliasModelNameConflict>;
@@ -88,15 +93,27 @@ const errorToStringMappings: {
   [K in CodeType]: (data: Data[K]) => string;
 } = {
   SEED_ALIAS_MODEL_NAME_CONFLICTS: (data) => {
-    const conflictDetails = data.conflicts
-      .map((conflict) => {
-        const models = Array.from(conflict.models.entries())
-          .map(([modelName, model]) => `${modelName}: ${model.id}`)
-          .join(", ");
-        return `Alias Name: ${conflict.aliasName}, Models: { ${models} }`;
-      })
-      .join("; ");
-    return `Details: [${conflictDetails}]`;
+    const conflicts = data.conflicts
+      .map(
+        (conflict) => `* Alias "${conflict.aliasName}" maps to: ${[
+          ...conflict.models.values(),
+        ]
+          .map((model) =>
+            [model.schemaName, model.tableName].filter(Boolean).join("."),
+          )
+          .join(", ")}
+`,
+      )
+      .join("\n");
+
+    return `
+Your database has some table names that would end up being aliased to the same names. To resolve this, add alias \`overrides\` for these tables in your \`seed.config.ts\` file.
+
+More on this in the docs: https://docs.snaplet.dev/core-concepts/seed#override
+
+The following table names conflict:
+${conflicts}
+`;
   },
   SEED_SELECT_RELATIONSHIP_ERROR: (data) => {
     const errorDetails = data.errors
@@ -107,12 +124,17 @@ const errorToStringMappings: {
       .join("; ");
     return `Select configuration cause constraint relationship error\nDetails: ${errorDetails}`;
   },
+  SEED_ADAPTER_CANNOT_CONNECT: (data) =>
+    [
+      `Unable to connect to the database. Please check the \`adapter\` key in your \`seed.config.ts\` file`,
+      `Details: ${data.error}`,
+    ].join(EOL),
   PACKAGE_NOT_EXISTS: (data) => {
     return `Please install required package: '${data.packageName}'`;
   },
 };
 
-export interface SnapletErrorBase<Code extends CodeType = CodeType> {
+interface SnapletErrorBase<Code extends CodeType = CodeType> {
   readonly _tag: string;
   code: Code;
   data: Data[Code];
@@ -137,6 +159,18 @@ export class SnapletError<Code extends CodeType = CodeType>
     this.data = data;
   }
 
+  static instanceof<Code extends CodeType = CodeType>(
+    err: unknown,
+    code?: Code,
+  ): err is SnapletError<Code> {
+    const isSnapletError =
+      (err as Record<string, unknown> | undefined)?.["_tag"] === "SnapletError";
+
+    return (
+      isSnapletError && (code == null || (err as SnapletError).code === code)
+    );
+  }
+
   override toString(): string {
     const formatter = errorToStringMappings[this.code];
     // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
@@ -148,10 +182,17 @@ export class SnapletError<Code extends CodeType = CodeType>
   }
 }
 
-export async function assertPackage(packageName: string) {
-  try {
-    await import(packageName);
-  } catch (e) {
-    throw new SnapletError("PACKAGE_NOT_EXISTS", { packageName });
-  }
+function jsonReplacer(_key: string, value: unknown) {
+  // If the type is a bigint we convert it to a number to jsonify it like a number
+  // if the number is above max Number value, we don't handle it and it'll be saved as 3.123e+23
+  // which is not the best but will at least be converted back to a number when parsed
+  return typeof value === "bigint" ? Number(value) : value;
+}
+
+export function jsonStringify(
+  value: unknown,
+  replacer = jsonReplacer,
+  space = 0,
+) {
+  return JSON.stringify(value, replacer, space);
 }

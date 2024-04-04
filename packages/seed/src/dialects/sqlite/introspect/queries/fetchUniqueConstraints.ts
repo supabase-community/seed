@@ -1,4 +1,4 @@
-import { type DrizzleDbClient } from "#core/adapters.js";
+import { type DatabaseClient } from "#core/databaseClient.js";
 
 export interface FetchUniqueConstraintsResult {
   /**
@@ -65,7 +65,7 @@ const FETCH_PRIMARY_KEYS_CONSTRAINTS = `
     alltables.name, colinfo.name
 `;
 
-export async function fetchUniqueConstraints(client: DrizzleDbClient) {
+export async function fetchUniqueConstraints(client: DatabaseClient) {
   const uniqueIndexesResponse =
     await client.query<FetchUniqueConstraintsResultRaw>(
       FETCH_UNIQUE_CONSTRAINTS,

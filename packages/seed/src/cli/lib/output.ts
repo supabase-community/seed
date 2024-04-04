@@ -4,15 +4,23 @@ import ora from "ora";
 import terminalLink from "terminal-link";
 
 export function eraseLines(numberOfLines: number) {
-  return ansiEscapes.eraseLines(numberOfLines);
+  process.stdout.write(ansiEscapes.eraseLines(numberOfLines));
 }
 
-export function link(href: string) {
-  return terminalLink(href, href);
+export function link(text: string, url?: string) {
+  return terminalLink(text, url ?? text);
 }
 
 export const spinner = ora();
 
 export function highlight(text: string) {
   return kleur.bold().underline(text);
+}
+
+export function bold(text: string) {
+  return kleur.bold(text);
+}
+
+export function dim(text: string) {
+  return kleur.dim(text);
 }

@@ -1,10 +1,13 @@
+import dedent from "dedent";
 import { findUp } from "find-up";
 import { mkdirp } from "fs-extra/esm";
 import { writeFile } from "node:fs/promises";
 import path from "node:path";
+import { type SeedConfig } from "#config/seedConfig/seedConfig.js";
 import { type DataModel } from "#core/dataModel/types.js";
 import { type Dialect } from "#core/dialect/types.js";
 import { type Fingerprint } from "#core/fingerprint/types.js";
+import { jsonStringify } from "#core/utils.js";
 import { type TableShapePredictions } from "#trpc/shapes.js";
 import { generateUserModels } from "./userModels/generateUserModels.js";
 
@@ -13,6 +16,8 @@ export interface CodegenContext {
   dialect: Dialect;
   fingerprint: Fingerprint;
   outputDir?: string;
+  rawDataModel: DataModel;
+  seedConfig: SeedConfig;
   shapeExamples: Array<{ examples: Array<string>; shape: string }>;
   shapePredictions: Array<TableShapePredictions>;
 }
@@ -21,58 +26,74 @@ const FILES = {
   PKG: {
     name: "package.json",
     template() {
-      return `{
-  "name": "__snaplet",
-  "type": "module",
-  "exports": {
-    "default": "./index.js",
-    "types": "./index.d.ts"
-  }
-}`;
+      return dedent`{
+        "name": "__snaplet",
+        "type": "module",
+        "exports": {
+          ".": {
+            "types": "./index.d.ts",
+            "default": "./index.js"
+          },
+          "./config": {
+            "types": "./defineConfig.d.ts"
+          }
+        }
+      }`;
     },
   },
   INDEX: {
     name: "index.js",
-    template({ dataModel }: CodegenContext) {
-      return `
-import { readFileSync } from "node:fs";
-import { dirname, join } from "node:path";
-import { fileURLToPath } from "node:url";
+    template({ dialect }: CodegenContext) {
+      return dedent`
+        import { readFileSync } from "node:fs";
+        import { dirname, join } from "node:path";
+        import { fileURLToPath } from "node:url";
 
-import { getSeedClient } from "@snaplet/seed/dialects/${dataModel.dialect}/client";
-import { userModels } from "./${FILES.USER_MODELS.name}";
+        import { getSeedClient } from "@snaplet/seed/dialects/${dialect.id}/client";
+        import { userModels } from "./${FILES.USER_MODELS.name}";
 
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = dirname(__filename);
+        const __filename = fileURLToPath(import.meta.url);
+        const __dirname = dirname(__filename);
 
-const dataModel = JSON.parse(readFileSync(join(__dirname, "${FILES.DATA_MODEL.name}")));
+        const dataModel = JSON.parse(readFileSync(join(__dirname, "${FILES.DATA_MODEL.name}")));
 
-export const createSeedClient = getSeedClient({ dataModel, userModels });
-`;
+        export const createSeedClient = getSeedClient({ dataModel, userModels });
+      `;
     },
   },
   TYPEDEFS: {
     name: "index.d.ts",
-    template({ dialect, dataModel, fingerprint }: CodegenContext) {
-      return dialect.generateClientTypes({ dataModel, fingerprint });
+    template({ dialect, dataModel, fingerprint, seedConfig }: CodegenContext) {
+      return dialect.generateClientTypes({
+        dataModel,
+        fingerprint,
+        seedConfig,
+      });
+    },
+  },
+  CONFIGTYPEDEFS: {
+    name: "defineConfig.d.ts",
+    template: async ({ dialect, dataModel, rawDataModel }: CodegenContext) => {
+      const configTypes = await dialect.generateConfigTypes({
+        dataModel,
+        rawDataModel,
+      });
+      return `
+      declare module "@snaplet/seed/config" {
+        ${configTypes}
+      }`;
     },
   },
   DATA_MODEL: {
     name: "dataModel.json",
     template({ dataModel }: CodegenContext) {
-      return JSON.stringify(dataModel);
+      return jsonStringify(dataModel);
     },
   },
   USER_MODELS: {
     name: "userModels.js",
     template(context: CodegenContext) {
       return generateUserModels(context);
-    },
-  },
-  SHAPE_EXAMPLES: {
-    name: "shapeExamples.json",
-    template({ shapeExamples }: CodegenContext) {
-      return JSON.stringify(shapeExamples);
     },
   },
 } as const;
@@ -95,4 +116,6 @@ export const generateAssets = async (context: CodegenContext) => {
     const filePath = path.join(packageDirPath, file.name);
     await writeFile(filePath, await file.template(context));
   }
+
+  return packageDirPath;
 };

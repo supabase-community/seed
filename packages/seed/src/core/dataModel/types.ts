@@ -1,5 +1,7 @@
+import { type DialectId } from "#dialects/dialects.js";
+
 export interface DataModel {
-  dialect: "mysql" | "postgres" | "sqlite";
+  dialect: DialectId;
   enums: Record<string, DataModelEnum>;
   models: Record<string, DataModelModel>;
 }
@@ -20,6 +22,7 @@ export interface DataModelModel {
 export interface DataModelUniqueConstraint {
   fields: Array<string>;
   name: string;
+  nullNotDistinct?: boolean;
 }
 
 export interface DataModelSequence {

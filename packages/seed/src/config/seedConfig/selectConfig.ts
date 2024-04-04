@@ -1,15 +1,5 @@
 import * as z from "zod";
 
-export const SELECT_WILDCARD_STRING = "*" as const;
-
-// Select config must be something like:
-// {
-//   select: {
-//     'public.*': false,               // set default schema to false
-//     'public.tableName': true,        // specifically allow tableName
-//     'public._.*': false,            // in public schema ignore all tables strating with underscore
-//   }
-// }
-export const selectConfigSchema = z.record(z.string(), z.boolean());
+export const selectConfigSchema = z.array(z.string());
 
 export type SelectConfig = z.infer<typeof selectConfigSchema>;

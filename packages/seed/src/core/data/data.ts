@@ -3,7 +3,11 @@ import { isInstanceOf } from "../utils.js";
 import { type Json, type Serializable } from "./types.js";
 
 export const serializeValue = (value: Serializable): Json | undefined => {
-  return isInstanceOf(value, Date) ? value.toISOString() : value;
+  return typeof value === "bigint"
+    ? value.toString()
+    : isInstanceOf(value, Date)
+      ? value.toISOString()
+      : value;
 };
 
 export const serializeModelValues = (

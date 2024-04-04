@@ -1,9 +1,9 @@
-import { type DrizzleDbClient } from "#core/adapters.js";
+import { type DatabaseClient } from "#core/databaseClient.js";
 import { buildSchemaExclusionClause } from "./utils.js";
 
 interface FetchSequencesResult {
-  current: number;
-  interval: number;
+  current: bigint | number;
+  interval: bigint | number;
   name: string;
   schema: string;
   start: number;
@@ -21,7 +21,7 @@ FROM
 WHERE ${buildSchemaExclusionClause("pg_sequences.schemaname")}
 `;
 
-export async function fetchSequences(client: DrizzleDbClient) {
+export async function fetchSequences(client: DatabaseClient) {
   const response = await client.query<FetchSequencesResult>(FETCH_SEQUENCES);
 
   return response.map((r) => ({

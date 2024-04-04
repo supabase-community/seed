@@ -1,8 +1,8 @@
 import { sortBy } from "remeda";
-import { type DrizzleDbClient } from "#core/adapters.js";
+import { type DatabaseClient } from "#core/databaseClient.js";
 // We crawl over the types to get the common SQL types
 // so they must be ordered by
-export const COMMON_SQL_TYPES = [
+const COMMON_SQL_TYPES = [
   "INT2",
   "INT8",
   "INTEGER",
@@ -82,13 +82,13 @@ export function mapCommonTypesToAffinity(
   }
 }
 
-export const COLUMN_CONSTRAINTS = {
+const COLUMN_CONSTRAINTS = {
   PRIMARY_KEY: "p",
   FOREIGN_KEY: "f",
   UNIQUE: "u",
 } as const;
 
-export type ColumnConstraintType =
+type ColumnConstraintType =
   (typeof COLUMN_CONSTRAINTS)[keyof typeof COLUMN_CONSTRAINTS];
 
 export interface SelectColumnsResult {
@@ -102,7 +102,7 @@ export interface SelectColumnsResult {
   type: string;
 }
 
-export interface SelectTablesResult {
+interface SelectTablesResult {
   name: string;
   ncol: number;
   schema: string;
@@ -159,11 +159,11 @@ export const FETCH_TABLE_COLUMNS_LIST = `
     alltables.name, ti.cid
 `;
 
-export interface FetchTableForeignKeysResultRaw {
+interface FetchTableForeignKeysResultRaw {
   fkFromColumn: string;
   fkId: number;
   fkSeq: number;
-  fkToColumn: string;
+  fkToColumn: null | string;
   fkToTable: string;
   tableId: string;
   tableName: string;
@@ -187,7 +187,7 @@ ORDER BY
   alltables.name, fk.id
 `;
 
-export interface FetchCompositePrimaryKeysResultRaw {
+interface FetchCompositePrimaryKeysResultRaw {
   idxColName: string;
   tableName: string;
 }
@@ -208,7 +208,7 @@ ORDER BY
 `;
 
 export async function fetchTablesAndColumns(
-  client: DrizzleDbClient,
+  client: DatabaseClient,
 ): Promise<Array<FetchTableAndColumnsResult>> {
   const groupedResults: Record<string, FetchTableAndColumnsResult> = {};
   const resultsColumns = await client.query<FetchTableAndColumnsResultRaw>(

@@ -1,20 +1,15 @@
-import { drizzle as drizzleBetterSqlite } from "drizzle-orm/better-sqlite3";
 import { describe, expect, test } from "vitest";
-import { sqlite } from "#test";
-import { createDrizzleORMSqliteClient } from "../../adapters.js";
+import { betterSqlite3 } from "#test/sqlite/better-sqlite3/index.js";
 import { fetchDatabaseRelationships } from "./fetchDatabaseRelationships.js";
 
 const adapters = {
-  betterSqlite3: () => ({
-    ...sqlite.betterSqlite3,
-    drizzle: drizzleBetterSqlite,
-  }),
+  betterSqlite3: () => betterSqlite3,
 };
 
-describe.each(["betterSqlite3"] as const)(
+describe.concurrent.each(["betterSqlite3"] as const)(
   "fetchDatabaseRelationships: %s",
   (adapter) => {
-    const { drizzle, createTestDb } = adapters[adapter]();
+    const { createTestDb } = adapters[adapter]();
     test("should return empty array if no relations", async () => {
       const structure = `
         CREATE TABLE "Courses" (
@@ -28,9 +23,7 @@ describe.each(["betterSqlite3"] as const)(
         );
       `;
       const { client } = await createTestDb(structure);
-      const relationships = await fetchDatabaseRelationships(
-        createDrizzleORMSqliteClient(drizzle(client)),
-      );
+      const relationships = await fetchDatabaseRelationships(client);
       expect(relationships.length).toEqual(0);
     });
 
@@ -62,15 +55,109 @@ describe.each(["betterSqlite3"] as const)(
         );
       `;
       const { client } = await createTestDb(structure);
-      const relationships = await fetchDatabaseRelationships(
-        createDrizzleORMSqliteClient(drizzle(client)),
-      );
+      const relationships = await fetchDatabaseRelationships(client);
       expect(relationships).toEqual(
         expect.arrayContaining([
           {
             fkTable: "Enrollments",
             id: "Enrollments_CourseID_fkey",
 
+            keys: [
+              {
+                fkColumn: "CourseID",
+                fkType: "INTEGER",
+                fkAffinity: "integer",
+                nullable: false,
+                targetColumn: "CourseID",
+                targetType: "INTEGER",
+                targetAffinity: "integer",
+              },
+            ],
+            targetTable: "Courses",
+          },
+          {
+            fkTable: "Enrollments",
+            id: "Enrollments_StudentID_fkey",
+
+            keys: [
+              {
+                fkColumn: "StudentID",
+                fkType: "INTEGER",
+                fkAffinity: "integer",
+                nullable: false,
+                targetColumn: "StudentID",
+                targetType: "INTEGER",
+                targetAffinity: "integer",
+              },
+            ],
+            targetTable: "Students",
+          },
+          {
+            fkTable: "Grades",
+            id: "Grades_CourseID_StudentID_fkey",
+
+            keys: [
+              {
+                fkColumn: "CourseID",
+                fkType: "INTEGER",
+                fkAffinity: "integer",
+                nullable: false,
+                targetColumn: "CourseID",
+                targetType: "INTEGER",
+                targetAffinity: "integer",
+              },
+              {
+                fkColumn: "StudentID",
+                fkType: "INTEGER",
+                fkAffinity: "integer",
+                nullable: false,
+                targetColumn: "StudentID",
+                targetType: "INTEGER",
+                targetAffinity: "integer",
+              },
+            ],
+            targetTable: "Enrollments",
+          },
+        ]),
+      );
+    });
+
+    test("should use primary FK if column relation is not referenced", async () => {
+      const structure = `
+        CREATE TABLE "Courses" (
+          "CourseID" INTEGER PRIMARY KEY AUTOINCREMENT,
+          "CourseName" TEXT NOT NULL
+        );
+        CREATE TABLE "Students" (
+            "StudentID" INTEGER PRIMARY KEY AUTOINCREMENT,
+            "FirstName" TEXT NOT NULL,
+            "LastName" TEXT NOT NULL
+        );
+        CREATE TABLE "Enrollments" (
+            "CourseID" INTEGER NOT NULL,
+            "StudentID" INTEGER NOT NULL,
+            PRIMARY KEY ("CourseID", "StudentID"),
+            -- This FK is not referencing a column we should default to the table Courses PRIMARY key (which is CourseID)
+            FOREIGN KEY ("CourseID") REFERENCES "Courses",
+            FOREIGN KEY ("StudentID") REFERENCES "Students"("StudentID")
+        );
+        CREATE TABLE "Grades" (
+            "CourseID" INTEGER NOT NULL,
+            "StudentID" INTEGER NOT NULL,
+            "ExamName" TEXT NOT NULL,
+            "Grade" REAL NOT NULL,
+            PRIMARY KEY ("CourseID", "StudentID", "ExamName"),
+            -- This FK is not referencing a column we should default to the table Enrollments PRIMARY key (which is CourseID, StudentID)
+            FOREIGN KEY ("CourseID", "StudentID") REFERENCES "Enrollments"
+        );
+      `;
+      const { client } = await createTestDb(structure);
+      const relationships = await fetchDatabaseRelationships(client);
+      expect(relationships).toEqual(
+        expect.arrayContaining([
+          {
+            fkTable: "Enrollments",
+            id: "Enrollments_CourseID_fkey",
             keys: [
               {
                 fkColumn: "CourseID",

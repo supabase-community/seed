@@ -1,7 +1,7 @@
-import { type DrizzleDbClient } from "#core/adapters.js";
+import { type DatabaseClient } from "#core/databaseClient.js";
 import { buildSchemaExclusionClause } from "./utils.js";
 
-export const TYPE_CATEGORY_DISPLAY_NAMES = {
+const TYPE_CATEGORY_DISPLAY_NAMES = {
   A: "Array",
   B: "Boolean",
   C: "Composite",
@@ -20,7 +20,7 @@ export const TYPE_CATEGORY_DISPLAY_NAMES = {
   Z: "Internal-use",
 } as const;
 
-export const COLUMN_CONSTRAINTS = {
+const COLUMN_CONSTRAINTS = {
   PRIMARY_KEY: "p",
   FOREIGN_KEY: "f",
   UNIQUE: "u",
@@ -29,7 +29,7 @@ export const COLUMN_CONSTRAINTS = {
   EXCLUSION_CONSTRAINT: "x",
 } as const;
 
-export type ColumnConstraintType =
+type ColumnConstraintType =
   (typeof COLUMN_CONSTRAINTS)[keyof typeof COLUMN_CONSTRAINTS];
 
 interface SelectColumnsResult {
@@ -238,7 +238,7 @@ const FETCH_TABLES_AND_COLUMNS = `
     ORDER BY tables_with_bytes."tableName";
 `;
 
-export async function fetchTablesAndColumns(client: DrizzleDbClient) {
+export async function fetchTablesAndColumns(client: DatabaseClient) {
   const response = await client.query<{
     json_build_object: FetchTableAndColumnsResult;
   }>(FETCH_TABLES_AND_COLUMNS);

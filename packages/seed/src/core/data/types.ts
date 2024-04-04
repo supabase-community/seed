@@ -4,6 +4,7 @@ export type Json = { [key: string]: Json } | Array<Json> | JsonPrimitive;
 
 type SerializablePrimitive =
   | Date
+  | bigint
   | boolean
   | null
   | number

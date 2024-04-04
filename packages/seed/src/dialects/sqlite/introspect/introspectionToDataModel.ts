@@ -10,9 +10,7 @@ import {
 } from "./introspectDatabase.js";
 import { type AsyncFunctionSuccessType } from "./types.js";
 
-export type IntrospectedSqlite = AsyncFunctionSuccessType<
-  typeof introspectDatabase
->;
+type IntrospectedSqlite = AsyncFunctionSuccessType<typeof introspectDatabase>;
 
 function getParentRelationAndFieldName({
   table,

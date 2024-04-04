@@ -1,27 +1,64 @@
-import { type DrizzleDbClient } from "#core/adapters.js";
+import { type DatabaseClient } from "#core/databaseClient.js";
 import { groupBy } from "../utils.js";
 import { groupParentsChildrenRelations } from "./groupParentsChildrenRelations.js";
-import { fetchDatabaseRelationships } from "./queries/fetchDatabaseRelationships.js";
-import { fetchPrimaryKeys } from "./queries/fetchPrimaryKeys.js";
-import { fetchSequences } from "./queries/fetchSequences.js";
-import { fetchTablesAndColumns } from "./queries/fetchTablesAndColumns.js";
-import { fetchUniqueConstraints } from "./queries/fetchUniqueConstraints.js";
+import {
+  type FetchRelationshipsInfosResult,
+  fetchDatabaseRelationships,
+} from "./queries/fetchDatabaseRelationships.js";
+import {
+  type FetchPrimaryKeysResult,
+  fetchPrimaryKeys,
+} from "./queries/fetchPrimaryKeys.js";
+import {
+  type FetchSequencesResult,
+  fetchSequences,
+} from "./queries/fetchSequences.js";
+import {
+  type FetchTableAndColumnsResult,
+  type SelectColumnsResult,
+  fetchTablesAndColumns,
+} from "./queries/fetchTablesAndColumns.js";
+import {
+  type FetchUniqueConstraintsResult,
+  fetchUniqueConstraints,
+} from "./queries/fetchUniqueConstraints.js";
 import { type AsyncFunctionSuccessType } from "./types.js";
 
-export type Relationships = AsyncFunctionSuccessType<
+type Relationships = AsyncFunctionSuccessType<
   typeof fetchDatabaseRelationships
 >;
 export type Relationship = Relationships[number];
-export type TableInfos = AsyncFunctionSuccessType<typeof fetchTablesAndColumns>;
 
-export async function basicIntrospectDatabase(client: DrizzleDbClient) {
+export async function basicIntrospectDatabase(client: DatabaseClient) {
   const tableInfos = await fetchTablesAndColumns(client);
   return {
     tables: tableInfos,
   };
 }
 
-export async function introspectDatabase(client: DrizzleDbClient) {
+interface IntrospectedStructure {
+  sequences: Array<FetchSequencesResult>;
+  tables: Array<
+    FetchTableAndColumnsResult & {
+      children: Array<FetchRelationshipsInfosResult>;
+      columns: Array<
+        SelectColumnsResult & {
+          identity: {
+            current: number;
+            name: string;
+          } | null;
+        }
+      >;
+      constraints: Array<FetchUniqueConstraintsResult>;
+      parents: Array<FetchRelationshipsInfosResult>;
+      primaryKeys: FetchPrimaryKeysResult | null;
+    }
+  >;
+}
+
+export async function introspectDatabase(
+  client: DatabaseClient,
+): Promise<IntrospectedStructure> {
   const { tables: tablesInfos } = await basicIntrospectDatabase(client);
   const baseRelationships = await fetchDatabaseRelationships(client);
   const constraints = await fetchUniqueConstraints(client);

@@ -1,20 +1,15 @@
-import { drizzle as drizzleJs } from "drizzle-orm/postgres-js";
 import { describe, expect, test } from "vitest";
-import { postgres } from "#test";
-import { createDrizzleORMPgClient } from "../../adapters.js";
+import { postgres } from "#test/postgres/postgres/index.js";
 import { fetchDatabaseRelationships } from "./fetchDatabaseRelationships.js";
 
 const adapters = {
-  postgresJs: () => ({
-    ...postgres.postgresJs,
-    drizzle: drizzleJs,
-  }),
+  postgres: () => postgres,
 };
 
-describe.each(["postgresJs"] as const)(
+describe.concurrent.each(["postgres"] as const)(
   "fetchDatabaseRelationships: %s",
   (adapter) => {
-    const { drizzle, createTestDb } = adapters[adapter]();
+    const { createTestDb } = adapters[adapter]();
 
     test("should return empty array if no relations", async () => {
       const structure = `
@@ -29,9 +24,7 @@ describe.each(["postgresJs"] as const)(
     );
   `;
       const { client } = await createTestDb(structure);
-      const relationships = await fetchDatabaseRelationships(
-        createDrizzleORMPgClient(drizzle(client)),
-      );
+      const relationships = await fetchDatabaseRelationships(client);
       expect(relationships.length).toEqual(0);
     });
 
@@ -63,9 +56,7 @@ describe.each(["postgresJs"] as const)(
     );
   `;
       const { client } = await createTestDb(structure);
-      const relationships = await fetchDatabaseRelationships(
-        createDrizzleORMPgClient(drizzle(client)),
-      );
+      const relationships = await fetchDatabaseRelationships(client);
       expect(relationships).toEqual(
         expect.arrayContaining([
           {
@@ -149,9 +140,7 @@ describe.each(["postgresJs"] as const)(
     );
   `;
       const { client } = await createTestDb(structure);
-      const relationships = await fetchDatabaseRelationships(
-        createDrizzleORMPgClient(drizzle(client)),
-      );
+      const relationships = await fetchDatabaseRelationships(client);
       expect(relationships).toEqual(
         expect.arrayContaining([
           {
@@ -223,9 +212,7 @@ describe.each(["postgresJs"] as const)(
     );
   `;
       const { client } = await createTestDb(structure);
-      const relationships = await fetchDatabaseRelationships(
-        createDrizzleORMPgClient(drizzle(client)),
-      );
+      const relationships = await fetchDatabaseRelationships(client);
       expect(relationships).toEqual(
         expect.arrayContaining([
           {

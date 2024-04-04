@@ -1,20 +1,15 @@
-import { drizzle as drizzleBetterSqlite } from "drizzle-orm/better-sqlite3";
 import { describe, expect, test } from "vitest";
-import { sqlite } from "#test";
-import { createDrizzleORMSqliteClient } from "../../adapters.js";
+import { betterSqlite3 } from "#test/sqlite/better-sqlite3/index.js";
 import { fetchUniqueConstraints } from "./fetchUniqueConstraints.js";
 
 const adapters = {
-  betterSqlite3: () => ({
-    ...sqlite.betterSqlite3,
-    drizzle: drizzleBetterSqlite,
-  }),
+  betterSqlite3: () => betterSqlite3,
 };
 
-describe.each(["betterSqlite3"] as const)(
+describe.concurrent.each(["betterSqlite3"] as const)(
   "fetchUniqueConstraints: %s",
   (adapter) => {
-    const { drizzle, createTestDb } = adapters[adapter]();
+    const { createTestDb } = adapters[adapter]();
     test("should get all unique constraints for tables primary key and unique composite and single", async () => {
       const structure = `
     CREATE TABLE "Courses" (
@@ -45,9 +40,7 @@ describe.each(["betterSqlite3"] as const)(
   `;
 
       const db = await createTestDb(structure);
-      const constraints = await fetchUniqueConstraints(
-        createDrizzleORMSqliteClient(drizzle(db.client)),
-      );
+      const constraints = await fetchUniqueConstraints(db.client);
 
       expect(constraints).toEqual([
         {
@@ -122,9 +115,7 @@ describe.each(["betterSqlite3"] as const)(
 `;
 
       const db = await createTestDb(structure);
-      const constraints = await fetchUniqueConstraints(
-        createDrizzleORMSqliteClient(drizzle(db.client)),
-      );
+      const constraints = await fetchUniqueConstraints(db.client);
       expect(constraints).toEqual([
         {
           columns: ["TestID", "Test2ID"],
@@ -156,9 +147,7 @@ describe.each(["betterSqlite3"] as const)(
     );`;
 
       const db = await createTestDb(structure);
-      const constraints = await fetchUniqueConstraints(
-        createDrizzleORMSqliteClient(drizzle(db.client)),
-      );
+      const constraints = await fetchUniqueConstraints(db.client);
 
       expect(constraints).toEqual([]);
     });

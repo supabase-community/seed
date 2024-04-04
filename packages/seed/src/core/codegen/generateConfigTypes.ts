@@ -1,5 +1,4 @@
 import { EOL } from "node:os";
-import { SELECT_WILDCARD_STRING } from "../../config/seedConfig/selectConfig.js";
 import { type DataModel, type DataModelField } from "../dataModel/types.js";
 import { escapeKey } from "../utils.js";
 
@@ -12,23 +11,34 @@ type ComputeFingerprintFieldTypeName = (
   | "FingerprintRelationField"
   | null;
 
+export function generateSelectTypeFromTableIds(
+  tableIds: Array<string>,
+): string {
+  const uniqueTableIds = Array.from(new Set(tableIds));
+
+  const selectOptions =
+    uniqueTableIds.length > 0
+      ? `type SelectOptions = TablesOptions | string`
+      : `type SelectOptions = string`;
+
+  return [
+    `//#region selectTypes`,
+    `type PartialRecord<K extends keyof any, T> = {
+      [P in K]?: T;
+  };`,
+    selectOptions,
+    `type SelectConfig = Array<SelectOptions>`,
+    `//#endregion`,
+  ].join(EOL);
+}
+
 function generateSelectTypes(dataModel: DataModel): string {
   const tableIdsSet = new Set<string>();
   for (const model of Object.values(dataModel.models)) {
     tableIdsSet.add(model.id);
   }
   const tableIds = Array.from(tableIdsSet);
-  return [
-    `//#region types`,
-    `type PartialRecord<K extends keyof unknown, T> = {
-      [P in K]?: T;
-  };`,
-    tableIds.length > 0
-      ? `type TablesOptions = \n${tableIds.map((id) => `\t"${id}"`).join(" |\n")}\ntype SelectOptions = TablesOptions | \`\${string}${SELECT_WILDCARD_STRING}\``
-      : `type SelectOptions = \`\${string}${SELECT_WILDCARD_STRING}\``,
-    `type SelectConfig = PartialRecord<SelectOptions, boolean>`,
-    `//#endregion`,
-  ].join("\n");
+  return generateSelectTypeFromTableIds(tableIds);
 }
 
 function generateAliasTypes(dataModel: DataModel) {
@@ -51,7 +61,7 @@ type Inflection = {
   const override = `type Override = {
 ${Object.keys(dataModel.models)
   .map(
-    (modelName) => `  ${modelName}?: {
+    (modelName) => `  ${escapeKey(modelName)}?: {
     name?: string;
     fields?: {
 ${dataModel.models[modelName].fields
@@ -63,7 +73,52 @@ ${dataModel.models[modelName].fields
   .join(EOL)}}`;
 
   const alias = `export type Alias = {
+  /**
+   * Apply a global renaming strategy to all tables and columns in the generated Seed Client.
+   *
+   * When \`true\`, a default strategy is applied:
+   *
+   * - **Model names:** pluralized and camelCased.
+   * - **Scalar field names:** camelCased.
+   * - **Parent field names (one to one relationships):** singularized and camelCased.
+   * - **Child field names (one to many relationships):** pluralized and camelCased.
+   * - We also support prefix extraction and opposite baseName for foreign keys inspired by [PostGraphile](https://github.com/graphile/pg-simplify-inflector#naming-your-foreign-key-fields).
+   *
+   * @example
+   * \`\`\`ts seed.client.ts
+   * import { defineConfig } from "@snaplet/seed/config";
+   *
+   * export default defineConfig({
+   *   alias: {
+   *     inflection: true,
+   *   },
+   * });
+   * \`\`\`
+   */
   inflection?: Inflection | boolean;
+  /**
+   * Rename specific tables and columns in the generated Seed Client.
+   * This option is useful for resolving renaming conflicts that can arise when using \`alias.inflection\`.
+   *
+   * @example
+   * \`\`\`ts seed.client.ts
+   * import { defineConfig } from "@snaplet/seed/config";
+   *
+   * export default defineConfig({
+   *   alias: {
+   *     override: {
+   *       Book: {
+   *         name: "books",
+   *         fields: {
+   *           User: "author",
+   *           published_at: "publishedAt",
+   *         },
+   *       },
+   *     },
+   *   },
+   * });
+   * \`\`\`
+   */
   override?: Override;
 };`;
 
@@ -76,7 +131,7 @@ function generateFingerprintTypes(props: {
 }) {
   const { dataModel, computeFingerprintFieldTypeName } = props;
   const relationField = `interface FingerprintRelationField {
-  count?: number | MinMaxOption;
+  count?: number | { min?: number; max?: number };
 }`;
   const jsonField = `interface FingerprintJsonField {
   schema?: any;
@@ -96,7 +151,7 @@ function generateFingerprintTypes(props: {
   const fingerprint = `export interface Fingerprint {
 ${Object.keys(dataModel.models)
   .map(
-    (modelName) => `  ${modelName}?: {
+    (modelName) => `  ${escapeKey(modelName)}?: {
 ${dataModel.models[modelName].fields
   .map((f) => {
     const fieldType = computeFingerprintFieldTypeName(f);
@@ -122,18 +177,54 @@ function generateDefineConfigTypes() {
   return `
 type TypedConfig = {
   /**
-   * Parameter to customize fields and relationships names.
-   * {@link https://docs.snaplet.dev/core-concepts/seed}
+   * The database adapter to use.
+   *
+   * @example
+   * \`\`\`ts seed.config.ts
+   * import { SeedPostgres } from "@snaplet/seed/adapter-postgres";
+   * import { defineConfig } from "@snaplet/seed/config";
+   * import postgres from "postgres";
+   *
+   * export default defineConfig({
+   *   adapter: () => {
+   *     const client = postgres(process.env.DATABASE_URL);
+   *     return new SeedPostgres(client);
+   *   },
+   * });
+   * \`\`\`
+   *
+   * To learn more about the available adapters, see the [Adapters](https://docs.snaplet.dev/seed/reference/adapters) reference.
    */
-  alias?: import("./snaplet-client").Alias;
+  adapter: () => import("@snaplet/seed/adapter").DatabaseClient | Promise<import("@snaplet/seed/adapter").DatabaseClient>;
   /**
-   * Parameter to customize the fingerprinting.
-   * {@link https://docs.snaplet.dev/core-concepts/seed}
+   * Customize fields and relationships names.
    */
-  fingerprint?: import("./snaplet-client").Fingerprint;
+  alias?: Alias;
   /**
-   * Parameter to configure the inclusion/exclusion of schemas and tables from the seeds.
-   * {@link https://docs.snaplet.dev/reference/configuration#select}
+   * Customize the fingerprinting.
+   */
+  fingerprint?: Fingerprint;
+  /**
+   * Exclude or include tables from the generated Seed Client.
+   * You can specify glob patterns to match tables. The patterns are executed in order.
+   *
+   * @example Exclude all tables containing \`access_logs\` and all tables in the \`auth\` schema:
+   * \`\`\`ts seed.client.ts
+   * import { defineConfig } from "@snaplet/seed/config";
+   *
+   * export default defineConfig({
+   *   select: ["!*access_logs*", "!auth.*"],
+   * });
+   * \`\`\`
+   *
+   * @example Exclude all tables except the \`public\` schema:
+   * \`\`\`ts seed.client.ts
+   * import { defineConfig } from "@snaplet/seed/config";
+   *
+   * export default defineConfig({
+   *   select: ["!*", "public.*"],
+   * });
+   * \`\`\`
    */
     select?: SelectConfig;
   };
@@ -156,7 +247,7 @@ export function generateConfigTypes(props: {
   return [
     generateAliasTypes(rawDataModel),
     generateFingerprintTypes({ dataModel, computeFingerprintFieldTypeName }),
-    generateSelectTypes(dataModel),
+    generateSelectTypes(rawDataModel),
     generateDefineConfigTypes(),
   ].join(EOL);
 }

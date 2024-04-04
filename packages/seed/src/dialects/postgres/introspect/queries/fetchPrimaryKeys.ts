@@ -1,4 +1,4 @@
-import { type DrizzleDbClient } from "#core/adapters.js";
+import { type DatabaseClient } from "#core/databaseClient.js";
 import { buildSchemaExclusionClause } from "./utils.js";
 
 interface FetchPrimaryKeysResult {
@@ -70,7 +70,7 @@ ORDER BY
   "schema", "table";
 `;
 
-export async function fetchPrimaryKeys(client: DrizzleDbClient) {
+export async function fetchPrimaryKeys(client: DatabaseClient) {
   const response =
     await client.query<FetchPrimaryKeysResult>(FETCH_PRIMARY_KEYS);
 

@@ -1,3 +1,4 @@
+import { type Json, type Serializable } from "../../core/data/types.js";
 import { type Store } from "../store/store.js";
 import { type UserModels } from "../userModels/types.js";
 
@@ -16,20 +17,6 @@ export interface IPlan extends PromiseLike<unknown> {
 
   store: Store;
 }
-
-type JsonPrimitive = boolean | null | number | string;
-
-type Json = { [key: string]: Json } | Array<Json> | JsonPrimitive;
-
-type SerializablePrimitive =
-  | Date
-  | boolean
-  | null
-  | number
-  | string
-  | undefined;
-
-export type Serializable = Json | SerializablePrimitive;
 
 export type ScalarField = GenerateCallback | Serializable;
 
@@ -103,7 +90,7 @@ export type GenerateCallback = (
   ctx: GenerateCallbackContext,
 ) => Promise<Serializable> | Serializable;
 
-export type ModelData = Record<string, Json | undefined>;
+export type ModelData = Record<string, Serializable | undefined>;
 
 export interface PlanOptions {
   connect?: Record<string, Array<Record<string, Json>>> | true;

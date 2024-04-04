@@ -1,4 +1,6 @@
 import { EOL } from "node:os";
+import { type SeedConfig } from "#config/seedConfig/seedConfig.js";
+import { getSelectFilteredDataModel } from "#core/dataModel/select.js";
 import {
   type DataModel,
   type DataModelModel,
@@ -11,7 +13,8 @@ import {
   jsonSchemaToTypescriptType,
 } from "../fingerprint/fingerprint.js";
 import { type Fingerprint } from "../fingerprint/types.js";
-import { escapeKey } from "../utils.js";
+import { escapeKey, jsonStringify } from "../utils.js";
+import { generateSelectTypeFromTableIds } from "./generateConfigTypes.js";
 
 type Database2tsType = (
   dataModel: DataModel,
@@ -30,16 +33,16 @@ type RefineType = (
 export async function generateClientTypes(props: {
   dataModel: DataModel;
   database2tsType: Database2tsType;
-  databaseClientType: string;
   fingerprint?: Fingerprint;
-  imports: string;
   isJson: IsJson;
   refineType: RefineType;
+  seedConfig?: SeedConfig;
 }) {
-  const { dataModel, fingerprint, imports } = props;
+  const { dataModel, fingerprint, seedConfig } = props;
   return [
-    imports,
+    'import { type DatabaseClient } from "@snaplet/seed/adapter";',
     generateHelpers(),
+    generateSelectTypes(dataModel, seedConfig?.select),
     generateStoreTypes(dataModel),
     generateEnums(dataModel),
     await generateInputsTypes({
@@ -50,8 +53,26 @@ export async function generateClientTypes(props: {
       refineType: props.refineType,
     }),
     generateSeedClientBaseTypes(dataModel),
-    generateSeedClientTypes(props.databaseClientType),
+    generateSeedClientTypes(),
   ].join(EOL);
+}
+
+function generateSelectTypes(
+  dataModel: DataModel,
+  seedSelectConfig?: SeedConfig["select"],
+) {
+  const tableIdsSet = new Set<string>();
+  // First we filter out the tables excluded from seed.config.ts if there is any
+  // so the possibilities are reduced to what the user wants to seed
+  const selectFilteredModel = getSelectFilteredDataModel(
+    dataModel,
+    seedSelectConfig,
+  );
+  for (const model of Object.values(selectFilteredModel.models)) {
+    tableIdsSet.add(model.id);
+  }
+  const tableIds = Array.from(tableIdsSet);
+  return generateSelectTypeFromTableIds(tableIds);
 }
 
 function generateHelpers() {
@@ -384,7 +405,7 @@ ${(
         if (isJson(f.type) && isJsonField(fingerprintField)) {
           const jsonSchemaType = await jsonSchemaToTypescriptType(
             `${modelName}_${f.name}`,
-            JSON.stringify(fingerprintField.schema),
+            jsonStringify(fingerprintField.schema),
           );
           jsonSchemaTypes.push(jsonSchemaType.types);
           const type = refineType(jsonSchemaType.name, f.type, f.isRequired);
@@ -568,32 +589,23 @@ ${Object.keys(dataModel.models)
   )
   .join(EOL)}
   /**
-   * Reset the client's state.
-   */
-  $reset(): void;
-
-  /**
    * Delete all data in the database while preserving the database structure.
    */
-  $resetDatabase(): Promise<unknown>;
+  $resetDatabase(selectConfig?: SelectConfig): Promise<unknown>;
 
   /**
    * Get the global store.
    */
   $store: Store;
-
-  /**
-   * Get a new client. This is useful if you don't want to alter the current client's state.
-   */
-  $transaction<T>(callback: (seed: SeedClient) => Promise<T>): Promise<T>;
 }`;
 }
 
-function generateSeedClientTypes(databaseClientType: string) {
+function generateSeedClientTypes() {
   return `
   export type SeedClientOptions = {
+    adapter?: DatabaseClient;
     dryRun?: boolean;
     models?: UserModels;
   }
-  export declare const createSeedClient: (db: ${databaseClientType}, options?: SeedClientOptions) => Promise<SeedClient>`;
+  export declare const createSeedClient: (options?: SeedClientOptions) => Promise<SeedClient>`;
 }

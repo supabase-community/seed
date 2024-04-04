@@ -1,28 +1,21 @@
-import { drizzle as drizzleBetterSqlite } from "drizzle-orm/better-sqlite3";
 import { describe, expect, test } from "vitest";
-import { sqlite } from "#test";
-import { createDrizzleORMSqliteClient } from "../../adapters.js";
+import { betterSqlite3 } from "#test/sqlite/better-sqlite3/index.js";
 import { fetchTablesAndColumns } from "./fetchTablesAndColumns.js";
 
 const adapters = {
-  betterSqlite3: () => ({
-    ...sqlite.betterSqlite3,
-    drizzle: drizzleBetterSqlite,
-  }),
+  betterSqlite3: () => betterSqlite3,
 };
 
-describe.each(["betterSqlite3"] as const)(
+describe.concurrent.each(["betterSqlite3"] as const)(
   "fetchTablesAndColumns: %s",
   (adapter) => {
-    const { drizzle, createTestDb } = adapters[adapter]();
+    const { createTestDb } = adapters[adapter]();
 
     test("should fetch all tables and columns on empty db", async () => {
       const structure = ``;
       const { client } = await createTestDb(structure);
 
-      const tablesInfos = await fetchTablesAndColumns(
-        createDrizzleORMSqliteClient(drizzle(client)),
-      );
+      const tablesInfos = await fetchTablesAndColumns(client);
 
       expect(tablesInfos).toEqual([]);
     });
@@ -41,9 +34,7 @@ describe.each(["betterSqlite3"] as const)(
       `;
       const { client } = await createTestDb(structure);
 
-      const tablesInfos = await fetchTablesAndColumns(
-        createDrizzleORMSqliteClient(drizzle(client)),
-      );
+      const tablesInfos = await fetchTablesAndColumns(client);
       expect(tablesInfos).toEqual([
         {
           columns: [
@@ -145,9 +136,189 @@ describe.each(["betterSqlite3"] as const)(
       `;
       const { client } = await createTestDb(structure);
 
-      const tablesInfos = await fetchTablesAndColumns(
-        createDrizzleORMSqliteClient(drizzle(client)),
-      );
+      const tablesInfos = await fetchTablesAndColumns(client);
+      expect(tablesInfos).toEqual([
+        {
+          id: "Courses",
+          name: "Courses",
+          strict: 0,
+          type: "table",
+          wr: 0,
+          columns: [
+            {
+              id: "Courses.CourseID",
+              name: "CourseID",
+              type: "INTEGER",
+              table: "Courses",
+              nullable: false,
+              default: null,
+              affinity: "integer",
+              constraints: ["p"],
+            },
+            {
+              id: "Courses.CourseName",
+              name: "CourseName",
+              type: "TEXT",
+              table: "Courses",
+              nullable: false,
+              default: null,
+              affinity: "text",
+              constraints: [],
+            },
+          ],
+        },
+        {
+          id: "Enrollments",
+          name: "Enrollments",
+          strict: 0,
+          type: "table",
+          wr: 0,
+          columns: [
+            {
+              id: "Enrollments.CourseID",
+              name: "CourseID",
+              type: "INTEGER",
+              table: "Enrollments",
+              nullable: false,
+              default: null,
+              affinity: "integer",
+              constraints: ["f", "p"],
+            },
+            {
+              id: "Enrollments.StudentID",
+              name: "StudentID",
+              type: "INTEGER",
+              table: "Enrollments",
+              nullable: false,
+              default: null,
+              affinity: "integer",
+              constraints: ["f", "p"],
+            },
+          ],
+        },
+        {
+          id: "Grades",
+          name: "Grades",
+          strict: 0,
+          type: "table",
+          wr: 0,
+          columns: [
+            {
+              id: "Grades.CourseID",
+              name: "CourseID",
+              type: "INTEGER",
+              table: "Grades",
+              nullable: false,
+              default: null,
+              affinity: "integer",
+              constraints: ["f", "p"],
+            },
+            {
+              id: "Grades.StudentID",
+              name: "StudentID",
+              type: "INTEGER",
+              table: "Grades",
+              nullable: false,
+              default: null,
+              affinity: "integer",
+              constraints: ["f", "p"],
+            },
+            {
+              id: "Grades.ExamName",
+              name: "ExamName",
+              type: "TEXT",
+              table: "Grades",
+              nullable: false,
+              default: null,
+              affinity: "text",
+              constraints: ["p"],
+            },
+            {
+              id: "Grades.Grade",
+              name: "Grade",
+              type: "REAL",
+              table: "Grades",
+              nullable: false,
+              default: null,
+              affinity: "real",
+              constraints: [],
+            },
+          ],
+        },
+        {
+          id: "Students",
+          name: "Students",
+          strict: 0,
+          type: "table",
+          wr: 0,
+          columns: [
+            {
+              id: "Students.StudentID",
+              name: "StudentID",
+              type: "INTEGER",
+              table: "Students",
+              nullable: false,
+              default: null,
+              affinity: "integer",
+              constraints: ["p"],
+            },
+            {
+              id: "Students.FirstName",
+              name: "FirstName",
+              type: "TEXT",
+              table: "Students",
+              nullable: false,
+              default: null,
+              affinity: "text",
+              constraints: [],
+            },
+            {
+              id: "Students.LastName",
+              name: "LastName",
+              type: "TEXT",
+              table: "Students",
+              nullable: false,
+              default: null,
+              affinity: "text",
+              constraints: [],
+            },
+          ],
+        },
+      ]);
+    });
+
+    test("should also work for tables without explicit FK", async () => {
+      const structure = `
+        CREATE TABLE "Courses" (
+          "CourseID" INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
+          "CourseName" TEXT NOT NULL
+        );
+        CREATE TABLE "Students" (
+            "StudentID" INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
+            "FirstName" TEXT NOT NULL,
+            "LastName" TEXT NOT NULL
+        );
+        CREATE TABLE "Enrollments" (
+            "CourseID" INTEGER NOT NULL,
+            "StudentID" INTEGER NOT NULL,
+            PRIMARY KEY ("CourseID", "StudentID"),
+            -- This FK is not referencing a column we should default to the table Courses PRIMARY key (which is CourseID)
+            FOREIGN KEY ("CourseID") REFERENCES "Courses"
+            FOREIGN KEY ("StudentID") REFERENCES "Students"("StudentID")
+        );
+        CREATE TABLE "Grades" (
+            "CourseID" INTEGER NOT NULL,
+            "StudentID" INTEGER NOT NULL,
+            "ExamName" TEXT NOT NULL,
+            "Grade" REAL NOT NULL,
+            PRIMARY KEY ("CourseID", "StudentID", "ExamName"),
+            -- This FK is not referencing a column we should default to the table Enrollments PRIMARY key (which is CourseID, StudentID)
+            FOREIGN KEY ("CourseID", "StudentID") REFERENCES "Enrollments"
+        );
+      `;
+      const { client } = await createTestDb(structure);
+
+      const tablesInfos = await fetchTablesAndColumns(client);
       expect(tablesInfos).toEqual([
         {
           id: "Courses",
@@ -312,9 +483,7 @@ describe.each(["betterSqlite3"] as const)(
       `;
       const { client } = await createTestDb(structure);
 
-      const tablesInfos = await fetchTablesAndColumns(
-        createDrizzleORMSqliteClient(drizzle(client)),
-      );
+      const tablesInfos = await fetchTablesAndColumns(client);
 
       expect(tablesInfos).toEqual([
         {

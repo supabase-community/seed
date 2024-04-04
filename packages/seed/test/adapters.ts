@@ -1,85 +1,79 @@
 // context(justinvdm, 7 Mar 2024): Disabled to allow for per-adapter type references inline
+import { type Database } from "better-sqlite3";
 /* eslint-disable @typescript-eslint/consistent-type-imports */
-import type postgresJs from "postgres";
-import { type DrizzleDbClient } from "#core/adapters.js";
+import dedent from "dedent";
+import { Sql } from "postgres";
+import { SeedBetterSqlite3 } from "#adapters/better-sqlite3/better-sqlite3.js";
+import { SeedPostgres } from "#adapters/postgres/postgres.js";
+import { DatabaseClient } from "#core/databaseClient.js";
+import { Dialect } from "#core/dialect/types.js";
+import { DialectId } from "../src/dialects/dialects.js";
+import { postgresDialect } from "../src/dialects/postgres/dialect.js";
+import { sqliteDialect } from "../src/dialects/sqlite/dialect.js";
+import { createTestDb as postgresCreateTestDb } from "./postgres/postgres/createTestDatabase.js";
+import { createTestDb as sqliteCreateTestDb } from "./sqlite/better-sqlite3/createTestDatabase.js";
 
-export interface Adapter<Client = AnyClient> {
-  createClient(client: Client): DrizzleDbClient;
+export interface Adapter<Client = unknown> {
+  createClient(client: Client): DatabaseClient;
   createTestDb(structure?: string): Promise<{
-    client: Client;
+    client: DatabaseClient;
     connectionString: string;
     name: string;
   }>;
-  generateClientWrapper(props: {
-    connectionString: string;
-    generateOutputIndexPath: string;
-  }): string;
+  dialect: Dialect;
+  generateSeedConfig(
+    connectionString: string,
+    config?: {
+      alias?: string;
+      select?: string;
+    },
+  ): string;
   skipReason?: string;
 }
 
-export type Adapters = typeof adapters;
+export const adapters: Record<DialectId, Adapter> = {
+  postgres: {
+    dialect: postgresDialect,
+    createTestDb: postgresCreateTestDb,
+    generateSeedConfig: (connectionString, config) => {
+      const alias = `alias: ${config?.alias ?? `{ inflection: true }`},`;
+      const select = config?.select ? `select: ${config.select},` : "";
+      return dedent`
+      import { defineConfig } from "@snaplet/seed/config";
+      import { SeedPostgres } from "@snaplet/seed/adapter-postgres";
+      import postgres from "postgres";
 
-export type Dialect = keyof Adapters;
-
-export type AnyClient =
-  Awaited<ReturnType<Adapters[Dialect]>> extends Adapter<infer Client>
-    ? Client
-    : never;
-
-export const adapters = {
-  async postgres(): Promise<Adapter<postgresJs.Sql>> {
-    const { createTestDb } = (await import("#test/postgres/index.js"))
-      .postgresJs;
-    const { drizzle } = await import("drizzle-orm/postgres-js");
-    const { createDrizzleORMPgClient } = await import(
-      "#dialects/postgres/adapters.js"
-    );
-    return {
-      createTestDb,
-      createClient: (client) => createDrizzleORMPgClient(drizzle(client)),
-      generateClientWrapper: ({
-        generateOutputIndexPath,
-        connectionString,
-      }) => `
-import postgres from "postgres";
-import { drizzle } from "drizzle-orm/postgres-js";
-import { createSeedClient as baseCreateSeedClient } from "${generateOutputIndexPath}";
-
-const client = postgres("${connectionString}")
-const db = drizzle(client);
-
-export const end = () => client.end()
-
-export const createSeedClient = (options?: Parameters<typeof baseCreateSeedClient>[1]) => baseCreateSeedClient(db, options)
-`,
-    };
+      export default defineConfig({
+        adapter: () => new SeedPostgres(postgres("${connectionString}")),
+        ${alias}
+        ${select}
+      })
+    `;
+    },
+    createClient: (client: Sql) => new SeedPostgres(client),
   },
-  async sqlite(): Promise<Adapter<import("better-sqlite3").Database>> {
-    const { createTestDb } = (await import("#test/sqlite/index.js"))
-      .betterSqlite3;
-    const { drizzle } = await import("drizzle-orm/better-sqlite3");
-    const { createDrizzleORMSqliteClient } = await import(
-      "#dialects/sqlite/adapters.js"
-    );
-    return {
-      createTestDb,
-      createClient: (client) => createDrizzleORMSqliteClient(drizzle(client)),
-      generateClientWrapper: ({
-        generateOutputIndexPath,
-        connectionString,
-      }) => `
-import Database from "better-sqlite3";
-import { drizzle } from "drizzle-orm/better-sqlite3";
-import { createSeedClient as baseCreateSeedClient } from "${generateOutputIndexPath}";
+  sqlite: {
+    dialect: sqliteDialect,
+    createTestDb: sqliteCreateTestDb,
+    createClient: (client: Database) => new SeedBetterSqlite3(client),
+    generateSeedConfig: (connectionString, config) => {
+      const alias = `alias: ${config?.alias ?? `{ inflection: true }`},`;
+      const select = config?.select ? `select: ${config.select},` : "";
+      return dedent`
+        import { defineConfig } from "@snaplet/seed/config";
+        import { SeedBetterSqlite3 } from "@snaplet/seed/adapter-better-sqlite3";
+        import Database from "better-sqlite3";
 
-const client = new Database(new URL("${connectionString}").pathname, { fileMustExist: false })
-
-const db = drizzle(client);
-
-export const end = () => client.close()
-
-export const createSeedClient = (options?: Parameters<typeof baseCreateSeedClient>[1]) => baseCreateSeedClient(db, options)
-`,
-    };
+        export default defineConfig({
+          adapter: () => new SeedBetterSqlite3(new Database(new URL("${connectionString}").pathname)),
+          ${alias}
+          ${select}
+        })
+      `;
+    },
   },
-} as const;
+};
+
+export const adapterEntries = Object.entries(adapters) as Array<
+  [DialectId, Adapter]
+>;

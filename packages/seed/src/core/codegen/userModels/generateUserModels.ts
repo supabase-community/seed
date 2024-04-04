@@ -11,16 +11,26 @@ import { isJsonField } from "#core/fingerprint/fingerprint.js";
 import { type Fingerprint } from "#core/fingerprint/types.js";
 import { generateCodeFromTemplate } from "#core/userModels/templates/codegen.js";
 import { type UserModels } from "#core/userModels/types.js";
+import { jsonStringify } from "#core/utils.js";
 import { type Shape, type TableShapePredictions } from "#trpc/shapes.js";
 import { shouldGenerateFieldValue } from "../../dataModel/shouldGenerateFieldValue.js";
+import { unpackNestedType } from "../../dialect/unpackNestedType.js";
+import { encloseValueInArray } from "../../userModels/encloseValueInArray.js";
 import { generateJsonField } from "./generateJsonField.js";
 
-export const SHAPE_PREDICTION_CONFIDENCE_THRESHOLD = 0.65;
+const SHAPE_PREDICTION_CONFIDENCE_THRESHOLD = 0.65;
 
 const findEnumType = (dataModel: DataModel, field: DataModelField) =>
   Object.entries(dataModel.enums).find(
     ([enumName]) => enumName === field.type,
   )?.[1];
+
+const hasUniqueConstraint = (model: DataModelModel, field: DataModelField) => {
+  const hasUniqueConstraint = model.uniqueConstraints.find((constraint) =>
+    constraint.fields.includes(field.name),
+  );
+  return Boolean(hasUniqueConstraint);
+};
 
 const generateDefaultForField = (props: {
   dataModel: DataModel;
@@ -28,15 +38,23 @@ const generateDefaultForField = (props: {
   field: DataModelField;
   fieldShapeExamples: Array<string> | null;
   fingerprint: Fingerprint[string][string] | null;
+  model: DataModelModel;
   shape: Shape | null;
 }) => {
-  const { field, dataModel, shape, fingerprint, fieldShapeExamples, dialect } =
-    props;
+  const {
+    field,
+    dataModel,
+    shape,
+    fingerprint,
+    fieldShapeExamples,
+    dialect,
+    model,
+  } = props;
 
   const matchEnum = findEnumType(dataModel, field);
 
   if (matchEnum) {
-    return `({ seed }) => copycat.oneOf(seed, ${JSON.stringify(
+    return `({ seed }) => copycat.oneOf(seed, ${jsonStringify(
       matchEnum.values.map((v) => v.name),
     )})`;
   }
@@ -50,19 +68,31 @@ const generateDefaultForField = (props: {
     return null;
   }
 
-  if (shape && fieldShapeExamples != null && fieldShapeExamples.length > 0) {
+  if (
+    shape &&
+    fieldShapeExamples != null &&
+    fieldShapeExamples.length > 0 &&
+    // If the field has a unique constraint, we don't want to use the shape examples as they will be repeated
+    !hasUniqueConstraint(model, field)
+  ) {
+    const [, dimensions] = unpackNestedType(field.type);
+    let resultCode;
+
     if (field.maxLength) {
-      return `({ seed }) => copycat.oneOfString(seed, getExamples('${shape}'), { limit: ${JSON.stringify(field.maxLength)} })`;
+      resultCode = `copycat.oneOfString(seed, getExamples('${shape}'), { limit: ${jsonStringify(field.maxLength)} })`;
     } else {
-      return `({ seed }) => copycat.oneOfString(seed, getExamples('${shape}'))`;
+      resultCode = `copycat.oneOfString(seed, getExamples('${shape}'))`;
     }
+
+    resultCode = encloseValueInArray(resultCode, dimensions);
+    return `({ seed }) => ${resultCode}`;
   }
 
   const code = generateCodeFromTemplate({
     input: "seed",
     type: field.type,
     maxLength: field.maxLength ?? null,
-    shape,
+    shape: shape,
     templates: dialect.templates,
     optionsInput: "options",
   });
@@ -124,13 +154,14 @@ const generateDefaultsForModel = (props: {
         fieldShapeExamples,
         fingerprint: fieldFingerprint,
         dialect,
+        model,
       });
     }
   }
   return fields;
 };
 
-export const generateDefaultsForModels = (props: {
+const generateDefaultsForModels = (props: {
   dataModel: DataModel;
   dialect: Dialect;
   fingerprint: Fingerprint;
@@ -145,7 +176,7 @@ export const generateDefaultsForModels = (props: {
       shapePredictions.find(
         (predictions) =>
           model.tableName === predictions.tableName &&
-          model.schemaName === predictions.schemaName,
+          (model.schemaName ?? "") === predictions.schemaName,
       ) ?? null;
 
     const modelFingerprint = fingerprint[modelName] ?? null;
@@ -192,16 +223,10 @@ export const generateUserModels = (context: CodegenContext) => {
       "  ",
     ) ?? "";
   return `
-import { readFileSync } from "node:fs";
-import { dirname, join } from "node:path";
-import { fileURLToPath } from "node:url";
-
 import { copycat } from "@snaplet/copycat"
+import { getShapeExamples } from "@snaplet/seed/core/predictions/shapeExamples/getShapeExamples";
 
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = dirname(__filename);
-
-const shapeExamples = JSON.parse(readFileSync(join(__dirname, "shapeExamples.json")));
+const shapeExamples = await getShapeExamples();
 
 const getExamples = (shape) => shapeExamples.find((e) => e.shape === shape)?.examples ?? [];
 

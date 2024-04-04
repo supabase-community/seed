@@ -1,20 +1,14 @@
 import { type Argv } from "yargs";
+import { telemetryMiddleware } from "#cli/lib/middlewares/telemetry.js";
 
 export function introspectCommand(program: Argv) {
   return program.command(
     "introspect",
-    "Introspect and generate the data model for your database",
-    (y) =>
-      y.option("connection-string", {
-        alias: "c",
-        describe:
-          "The connection string to use for introspecting your database",
-        type: "string",
-        demandOption: true,
-      }),
-    async (args) => {
+    false,
+    {},
+    telemetryMiddleware(async () => {
       const { introspectHandler } = await import("./introspectHandler.js");
-      await introspectHandler(args);
-    },
+      await introspectHandler();
+    }),
   );
 }

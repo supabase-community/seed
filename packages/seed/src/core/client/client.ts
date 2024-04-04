@@ -1,13 +1,18 @@
+import { type SelectConfig } from "#config/seedConfig/selectConfig.js";
+import { type DialectId } from "#dialects/dialects.js";
 import { type DataModel } from "../dataModel/types.js";
 import { type Fingerprint } from "../fingerprint/types.js";
 import { getInitialConstraints } from "../plan/constraints.js";
 import { Plan } from "../plan/plan.js";
 import { type PlanInputs, type PlanOptions } from "../plan/types.js";
+import { captureRuntimeEvent } from "../runtime/captureRuntimeEvent.js";
 import { generateUserModelsSequences } from "../sequences/sequences.js";
 import { type Store } from "../store/store.js";
 import { type UserModels } from "../userModels/types.js";
 import { mergeUserModels } from "../userModels/userModels.js";
 import { type ClientState, type SeedClientOptions } from "./types.js";
+
+const noop = () => ({});
 
 export abstract class SeedClientBase implements SeedClient {
   readonly createStore: (dataModel: DataModel) => Store;
@@ -22,13 +27,14 @@ export abstract class SeedClientBase implements SeedClient {
   constructor(props: {
     createStore: (dataModel: DataModel) => Store;
     dataModel: DataModel;
-    emit: (event: string) => void;
+    emit?: (event: string) => void;
     fingerprint: Fingerprint;
     options?: SeedClientOptions;
     runStatements: (statements: Array<string>) => Promise<void>;
     userModels: UserModels;
   }) {
-    this.emit = props.emit;
+    this.emit = props.emit ?? noop;
+
     this.createStore = props.createStore;
     this.runStatements = props.runStatements;
     this.fingerprint = props.fingerprint;
@@ -103,23 +109,36 @@ export abstract class SeedClientBase implements SeedClient {
     return this.state.store._store;
   }
 
-  abstract $resetDatabase(): Promise<void>;
+  abstract $resetDatabase(selectConfig?: SelectConfig): Promise<void>;
 
   abstract $syncDatabase(): Promise<void>;
-
-  abstract $transaction(
-    _cb: (snaplet: SeedClient) => Promise<void>,
-  ): Promise<void>;
 }
 
 interface SeedClient {
   $reset: () => void;
 
-  $resetDatabase: () => Promise<void>;
+  $resetDatabase: (selectConfig?: SelectConfig) => Promise<void>;
 
   $store: Store["_store"];
 
   $syncDatabase: () => Promise<void>;
-
-  $transaction: (_cb: (seed: SeedClient) => Promise<void>) => Promise<void>;
 }
+
+export const setupClient = async <Client extends SeedClient>(props: {
+  createClient: () => Client | Promise<Client>;
+  dialect: DialectId;
+}): Promise<Client> => {
+  const { createClient, dialect } = props;
+
+  const promisedEventCapture = captureRuntimeEvent("$action:client:create", {
+    dialect,
+  });
+
+  const seed = await createClient();
+
+  await seed.$syncDatabase();
+  seed.$reset();
+
+  await promisedEventCapture;
+  return seed;
+};

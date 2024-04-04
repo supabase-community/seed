@@ -1,17 +1,15 @@
-import open from "open";
 import { getPortPromise as getPort } from "portfinder";
 import { SNAPLET_APP_URL } from "#config/constants.js";
-import { getSystemConfig, setSystemConfig } from "#config/systemConfig.js";
+import { updateSystemConfig } from "#config/systemConfig.js";
 import { trpc } from "#trpc/client.js";
 import { eraseLines, highlight, link, spinner } from "../../lib/output.js";
+import { telemetry } from "../../lib/telemetry.js";
 import { getAccessTokenFromHttpServer } from "./getAccessTokenFromHttpServer.js";
 
 export async function loginHandler() {
   const port = await getPort();
 
-  const accessTokenUrl = `${SNAPLET_APP_URL}/access-token/cli?port=${port}`;
-
-  await open(accessTokenUrl);
+  const accessTokenUrl = `${SNAPLET_APP_URL}/access-token/cli-auto?port=${port}`;
 
   console.log(`Please visit the following URL in your web browser:`);
   console.log(link(accessTokenUrl));
@@ -28,12 +26,13 @@ export async function loginHandler() {
     return;
   }
 
-  const existingSystemConfig = await getSystemConfig({
-    shouldOverrideWithEnv: false,
+  await updateSystemConfig({
+    accessToken,
   });
-  await setSystemConfig({ ...existingSystemConfig, accessToken });
+
+  await telemetry.captureUserLogin(user);
 
   spinner.stop();
-  console.log(eraseLines(3));
-  spinner.succeed(`Authentication complete for ${highlight(user.email)}`);
+  eraseLines(3);
+  spinner.succeed(`Logged in as ${highlight(user.email)}`);
 }

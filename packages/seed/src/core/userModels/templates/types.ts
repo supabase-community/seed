@@ -11,13 +11,13 @@ export interface TemplateContext<Type extends string = string> {
 
 export type TemplateInput = string;
 
-export type TemplateResult = null | string;
+type TemplateResult = null | string;
 
 export type TemplateFn = (api: TemplateContext) => TemplateResult;
 
 export type TypeTemplates = TemplateFn | TypeTemplatesRecord;
 
-export type TypeTemplatesRecord = Partial<
+type TypeTemplatesRecord = Partial<
   Record<"__DEFAULT" | Shape | ShapeExtra, TemplateFn | null>
 >;
 

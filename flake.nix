@@ -1,8 +1,8 @@
 {
   inputs = {
-    nixpkgs.url = "github:nixos/nixpkgs/nixos-unstable";
-    flake-utils.url = "github:numtide/flake-utils";
-    devenv.url = "github:cachix/devenv/python-rewrite";
+    nixpkgs.url = "github:NixOS/nixpkgs/nixpkgs-unstable";
+    systems.url = "github:nix-systems/default";
+    devenv.url = "github:cachix/devenv";
     devenv.inputs.nixpkgs.follows = "nixpkgs";
   };
 
@@ -11,42 +11,48 @@
     extra-substituters = "https://devenv.cachix.org";
   };
 
-  outputs = { self, nixpkgs, flake-utils, devenv } @ inputs:
-    flake-utils.lib.eachDefaultSystem (system:
-      let pkgs = import nixpkgs { inherit system; };
-      in {
-        packages = {
-          # workaround for https://github.com/cachix/devenv/issues/756
-          devenv-up = self.devShells.${system}.default.config.procfileScript;
-        };
-        devShells.default = devenv.lib.mkShell {
-          inherit inputs pkgs;
-          modules = [
-            ({ pkgs, ... }:
-              {
-                packages = [
-                  pkgs.git
-                ];
-
-                languages.javascript = {
-                  enable = true;
-                  package = pkgs.nodejs_20;
-                  corepack.enable = true;
-                };
-
-                services.postgres = {
-                  enable = true;
-                  package = pkgs.postgresql_16;
-                  initialDatabases = [{ name = "snaplet"; }];
-                  listen_addresses = "localhost";
-                  port = 2345;
-                  initialScript = ''
-                    CREATE USER postgres SUPERUSER;
-                  '';
-                };
-              }
-            )
-          ];
-        };
+  outputs = { self, nixpkgs, devenv, systems, ... } @ inputs:
+    let
+      forEachSystem = nixpkgs.lib.genAttrs (import systems);
+    in
+    {
+      packages = forEachSystem (system: {
+        devenv-up = self.devShells.${system}.default.config.procfileScript;
       });
+
+      devShells = forEachSystem
+        (system:
+          let
+            pkgs = nixpkgs.legacyPackages.${system};
+          in
+          {
+            default = devenv.lib.mkShell {
+              inherit inputs pkgs;
+              modules = [
+                {
+                  packages = [
+                    pkgs.git
+                  ];
+
+                  languages.javascript = {
+                    enable = true;
+                    package = pkgs.nodejs_20;
+                    corepack.enable = true;
+                  };
+
+                  services.postgres = {
+                    enable = true;
+                    package = pkgs.postgresql_16;
+                    initialDatabases = [{ name = "snaplet"; }];
+                    listen_addresses = "localhost";
+                    port = 2345;
+                    initialScript = ''
+                      CREATE USER postgres SUPERUSER;
+                    '';
+                  };
+                }
+              ];
+            };
+          });
+    };
 }

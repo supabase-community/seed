@@ -1,10 +1,7 @@
 import { format, ident, literal } from "@scaleleap/pg-format";
 import { type Json } from "#core/data/types.js";
 import { isNullableParent as checkIsNullableParent } from "#core/dataModel/dataModel.js";
-import {
-  type DataModelModel,
-  type DataModelScalarField,
-} from "#core/dataModel/types.js";
+import { type DataModelScalarField } from "#core/dataModel/types.js";
 import { StoreBase } from "#core/store/store.js";
 import { sortModels } from "#core/store/topologicalSort.js";
 import { escapeIdentifier, escapeLiteral, serializeToSQL } from "./utils.js";
@@ -31,7 +28,7 @@ function logToSqlErrors(errors: Array<ToSQLErrors>) {
     }
   }
   for (const [modelName, affectedRows] of missingPKForUpdateErrorsMap) {
-    console.log(
+    console.warn(
       `Warning: skipping UPDATE on model ${modelName} for ${affectedRows} rows as it has no id fields (no PRIMARY KEYS or UNIQUE NON NULL columns found)`,
     );
   }
@@ -49,8 +46,7 @@ export class PgStore extends StoreBase {
     const sequenceFixerStatements: Array<string> = [];
     const errorsData: Array<ToSQLErrors> = [];
 
-    for (const entry of sortedModels) {
-      const model = entry.node as DataModelModel & { modelName: string };
+    for (const model of sortedModels) {
       const idFieldNames = this.dataModel.models[model.modelName].fields
         .filter((f) => f.kind === "scalar" && f.isId)
         .map((f) => f.name);
@@ -131,8 +127,7 @@ export class PgStore extends StoreBase {
                       [idFieldName]: serializeToSQL(
                         // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
                         fieldMap.get(idFieldName)!.type,
-                        // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-                        row[idFieldName]!,
+                        row[idFieldName],
                       ),
                     }),
                     {},
@@ -150,6 +145,30 @@ export class PgStore extends StoreBase {
                 modelName: model.modelName,
                 type: "missingPKForUpdateError",
               });
+            }
+          }
+          // If the field is a nullable parent with a defined value, we check if it's part of a unique constraint with a nullNotDistinct
+          // if that's the case we already tried to solve the unique constraint for it so we can use it's value since null fallback will likely not be possible
+          if (
+            isNullableParent &&
+            value !== null &&
+            model.uniqueConstraints.length > 0
+          ) {
+            const constraintsForField = model.uniqueConstraints.filter((c) =>
+              c.fields.includes(fieldName),
+            );
+            const hasNullNotDistinctConstraint = constraintsForField.some(
+              (c) => c.nullNotDistinct,
+            );
+            if (hasNullNotDistinctConstraint) {
+              insertRowValues.push(
+                serializeToSQL(
+                  // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+                  fieldMap.get(fieldName)!.type,
+                  value as Json,
+                ),
+              );
+              continue;
             }
           }
           insertRowValues.push(

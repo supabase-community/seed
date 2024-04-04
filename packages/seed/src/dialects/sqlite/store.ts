@@ -1,10 +1,7 @@
 import { format, ident, literal } from "@scaleleap/pg-format";
 import { type Json } from "#core/data/types.js";
 import { isNullableParent as checkIsNullableParent } from "#core/dataModel/dataModel.js";
-import {
-  type DataModelModel,
-  type DataModelScalarField,
-} from "#core/dataModel/types.js";
+import { type DataModelScalarField } from "#core/dataModel/types.js";
 import { StoreBase } from "#core/store/store.js";
 import { sortModels } from "#core/store/topologicalSort.js";
 import { serializeToSQL } from "./utils.js";
@@ -31,7 +28,7 @@ function logToSqlErrors(errors: Array<ToSQLErrors>) {
     }
   }
   for (const [modelName, affectedRows] of missingPKForUpdateErrorsMap) {
-    console.log(
+    console.warn(
       `Warning: skipping UPDATE on model ${modelName} for ${affectedRows} rows as it has no id fields (no PRIMARY KEYS or UNIQUE NON NULL columns found)`,
     );
   }
@@ -48,8 +45,7 @@ export class SqliteStore extends StoreBase {
     const updateStatements: Array<string> = [];
     const errorsData: Array<ToSQLErrors> = [];
 
-    for (const entry of sortedModels) {
-      const model = entry.node as DataModelModel & { modelName: string };
+    for (const model of sortedModels) {
       const idFieldNames = this.dataModel.models[model.modelName].fields
         .filter((f) => f.kind === "scalar" && f.isId)
         .map((f) => f.name);
@@ -102,8 +98,7 @@ export class SqliteStore extends StoreBase {
                       [idFieldName]: serializeToSQL(
                         // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
                         fieldMap.get(idFieldName)!.type,
-                        // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-                        row[idFieldName]!,
+                        row[idFieldName],
                       ),
                     }),
                     {},
@@ -134,8 +129,7 @@ export class SqliteStore extends StoreBase {
         }
         if (updateRow) {
           const updateStatement = [
-            // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-            `UPDATE ${ident(model.schemaName!)}.${ident(model.tableName)}`,
+            `UPDATE ${ident(model.tableName)}`,
             `SET ${Object.entries(updateRow.values)
               .map(
                 ([c, v]) => `${ident(fieldToColumnMap.get(c))} = ${literal(v)}`,

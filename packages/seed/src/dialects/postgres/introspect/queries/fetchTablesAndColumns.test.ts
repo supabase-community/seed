@@ -1,26 +1,19 @@
-import { drizzle as drizzleJs } from "drizzle-orm/postgres-js";
 import { describe, expect, test } from "vitest";
-import { postgres } from "#test";
-import { createDrizzleORMPgClient } from "../../adapters.js";
+import { postgres } from "#test/postgres/postgres/index.js";
 import { fetchTablesAndColumns } from "./fetchTablesAndColumns.js";
 
 const adapters = {
-  postgresJs: () => ({
-    ...postgres.postgresJs,
-    drizzle: drizzleJs,
-  }),
+  postgres: () => postgres,
 };
 
-describe.each(["postgresJs"] as const)(
+describe.concurrent.each(["postgres"] as const)(
   "fetchTablesAndColumns: %s",
   (adapter) => {
-    const { drizzle, createTestDb } = adapters[adapter]();
+    const { createTestDb } = adapters[adapter]();
     test("should fetch all tables and columns on empty db", async () => {
       const structure = ``;
       const db = await createTestDb(structure);
-      const tablesInfos = await fetchTablesAndColumns(
-        createDrizzleORMPgClient(drizzle(db.client)),
-      );
+      const tablesInfos = await fetchTablesAndColumns(db.client);
 
       expect(tablesInfos).toEqual([]);
     });
@@ -38,9 +31,8 @@ describe.each(["postgresJs"] as const)(
     );
   `;
       const db = await createTestDb(structure);
-      const orm = createDrizzleORMPgClient(drizzle(db.client));
-      await orm.run(`VACUUM ANALYZE;`);
-      const tablesInfos = await fetchTablesAndColumns(orm);
+      await db.client.execute(`VACUUM ANALYZE;`);
+      const tablesInfos = await fetchTablesAndColumns(db.client);
       expect(tablesInfos).toEqual([
         {
           bytes: 0,
@@ -153,9 +145,8 @@ describe.each(["postgresJs"] as const)(
     );
   `;
       const db = await createTestDb(structure);
-      const orm = createDrizzleORMPgClient(drizzle(db.client));
-      await orm.run(`VACUUM ANALYZE;`);
-      const tablesInfos = await fetchTablesAndColumns(orm);
+      await db.client.execute(`VACUUM ANALYZE;`);
+      const tablesInfos = await fetchTablesAndColumns(db.client);
 
       expect(tablesInfos).toEqual([
         {
@@ -214,9 +205,8 @@ describe.each(["postgresJs"] as const)(
     );
   `;
       const db = await createTestDb(structure);
-      const orm = createDrizzleORMPgClient(drizzle(db.client));
-      await orm.run(`VACUUM ANALYZE;`);
-      const tablesInfos = await fetchTablesAndColumns(orm);
+      await db.client.execute(`VACUUM ANALYZE;`);
+      const tablesInfos = await fetchTablesAndColumns(db.client);
       expect(tablesInfos).toEqual([
         {
           id: "public.Courses",
@@ -461,9 +451,8 @@ describe.each(["postgresJs"] as const)(
     );
   `;
       const db = await createTestDb(structure);
-      const orm = createDrizzleORMPgClient(drizzle(db.client));
-      await orm.run(`VACUUM ANALYZE;`);
-      const tablesInfos = await fetchTablesAndColumns(orm);
+      await db.client.execute(`VACUUM ANALYZE;`);
+      const tablesInfos = await fetchTablesAndColumns(db.client);
 
       expect(tablesInfos).toEqual([
         {

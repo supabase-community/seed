@@ -1,4 +1,4 @@
-import { type DrizzleDbClient } from "#core/adapters.js";
+import { type DatabaseClient } from "#core/databaseClient.js";
 import { buildSchemaExclusionClause } from "./utils.js";
 
 interface FetchSchemasResult {
@@ -15,7 +15,7 @@ const FETCH_AUTHORIZED_SCHEMAS = `
   ORDER BY schema_name
 `;
 
-export async function fetchSchemas(client: DrizzleDbClient) {
+export async function fetchSchemas(client: DatabaseClient) {
   const response = await client.query<FetchSchemasResult>(
     FETCH_AUTHORIZED_SCHEMAS,
   );
