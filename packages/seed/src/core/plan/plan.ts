@@ -94,12 +94,14 @@ export class Plan implements IPlan {
       inputs,
     }: PlanInputs & {
       ctx?: {
+        connectPath?: Array<{ model: string; rowId: number }>;
         index?: number;
         path?: Array<number | string>;
       };
     },
     options: Required<GenerateOptions>,
   ) {
+    const connectPath = ctx?.connectPath ?? [];
     const path = ctx?.path ?? [model];
     const userModels = options.models;
     const modelStructure = this.dataModel.models[model];
@@ -195,12 +197,24 @@ export class Plan implements IPlan {
           if (parentField === undefined) {
             const connectFallback = userModels[parentModelName].connect;
             if (connectFallback) {
-              return connectFallback({
+              const parent = connectFallback({
                 $store: this.ctx.store._store,
                 store: this.store._store,
                 index,
                 seed: `${modelSeed}/${field.name}`,
               });
+              // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
+              if (parent !== undefined) {
+                return parent;
+              }
+            }
+
+            // if the connect store is empty for this model, we attempt the path connection strategy
+            const candidate = connectPath.findLast(
+              (p) => p.model === parentModelName,
+            );
+            if (candidate) {
+              return this.store._store[parentModelName][candidate.rowId];
             }
           }
 
@@ -340,6 +354,7 @@ export class Plan implements IPlan {
         }),
       });
 
+      const rowId = this.store._store[model].length - 1;
       for (const field of fields.children) {
         const childModelName = field.type;
         const childField = inputsData[field.name] as ChildField | undefined;
@@ -409,6 +424,7 @@ export class Plan implements IPlan {
           {
             ctx: {
               path: [...path, index, field.name],
+              connectPath: [...connectPath, { model, rowId }],
             },
             model: childModelName,
             inputs: childInputs,
