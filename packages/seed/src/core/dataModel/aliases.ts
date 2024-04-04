@@ -361,16 +361,17 @@ export function getAliasedDataModel(
     >;
   },
 ) {
+  const inflectionOption = options?.inflection ?? false;
   let inflection = identityInflection;
-  if (options?.inflection === undefined || options.inflection === true) {
+  if (inflectionOption === true) {
     inflection = standardInflection;
-  } else if (options.inflection !== false) {
+  } else if (inflectionOption !== false) {
     inflection = {
       ...standardInflection,
-      ...options.inflection,
+      ...inflectionOption,
       oppositeBaseNameMap: {
         ...standardInflection.oppositeBaseNameMap,
-        ...options.inflection.oppositeBaseNameMap,
+        ...inflectionOption.oppositeBaseNameMap,
       },
     };
   }
