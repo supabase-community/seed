@@ -9,6 +9,8 @@ import {
 import { type Dialect } from "#core/dialect/types.js";
 import { isJsonField } from "#core/fingerprint/fingerprint.js";
 import { type Fingerprint } from "#core/fingerprint/types.js";
+import { type DataExample } from "#core/predictions/types.js";
+import { formatInput } from "#core/predictions/utils.js";
 import { generateCodeFromTemplate } from "#core/userModels/templates/codegen.js";
 import { type UserModels } from "#core/userModels/types.js";
 import { jsonStringify } from "#core/utils.js";
@@ -36,20 +38,16 @@ const generateDefaultForField = (props: {
   dataModel: DataModel;
   dialect: Dialect;
   field: DataModelField;
-  fieldShapeExamples: Array<string> | null;
   fingerprint: Fingerprint[string][string] | null;
   model: DataModelModel;
-  shape: Shape | null;
+  predictionData: {
+    examples: Array<string>;
+    input?: string;
+    shape: Shape | null;
+  };
 }) => {
-  const {
-    field,
-    dataModel,
-    shape,
-    fingerprint,
-    fieldShapeExamples,
-    dialect,
-    model,
-  } = props;
+  const { field, dataModel, fingerprint, predictionData, dialect, model } =
+    props;
 
   const matchEnum = findEnumType(dataModel, field);
 
@@ -69,30 +67,43 @@ const generateDefaultForField = (props: {
   }
 
   if (
-    shape &&
-    fieldShapeExamples != null &&
-    fieldShapeExamples.length > 0 &&
+    (predictionData.shape ?? predictionData.input) &&
+    predictionData.examples.length > 0 &&
     // If the field has a unique constraint, we don't want to use the shape examples as they will be repeated
     !hasUniqueConstraint(model, field)
   ) {
     const [, dimensions] = unpackNestedType(field.type);
     let resultCode;
 
-    if (field.maxLength) {
-      resultCode = `copycat.oneOfString(seed, getExamples('${shape}'), { limit: ${jsonStringify(field.maxLength)} })`;
+    if (predictionData.input) {
+      // Use custom examples
+      if (field.maxLength) {
+        resultCode = `copycat.oneOfString(seed, getCustomExamples('${predictionData.input}'), { limit: ${JSON.stringify(field.maxLength)} })`;
+      } else {
+        resultCode = `copycat.oneOfString(seed, getCustomExamples('${predictionData.input}'))`;
+      }
     } else {
-      resultCode = `copycat.oneOfString(seed, getExamples('${shape}'))`;
+      // Use examples from predicted shape
+      if (field.maxLength) {
+        resultCode = `copycat.oneOfString(seed, getExamples('${predictionData.shape}'), { limit: ${jsonStringify(field.maxLength)} })`;
+      } else {
+        resultCode = `copycat.oneOfString(seed, getExamples('${predictionData.shape}'))`;
+      }
     }
 
     resultCode = encloseValueInArray(resultCode, dimensions);
     return `({ seed }) => ${resultCode}`;
   }
 
+  if (!predictionData.shape) {
+    // Still do not have a shape, use shape based on type
+    predictionData.shape = dialect.determineShapeFromType(field.type);
+  }
   const code = generateCodeFromTemplate({
     input: "seed",
     type: field.type,
     maxLength: field.maxLength ?? null,
-    shape: shape,
+    shape: predictionData.shape,
     templates: dialect.templates,
     optionsInput: "options",
   });
@@ -101,11 +112,11 @@ const generateDefaultForField = (props: {
 };
 
 const generateDefaultsForModel = (props: {
+  dataExamples: Array<DataExample>;
   dataModel: DataModel;
   dialect: Dialect;
   fingerprint: Fingerprint[string] | null;
   model: DataModelModel;
-  shapeExamples: Array<{ examples: Array<string>; shape: string }>;
   shapePredictions: TableShapePredictions | null;
 }) => {
   const { fingerprint, model, dataModel, shapePredictions, dialect } = props;
@@ -119,29 +130,37 @@ const generateDefaultsForModel = (props: {
   ) as Array<DataModelScalarField>;
 
   for (const field of scalarFields) {
-    let shape = dialect.determineShapeFromType(field.type);
-    let fieldShapeExamples = null;
+    const predictionData: {
+      examples: Array<string>;
+      input?: string;
+      shape: Shape | null;
+    } = { shape: null, examples: [] };
 
-    if (shape == null) {
-      const prediction = shapePredictions?.predictions.find((prediction) => {
-        return (
-          prediction.column === field.columnName &&
-          prediction.shape != null &&
-          prediction.confidence != null &&
-          prediction.confidence > SHAPE_PREDICTION_CONFIDENCE_THRESHOLD
-        );
-      });
+    const fieldShapePrediction =
+      shapePredictions?.predictions.find(
+        (prediction) => prediction.column === field.columnName,
+      ) ?? null;
 
-      if (prediction) {
-        shape = prediction.shape ?? null;
+    const customExample = props.dataExamples.find(
+      (e) =>
+        e.input ===
+        formatInput([model.schemaName ?? "", model.tableName, field.name]),
+    );
+    if (customExample) {
+      predictionData.input = customExample.input;
+      predictionData.examples = customExample.examples;
+    } else {
+      if (
+        fieldShapePrediction?.shape &&
+        fieldShapePrediction.confidence &&
+        fieldShapePrediction.confidence > SHAPE_PREDICTION_CONFIDENCE_THRESHOLD
+      ) {
+        predictionData.shape = fieldShapePrediction.shape;
+        predictionData.examples =
+          props.dataExamples.find((e) => e.shape === predictionData.shape)
+            ?.examples ?? [];
       }
     }
-
-    if (shape != null) {
-      fieldShapeExamples =
-        props.shapeExamples.find((e) => e.shape === shape)?.examples ?? null;
-    }
-
     const fieldFingerprint = fingerprint?.[field.name] ?? null;
 
     if (!shouldGenerateFieldValue(field)) {
@@ -150,8 +169,7 @@ const generateDefaultsForModel = (props: {
       fields.data[field.name] = generateDefaultForField({
         field,
         dataModel,
-        shape,
-        fieldShapeExamples,
+        predictionData,
         fingerprint: fieldFingerprint,
         dialect,
         model,
@@ -162,10 +180,10 @@ const generateDefaultsForModel = (props: {
 };
 
 const generateDefaultsForModels = (props: {
+  dataExamples: Array<DataExample>;
   dataModel: DataModel;
   dialect: Dialect;
   fingerprint: Fingerprint;
-  shapeExamples: Array<{ examples: Array<string>; shape: string }>;
   shapePredictions: Array<TableShapePredictions>;
 }) => {
   const { fingerprint, dataModel, shapePredictions, dialect } = props;
@@ -185,7 +203,7 @@ const generateDefaultsForModels = (props: {
       model,
       dataModel,
       shapePredictions: modelShapePredictions,
-      shapeExamples: props.shapeExamples,
+      dataExamples: props.dataExamples,
       fingerprint: modelFingerprint,
       dialect,
     });
@@ -195,13 +213,13 @@ const generateDefaultsForModels = (props: {
 };
 
 export const generateUserModels = (context: CodegenContext) => {
-  const { fingerprint, dataModel, shapePredictions, shapeExamples, dialect } =
+  const { fingerprint, dataModel, shapePredictions, dataExamples, dialect } =
     context;
 
   const defaults = generateDefaultsForModels({
     dataModel,
     shapePredictions,
-    shapeExamples,
+    dataExamples,
     fingerprint,
     dialect,
   });
@@ -224,10 +242,11 @@ export const generateUserModels = (context: CodegenContext) => {
     ) ?? "";
   return `
 import { copycat } from "@snaplet/copycat"
-import { getShapeExamples } from "@snaplet/seed/core/predictions/shapeExamples/getShapeExamples";
+import { getDataExamples } from "@snaplet/seed/core/predictions/shapeExamples/getDataExamples";
 
-const shapeExamples = await getShapeExamples();
+const shapeExamples = await getDataExamples();
 
+const getCustomExamples = (input) => shapeExamples.find((e) => e.input === input)?.examples ?? []
 const getExamples = (shape) => shapeExamples.find((e) => e.shape === shape)?.examples ?? [];
 
 export const userModels = ${stringifiedDefaults};

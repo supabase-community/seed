@@ -2,7 +2,7 @@ import { getSeedConfig } from "#config/seedConfig/seedConfig.js";
 import { type CodegenContext } from "#core/codegen/codegen.js";
 import { getDataModel, getRawDataModel } from "#core/dataModel/dataModel.js";
 import { getFingerprint } from "#core/fingerprint/fingerprint.js";
-import { getShapeExamples } from "#core/predictions/shapeExamples/getShapeExamples.js";
+import { getDataExamples } from "#core/predictions/shapeExamples/getDataExamples.js";
 import { getShapePredictions } from "#core/predictions/shapePredictions/getShapePredictions.js";
 import { getDialect } from "#dialects/getDialect.js";
 
@@ -23,7 +23,7 @@ export async function computeCodegenContext(props: {
     rawDataModel,
     outputDir,
     shapePredictions: await getShapePredictions(),
-    shapeExamples: await getShapeExamples(),
+    dataExamples: await getDataExamples(),
     dialect,
   };
 }

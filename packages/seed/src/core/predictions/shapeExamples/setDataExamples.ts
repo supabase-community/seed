@@ -1,13 +1,13 @@
 import { writeFile } from "node:fs/promises";
 import { join } from "node:path";
 import { ensureDotSnapletPath } from "#config/dotSnaplet.js";
-import { type ShapeExamples } from "#core/predictions/types.js";
+import { type DataExample } from "#core/predictions/types.js";
 import { jsonStringify } from "#core/utils.js";
 
-export async function setShapeExamples(shapeExamples: ShapeExamples) {
+export async function setDataExamples(shapeExamples: Array<DataExample>) {
   const dotSnapletPath = await ensureDotSnapletPath();
 
-  const shapeExamplesPath = join(dotSnapletPath, "shapeExamples.json");
+  const shapeExamplesPath = join(dotSnapletPath, "dataExamples.json");
 
   await writeFile(
     shapeExamplesPath,

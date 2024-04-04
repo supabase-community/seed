@@ -10,6 +10,16 @@ export const trpc = t;
 
 export const createCliRouter = ({ publicProcedure = t.procedure } = {}) =>
   router({
+    project: router({
+      list: publicProcedure.query(() => {
+        return [
+          {
+            id: "1",
+            name: "Project 1",
+          },
+        ] as Array<{ id: string; name: string }>;
+      }),
+    }),
     predictions: router({
       predictionsRoute: publicProcedure
         .input(
@@ -53,6 +63,7 @@ export const createCliRouter = ({ publicProcedure = t.procedure } = {}) =>
                 engine: z.string(),
               })
               .optional(),
+            projectId: z.string().optional(),
           }),
         )
         .mutation(() => {
@@ -87,6 +98,20 @@ export const createCliRouter = ({ publicProcedure = t.procedure } = {}) =>
               shape: string;
             }>,
           };
+        }),
+      customSeedDatasetRoute: publicProcedure
+        .input(
+          z.object({
+            inputs: z.array(z.string()),
+            projectId: z.string(),
+          }),
+        )
+        .mutation(() => {
+          const seedDataset: Array<{
+            examples: Array<string>;
+            input: string;
+          }> = [];
+          return seedDataset;
         }),
     }),
     user: router({
