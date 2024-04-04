@@ -6,7 +6,7 @@ const versionToRelease = seedPackage.version;
 const channel = "latest";
 
 try {
-  releaseSnapletSeed({ versionToRelease, channel, dryRun: true });
+  releaseSnapletSeed({ versionToRelease, channel, dryRun: false });
   process.exit(0);
 } catch (error) {
   process.exit(1);
