@@ -150,7 +150,7 @@
     "@trpc/server": "^10.45.2",
     "ansi-escapes": "^6.2.1",
     "c12": "^1.10.0",
-    "camelcase": "^8.0.0",
+    "change-case": "^5.4.3",
     "ci-info": "^4.0.0",
     "debug": "^4.3.4",
     "dedent": "^1.5.1",
