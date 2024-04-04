@@ -1322,4 +1322,20 @@ describe("aliases", () => {
       }),
     ).not.toThrow();
   });
+
+  test("inflection is not applied if no alias configuration is provided", async () => {
+    // arrange
+    const dataModel = await createDataModelFromSql(
+      adapter,
+      `
+      CREATE TABLE public."User_Test" (
+        "user_id" SERIAL PRIMARY KEY
+      );
+    `,
+    );
+    // act
+    const aliasedDataModel = getAliasedDataModel(dataModel);
+    // assert
+    expect(aliasedDataModel).toEqual(dataModel);
+  });
 });
