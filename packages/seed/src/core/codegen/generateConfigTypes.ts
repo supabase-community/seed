@@ -18,7 +18,10 @@ export function generateSelectTypeFromTableIds(
 
   const selectOptions =
     uniqueTableIds.length > 0
-      ? `type SelectOptions = TablesOptions | string`
+      ? [
+          `type TablesOptions = ${EOL}${uniqueTableIds.map((id) => `  "${id}"`).join(` |${EOL}`)}${EOL}`,
+          `type SelectOptions = TablesOptions | string`,
+        ].join(EOL)
       : `type SelectOptions = string`;
 
   return [
