@@ -39,7 +39,7 @@
     },
     "./assets": {
       "types": "./assets/index.d.ts",
-      "development": "./src/assets/index.ts",
+      "development": "./assets/index.ts",
       "default": "./assets/index.js"
     },
     "./adapter": {
