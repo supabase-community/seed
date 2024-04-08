@@ -16,6 +16,7 @@ import { escapeIdentifier } from "./utils.js";
 export function getSeedClient(props: {
   dataModel: DataModel;
   fingerprint: Fingerprint;
+  seedConfigPath: string;
   userModels: UserModels;
 }) {
   class PgSeedClient extends SeedClientBase {
@@ -73,7 +74,8 @@ export function getSeedClient(props: {
     return setupClient({
       dialect: "postgres",
       async createClient() {
-        const databaseClient = options?.adapter ?? (await getDatabaseClient());
+        const databaseClient =
+          options?.adapter ?? (await getDatabaseClient(props.seedConfigPath));
         return new PgSeedClient(databaseClient, options);
       },
     });

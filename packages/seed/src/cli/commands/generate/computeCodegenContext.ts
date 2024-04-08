@@ -1,4 +1,7 @@
-import { getSeedConfig } from "#config/seedConfig/seedConfig.js";
+import {
+  getSeedConfig,
+  getSeedConfigPath,
+} from "#config/seedConfig/seedConfig.js";
 import { type CodegenContext } from "#core/codegen/codegen.js";
 import { getDataModel, getRawDataModel } from "#core/dataModel/dataModel.js";
 import { getFingerprint } from "#core/fingerprint/fingerprint.js";
@@ -14,10 +17,12 @@ export async function computeCodegenContext(props: {
   const rawDataModel = await getRawDataModel();
   const dataModel = await getDataModel();
   const seedConfig = await getSeedConfig();
+  const seedConfigPath = await getSeedConfigPath();
   const dialect = await getDialect();
 
   return {
     seedConfig,
+    seedConfigPath,
     fingerprint: await getFingerprint(),
     dataModel,
     rawDataModel,

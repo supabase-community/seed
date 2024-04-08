@@ -16,6 +16,7 @@ import { escapeIdentifier } from "./utils.js";
 export function getSeedClient(props: {
   dataModel: DataModel;
   fingerprint: Fingerprint;
+  seedConfigPath: string;
   userModels: UserModels;
 }) {
   class SqliteSeedClient extends SeedClientBase {
@@ -71,7 +72,8 @@ export function getSeedClient(props: {
     return setupClient({
       dialect: "sqlite",
       async createClient() {
-        const databaseClient = options?.adapter ?? (await getDatabaseClient());
+        const databaseClient =
+          options?.adapter ?? (await getDatabaseClient(props.seedConfigPath));
         return new SqliteSeedClient(databaseClient, options);
       },
     });

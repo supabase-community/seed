@@ -117,8 +117,8 @@ export interface SeedConfig {
   select?: SeedConfigInferred["select"];
 }
 
-export async function getSeedConfig() {
-  const path = await getSeedConfigPath();
+export async function getSeedConfig(configPath?: string) {
+  const path = configPath ?? (await getSeedConfigPath());
 
   const { config } = await loadConfig({
     dotenv: true,

@@ -4,12 +4,12 @@ import { SnapletError } from "#core/utils.js";
 
 let databaseClient: DatabaseClient | undefined;
 
-export async function getDatabaseClient() {
+export async function getDatabaseClient(seedConfigPath?: string) {
   if (databaseClient) {
     return databaseClient;
   }
 
-  const seedConfig = await getSeedConfig();
+  const seedConfig = await getSeedConfig(seedConfigPath);
 
   try {
     const _databaseClient = await seedConfig.adapter();

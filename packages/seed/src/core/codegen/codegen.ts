@@ -20,6 +20,7 @@ export interface CodegenContext {
   outputDir?: string;
   rawDataModel: DataModel;
   seedConfig: SeedConfig;
+  seedConfigPath: string;
   shapePredictions: Array<TableShapePredictions>;
 }
 
@@ -44,21 +45,15 @@ const FILES = {
   },
   INDEX: {
     name: "index.js",
-    template({ dialect }: CodegenContext) {
+    template({ dialect, seedConfigPath }: CodegenContext) {
       return dedent`
-        import { readFileSync } from "node:fs";
-        import { dirname, join } from "node:path";
-        import { fileURLToPath } from "node:url";
-
+        import dataModel from "./${FILES.DATA_MODEL.name}" with { type "json" };
         import { getSeedClient } from "@snaplet/seed/dialects/${dialect.id}/client";
         import { userModels } from "./${FILES.USER_MODELS.name}";
 
-        const __filename = fileURLToPath(import.meta.url);
-        const __dirname = dirname(__filename);
+        const seedConfigPath = "${seedConfigPath}";
 
-        const dataModel = JSON.parse(readFileSync(join(__dirname, "${FILES.DATA_MODEL.name}")));
-
-        export const createSeedClient = getSeedClient({ dataModel, userModels });
+        export const createSeedClient = getSeedClient({ dataModel, seedConfigPath, userModels });
       `;
     },
   },
@@ -83,6 +78,12 @@ const FILES = {
       declare module "@snaplet/seed/config" {
         ${configTypes}
       }`;
+    },
+  },
+  DATA_EXAMPLES: {
+    name: "dataExamples.json",
+    template({ dataExamples }: CodegenContext) {
+      return jsonStringify(dataExamples);
     },
   },
   DATA_MODEL: {
