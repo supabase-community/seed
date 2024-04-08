@@ -86,7 +86,7 @@ export interface GenerateCallbackContext {
   store: Store["_store"];
 }
 
-export interface WrappedGenerateCallback {
+interface WrappedGenerateCallback {
   (ctx: GenerateCallbackContext): Promise<Serializable> | Serializable;
   fallback?: boolean | undefined;
 }
