@@ -1,7 +1,7 @@
 import { loadConfig } from "c12";
 import { existsSync } from "node:fs";
 import { writeFile } from "node:fs/promises";
-import { join } from "node:path";
+import { basename, dirname, join, resolve } from "node:path";
 import * as z from "zod";
 import { getRootPath } from "#config/utils.js";
 import { type Inflection } from "#core/dataModel/aliases.js";
@@ -118,9 +118,13 @@ export interface SeedConfig {
 }
 
 export async function getSeedConfig() {
+  const path = await getSeedConfigPath();
+
   const { config } = await loadConfig({
     dotenv: true,
     name: "seed",
+    cwd: dirname(path),
+    configFile: basename(path),
   });
 
   const parsedConfig = configSchema.parse(config ?? {});
@@ -129,6 +133,10 @@ export async function getSeedConfig() {
 }
 
 export async function getSeedConfigPath() {
+  if (process.env["SNAPLET_SEED_CONFIG"]) {
+    return resolve(process.env["SNAPLET_SEED_CONFIG"]);
+  }
+
   return join(await getRootPath(), "seed.config.ts");
 }
 
