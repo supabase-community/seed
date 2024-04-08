@@ -108,7 +108,7 @@ const generateDefaultForField = (props: {
     optionsInput: "options",
   });
 
-  return `({ seed, options }) => { return ${code} }`;
+  return `fallbackFunctionTagger(({ seed, options }) => { return ${code} })`;
 };
 
 const generateDefaultsForModel = (props: {
@@ -248,6 +248,13 @@ const shapeExamples = await getDataExamples();
 
 const getCustomExamples = (input) => shapeExamples.find((e) => e.input === input)?.examples ?? []
 const getExamples = (shape) => shapeExamples.find((e) => e.shape === shape)?.examples ?? [];
+
+// This function is used to tag a function as a fallback function so we can later identify if the function comes from codegen or not
+const fallbackFunctionTagger = (fn) => {
+  fn.fallback = true
+  return fn
+}
+
 
 export const userModels = ${stringifiedDefaults};
 `;

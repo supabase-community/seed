@@ -86,9 +86,12 @@ export interface GenerateCallbackContext {
   store: Store["_store"];
 }
 
-export type GenerateCallback = (
-  ctx: GenerateCallbackContext,
-) => Promise<Serializable> | Serializable;
+export interface WrappedGenerateCallback {
+  (ctx: GenerateCallbackContext): Promise<Serializable> | Serializable;
+  fallback: boolean | undefined;
+}
+
+export type GenerateCallback = WrappedGenerateCallback;
 
 export type ModelData = Record<string, Serializable | undefined>;
 
