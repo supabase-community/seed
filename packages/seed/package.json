@@ -37,6 +37,11 @@
       "development": "./src/index.ts",
       "default": "./dist/index.js"
     },
+    "./assets": {
+      "types": "./assets/index.d.ts",
+      "development": "./src/assets/index.ts",
+      "default": "./assets/index.js"
+    },
     "./adapter": {
       "types": "./dist/core/databaseClient.d.ts",
       "development": "./src/core/databaseClient.ts",

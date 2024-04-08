@@ -59,6 +59,7 @@ const ERROR_CODES = {
   SEED_ADAPTER_CANNOT_CONNECT: 9302,
 
   PACKAGE_NOT_EXISTS: 9400,
+  MISSING_CLIENT: 9401,
 };
 
 type CodeType = keyof typeof ERROR_CODES;
@@ -74,6 +75,7 @@ interface SeedSelectRelationshipError {
 }
 
 interface Data extends Record<CodeType, unknown> {
+  MISSING_CLIENT: undefined;
   PACKAGE_NOT_EXISTS: {
     packageName: string;
   };
@@ -92,6 +94,8 @@ interface Data extends Record<CodeType, unknown> {
 const errorToStringMappings: {
   [K in CodeType]: (data: Data[K]) => string;
 } = {
+  MISSING_CLIENT: () =>
+    "@snaplet/seed client is missing. Please use npx @snaplet/seed sync or npx @snaplet/seed generate to generate the client.",
   SEED_ALIAS_MODEL_NAME_CONFLICTS: (data) => {
     const conflicts = data.conflicts
       .map(

@@ -25,17 +25,20 @@ npx tsx seed.mts
 # Make sure adding a new package does not break the seed script
 pnpm add -w lodash
 npx tsx seed.mts
+git clean -dfx
 echo "========================================================="
 
 # ======== YARN
 echo "++++++++++++++++++++++ TESTING YARN ++++++++++++++++++++++"
 # Try to run the seed script after install
 cd $SCRIPT_DIR/yarn-test-repo/
+yarn cache clean
 yarn install
 npx tsx seed.mts
 # Make sure adding a new package does not break the seed script
 yarn add lodash
 npx tsx seed.mts
+git clean -dfx
 echo "========================================================="
 
 
@@ -43,9 +46,11 @@ echo "========================================================="
 echo "++++++++++++++++++++++ TESTING NPM ++++++++++++++++++++++"
 # Try to run the seed script after install
 cd $SCRIPT_DIR/npm-test-repo/
+npm cache clean --force
 npm install
 npx tsx seed.mts
 # Make sure adding a new package does not break the seed script
 npm install lodash
 npx tsx seed.mts
+git clean -dfx
 echo "========================================================="
