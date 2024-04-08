@@ -1,6 +1,7 @@
 {
   "name": "npm-test-repo",
   "private": true,
+  "type": "module",
   "devDependencies": {
     "@snaplet/copycat": "^5.0.0",
     "@snaplet/seed": "file:snaplet-seed.tgz",
