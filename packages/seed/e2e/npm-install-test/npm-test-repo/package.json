@@ -1,0 +1,12 @@
+{
+  "name": "npm-test-repo",
+  "private": true,
+  "devDependencies": {
+    "@snaplet/copycat": "^5.0.0",
+    "@snaplet/seed": "file:snaplet-seed.tgz",
+    "postgres": "3.4.4"
+  },
+  "dependencies": {
+    "lodash": "^4.17.21"
+  }
+}

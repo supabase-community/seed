@@ -1,0 +1,13 @@
+{
+  "name": "yarn-test-repo",
+  "private": true,
+  "packageManager": "yarn@1.22.19",
+  "engines": {
+    "node": ">=20.9.0"
+  },
+  "devDependencies": {
+    "@snaplet/copycat": "^5.0.0",
+    "@snaplet/seed": "file:snaplet-seed.tgz",
+    "postgres": "3.4.4"
+  }
+}

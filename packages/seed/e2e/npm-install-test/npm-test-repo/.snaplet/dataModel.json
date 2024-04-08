@@ -1,0 +1,28 @@
+{
+  "dialect": "postgres",
+  "models": {
+    "test_table": {
+      "id": "public.test_table",
+      "schemaName": "public",
+      "tableName": "test_table",
+      "fields": [
+        {
+          "id": "public.test_table.name",
+          "name": "name",
+          "columnName": "name",
+          "type": "char",
+          "isRequired": false,
+          "kind": "scalar",
+          "isList": false,
+          "isGenerated": false,
+          "sequence": false,
+          "hasDefaultValue": false,
+          "isId": false,
+          "maxLength": null
+        }
+      ],
+      "uniqueConstraints": []
+    }
+  },
+  "enums": {}
+}
