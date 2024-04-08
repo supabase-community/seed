@@ -3,6 +3,8 @@ set -euxo pipefail
 
 SCRIPT_DIR=$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )
 cd $SCRIPT_DIR
+git clean -dfx && git restore pnpm-test-repo/ && git restore yarn-test-repo/ && git restore npm-test-repo/
+
 cd ../../
 
 pnpm build
