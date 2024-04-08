@@ -11,6 +11,7 @@ import {
   type DataModelUniqueConstraint,
 } from "../dataModel/types.js";
 import { type Store } from "../store/store.js";
+import { FallbackSymbol } from "../symbols.js";
 import { type UserModels } from "../userModels/types.js";
 import {
   type GenerateCallback,
@@ -118,8 +119,8 @@ export async function checkConstraints(
           intersection(p.relationFromFields, constraint.fields).length > 0 &&
           intersection(p.relationFromFields, processedFields).length === 0 &&
           props.inputsData[p.name] === undefined &&
-          // @ts-expect-error check if the connect function is tagged as fallback
-          props.userModels[p.type].connect?.fallback
+          // check if the connect function is tagged as fallback
+          props.userModels[p.type].connect?.[FallbackSymbol] === true
         ) {
           parentsFieldsColumns.push(...p.relationFromFields);
           return true;
