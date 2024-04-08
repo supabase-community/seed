@@ -6,5 +6,6 @@
   "exclude": [
     "**/dist/*",
     "**/.tmp/*",
+    "e2e/npm-install-test/**/*",
   ]
 }
