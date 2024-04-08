@@ -6,7 +6,6 @@
   "bin": {
     "snaplet-seed": "./bin/cli.js"
   },
-  "types": "./dist/index.d.ts",
   "author": {
     "name": "Snaplet",
     "url": "https://snaplet.dev"
@@ -87,6 +86,21 @@
       "types": "./dist/core/predictions/*.d.ts",
       "development": "./src/core/predictions/*.ts",
       "default": "./dist/core/predictions/*.js"
+    }
+  },
+  "types": "./dist/index.d.ts",
+  "typesVersions": {
+    "*": {
+      "adapter": ["./dist/core/databaseClient.d.ts"],
+      "adapter-better-sqlite3": ["./dist/adapters/better-sqlite3/index.d.ts"],
+      "adapter-pg": ["./dist/adapters/pg/index.d.ts"],
+      "adapter-postgres": ["./dist/adapters/postgres/index.d.ts"],
+      "adapter-prisma": ["./dist/adapters/prisma/index.d.ts"],
+      "config": ["./dist/config/seedConfig/defineConfig.d.ts"],
+      "cli": ["./dist/cli/index.d.ts"],
+      "dialects/postgres/client": ["./dist/dialects/postgres/client.d.ts"],
+      "dialects/sqlite/client": ["./dist/dialects/sqlite/client.d.ts"],
+      "core/predictions/*": ["./dist/core/predictions/*.d.ts"]
     }
   },
   "devDependencies": {
