@@ -1,3 +1,4 @@
+import dedent from "dedent";
 import { stringify } from "javascript-stringify";
 import { type CodegenContext } from "#core/codegen/codegen.js";
 import {
@@ -240,22 +241,19 @@ export const generateUserModels = (context: CodegenContext) => {
       },
       "  ",
     ) ?? "";
-  return `
-import { copycat } from "@snaplet/copycat"
-import { getDataExamples } from "@snaplet/seed/core/predictions/shapeExamples/getDataExamples";
+  return dedent`
+    import { copycat } from "@snaplet/copycat";
+    import dataExamples from "./dataExamples.json" with { type: "json" };
 
-const shapeExamples = await getDataExamples();
+    const getCustomExamples = (input) => dataExamples.find((e) => e.input === input)?.examples ?? [];
+    const getExamples = (shape) => dataExamples.find((e) => e.shape === shape)?.examples ?? [];
 
-const getCustomExamples = (input) => shapeExamples.find((e) => e.input === input)?.examples ?? []
-const getExamples = (shape) => shapeExamples.find((e) => e.shape === shape)?.examples ?? [];
+    // This function is used to tag a function as a fallback function so we can later identify if the function comes from codegen or not
+    const fallbackFunctionTagger = (fn) => {
+      fn.fallback = true
+      return fn
+    }
 
-// This function is used to tag a function as a fallback function so we can later identify if the function comes from codegen or not
-const fallbackFunctionTagger = (fn) => {
-  fn.fallback = true
-  return fn
-}
-
-
-export const userModels = ${stringifiedDefaults};
-`;
+    export const userModels = ${stringifiedDefaults};
+  `;
 };

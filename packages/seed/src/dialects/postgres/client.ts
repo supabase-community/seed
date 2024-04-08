@@ -1,23 +1,21 @@
 import { EOL } from "node:os";
 import { getDatabaseClient } from "#adapters/getDatabaseClient.js";
 import { type SelectConfig } from "#config/seedConfig/selectConfig.js";
-import { SeedClientBase, setupClient } from "#core/client/client.js";
+import {
+  type GetSeedClient,
+  SeedClientBase,
+  setupClient,
+} from "#core/client/client.js";
 import { type SeedClientOptions } from "#core/client/types.js";
 import { filterModelsBySelectConfig } from "#core/client/utils.js";
 import { type DataModel } from "#core/dataModel/types.js";
 import { type DatabaseClient } from "#core/databaseClient.js";
-import { type Fingerprint } from "#core/fingerprint/types.js";
 import { updateDataModelSequences } from "#core/sequences/updateDataModelSequences.js";
-import { type UserModels } from "#core/userModels/types.js";
 import { getDatamodel } from "./dataModel.js";
 import { PgStore } from "./store.js";
 import { escapeIdentifier } from "./utils.js";
 
-export function getSeedClient(props: {
-  dataModel: DataModel;
-  fingerprint: Fingerprint;
-  userModels: UserModels;
-}) {
+export const getSeedClient: GetSeedClient = (props) => {
   class PgSeedClient extends SeedClientBase {
     readonly db: DatabaseClient;
     readonly dryRun: boolean;
@@ -73,11 +71,12 @@ export function getSeedClient(props: {
     return setupClient({
       dialect: "postgres",
       async createClient() {
-        const databaseClient = options?.adapter ?? (await getDatabaseClient());
+        const databaseClient =
+          options?.adapter ?? (await getDatabaseClient(props.seedConfigPath));
         return new PgSeedClient(databaseClient, options);
       },
     });
   };
 
   return createSeedClient;
-}
+};
