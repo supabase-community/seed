@@ -6,16 +6,22 @@ import { eraseLines, highlight, link, spinner } from "../../lib/output.js";
 import { telemetry } from "../../lib/telemetry.js";
 import { getAccessTokenFromHttpServer } from "./getAccessTokenFromHttpServer.js";
 
-export async function loginHandler() {
-  const port = await getPort();
+export async function loginHandler(args?: { accessToken?: string }) {
+  let accessToken = args?.accessToken;
+  let prompted = false;
 
-  const accessTokenUrl = `${SNAPLET_APP_URL}/access-token/cli-auto?port=${port}`;
+  if (!accessToken) {
+    const port = await getPort();
 
-  console.log(`Please visit the following URL in your web browser:`);
-  console.log(link(accessTokenUrl));
-  spinner.start(`Waiting for authentication to be completed`);
+    const accessTokenUrl = `${SNAPLET_APP_URL}/access-token/cli-auto?port=${port}`;
 
-  const accessToken = await getAccessTokenFromHttpServer(port);
+    console.log(`Please visit the following URL in your web browser:`);
+    console.log(link(accessTokenUrl));
+    spinner.start(`Waiting for authentication to be completed`);
+
+    accessToken = await getAccessTokenFromHttpServer(port);
+    prompted = true;
+  }
 
   // We must set the environment variable here so that the trpc client can use it as Bearer token
   process.env["SNAPLET_ACCESS_TOKEN"] = accessToken;
@@ -33,6 +39,8 @@ export async function loginHandler() {
   await telemetry.captureUserLogin(user);
 
   spinner.stop();
-  eraseLines(3);
+  if (prompted) {
+    eraseLines(3);
+  }
   spinner.succeed(`Logged in as ${highlight(user.email)}`);
 }
