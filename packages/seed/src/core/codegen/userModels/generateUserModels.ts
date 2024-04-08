@@ -243,6 +243,7 @@ export const generateUserModels = (context: CodegenContext) => {
     ) ?? "";
   return dedent`
     import { copycat } from "@snaplet/copycat";
+    import { FallbackSymbol } from "@snaplet/seed/core/symbols";
     import dataExamples from "./dataExamples.json" with { type: "json" };
 
     const getCustomExamples = (input) => dataExamples.find((e) => e.input === input)?.examples ?? [];
@@ -250,7 +251,7 @@ export const generateUserModels = (context: CodegenContext) => {
 
     // This function is used to tag a function as a fallback function so we can later identify if the function comes from codegen or not
     const fallbackFunctionTagger = (fn) => {
-      fn.fallback = true
+      fn[FallbackSymbol] = true
       return fn
     }
 

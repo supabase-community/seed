@@ -86,6 +86,11 @@
       "types": "./dist/core/predictions/*.d.ts",
       "development": "./src/core/predictions/*.ts",
       "default": "./dist/core/predictions/*.js"
+    },
+    "./core/symbols": {
+      "types": "./dist/core/symbols.d.ts",
+      "development": "./src/core/symbols.ts",
+      "default": "./dist/core/symbols.js"
     }
   },
   "types": "./dist/index.d.ts",

@@ -1,5 +1,6 @@
 import { type Json, type Serializable } from "../../core/data/types.js";
 import { type Store } from "../store/store.js";
+import { type FallbackSymbol } from "../symbols.js";
 import { type UserModels } from "../userModels/types.js";
 
 export type Constraints = Record<string, Record<string, Set<string>>>;
@@ -44,9 +45,12 @@ interface ConnectCallbackContext {
   store: Store["_store"];
 }
 
-export type ConnectCallback = ((
-  ctx: ConnectCallbackContext,
-) => Record<string, Serializable>) & { fallback?: boolean };
+interface WrappedConnectCallback {
+  (ctx: ConnectCallbackContext): Record<string, Serializable>;
+  [FallbackSymbol]?: boolean | undefined;
+}
+
+export type ConnectCallback = WrappedConnectCallback;
 
 export class ConnectInstruction {
   constructor(public callback: ConnectCallback) {}
@@ -88,7 +92,7 @@ export interface GenerateCallbackContext {
 
 interface WrappedGenerateCallback {
   (ctx: GenerateCallbackContext): Promise<Serializable> | Serializable;
-  fallback?: boolean | undefined;
+  [FallbackSymbol]?: boolean | undefined;
 }
 
 export type GenerateCallback = WrappedGenerateCallback;
