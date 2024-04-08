@@ -47,7 +47,7 @@ const FILES = {
     name: "index.js",
     template({ dialect, seedConfigPath }: CodegenContext) {
       return dedent`
-        import dataModel from "./${FILES.DATA_MODEL.name}" with { type "json" };
+        import dataModel from "./${FILES.DATA_MODEL.name}" with { type: "json" };
         import { getSeedClient } from "@snaplet/seed/dialects/${dialect.id}/client";
         import { userModels } from "./${FILES.USER_MODELS.name}";
 
