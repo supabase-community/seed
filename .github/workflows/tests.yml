@@ -103,3 +103,35 @@ jobs:
 
       - name: Run e2e tests
         run: pnpm test:e2e
+
+  
+  test-packing-and-install:
+    if: github.event.pull_request.draft == false
+    name: Packing and install tests
+    runs-on: buildjet-8vcpu-ubuntu-2204
+    services:
+      postgres:
+        image: postgres:16
+        credentials:
+          username: ${{ secrets.DOCKER_HUB_USERNAME }}
+          password: ${{ secrets.DOCKER_HUB_PASSWORD }}
+        ports:
+          - 5432:5432
+        options: --health-cmd pg_isready --health-interval 10s --health-timeout 5s --health-retries 5
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: postgres
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 18
+          cache: 'npm'
+
+      - name: Test pack and install
+        run: |
+          cd packages/seed/e2e/npm-install-test
+          ./test.sh
