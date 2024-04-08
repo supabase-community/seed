@@ -1,14 +1,14 @@
 import dedent from "dedent";
 import { existsSync } from "node:fs";
 import { writeFile } from "node:fs/promises";
-import { join } from "node:path";
-import { getRootPath } from "#config/utils.js";
+import { dirname, join } from "node:path";
+import { getSeedConfigPath } from "#config/seedConfig/seedConfig.js";
 import { getDataModel } from "#core/dataModel/dataModel.js";
 import { sortModels } from "#core/store/topologicalSort.js";
 import { link, spinner } from "../../lib/output.js";
 
 export async function generateSeedScriptExample() {
-  const seedScriptPath = join(await getRootPath(), "seed.mts");
+  const seedScriptPath = join(dirname(await getSeedConfigPath()), "seed.mts");
 
   // If the seed script already exists, we don't want to overwrite it
   if (existsSync(seedScriptPath)) {

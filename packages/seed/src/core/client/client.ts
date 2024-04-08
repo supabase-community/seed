@@ -142,3 +142,10 @@ export const setupClient = async <Client extends SeedClient>(props: {
   await promisedEventCapture;
   return seed;
 };
+
+export type GetSeedClient = (props: {
+  dataModel: DataModel;
+  fingerprint: Fingerprint;
+  seedConfigPath: string;
+  userModels: UserModels;
+}) => (options?: SeedClientOptions) => Promise<SeedClient>;
