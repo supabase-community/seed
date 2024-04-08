@@ -88,7 +88,7 @@ export interface GenerateCallbackContext {
 
 export interface WrappedGenerateCallback {
   (ctx: GenerateCallbackContext): Promise<Serializable> | Serializable;
-  fallback: boolean | undefined;
+  fallback?: boolean | undefined;
 }
 
 export type GenerateCallback = WrappedGenerateCallback;
