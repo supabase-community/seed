@@ -2,10 +2,7 @@
   "name": "yarn-test-repo",
   "private": true,
   "type": "module",
-  "packageManager": "yarn@1.22.19",
-  "engines": {
-    "node": ">=20.9.0"
-  },
+  "packageManager": "yarn@*",
   "devDependencies": {
     "@snaplet/copycat": "^5.0.0",
     "@snaplet/seed": "file:snaplet-seed.tgz",

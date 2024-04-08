@@ -2,10 +2,7 @@
   "name": "pnpm-test-repo",
   "private": true,
   "type": "module",
-  "packageManager": "pnpm@8.15.5",
-  "engines": {
-    "node": ">=20.9.0"
-  },
+  "packageManager": "pnpm@*",
   "devDependencies": {
     "@snaplet/copycat": "^5.0.0",
     "@snaplet/seed": "file:snaplet-seed.tgz",
