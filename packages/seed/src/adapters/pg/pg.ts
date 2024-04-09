@@ -22,6 +22,7 @@ export const pgAdapter = {
   id: "pg" as const,
   name: "node-postgres",
   packageName: "pg",
+  typesPackageName: "@types/pg",
   template: (parameters = `/* connection parameters */`) => dedent`
     import { SeedPg } from "@snaplet/seed/adapter-pg";
     import { defineConfig } from "@snaplet/seed/config";
