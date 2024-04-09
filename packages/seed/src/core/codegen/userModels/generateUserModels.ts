@@ -242,9 +242,11 @@ export const generateUserModels = (context: CodegenContext) => {
       "  ",
     ) ?? "";
   return dedent`
+    import { readFileSync } from "node:fs";
     import { copycat } from "@snaplet/copycat";
     import { FallbackSymbol } from "@snaplet/seed/core/symbols";
-    import dataExamples from "./dataExamples.json" with { type: "json" };
+
+    const dataExamples = JSON.parse(readFileSync("dataExamples.json"));
 
     const getCustomExamples = (input) => dataExamples.find((e) => e.input === input)?.examples ?? [];
     const getExamples = (shape) => dataExamples.find((e) => e.shape === shape)?.examples ?? [];
