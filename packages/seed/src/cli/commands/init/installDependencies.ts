@@ -10,49 +10,33 @@ import { spinner } from "../../lib/output.js";
 export async function installDependencies({ adapter }: { adapter: Adapter }) {
   const installedDependencies = await getInstalledDependencies();
 
-  const dependenciesToInstall = [adapter.packageName].filter(
-    (d) => !installedDependencies[d],
-  );
-
   const devDependenciesToInstall = [
     "@snaplet/copycat",
     `@snaplet/seed@${getVersion()}`,
+    adapter.packageName,
     ...(adapter.typesPackageName ? [adapter.typesPackageName] : []),
   ].filter((d) => !installedDependencies[d]);
 
-  const allDependenciesToInstall = [
-    ...dependenciesToInstall,
-    ...devDependenciesToInstall,
-  ];
-
-  if (allDependenciesToInstall.length === 0) {
+  if (devDependenciesToInstall.length === 0) {
     return;
   }
 
-  const allDependenciesToInstallList = allDependenciesToInstall
+  const devDependenciesToInstallList = devDependenciesToInstall
     .sort((a, b) => a.localeCompare(b))
     .map((d) => `\`${d}\``)
     .join(", ");
 
-  spinner.start(`Installing the dependencies: ${allDependenciesToInstallList}`);
+  spinner.start(`Installing the dependencies: ${devDependenciesToInstallList}`);
 
   const packageManager = await getPackageManager();
   const rootPath = await getRootPath();
 
-  if (dependenciesToInstall.length > 0) {
-    await packageManager.add(dependenciesToInstall, {
-      cwd: rootPath,
-    });
-  }
-
-  if (devDependenciesToInstall.length > 0) {
-    await packageManager.add(devDependenciesToInstall, {
-      dev: true,
-      cwd: rootPath,
-    });
-  }
+  await packageManager.add(devDependenciesToInstall, {
+    dev: true,
+    cwd: rootPath,
+  });
 
   spinner.succeed(
-    `Installed the dependencies: ${allDependenciesToInstallList}`,
+    `Installed the dependencies: ${devDependenciesToInstallList}`,
   );
 }
