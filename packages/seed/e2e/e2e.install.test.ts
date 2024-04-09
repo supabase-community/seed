@@ -105,7 +105,12 @@ for (const [
         JSON.stringify(packageJson, null, 2),
       );
 
-      await execa(packageManager, ["install"], { cwd });
+      await execa(packageManager, ["install"], {
+        cwd,
+        env: {
+          YARN_ENABLE_IMMUTABLE_INSTALLS: "false",
+        },
+      });
       await expect(
         execa("npx", ["tsx", "seed.mts"], { cwd }),
       ).resolves.not.toThrow();
