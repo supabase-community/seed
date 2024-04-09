@@ -1,4 +1,5 @@
 import { input, select } from "@inquirer/prompts";
+import { saveProjectConfig } from "#config/project/projectConfig.js";
 import { trpc } from "#trpc/client.js";
 
 const createProject = async () => {
@@ -12,7 +13,7 @@ const createProject = async () => {
   return "";
 };
 
-export const setProjectHandler = async () => {
+const selectProject = async () => {
   const projects = await trpc.project.list.query();
 
   if (projects.length === 0) {
@@ -44,4 +45,9 @@ export const setProjectHandler = async () => {
   } else {
     return choice;
   }
+};
+
+export const setProjectHandler = async () => {
+  const projectId = await selectProject();
+  await saveProjectConfig({ config: { projectId } });
 };
