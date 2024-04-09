@@ -32,7 +32,6 @@ export async function initHandler() {
   if (isFirstTimeInit) {
     const projectId = await selectProject();
     await saveProjectConfig({ config: { projectId } });
-
     const adapter = await getAdapter();
     await installDependencies({ adapter });
     await saveSeedConfig({ adapter });
