@@ -18,24 +18,28 @@ import { createTestDb } from "#test/postgres/postgres/createTestDatabase.js";
 const packageManagers: Record<
   string,
   {
+    add: Array<string>;
     extraFiles?: Record<string, string>;
-    install: string;
+    install: Array<string>;
     versions: Array<string>;
   }
 > = {
   npm: {
-    install: "install",
+    install: ["install"],
+    add: ["install"],
     versions: ["10.5.1"],
   },
   pnpm: {
-    install: "add",
+    install: ["install"],
+    add: ["add"],
     extraFiles: {
       "pnpm-workspace.yaml": "",
     },
     versions: ["8.15.6"],
   },
   yarn: {
-    install: "add",
+    install: ["install", "--no-immutable"],
+    add: ["add"],
     extraFiles: {
       ".yarnrc.yml": "nodeLinker: node-modules",
       "yarn.lock": "",
@@ -52,7 +56,7 @@ beforeAll(async () => {
 
 for (const [
   packageManager,
-  { extraFiles, install, versions },
+  { add, extraFiles, install, versions },
 ] of Object.entries(packageManagers)) {
   for (const version of versions) {
     test.concurrent(`install with ${packageManager}@${version}`, async () => {
@@ -105,16 +109,11 @@ for (const [
         JSON.stringify(packageJson, null, 2),
       );
 
-      await execa(packageManager, ["install"], {
-        cwd,
-        env: {
-          YARN_ENABLE_IMMUTABLE_INSTALLS: "false",
-        },
-      });
+      await execa(packageManager, [...install], { cwd });
       await expect(
         execa("npx", ["tsx", "seed.mts"], { cwd }),
       ).resolves.not.toThrow();
-      await execa(packageManager, [install, "lodash"], { cwd });
+      await execa(packageManager, [...add, "lodash"], { cwd });
       await expect(
         execa("npx", ["tsx", "seed.mts"], { cwd }),
       ).resolves.not.toThrow();
