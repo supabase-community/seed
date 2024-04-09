@@ -14,7 +14,11 @@ const config: KnipConfig = {
   ignoreDependencies: optionalPeerDeps.filter(
     (dep) => dep !== "@prisma/client",
   ),
-  ignore: ["./packages/seed/src/index.ts", "knip.ts"],
+  ignore: [
+    "./packages/seed/src/index.ts",
+    "knip.ts",
+    "./packages/seed/e2e/fixtures/install/**/*",
+  ],
 };
 
 export default config;

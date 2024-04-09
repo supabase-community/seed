@@ -1,0 +1,10 @@
+{
+  "name": "test-repo",
+  "private": true,
+  "type": "module",
+  "devDependencies": {
+    "@snaplet/copycat": "^5.0.0",
+    "@snaplet/seed": "file:snaplet-seed.tgz",
+    "postgres": "3.4.4"
+  }
+}
