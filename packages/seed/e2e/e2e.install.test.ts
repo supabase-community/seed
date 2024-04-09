@@ -113,7 +113,7 @@ for (const [
       await expect(
         execa("npx", ["tsx", "seed.mts"], { cwd }),
       ).resolves.not.toThrow();
-      await execa(packageManager, [...add, "lodash"], { cwd });
+      await execa(packageManager, [...add, "is-even"], { cwd });
       await expect(
         execa("npx", ["tsx", "seed.mts"], { cwd }),
       ).resolves.not.toThrow();
