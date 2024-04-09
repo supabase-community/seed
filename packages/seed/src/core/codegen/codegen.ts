@@ -29,7 +29,7 @@ const FILES = {
     name: "package.json",
     template() {
       return dedent`{
-        "name": "__snaplet",
+        "name": "@snaplet/seed/assets",
         "type": "module",
         "exports": {
           ".": {
@@ -110,7 +110,13 @@ const findPackageDirPath = async () => {
       "@snaplet/seed could not find a package.json for your project. We use this to decide where to generate assets. Either add a package.json for your project, or use the --output option when using `npx @snaplet/seed generate`",
     );
   }
-  return path.resolve(path.dirname(packagePath), "node_modules", "__snaplet");
+  return path.resolve(
+    path.dirname(packagePath),
+    "node_modules",
+    "@snaplet",
+    "seed",
+    "assets",
+  );
 };
 
 export const generateAssets = async (context: CodegenContext) => {
