@@ -17,7 +17,7 @@ const config: KnipConfig = {
   ignore: [
     "./packages/seed/src/index.ts",
     "knip.ts",
-    "./packages/seed/e2e/npm-install-test/**/*",
+    "./packages/seed/e2e/fixtures/install/**/*",
   ],
 };
 
