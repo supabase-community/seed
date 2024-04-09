@@ -23,13 +23,14 @@ export async function installDependencies({ adapter }: { adapter: Adapter }) {
   const allDependenciesToInstall = [
     ...dependenciesToInstall,
     ...devDependenciesToInstall,
-  ].sort((a, b) => a.localeCompare(b));
+  ];
 
   if (allDependenciesToInstall.length === 0) {
     return;
   }
 
   const allDependenciesToInstallList = allDependenciesToInstall
+    .sort((a, b) => a.localeCompare(b))
     .map((d) => `\`${d}\``)
     .join(", ");
 
