@@ -18,14 +18,12 @@ import { createTestDb } from "#test/postgres/postgres/createTestDatabase.js";
 const packageManagers: Record<
   string,
   {
-    cleanCache?: Array<string>;
     extraFiles?: Record<string, string>;
     install: string;
     versions: Array<string>;
   }
 > = {
   npm: {
-    cleanCache: ["cache", "clean", "--force"],
     install: "install",
     versions: ["10.5.1"],
   },
@@ -37,7 +35,6 @@ const packageManagers: Record<
     versions: ["8.15.6"],
   },
   yarn: {
-    cleanCache: ["cache", "clean"],
     install: "add",
     extraFiles: {
       ".yarnrc.yml": "nodeLinker: node-modules",
@@ -103,9 +100,6 @@ for (const [
         join(cwd, "package.json"),
         JSON.stringify(packageJson, null, 2),
       );
-      if (cleanCache) {
-        await execa(packageManager, cleanCache, { cwd });
-      }
       await execa(packageManager, ["install"], { cwd });
       await expect(
         execa("npx", ["tsx", "seed.mts"], { cwd }),
