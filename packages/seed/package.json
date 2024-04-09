@@ -101,16 +101,42 @@
   "types": "./dist/index.d.ts",
   "typesVersions": {
     "*": {
-      "adapter": ["./dist/core/databaseClient.d.ts"],
-      "adapter-better-sqlite3": ["./dist/adapters/better-sqlite3/index.d.ts"],
-      "adapter-pg": ["./dist/adapters/pg/index.d.ts"],
-      "adapter-postgres": ["./dist/adapters/postgres/index.d.ts"],
-      "adapter-prisma": ["./dist/adapters/prisma/index.d.ts"],
-      "config": ["./dist/config/seedConfig/defineConfig.d.ts"],
-      "cli": ["./dist/cli/index.d.ts"],
-      "dialects/postgres/client": ["./dist/dialects/postgres/client.d.ts"],
-      "dialects/sqlite/client": ["./dist/dialects/sqlite/client.d.ts"],
-      "core/predictions/*": ["./dist/core/predictions/*.d.ts"]
+      "assets": [
+        "./assets/index.d.ts"
+      ],
+      "adapter": [
+        "./dist/core/databaseClient.d.ts"
+      ],
+      "adapter-better-sqlite3": [
+        "./dist/adapters/better-sqlite3/index.d.ts"
+      ],
+      "adapter-pg": [
+        "./dist/adapters/pg/index.d.ts"
+      ],
+      "adapter-postgres": [
+        "./dist/adapters/postgres/index.d.ts"
+      ],
+      "adapter-prisma": [
+        "./dist/adapters/prisma/index.d.ts"
+      ],
+      "config": [
+        "./dist/config/seedConfig/defineConfig.d.ts"
+      ],
+      "cli": [
+        "./dist/cli/index.d.ts"
+      ],
+      "dialects/postgres/client": [
+        "./dist/dialects/postgres/client.d.ts"
+      ],
+      "dialects/sqlite/client": [
+        "./dist/dialects/sqlite/client.d.ts"
+      ],
+      "core/predictions/*": [
+        "./dist/core/predictions/*.d.ts"
+      ],
+      "core/symbols": [
+        "./dist/core/symbols.d.ts"
+      ]
     }
   },
   "devDependencies": {
@@ -120,21 +146,22 @@
     "@types/better-sqlite3": "7.6.9",
     "@types/debug": "4.1.12",
     "@types/fs-extra": "11.0.4",
-    "@types/node": "20.11.30",
-    "@types/pg": "8.11.4",
+    "@types/node": "20.12.6",
+    "@types/pg": "8.11.5",
     "@types/semver": "^7.5.8",
     "@types/uuid": "9.0.8",
     "@types/yargs": "17.0.32",
     "ansi-colors": "4.1.3",
-    "better-sqlite3": "9.4.3",
+    "better-sqlite3": "9.4.5",
     "dedent": "1.5.1",
     "eslint": "8.57.0",
-    "pg": "8.11.3",
+    "pg": "8.11.5",
     "postgres": "3.4.4",
     "semver": "^7.6.0",
     "tmp-promise": "3.0.3",
-    "tsx": "4.7.1",
-    "typescript": "5.4.3",
+    "tsc-alias": "^1.8.8",
+    "tsx": "4.7.2",
+    "typescript": "5.4.4",
     "vitest": "1.4.0"
   },
   "peerDependencies": {
@@ -167,14 +194,14 @@
     }
   },
   "dependencies": {
-    "@inquirer/prompts": "^4.3.0",
+    "@inquirer/prompts": "^4.3.2",
     "@scaleleap/pg-format": "^1.0.0",
     "@total-typescript/ts-reset": "^0.5.1",
     "@trpc/client": "^10.45.2",
     "@trpc/server": "^10.45.2",
     "ansi-escapes": "^6.2.1",
     "c12": "^1.10.0",
-    "change-case": "^5.4.3",
+    "change-case": "^5.4.4",
     "ci-info": "^4.0.0",
     "debug": "^4.3.4",
     "dedent": "^1.5.1",
@@ -185,14 +212,14 @@
     "fs-extra": "^11.2.0",
     "inflection": "^3.0.0",
     "javascript-stringify": "^2.1.0",
-    "json-schema-library": "^9.3.1",
+    "json-schema-library": "^9.3.4",
     "kleur": "^4.1.5",
     "multimatch": "^7.0.0",
     "ora": "^8.0.1",
     "portfinder": "^1.0.32",
     "posthog-node": "^4.0.0",
-    "quicktype-core": "^23.0.107",
-    "remeda": "^1.56.0",
+    "quicktype-core": "^23.0.115",
+    "remeda": "^1.58.0",
     "terminal-link": "^3.0.0",
     "uuid": "^9.0.1",
     "yargs": "^17.7.2",
@@ -200,7 +227,7 @@
   },
   "scripts": {
     "postinstall": "node ./scripts/postinstall.js",
-    "build": "tsc --build tsconfig.build.json && tsx scripts/patch-defineConfig.mts",
+    "build": "tsc --build tsconfig.build.json && tsc-alias -p tsconfig.build.json && tsx scripts/patch-defineConfig.mts",
     "clean": "rm -rf .dts .turbo dist .eslintcache",
     "lint": "eslint --cache . --max-warnings 0",
     "lint:fix": "eslint --cache . --max-warnings 0 --fix",

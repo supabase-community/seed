@@ -5,6 +5,9 @@
     "outDir": "dist",
     "emitDeclarationOnly": false,
     "tsBuildInfoFile": "dist/tsconfig.tsbuildinfo",
+    "paths": {
+      "#*": ["./src/*"],
+    }
   },
   "include": [
     "src",
