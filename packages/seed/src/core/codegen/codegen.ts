@@ -110,7 +110,9 @@ const findPackageDirPath = async () => {
   return path.resolve(
     path.dirname(packagePath),
     "node_modules",
-    "@snaplet/seed/assets",
+    "@snaplet",
+    "seed",
+    "assets",
   );
 };
 
