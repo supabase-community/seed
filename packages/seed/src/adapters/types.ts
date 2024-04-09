@@ -3,4 +3,5 @@ export interface Adapter {
   name: string;
   packageName: string;
   template: (parameters?: string) => string;
+  typesPackageName?: string;
 }
