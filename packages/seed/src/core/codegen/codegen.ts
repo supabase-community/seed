@@ -24,7 +24,7 @@ export interface CodegenContext {
   shapePredictions: Array<TableShapePredictions>;
 }
 
-const FILES = {
+export const FILES = {
   PKG: {
     name: "package.json",
     template() {
@@ -47,9 +47,17 @@ const FILES = {
     name: "index.js",
     template({ dialect, seedConfigPath }: CodegenContext) {
       return dedent`
-        import dataModel from "./${FILES.DATA_MODEL.name}" with { type: "json" };
+        import { readFileSync } from "node:fs";
+        import { dirname, join } from "node:path";
+        import { fileURLToPath } from "node:url";
+
         import { getSeedClient } from "@snaplet/seed/dialects/${dialect.id}/client";
         import { userModels } from "./${FILES.USER_MODELS.name}";
+
+        const __filename = fileURLToPath(import.meta.url);
+        const __dirname = dirname(__filename);
+
+        const dataModel = JSON.parse(readFileSync(join(__dirname, "${FILES.DATA_MODEL.name}")));
 
         const seedConfigPath = "${seedConfigPath}";
 

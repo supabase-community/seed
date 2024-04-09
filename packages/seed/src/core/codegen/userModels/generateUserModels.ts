@@ -19,6 +19,7 @@ import { type Shape, type TableShapePredictions } from "#trpc/shapes.js";
 import { shouldGenerateFieldValue } from "../../dataModel/shouldGenerateFieldValue.js";
 import { unpackNestedType } from "../../dialect/unpackNestedType.js";
 import { encloseValueInArray } from "../../userModels/encloseValueInArray.js";
+import { FILES } from "../codegen.js";
 import { generateJsonField } from "./generateJsonField.js";
 
 const SHAPE_PREDICTION_CONFIDENCE_THRESHOLD = 0.65;
@@ -242,9 +243,16 @@ export const generateUserModels = (context: CodegenContext) => {
       "  ",
     ) ?? "";
   return dedent`
+    import { readFileSync } from "node:fs";
+    import { dirname, join } from "node:path";
+    import { fileURLToPath } from "node:url";
     import { copycat } from "@snaplet/copycat";
     import { FallbackSymbol } from "@snaplet/seed/core/symbols";
-    import dataExamples from "./dataExamples.json" with { type: "json" };
+
+    const __filename = fileURLToPath(import.meta.url);
+    const __dirname = dirname(__filename);
+
+    const dataExamples = JSON.parse(readFileSync(join(__dirname, "${FILES.DATA_EXAMPLES.name}")));
 
     const getCustomExamples = (input) => dataExamples.find((e) => e.input === input)?.examples ?? [];
     const getExamples = (shape) => dataExamples.find((e) => e.shape === shape)?.examples ?? [];
