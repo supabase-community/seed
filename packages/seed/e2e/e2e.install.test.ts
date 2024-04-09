@@ -9,7 +9,7 @@ import {
 } from "node:fs/promises";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
-import { type DirectoryResult, dir } from "tmp-promise";
+import { dir } from "tmp-promise";
 import { beforeAll, expect, test } from "vitest";
 import { getVersion } from "#core/version.js";
 import { TMP_DIR } from "#test/constants.js";
@@ -44,37 +44,37 @@ const packageManagers: Record<
   },
 };
 
-let tmpDirectories: Array<DirectoryResult> = [];
-
 const pack = `snaplet-seed-${getVersion()}.tgz`;
 
 beforeAll(async () => {
   await execa("pnpm", ["build"]);
 });
 
-// afterAll(async () => {
-//   await Promise.allSettled(tmpDirectories.map((tmpDir) => tmpDir.cleanup()));
-// });
-
 for (const [
   packageManager,
-  { cleanCache, extraFiles, install, versions },
+  { extraFiles, install, versions },
 ] of Object.entries(packageManagers)) {
   for (const version of versions) {
     test.concurrent(`install with ${packageManager}@${version}`, async () => {
+      // create the tmp directory
       await mkdir(TMP_DIR, { recursive: true });
       const tmpDir = await dir({
         tmpdir: TMP_DIR,
       });
-      tmpDirectories.push(tmpDir);
       const cwd = tmpDir.path;
+
+      // create the extra files specific to the package manager
       if (extraFiles) {
         for (const [filename, content] of Object.entries(extraFiles)) {
           await writeFile(join(cwd, filename), content);
         }
       }
+
+      // copy the package to the tmp directory
       await execa("pnpm", ["pack", "--pack-destination", cwd]);
       await rename(join(cwd, pack), join(cwd, "snaplet-seed.tgz"));
+
+      // copy all fixtures to the tmp directory
       const fixturesPath = join(
         dirname(fileURLToPath(import.meta.url)),
         "fixtures",
@@ -85,6 +85,8 @@ for (const [
           recursive: true,
         });
       }
+
+      // create the test database and patch the seed.config.ts file with the database URL
       const { client, connectionString } = await createTestDb();
       await client.execute("create table test_table (name char);");
       const seedConfig = await readFile(join(cwd, "seed.config.ts"), "utf-8");
@@ -92,6 +94,8 @@ for (const [
         join(cwd, "seed.config.ts"),
         seedConfig.replace("<DATABASE_URL>", connectionString),
       );
+
+      // patch the package.json file with the package manager and its version
       const packageJson = JSON.parse(
         await readFile(join(cwd, "package.json"), "utf-8"),
       ) as Record<string, string> & { packageManager: string };
@@ -100,6 +104,7 @@ for (const [
         join(cwd, "package.json"),
         JSON.stringify(packageJson, null, 2),
       );
+
       await execa(packageManager, ["install"], { cwd });
       await expect(
         execa("npx", ["tsx", "seed.mts"], { cwd }),
