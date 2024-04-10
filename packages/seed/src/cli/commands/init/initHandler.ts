@@ -1,8 +1,8 @@
 import { getProjectConfig } from "#config/project/projectConfig.js";
 import { seedConfigExists } from "#config/seedConfig/seedConfig.js";
 import { highlight } from "../../lib/output.js";
+import { linkHandler } from "../link/linkHandler.js";
 import { loginHandler } from "../login/loginHandler.js";
-import { setProjectHandler } from "../setProject/setProjectHandler.js";
 import { syncHandler } from "../sync/syncHandler.js";
 import { generateSeedScriptExample } from "./generateSeedScriptExample.js";
 import { getAdapter } from "./getAdapter.js";
@@ -27,7 +27,7 @@ export async function initHandler() {
     !(await seedConfigExists()) || !(await getProjectConfig());
 
   if (isFirstTimeInit) {
-    await setProjectHandler();
+    await linkHandler();
     const adapter = await getAdapter();
     await installDependencies({ adapter });
     await saveSeedConfig({ adapter });

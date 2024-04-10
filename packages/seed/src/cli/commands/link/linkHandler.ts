@@ -95,7 +95,7 @@ const selectProject = async () => {
   }
 };
 
-export const setProjectHandler = async () => {
+export const linkHandler = async () => {
   const projectId = await selectProject();
   await saveProjectConfig({ config: { projectId } });
 };
