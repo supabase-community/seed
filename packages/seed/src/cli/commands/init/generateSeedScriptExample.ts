@@ -2,6 +2,7 @@ import dedent from "dedent";
 import { existsSync } from "node:fs";
 import { writeFile } from "node:fs/promises";
 import { dirname, join } from "node:path";
+import { pathToFileURL } from "node:url";
 import { getSeedConfigPath } from "#config/seedConfig/seedConfig.js";
 import { getDataModel } from "#core/dataModel/dataModel.js";
 import { sortModels } from "#core/store/topologicalSort.js";
@@ -39,7 +40,9 @@ export async function generateSeedScriptExample() {
 
   await writeFile(seedScriptPath, template);
 
-  spinner.succeed(`Generated a seed script example to ${link(seedScriptPath)}`);
+  spinner.succeed(
+    `Generated a seed script example to ${link(pathToFileURL(seedScriptPath).toString())}`,
+  );
 
   spinner.warn(
     `Executing this script will delete all data in your database and seed it with 10 ${model.modelName}. Make sure to adjust the script to your needs.`,
