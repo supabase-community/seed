@@ -12,7 +12,7 @@ await writeFile(
   defineConfigPath,
   [
     "// @ts-ignore",
-    `/// <reference types="@snaplet/seed/assets/config" />`,
+    `/// <reference path="../../../assets/defineConfig.d.ts" />`,
     await readFile(defineConfigPath, "utf-8"),
   ].join(EOL),
 );
