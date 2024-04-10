@@ -1,3 +1,4 @@
+import dedent from "dedent";
 import { stringify } from "javascript-stringify";
 import { type CodegenContext } from "#core/codegen/codegen.js";
 import {
@@ -18,6 +19,7 @@ import { type Shape, type TableShapePredictions } from "#trpc/shapes.js";
 import { shouldGenerateFieldValue } from "../../dataModel/shouldGenerateFieldValue.js";
 import { unpackNestedType } from "../../dialect/unpackNestedType.js";
 import { encloseValueInArray } from "../../userModels/encloseValueInArray.js";
+import { FILES } from "../codegen.js";
 import { generateJsonField } from "./generateJsonField.js";
 
 const SHAPE_PREDICTION_CONFIDENCE_THRESHOLD = 0.65;
@@ -108,7 +110,7 @@ const generateDefaultForField = (props: {
     optionsInput: "options",
   });
 
-  return `({ seed, options }) => { return ${code} }`;
+  return `fallbackFunctionTagger(({ seed, options }) => { return ${code} })`;
 };
 
 const generateDefaultsForModel = (props: {
@@ -240,15 +242,28 @@ export const generateUserModels = (context: CodegenContext) => {
       },
       "  ",
     ) ?? "";
-  return `
-import { copycat } from "@snaplet/copycat"
-import { getDataExamples } from "@snaplet/seed/core/predictions/shapeExamples/getDataExamples";
+  // TODO: remove self reference to @snaplet/seed
+  return dedent`
+    import { readFileSync } from "node:fs";
+    import { dirname, join } from "node:path";
+    import { fileURLToPath } from "node:url";
+    import { copycat } from "@snaplet/copycat";
+    import { FallbackSymbol } from "@snaplet/seed/core/symbols";
 
-const shapeExamples = await getDataExamples();
+    const __filename = fileURLToPath(import.meta.url);
+    const __dirname = dirname(__filename);
 
-const getCustomExamples = (input) => shapeExamples.find((e) => e.input === input)?.examples ?? []
-const getExamples = (shape) => shapeExamples.find((e) => e.shape === shape)?.examples ?? [];
+    const dataExamples = JSON.parse(readFileSync(join(__dirname, "${FILES.DATA_EXAMPLES.name}")));
 
-export const userModels = ${stringifiedDefaults};
-`;
+    const getCustomExamples = (input) => dataExamples.find((e) => e.input === input)?.examples ?? [];
+    const getExamples = (shape) => dataExamples.find((e) => e.shape === shape)?.examples ?? [];
+
+    // This function is used to tag a function as a fallback function so we can later identify if the function comes from codegen or not
+    const fallbackFunctionTagger = (fn) => {
+      fn[FallbackSymbol] = true
+      return fn
+    }
+
+    export const userModels = ${stringifiedDefaults};
+  `;
 };

@@ -23,14 +23,13 @@ export async function initHandler() {
     await loginHandler();
   }
 
-  await installDependencies();
-
   const isFirstTimeInit =
     !(await seedConfigExists()) || !(await getProjectConfig());
 
   if (isFirstTimeInit) {
     await setProjectHandler();
     const adapter = await getAdapter();
+    await installDependencies({ adapter });
     await saveSeedConfig({ adapter });
   }
 

@@ -89,7 +89,7 @@ for (const [dialect, adapter] of adapterEntries) {
           );
         `,
       seedScript: `
-          import { createSeedClient } from '#seed'
+          import { createSeedClient } from '#snaplet/seed'
 
           const seed = await createSeedClient()
           await seed.users((x) => x(2));
@@ -180,7 +180,7 @@ for (const [dialect, adapter] of adapterEntries) {
           );
         `,
       seedScript: `
-          import { createSeedClient } from '#seed'
+          import { createSeedClient } from '#snaplet/seed'
 
           const seed = await createSeedClient()
           await seed.users((x) => x(2));
@@ -259,7 +259,7 @@ for (const [dialect, adapter] of adapterEntries) {
             );
           `,
         seedScript: `
-            import { createSeedClient } from '#seed'
+            import { createSeedClient } from '#snaplet/seed'
 
             const seed = await createSeedClient()
             await seed.tmps((x) => x(2));

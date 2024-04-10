@@ -11,8 +11,14 @@ const optionalPeerDeps = Object.keys(
 
 const config: KnipConfig = {
   ignoreBinaries: ["nix"],
-  ignoreDependencies: optionalPeerDeps,
-  ignore: ["./packages/seed/src/index.ts", "knip.ts"],
+  ignoreDependencies: optionalPeerDeps.filter(
+    (dep) => dep !== "@prisma/client",
+  ),
+  ignore: [
+    "./packages/seed/src/index.ts",
+    "knip.ts",
+    "./packages/seed/e2e/fixtures/install/**/*",
+  ],
 };
 
 export default config;

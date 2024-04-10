@@ -1,22 +1,17 @@
-import { findUp } from "find-up";
 import { mkdir } from "node:fs/promises";
-import { join } from "node:path";
-import { getRootPath } from "./utils.js";
+import { dirname, join } from "node:path";
+import { getSeedConfigPath } from "./seedConfig/seedConfig.js";
 
 export async function getDotSnapletPath() {
-  const path = await findUp(".snaplet", {
-    type: "directory",
-    stopAt: await getRootPath(),
-  });
+  const seedConfigDirectory = dirname(await getSeedConfigPath());
 
-  return path;
+  return join(seedConfigDirectory, ".snaplet");
 }
 
 export async function ensureDotSnapletPath() {
   let dotSnapletPath = await getDotSnapletPath();
 
   if (!dotSnapletPath) {
-    dotSnapletPath = join(await getRootPath(), ".snaplet");
     await mkdir(dotSnapletPath);
   }
 

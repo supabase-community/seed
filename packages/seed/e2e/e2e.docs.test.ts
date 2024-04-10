@@ -74,7 +74,7 @@ for (const [dialect, adapter] of adapterEntries) {
 
   test("classical relationships examples > one to many", async () => {
     const script = `
-      import { createSeedClient } from '#seed'
+      import { createSeedClient } from '#snaplet/seed'
       const seed = await createSeedClient()
       // Clear all tables
       await seed.$resetDatabase();
@@ -111,7 +111,7 @@ for (const [dialect, adapter] of adapterEntries) {
 
   test("classical relationships examples > many to many", async () => {
     const script = `
-      import { createSeedClient } from '#seed'
+      import { createSeedClient } from '#snaplet/seed'
       const seed = await createSeedClient()
       // Clear all tables
       await seed.$resetDatabase();
@@ -155,7 +155,7 @@ for (const [dialect, adapter] of adapterEntries) {
 
   test("classical relationships examples > many to many with pool", async () => {
     const script = `
-      import { createSeedClient } from '#seed'
+      import { createSeedClient } from '#snaplet/seed'
       const seed = await createSeedClient()
       // Clear all tables
       await seed.$resetDatabase();

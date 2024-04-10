@@ -20,15 +20,16 @@ export interface CodegenContext {
   outputDir?: string;
   rawDataModel: DataModel;
   seedConfig: SeedConfig;
+  seedConfigPath: string;
   shapePredictions: Array<TableShapePredictions>;
 }
 
-const FILES = {
+export const FILES = {
   PKG: {
     name: "package.json",
     template() {
       return dedent`{
-        "name": "__snaplet",
+        "name": "@snaplet/seed/assets",
         "type": "module",
         "exports": {
           ".": {
@@ -44,12 +45,12 @@ const FILES = {
   },
   INDEX: {
     name: "index.js",
-    template({ dialect }: CodegenContext) {
+    template({ dialect, seedConfigPath }: CodegenContext) {
+      // TODO: remove self reference to @snaplet/seed
       return dedent`
         import { readFileSync } from "node:fs";
         import { dirname, join } from "node:path";
         import { fileURLToPath } from "node:url";
-
         import { getSeedClient } from "@snaplet/seed/dialects/${dialect.id}/client";
         import { userModels } from "./${FILES.USER_MODELS.name}";
 
@@ -58,7 +59,9 @@ const FILES = {
 
         const dataModel = JSON.parse(readFileSync(join(__dirname, "${FILES.DATA_MODEL.name}")));
 
-        export const createSeedClient = getSeedClient({ dataModel, userModels });
+        const seedConfigPath = "${seedConfigPath}";
+
+        export const createSeedClient = getSeedClient({ dataModel, seedConfigPath, userModels });
       `;
     },
   },
@@ -85,6 +88,12 @@ const FILES = {
       }`;
     },
   },
+  DATA_EXAMPLES: {
+    name: "dataExamples.json",
+    template({ dataExamples }: CodegenContext) {
+      return jsonStringify(dataExamples);
+    },
+  },
   DATA_MODEL: {
     name: "dataModel.json",
     template({ dataModel }: CodegenContext) {
@@ -106,7 +115,13 @@ const findPackageDirPath = async () => {
       "@snaplet/seed could not find a package.json for your project. We use this to decide where to generate assets. Either add a package.json for your project, or use the --output option when using `npx @snaplet/seed generate`",
     );
   }
-  return path.resolve(path.dirname(packagePath), "node_modules", "__snaplet");
+  return path.resolve(
+    path.dirname(packagePath),
+    "node_modules",
+    "@snaplet",
+    "seed",
+    "assets",
+  );
 };
 
 export const generateAssets = async (context: CodegenContext) => {

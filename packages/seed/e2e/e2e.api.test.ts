@@ -28,7 +28,7 @@ for (const [dialect, adapter] of adapterEntries) {
         );
       `,
       seedScript: `
-        import { createSeedClient } from '#seed'
+        import { createSeedClient } from '#snaplet/seed'
         const seed = await createSeedClient()
         await seed.users([{
           fullName: () => Promise.resolve('Foo Bar')
@@ -74,7 +74,7 @@ for (const [dialect, adapter] of adapterEntries) {
     };
 
     const seedScript = `
-    import { createSeedClient } from '#seed'
+    import { createSeedClient } from '#snaplet/seed'
     const seed = await createSeedClient()
     await seed.$resetDatabase()
     await seed.teams((x) => x(2, {
@@ -142,7 +142,7 @@ for (const [dialect, adapter] of adapterEntries) {
     await db.execute(`INSERT INTO "BABA" DEFAULT VALUES`);
 
     await runSeedScript(`
-        import { createSeedClient } from '#seed'
+        import { createSeedClient } from '#snaplet/seed'
 
         const seed = await createSeedClient()
         await seed.$resetDatabase()
@@ -175,13 +175,13 @@ for (const [dialect, adapter] of adapterEntries) {
 
     const seedScript: SeedScriptRecord = {
       default: `
-          import { createSeedClient } from '#seed'
+          import { createSeedClient } from '#snaplet/seed'
 
           const seed = await createSeedClient()
           await seed.$resetDatabase(["!BABA"])
         `,
       postgres: `
-          import { createSeedClient } from '#seed'
+          import { createSeedClient } from '#snaplet/seed'
 
           const seed = await createSeedClient()
           await seed.$resetDatabase(["!public.BABA"])
@@ -228,13 +228,13 @@ for (const [dialect, adapter] of adapterEntries) {
 
     const seedScript: SeedScriptRecord = {
       default: `
-          import { createSeedClient } from '#seed'
+          import { createSeedClient } from '#snaplet/seed'
 
           const seed = await createSeedClient()
           await seed.$resetDatabase(["!BA*"])
         `,
       postgres: `
-          import { createSeedClient } from '#seed'
+          import { createSeedClient } from '#snaplet/seed'
 
           const seed = await createSeedClient()
           await seed.$resetDatabase(["!public.BA*"])
@@ -310,7 +310,7 @@ for (const [dialect, adapter] of adapterEntries) {
 
     const seedScript: SeedScriptRecord = {
       default: `
-          import { createSeedClient } from '#seed'
+          import { createSeedClient } from '#snaplet/seed'
 
           const seed = await createSeedClient()
           await seed.$resetDatabase()
@@ -339,7 +339,7 @@ for (const [dialect, adapter] of adapterEntries) {
   if (dialect === "postgres") {
     test("seed.$resetDatabase should reset all schemas and tables per default", async () => {
       const seedScript = `
-      import { createSeedClient } from '#seed'
+      import { createSeedClient } from '#snaplet/seed'
       const seed = await createSeedClient()
       await seed.$resetDatabase()
       await seed.teams((x) => x(2, {
@@ -404,7 +404,7 @@ for (const [dialect, adapter] of adapterEntries) {
         });
 
       const seedScript = `
-      import { createSeedClient } from "#seed"
+      import { createSeedClient } from "#snaplet/seed"
       const seed = await createSeedClient()
       await seed.$resetDatabase()
       await seed.teams((x) => x(2, {
@@ -469,7 +469,7 @@ for (const [dialect, adapter] of adapterEntries) {
           select: `["!hdb_catalog.SystemSettings"]`,
         });
       const seedScript = `
-      import { createSeedClient } from "#seed"
+      import { createSeedClient } from "#snaplet/seed"
       const seed = await createSeedClient()
       await seed.$resetDatabase()
       await seed.teams((x) => x(2, {

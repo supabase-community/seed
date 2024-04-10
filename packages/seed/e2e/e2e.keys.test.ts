@@ -59,7 +59,7 @@ for (const [dialect, adapter] of adapterEntries) {
       adapter,
       databaseSchema: schema[dialect] ?? schema.default,
       seedScript: `
-        import { createSeedClient } from '#seed'
+        import { createSeedClient } from '#snaplet/seed'
           const seed = await createSeedClient({ dryRun: false })
           await seed.teams((x) => x(2, {
             players: (x) => x(3)
@@ -154,7 +154,7 @@ for (const [dialect, adapter] of adapterEntries) {
       adapter,
       databaseSchema: schema[dialect] ?? schema.default,
       seedScript: `
-          import { createSeedClient } from '#seed'
+          import { createSeedClient } from '#snaplet/seed'
           const seed = await createSeedClient({ dryRun: false })
           await seed.teams((x) => x(2, {
             players: (x) => x(3)
@@ -246,7 +246,7 @@ for (const [dialect, adapter] of adapterEntries) {
       adapter,
       databaseSchema: schema[dialect] ?? schema.default,
       seedScript: `
-          import { createSeedClient } from '#seed'
+          import { createSeedClient } from '#snaplet/seed'
           const seed = await createSeedClient({ dryRun: false })
           await seed.teams((x) => x(2, {
             players: (x) => x(3)
@@ -362,7 +362,7 @@ for (const [dialect, adapter] of adapterEntries) {
       adapter,
       databaseSchema: schema[dialect] ?? schema.default,
       seedScript: `
-          import { createSeedClient } from '#seed'
+          import { createSeedClient } from '#snaplet/seed'
           const seed = await createSeedClient({ dryRun: false })
           await seed.teams((x) => x(2, {
             players: (x) => x(3)
@@ -454,7 +454,7 @@ for (const [dialect, adapter] of adapterEntries) {
       adapter,
       databaseSchema: schema[dialect] ?? schema.default,
       seedScript: `
-          import { createSeedClient } from "#seed"
+          import { createSeedClient } from "#snaplet/seed"
           const seed = await createSeedClient()
           await seed.teams((x) => x(2, {
             players: (x) => x(3)
@@ -517,7 +517,7 @@ for (const [dialect, adapter] of adapterEntries) {
       adapter,
       databaseSchema: schema[dialect] ?? schema.default,
       seedScript: `
-          import { createSeedClient } from "#seed"
+          import { createSeedClient } from "#snaplet/seed"
           const seed = await createSeedClient()
           await seed.customers([
             { name: "John Doe", referrerId: 2 },
@@ -563,7 +563,7 @@ for (const [dialect, adapter] of adapterEntries) {
       adapter,
       databaseSchema: schema[dialect] ?? schema.default,
       seedScript: `
-          import { createSeedClient } from "#seed"
+          import { createSeedClient } from "#snaplet/seed"
           const seed = await createSeedClient()
           const {customers} = await seed.customers([{name: "John Doe"}])
           await seed.customers([{name: "Jane Doe"}], {connect: {customers}})
@@ -648,7 +648,7 @@ for (const [dialect, adapter] of adapterEntries) {
       adapter,
       databaseSchema: schema[dialect] ?? schema.default,
       seedScript: `
-          import { createSeedClient } from "#seed"
+          import { createSeedClient } from "#snaplet/seed"
           const seed = await createSeedClient()
           // Create a new customer
           const customersStore = await seed.customers([
@@ -800,7 +800,7 @@ for (const [dialect, adapter] of adapterEntries) {
       adapter,
       databaseSchema: schema[dialect] ?? schema.default,
       seedScript: `
-          import { createSeedClient } from "#seed"
+          import { createSeedClient } from "#snaplet/seed"
           const seed = await createSeedClient()
           const ordersStore = await seed.orders([{
             quantity: 10,
@@ -941,7 +941,7 @@ for (const [dialect, adapter] of adapterEntries) {
       adapter,
       databaseSchema: schema[dialect] ?? schema.default,
       seedScript: `
-          import { createSeedClient } from "#seed"
+          import { createSeedClient } from "#snaplet/seed"
           const seed = await createSeedClient()
           await seed.customers([{name: "John Doe"}], {connect: true})
           await seed.products([{name: "Gadget"}], {connect: true})
@@ -1037,7 +1037,7 @@ for (const [dialect, adapter] of adapterEntries) {
       adapter,
       databaseSchema: schema[dialect] ?? schema.default,
       seedScript: `
-          import { createSeedClient } from "#seed"
+          import { createSeedClient } from "#snaplet/seed"
           const seed = await createSeedClient()
           await seed.authors([
             {
@@ -1129,7 +1129,7 @@ for (const [dialect, adapter] of adapterEntries) {
         adapter,
         databaseSchema: schema[dialect] ?? schema.default,
         seedScript: `
-          import { createSeedClient } from "#seed"
+          import { createSeedClient } from "#snaplet/seed"
           const seed = await createSeedClient({dryRun: true})
           await seed.orders([
             {
@@ -1162,7 +1162,7 @@ for (const [dialect, adapter] of adapterEntries) {
         adapter,
         databaseSchema: schema,
         seedScript: `
-          import { createSeedClient } from '#seed'
+          import { createSeedClient } from '#snaplet/seed'
           import {copycat} from '@snaplet/copycat'
 
           const seed = await createSeedClient({ dryRun: false })
@@ -1214,7 +1214,7 @@ for (const [dialect, adapter] of adapterEntries) {
           adapter,
           databaseSchema: schema,
           seedScript: `
-          import { createSeedClient } from '#seed'
+          import { createSeedClient } from '#snaplet/seed'
           import {copycat} from '@snaplet/copycat'
 
           const seed = await createSeedClient({ dryRun: false })
@@ -1245,7 +1245,7 @@ for (const [dialect, adapter] of adapterEntries) {
         adapter,
         databaseSchema: schema,
         seedScript: `
-          import { createSeedClient } from '#seed'
+          import { createSeedClient } from '#snaplet/seed'
           import {copycat} from '@snaplet/copycat'
 
           const seed = await createSeedClient({ dryRun: false })
@@ -1290,7 +1290,7 @@ for (const [dialect, adapter] of adapterEntries) {
           adapter,
           databaseSchema: schema,
           seedScript: `
-          import { createSeedClient } from '#seed'
+          import { createSeedClient } from '#snaplet/seed'
           import {copycat} from '@snaplet/copycat'
 
           const seed = await createSeedClient({ dryRun: false })
@@ -1334,7 +1334,7 @@ for (const [dialect, adapter] of adapterEntries) {
         adapter,
         databaseSchema: schema,
         seedScript: `
-          import { createSeedClient } from '#seed'
+          import { createSeedClient } from '#snaplet/seed'
           const seed = await createSeedClient({ dryRun: false })
           await seed.teams((x) => x(1, {
             players: (x) => x(1)
@@ -1414,7 +1414,7 @@ for (const [dialect, adapter] of adapterEntries) {
           adapter,
           databaseSchema: schema,
           seedScript: `
-        import { createSeedClient } from '#seed'
+        import { createSeedClient } from '#snaplet/seed'
         const seed = await createSeedClient({ dryRun: false })
         await seed.teams((x) => x(1, {
           players: (x) => x(1)
@@ -1496,7 +1496,7 @@ for (const [dialect, adapter] of adapterEntries) {
         adapter,
         databaseSchema: schema[dialect] ?? schema.default,
         seedScript: `
-          import { createSeedClient } from "#seed"
+          import { createSeedClient } from "#snaplet/seed"
           const seed = await createSeedClient()
           // Create a new customer
           const customersStore = await seed.customers([

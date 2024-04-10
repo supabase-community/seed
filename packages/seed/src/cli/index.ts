@@ -2,6 +2,7 @@ import { gracefulExit } from "exit-hook";
 import yargs from "yargs";
 import { hideBin } from "yargs/helpers";
 import { SnapletError, isError } from "#core/utils.js";
+import { configOption } from "./commands/config.js";
 import { generateCommand } from "./commands/generate/generate.js";
 import { initCommand } from "./commands/init/init.js";
 import { introspectCommand } from "./commands/introspect/introspect.js";
@@ -14,6 +15,7 @@ import { debug } from "./lib/debug.js";
 
 const program = yargs(hideBin(process.argv)).scriptName("npx @snaplet/seed");
 
+configOption(program);
 initCommand(program);
 generateCommand(program);
 loginCommand(program);
