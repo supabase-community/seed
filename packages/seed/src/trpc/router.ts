@@ -8,16 +8,6 @@ const router = t.router;
 
 export const trpc = t;
 
-export interface Organization {
-  id: string;
-  name: string;
-}
-
-export interface Project {
-  id: string;
-  name: string;
-}
-
 export const createCliRouter = ({ publicProcedure = t.procedure } = {}) =>
   router({
     organization: router({
@@ -31,10 +21,16 @@ export const createCliRouter = ({ publicProcedure = t.procedure } = {}) =>
           return {
             id: "1",
             name: "Org 1",
-          } as Organization;
+          } as {
+            id: string;
+            name: string;
+          };
         }),
       list: publicProcedure.query(() => {
-        return [] as Array<Organization>;
+        return [] as Array<{
+          id: string;
+          name: string;
+        }>;
       }),
     }),
     project: router({
@@ -50,7 +46,10 @@ export const createCliRouter = ({ publicProcedure = t.procedure } = {}) =>
           return {
             id: "1",
             name: "Project 1",
-          } as Organization;
+          } as {
+            id: string;
+            name: string;
+          };
         }),
       list: publicProcedure.query(() => {
         return [
@@ -58,7 +57,10 @@ export const createCliRouter = ({ publicProcedure = t.procedure } = {}) =>
             id: "1",
             name: "Project 1",
           },
-        ] as Array<Project>;
+        ] as Array<{
+          id: string;
+          name: string;
+        }>;
       }),
     }),
     predictions: router({
