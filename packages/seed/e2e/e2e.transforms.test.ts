@@ -33,7 +33,7 @@ for (const [dialect, adapter] of adapterEntries) {
       adapter,
       databaseSchema: schema[dialect] ?? schema.default,
       seedScript: `
-        import { createSeedClient } from '#seed'
+        import { createSeedClient } from '#snaplet/seed'
         const seed = await createSeedClient({
           dryRun: false,
           models: {
@@ -76,7 +76,7 @@ for (const [dialect, adapter] of adapterEntries) {
       adapter,
       databaseSchema: schema[dialect] ?? schema.default,
       seedScript: `
-        import { createSeedClient } from '#seed'
+        import { createSeedClient } from '#snaplet/seed'
         const seed = await createSeedClient({
           dryRun: false,
           models: {
@@ -119,7 +119,7 @@ for (const [dialect, adapter] of adapterEntries) {
       adapter,
       databaseSchema: schema[dialect] ?? schema.default,
       seedScript: `
-        import { createSeedClient } from '#seed'
+        import { createSeedClient } from '#snaplet/seed'
         const seed = await createSeedClient({
           dryRun: false,
         })
@@ -155,7 +155,7 @@ for (const [dialect, adapter] of adapterEntries) {
       adapter,
       databaseSchema: schema[dialect] ?? schema.default,
       seedScript: `
-        import { createSeedClient } from '#seed'
+        import { createSeedClient } from '#snaplet/seed'
         const seed = await createSeedClient({
           dryRun: false,
         })
@@ -191,7 +191,7 @@ for (const [dialect, adapter] of adapterEntries) {
       adapter,
       databaseSchema: schema[dialect] ?? schema.default,
       seedScript: `
-        import { createSeedClient } from '#seed'
+        import { createSeedClient } from '#snaplet/seed'
         const seed = await createSeedClient({
           dryRun: false,
         })

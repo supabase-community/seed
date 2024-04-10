@@ -44,7 +44,7 @@ for (const [dialect, adapter] of adapterEntries) {
       adapter,
       databaseSchema: schema[dialect] ?? schema.default,
       seedScript: `
-        import { createSeedClient } from '#seed'
+        import { createSeedClient } from '#snaplet/seed'
           const seed = await createSeedClient({ dryRun: false })
           await seed.teams((x) => x(2, {
             players: (x) => x(3)
@@ -110,7 +110,7 @@ for (const [dialect, adapter] of adapterEntries) {
       adapter,
       databaseSchema: schema[dialect] ?? schema.default,
       seedScript: `
-        import { createSeedClient } from '#seed'
+        import { createSeedClient } from '#snaplet/seed'
           const seed = await createSeedClient({ dryRun: false })
           let i = 100;
           let j = 100;
@@ -179,7 +179,7 @@ for (const [dialect, adapter] of adapterEntries) {
       adapter,
       databaseSchema: schema[dialect] ?? schema.default,
       seedScript: `
-        import { createSeedClient } from '#seed'
+        import { createSeedClient } from '#snaplet/seed'
         let i = 100
         let j = 100
         let e = 50
@@ -259,7 +259,7 @@ for (const [dialect, adapter] of adapterEntries) {
       adapter,
       databaseSchema: schema[dialect] ?? schema.default,
       seedScript: `
-        import { createSeedClient } from '#seed'
+        import { createSeedClient } from '#snaplet/seed'
         const seed = await createSeedClient()
         await seed.teams((x) => x(2, {
           players: (x) => x(3)
@@ -285,7 +285,7 @@ for (const [dialect, adapter] of adapterEntries) {
   // something like seed.$introspect() that would update the dataModel and call seed.$reset()
   test("should be able to insert sequential data twice regenerating the client in between", async () => {
     const seedScript = `
-      import { createSeedClient } from '#seed'
+      import { createSeedClient } from '#snaplet/seed'
       const seed = await createSeedClient()
       await seed.teams((x) => x(2, {
         players: (x) => x(3)

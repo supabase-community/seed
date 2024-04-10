@@ -55,7 +55,7 @@ for (const [dialect, adapter] of adapterEntries) {
       adapter,
       databaseSchema: schema[dialect] ?? schema.default,
       seedScript: `
-        import { createSeedClient } from '#seed'
+        import { createSeedClient } from '#snaplet/seed'
           const seed = await createSeedClient({ dryRun: false })
           await seed.organizations((x) => x(2))
           await seed.users((x) => x(20))
@@ -87,7 +87,7 @@ for (const [dialect, adapter] of adapterEntries) {
       adapter,
       databaseSchema: schema[dialect] ?? schema.default,
       seedScript: `
-        import { createSeedClient } from '#seed'
+        import { createSeedClient } from '#snaplet/seed'
         import { copycat } from "@snaplet/copycat"
         const seed = await createSeedClient()
         await seed.users((x) => x(5, {
@@ -128,7 +128,7 @@ for (const [dialect, adapter] of adapterEntries) {
     });
     await expect(() =>
       runSeedScript(`
-        import { createSeedClient } from '#seed'
+        import { createSeedClient } from '#snaplet/seed'
         import { copycat } from "@snaplet/copycat"
         const seed = await createSeedClient()
         await seed.users((x) => x(5, {
@@ -175,7 +175,7 @@ for (const [dialect, adapter] of adapterEntries) {
       adapter,
       databaseSchema: schema[dialect] ?? schema.default,
       seedScript: `
-        import { createSeedClient } from '#seed'
+        import { createSeedClient } from '#snaplet/seed'
         const seed = await createSeedClient()
         await seed.profiles((x) => x(2))
         `,
@@ -215,7 +215,7 @@ for (const [dialect, adapter] of adapterEntries) {
       adapter,
       databaseSchema: schema[dialect] ?? schema.default,
       seedScript: `
-        import { createSeedClient } from '#seed'
+        import { createSeedClient } from '#snaplet/seed'
           const seed = await createSeedClient({ dryRun: false })
           // Explicitly setting team_id to null
           await seed.players((x) => x(2, {
@@ -267,7 +267,7 @@ for (const [dialect, adapter] of adapterEntries) {
       adapter,
       databaseSchema: schema[dialect] ?? schema.default,
       seedScript: `
-        import { createSeedClient } from '#seed'
+        import { createSeedClient } from '#snaplet/seed'
         const seed = await createSeedClient({ dryRun: false })
         await seed.players((x) => x(2, {
           // Explicitly providing null

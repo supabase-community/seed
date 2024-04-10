@@ -46,11 +46,11 @@ export const FILES = {
   INDEX: {
     name: "index.js",
     template({ dialect, seedConfigPath }: CodegenContext) {
+      // TODO: remove self reference to @snaplet/seed
       return dedent`
         import { readFileSync } from "node:fs";
         import { dirname, join } from "node:path";
         import { fileURLToPath } from "node:url";
-
         import { getSeedClient } from "@snaplet/seed/dialects/${dialect.id}/client";
         import { userModels } from "./${FILES.USER_MODELS.name}";
 

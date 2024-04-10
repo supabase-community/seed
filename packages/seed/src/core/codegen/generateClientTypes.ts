@@ -40,6 +40,7 @@ export async function generateClientTypes(props: {
 }) {
   const { dataModel, fingerprint, seedConfig } = props;
   return [
+    // TODO: remove self reference to @snaplet/seed
     'import { type DatabaseClient } from "@snaplet/seed/adapter";',
     generateHelpers(),
     generateSelectTypes(dataModel, seedConfig?.select),

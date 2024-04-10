@@ -37,11 +37,6 @@
       "development": "./src/index.ts",
       "default": "./dist/index.js"
     },
-    "./assets": {
-      "types": "./assets/index.d.ts",
-      "development": "./assets/index.ts",
-      "default": "./assets/index.js"
-    },
     "./adapter": {
       "types": "./dist/core/databaseClient.d.ts",
       "development": "./src/core/databaseClient.ts",
@@ -72,11 +67,6 @@
       "development": "./src/config/seedConfig/defineConfig.ts",
       "default": "./dist/config/seedConfig/defineConfig.js"
     },
-    "./cli": {
-      "types": "./dist/cli/index.d.ts",
-      "development": "./src/cli/index.ts",
-      "default": "./dist/cli/index.js"
-    },
     "./dialects/postgres/client": {
       "types": "./dist/dialects/postgres/client.d.ts",
       "development": "./src/dialects/postgres/client.ts",
@@ -87,11 +77,6 @@
       "development": "./src/dialects/sqlite/client.ts",
       "default": "./dist/dialects/sqlite/client.js"
     },
-    "./core/predictions/*": {
-      "types": "./dist/core/predictions/*.d.ts",
-      "development": "./src/core/predictions/*.ts",
-      "default": "./dist/core/predictions/*.js"
-    },
     "./core/symbols": {
       "types": "./dist/core/symbols.d.ts",
       "development": "./src/core/symbols.ts",
@@ -101,9 +86,6 @@
   "types": "./dist/index.d.ts",
   "typesVersions": {
     "*": {
-      "assets": [
-        "./assets/index.d.ts"
-      ],
       "adapter": [
         "./dist/core/databaseClient.d.ts"
       ],
@@ -122,17 +104,11 @@
       "config": [
         "./dist/config/seedConfig/defineConfig.d.ts"
       ],
-      "cli": [
-        "./dist/cli/index.d.ts"
-      ],
       "dialects/postgres/client": [
         "./dist/dialects/postgres/client.d.ts"
       ],
       "dialects/sqlite/client": [
         "./dist/dialects/sqlite/client.d.ts"
-      ],
-      "core/predictions/*": [
-        "./dist/core/predictions/*.d.ts"
       ],
       "core/symbols": [
         "./dist/core/symbols.d.ts"

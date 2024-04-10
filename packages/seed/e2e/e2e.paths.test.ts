@@ -30,7 +30,7 @@ for (const [dialect, adapter] of adapterEntries) {
         );
       `,
       seedScript: `
-        import { createSeedClient } from '#seed'
+        import { createSeedClient } from '#snaplet/seed'
 
         const seed = await createSeedClient()
 
@@ -75,7 +75,7 @@ for (const [dialect, adapter] of adapterEntries) {
               );
             `,
       seedScript: `
-              import { createSeedClient } from '#seed'
+              import { createSeedClient } from '#snaplet/seed'
 
               const seed = await createSeedClient()
 
@@ -126,7 +126,7 @@ for (const [dialect, adapter] of adapterEntries) {
               );
             `,
       seedScript: `
-              import { createSeedClient } from '#seed'
+              import { createSeedClient } from '#snaplet/seed'
 
               const seed = await createSeedClient()
 
