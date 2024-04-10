@@ -31,8 +31,10 @@ function sqlite2tsType(
 
 function sqlite2tsTypeName(_dataModel: DataModel, sqliteType: string) {
   const primitiveType = extractPrimitiveSQLType(sqliteType);
+  // TODO: Find a way to automatically turn Date into number via `getTime()`
+  // if the adapter used is `prisma`
   if (SQL_DATE_TYPES.has(primitiveType)) {
-    return "( Date | string )";
+    return "( Date | string | number )";
   }
   const jsType = SQL_TO_JS_TYPES[primitiveType];
   // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
