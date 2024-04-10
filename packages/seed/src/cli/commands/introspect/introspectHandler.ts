@@ -1,4 +1,5 @@
 import { gracefulExit } from "exit-hook";
+import { pathToFileURL } from "node:url";
 import { getDatabaseClient } from "#adapters/getDatabaseClient.js";
 import {
   getDataModelConfigPath,
@@ -27,6 +28,6 @@ export async function introspectHandler() {
   // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
   const dataModelConfigPath = (await getDataModelConfigPath())!;
   spinner.succeed(
-    `Introspected ${Object.keys(dataModel.models).length} models and wrote them into ${link(dataModelConfigPath)}`,
+    `Introspected ${Object.keys(dataModel.models).length} models and wrote them into ${link(pathToFileURL(dataModelConfigPath).toString())}`,
   );
 }
