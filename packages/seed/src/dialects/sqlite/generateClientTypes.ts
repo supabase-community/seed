@@ -2,9 +2,9 @@ import { generateClientTypes as _generateClientTypes } from "#core/codegen/gener
 import { type DataModel } from "#core/dataModel/types.js";
 import { type Fingerprint } from "#core/fingerprint/types.js";
 import {
-  PG_DATE_TYPES,
-  PG_TO_JS_TYPES,
-  extractPrimitivePgType,
+  SQL_DATE_TYPES,
+  SQL_TO_JS_TYPES,
+  extractPrimitiveSQLType,
 } from "./utils.js";
 
 export function generateClientTypes(props: {
@@ -29,23 +29,15 @@ function sqlite2tsType(
   return refineType(type, sqliteType, isRequired);
 }
 
-function sqlite2tsTypeName(dataModel: DataModel, sqliteType: string) {
-  const primitiveType = extractPrimitivePgType(sqliteType);
-  if (PG_DATE_TYPES.has(primitiveType)) {
+function sqlite2tsTypeName(_dataModel: DataModel, sqliteType: string) {
+  const primitiveType = extractPrimitiveSQLType(sqliteType);
+  if (SQL_DATE_TYPES.has(primitiveType)) {
     return "( Date | string )";
   }
-  const jsType = PG_TO_JS_TYPES[primitiveType];
+  const jsType = SQL_TO_JS_TYPES[primitiveType];
   // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
   if (jsType) {
     return jsType;
-  }
-
-  const enumName = Object.keys(dataModel.enums).find(
-    (name) => name === primitiveType,
-  );
-
-  if (enumName) {
-    return `${enumName}Enum`;
   }
 
   return "unknown";

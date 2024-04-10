@@ -364,9 +364,6 @@ describe.concurrent.each(["postgres"] as const)(
       const result = await introspectDatabase(db.client);
 
       const member = result.tables.find((t) => t.id == "public.Member");
-      console.log(
-        member?.columns.filter((c) => c.constraints.some((c) => c == "p")),
-      );
       expect(member?.primaryKeys?.keys).toEqual([{ name: "id", type: "int4" }]);
     });
   },

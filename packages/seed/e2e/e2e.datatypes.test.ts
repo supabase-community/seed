@@ -31,6 +31,7 @@ for (const [dialect, adapter] of adapterEntries.filter(
           "content" TEXT NOT NULL,
           "published" BOOLEAN NOT NULL,
           "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+          "updatedAt" TIMESTAMP(3),
           "userId" INTEGER NOT NULL,
           "bigInt" BIGINT NOT NULL,
           "float" DOUBLE PRECISION NOT NULL,
@@ -61,6 +62,7 @@ for (const [dialect, adapter] of adapterEntries.filter(
           "content" TEXT NOT NULL,
           "published" BOOLEAN NOT NULL,
           "createdAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+          "updatedAt" DATETIME,
           "userId" INTEGER NOT NULL,
           "bigInt" BIGINT NOT NULL,
           "float" REAL NOT NULL,
@@ -99,20 +101,6 @@ for (const [dialect, adapter] of adapterEntries.filter(
       title: string;
       userId: number;
     }>('SELECT * FROM "Post"');
-    const typeofUsersFields = Object.keys(users[0]).reduce((acc, key) => {
-      acc[key] = typeof users[0][key] as string;
-      return acc;
-    }, {});
-    const typeofPostFields = Object.keys(posts[0]).reduce((acc, key) => {
-      acc[key] = (
-        typeof posts[0][key] === "object"
-          ? Buffer.isBuffer(posts[0][key]) && "buffer"
-          : typeof posts[0][key]
-      ) as string;
-      return acc;
-    }, {});
-    console.log(users);
-    console.log(posts);
     expect(users).toEqual(
       expect.arrayContaining([
         expect.objectContaining({
@@ -122,19 +110,52 @@ for (const [dialect, adapter] of adapterEntries.filter(
         }),
       ]),
     );
+
+    expect.extend({
+      sqliteBoolean: (received) => {
+        const pass = received === 1 || received === 0;
+        return {
+          pass,
+          message: () => (pass ? "" : `expected ${received} to be 0 or 1`),
+        };
+      },
+      dateString: (received) => {
+        const date = new Date(received as string);
+        const pass = date.toString() !== "Invalid Date";
+        return {
+          pass,
+          message: () =>
+            pass
+              ? ""
+              : `expected ${received} to be a valid date string, got ${date}`,
+        };
+      },
+    });
     expect(posts).toEqual(
       expect.arrayContaining([
         expect.objectContaining({
           id: expect.any(Number),
           title: expect.any(String),
           content: expect.any(String),
-          published: expect.any(Boolean),
-          createdAt: expect.any(Date),
+          published:
+            // @ts-expect-error - sqliteBoolean is a custom matcher
+            // eslint-disable-next-line @typescript-eslint/no-unsafe-call
+            dialect === "sqlite" ? expect.sqliteBoolean() : expect.any(Boolean),
+          createdAt:
+            // @ts-expect-error - dateString is a custom matcher
+            // eslint-disable-next-line @typescript-eslint/no-unsafe-call
+            dialect === "sqlite" ? expect.dateString() : expect.any(Date),
+          updatedAt:
+            // @ts-expect-error - dateString is a custom matcher
+            // eslint-disable-next-line @typescript-eslint/no-unsafe-call
+            dialect === "sqlite" ? expect.dateString() : expect.any(Date),
           userId: expect.any(Number),
-          bigInt: expect.any(String),
+          bigInt:
+            dialect === "sqlite" ? expect.any(Number) : expect.any(String),
           float: expect.any(Number),
-          decimal: expect.any(String),
-          bytes: expect.any(Buffer),
+          decimal:
+            dialect === "sqlite" ? expect.any(Number) : expect.any(String),
+          bytes: dialect === "sqlite" ? expect.any(String) : expect.any(Buffer),
         }),
       ]),
     );

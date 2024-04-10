@@ -3,12 +3,12 @@ import {
   createTemplateContext,
   runTemplateCode,
 } from "#core/userModels/templates/testing.js";
-import { SEED_SQLITE_TEMPLATES } from "./userModels.js";
+import { SQL_TEMPLATES } from "./userModels.js";
 
-describe.skip("SEED_SQLITE_TEMPLATES", () => {
+describe("SQL_TEMPLATES", () => {
   test("evaluation of generated code", () => {
     const results = Object.fromEntries(
-      Object.entries(SEED_SQLITE_TEMPLATES).map(([type, rawTemplates]) => {
+      Object.entries(SQL_TEMPLATES).map(([type, rawTemplates]) => {
         const context = createTemplateContext();
         const templates =
           typeof rawTemplates === "function"
