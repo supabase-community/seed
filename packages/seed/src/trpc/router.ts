@@ -8,16 +8,57 @@ const router = t.router;
 
 export const trpc = t;
 
+export interface Organization {
+  id: string;
+  name: string;
+}
+
+export interface Project {
+  id: string;
+  name: string;
+}
+
 export const createCliRouter = ({ publicProcedure = t.procedure } = {}) =>
   router({
+    organization: router({
+      create: publicProcedure
+        .input(
+          z.object({
+            organizationName: z.string(),
+          }),
+        )
+        .mutation(() => {
+          return {
+            id: "1",
+            name: "Org 1",
+          } as Organization;
+        }),
+      list: publicProcedure.query(() => {
+        return [] as Array<Organization>;
+      }),
+    }),
     project: router({
+      create: publicProcedure
+        .input(
+          z.object({
+            name: z.string(),
+            regionId: z.literal("aws-eu-central-1"),
+            organizationId: z.string(),
+          }),
+        )
+        .mutation(() => {
+          return {
+            id: "1",
+            name: "Project 1",
+          } as Organization;
+        }),
       list: publicProcedure.query(() => {
         return [
           {
             id: "1",
             name: "Project 1",
           },
-        ] as Array<{ id: string; name: string }>;
+        ] as Array<Project>;
       }),
     }),
     predictions: router({
