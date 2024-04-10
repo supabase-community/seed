@@ -45,7 +45,7 @@ export const generateCodeFromTemplate = <Type extends string>(props: {
   } else {
     let fn: TemplateFn | null | undefined;
 
-    if (shape === null || shapeTemplates[shape] === null) {
+    if (!shape || !shapeTemplates[shape]) {
       fn = shapeTemplates.__DEFAULT ?? null;
     } else {
       fn = shapeTemplates[shape];
@@ -56,5 +56,5 @@ export const generateCodeFromTemplate = <Type extends string>(props: {
     }
   }
 
-  return result !== null ? encloseValueInArray(result, dimensions) : null;
+  return result ? encloseValueInArray(result, dimensions) : null;
 };
