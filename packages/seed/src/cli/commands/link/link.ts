@@ -4,7 +4,7 @@ import { telemetryMiddleware } from "#cli/lib/middlewares/telemetry.js";
 export function linkCommand(program: Argv) {
   return program.command(
     "link",
-    "Sets or creates the Snaplet project to link @snaplet/seed to",
+    "Links your local directory to a Snaplet Project",
     {},
     telemetryMiddleware(async () => {
       const { linkHandler } = await import("./linkHandler.js");
