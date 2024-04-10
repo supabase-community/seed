@@ -37,11 +37,6 @@
       "development": "./src/index.ts",
       "default": "./dist/index.js"
     },
-    "./assets": {
-      "types": "./assets/index.d.ts",
-      "development": "./assets/index.ts",
-      "default": "./assets/index.js"
-    },
     "./adapter": {
       "types": "./dist/core/databaseClient.d.ts",
       "development": "./src/core/databaseClient.ts",
@@ -101,9 +96,6 @@
   "types": "./dist/index.d.ts",
   "typesVersions": {
     "*": {
-      "assets": [
-        "./assets/index.d.ts"
-      ],
       "adapter": [
         "./dist/core/databaseClient.d.ts"
       ],
