@@ -18,5 +18,12 @@ export const serializeToSQL = (type: string, value: Serializable) => {
     return value ? 1 : 0;
   }
 
+  // SQLite does not automatically convert string to buffers when inserting into a BLOB column
+  // we need to manually ensure that the value is converted to a buffer so that it can be inserted using X'' syntax
+  if (jsType === "Buffer" && value && !(value instanceof Buffer)) {
+    // eslint-disable-next-line @typescript-eslint/no-base-to-string
+    return Buffer.from(value.toString());
+  }
+
   return value;
 };
