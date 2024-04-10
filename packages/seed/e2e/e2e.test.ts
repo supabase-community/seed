@@ -24,7 +24,7 @@ for (const [dialect, adapter] of adapterEntries) {
         );
       `,
       seedScript: `
-        import { createSeedClient } from '#seed'
+        import { createSeedClient } from '#snaplet/seed'
 
         const seed = await createSeedClient()
 
@@ -52,7 +52,7 @@ for (const [dialect, adapter] of adapterEntries) {
           );
         `,
       seedScript: `
-          import { createSeedClient } from '#seed'
+          import { createSeedClient } from '#snaplet/seed'
 
           const seed = await createSeedClient({ dryRun: true })
 
@@ -90,7 +90,7 @@ for (const [dialect, adapter] of adapterEntries) {
         INSERT INTO "Organization" VALUES ('18bcdaf9-afae-4b03-a7aa-203491acc950');
       `,
       seedScript: `
-        import { createSeedClient } from '#seed'
+        import { createSeedClient } from '#snaplet/seed'
 
         const seed = await createSeedClient()
 
@@ -114,7 +114,7 @@ for (const [dialect, adapter] of adapterEntries) {
           );
         `,
         seedScript: `
-          import { createSeedClient } from '#seed'
+          import { createSeedClient } from '#snaplet/seed'
           const seed = await createSeedClient()
           await seed.users([{}])
         `,
@@ -139,7 +139,7 @@ for (const [dialect, adapter] of adapterEntries) {
         );
       `,
       seedScript: `
-        import { createSeedClient } from '#seed'
+        import { createSeedClient } from '#snaplet/seed'
 
         const seed = await createSeedClient({
           models: {
@@ -237,7 +237,7 @@ for (const [dialect, adapter] of adapterEntries) {
       adapter,
       databaseSchema: schema[dialect] ?? schema.default,
       seedScript: `
-        import { createSeedClient } from '#seed'
+        import { createSeedClient } from '#snaplet/seed'
         const seed = await createSeedClient()
         await seed.tutors([{}, {}])
         await seed.students(c => c(1))
@@ -278,7 +278,7 @@ for (const [dialect, adapter] of adapterEntries) {
         );
       `,
       seedScript: `
-        import { createSeedClient } from "#seed"
+        import { createSeedClient } from "#snaplet/seed"
 
         const seed = await createSeedClient({
           models: {
@@ -349,7 +349,7 @@ for (const [dialect, adapter] of adapterEntries) {
       await db.execute('insert into "User" DEFAULT VALUES');
 
       await runSeedScript(`
-        import { createSeedClient } from "#seed"
+        import { createSeedClient } from "#snaplet/seed"
 
         const seed = await createSeedClient()
 
@@ -391,7 +391,7 @@ for (const [dialect, adapter] of adapterEntries) {
           create unique index confirmation_token_idx on users (confirmation_token);
         `,
       seedScript: `
-      import { createSeedClient } from "#seed"
+      import { createSeedClient } from "#snaplet/seed"
       const seed = await createSeedClient()
       await seed.$resetDatabase()
       await seed.users([{}])
@@ -416,7 +416,7 @@ for (const [dialect, adapter] of adapterEntries) {
           );
         `,
       seedScript: `
-          import { createSeedClient } from "#seed"
+          import { createSeedClient } from "#snaplet/seed"
           const seed = await createSeedClient()
           await seed.$resetDatabase()
           await seed.contracts([{ contractType: "VIP" }])
@@ -455,7 +455,7 @@ for (const [dialect, adapter] of adapterEntries) {
           );
         `,
         seedScript: `
-          import { createSeedClient } from "#seed"
+          import { createSeedClient } from "#snaplet/seed"
           const seed = await createSeedClient()
           await seed.$resetDatabase()
           await seed["contracts "]([{ "contract type": "VIP" }])
@@ -481,7 +481,7 @@ for (const [dialect, adapter] of adapterEntries) {
         );
       `,
       seedScript: `
-        import { createSeedClient } from '#seed'
+        import { createSeedClient } from '#snaplet/seed'
 
         const seed = await createSeedClient({
           models: {

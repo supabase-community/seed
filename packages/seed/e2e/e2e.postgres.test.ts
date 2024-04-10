@@ -27,7 +27,7 @@ test("generates valid sequences for tables with ids as sequences or identity", a
         );
       `,
     seedScript: `
-        import { createSeedClient } from '#seed'
+        import { createSeedClient } from '#snaplet/seed'
           const seed = await createSeedClient({ dryRun: false })
           await seed.teams((x) => x(2, {
             players: (x) => x(3)
@@ -68,7 +68,7 @@ test("works with multiple schemas", async () => {
         );
       `,
     seedScript: `
-        import { createSeedClient } from '#seed'
+        import { createSeedClient } from '#snaplet/seed'
 
         const seed = await createSeedClient()
 
@@ -93,7 +93,7 @@ test("work with citext pg type", async () => {
         );
       `,
     seedScript: `
-        import { createSeedClient } from "#seed"
+        import { createSeedClient } from "#snaplet/seed"
         const seed = await createSeedClient()
         await seed.users((x) => x(2))
       `,
@@ -118,7 +118,7 @@ test("inflection with singular vs plural", async () => {
         );
       `,
     seedScript: `
-        import { createSeedClient } from "#seed"
+        import { createSeedClient } from "#snaplet/seed"
         const seed = await createSeedClient()
         await seed.publicUsers(x => x(2))
         await seed.authUsers(x => x(2))
