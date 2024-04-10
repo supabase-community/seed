@@ -1,4 +1,5 @@
 import { watch } from "node:fs/promises";
+import { pathToFileURL } from "node:url";
 import { type Adapter } from "#adapters/types.js";
 import {
   getSeedConfigPath,
@@ -12,14 +13,16 @@ export async function saveSeedConfig({ adapter }: { adapter: Adapter }) {
 
   const seedConfigPath = await getSeedConfigPath();
 
-  spinner.succeed(`Seed configuration saved to ${link(seedConfigPath)}`);
+  spinner.succeed(
+    `Seed configuration saved to ${link(pathToFileURL(seedConfigPath).toString())}`,
+  );
 
   if (await isConnected()) {
     return;
   }
 
   spinner.start(
-    `Please enter your database connection details by editing ${link("seed.config.ts", seedConfigPath)}`,
+    `Please enter your database connection details by editing the Seed configuration file`,
   );
 
   const watcher = watch(seedConfigPath);
