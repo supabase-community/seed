@@ -281,16 +281,23 @@ for (const [dialect, adapter] of adapterEntries) {
     ).toEqual([{ id: 7, name: "test", teamId: 1 }]);
   });
 
-  // TODO: allow to progamatically continue the sequence without having to regenerate the client
-  // something like seed.$introspect() that would update the dataModel and call seed.$reset()
-  test("should be able to insert sequential data twice regenerating the client in between", async () => {
+  test("should be able to insert sequential data twice with external insertions in between", async () => {
     const seedScript = `
       import { createSeedClient } from '#snaplet/seed'
       const seed = await createSeedClient()
       await seed.teams((x) => x(2, {
         players: (x) => x(3)
       }));
-      await seed.games((x) => x(3));`;
+      await seed.games((x) => x(3));
+      // @ts-ignore hidden property
+      await seed.db.execute(\`INSERT INTO "Player" ("teamId", name) VALUES (1, 'test')\`);
+      // @ts-ignore hidden method
+      await seed.$syncDatabase();
+      await seed.teams((x) => x(2, {
+        players: (x) => x(3)
+      }));
+      await seed.games((x) => x(3));
+      `;
     const schema: DialectRecordWithDefault = {
       default: `
           CREATE TABLE "Team" (
@@ -319,21 +326,10 @@ for (const [dialect, adapter] of adapterEntries) {
           "id" INTEGER PRIMARY KEY AUTOINCREMENT
         );`,
     };
-    const { db, connectionString } = await setupProject({
+    const { db } = await setupProject({
+      seedScript,
       adapter,
       databaseSchema: schema[dialect] ?? schema.default,
-      seedScript,
-    });
-
-    // Should be able to insert a new Player with the default database `nextval` call
-    await db.execute(
-      `INSERT INTO "Player" ("teamId", name) VALUES (1, 'test')`,
-    );
-    // Should be able to run the seed script again
-    await setupProject({
-      adapter,
-      connectionString,
-      seedScript,
     });
 
     expect(
@@ -344,4 +340,60 @@ for (const [dialect, adapter] of adapterEntries) {
       ).length,
     ).toEqual(13);
   });
+  if (dialect === "sqlite") {
+    continue;
+  }
+  _test.only(
+    "sequences should be reset when using $resetDatabase",
+    async () => {
+      const schema: DialectRecordWithDefault = {
+        default: `
+          CREATE TABLE "Team" (
+            "id" SERIAL PRIMARY KEY
+          );
+          CREATE TABLE "Game" (
+            "id" INTEGER GENERATED ALWAYS AS IDENTITY PRIMARY KEY
+          );
+        `,
+        sqlite: `
+          CREATE TABLE "Team" (
+            "id" INTEGER PRIMARY KEY AUTOINCREMENT
+          );
+          CREATE TABLE "Game" (
+            "id" INTEGER PRIMARY KEY AUTOINCREMENT
+          );
+        `,
+      };
+      const seedScript = `
+        import { createSeedClient } from "#snaplet/seed";
+        const seed = await createSeedClient();
+
+        await seed.$resetDatabase();
+
+        await seed.teams((x) => x(10));
+        await seed.games((x) => x(20));
+
+        await seed.$resetDatabase();
+
+        await seed.teams((x) => x(2));
+        await seed.games((x) => x(2));
+      `;
+      const { db } = await setupProject({
+        seedScript,
+        adapter,
+        databaseSchema: schema[dialect] ?? schema.default,
+      });
+
+      expect(
+        (await db.query<{ id: number }>(`SELECT id FROM "Team"`)).map(
+          (p) => p.id,
+        ),
+      ).toEqual([1, 2]);
+      expect(
+        (await db.query<{ id: number }>(`SELECT id FROM "Game"`)).map(
+          (p) => p.id,
+        ),
+      ).toEqual([1, 2, 3, 4]);
+    },
+  );
 }
