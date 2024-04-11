@@ -63,8 +63,7 @@ export const getSeedClient: GetSeedClient = (props) => {
           for (const sequence of sequences) {
             if (sequence !== false) {
               await this.db.execute(
-                // TODO: get the "start" value in the dataModel if possible
-                `ALTER SEQUENCE ${sequence.identifier} RESTART WITH 1`,
+                `ALTER SEQUENCE ${sequence.identifier} RESTART WITH ${sequence.start ?? 1}`,
               );
             }
           }

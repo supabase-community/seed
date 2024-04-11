@@ -156,14 +156,18 @@ function columnSequence(
 ): DataModelSequence | false {
   // If the column is an identity column we return the identity information
   // https://www.postgresqltutorial.com/postgresql-tutorial/postgresql-identity-column/
-  if (column.identity) {
+  if (column.identity && sequences) {
+    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+    const sequence = sequences[column.schema].find(
+      (s) =>
+        `${escapeIdentifier(s.schema)}.${escapeIdentifier(s.name)}` ===
+        // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+        column.identity!.sequenceIdentifier,
+    )!;
     return {
-      identifier: column.identity.sequenceName
-        ? // Comes from: pg_get_serial_sequence which will automatically escape the identifier if it needs to
-          // Will be something like: `public."User_id_seq"`
-          column.identity.sequenceName
-        : null,
-      increment: column.identity.increment,
+      identifier: column.identity.sequenceIdentifier ?? null,
+      increment: sequence.interval,
+      start: sequence.start,
     };
   }
   // Otherwise a column can have a sequence as default value wihtout being an identity column
@@ -188,6 +192,7 @@ function columnSequence(
           sequenceDetails.schema,
         )}.${escapeIdentifier(sequenceDetails.sequence)}`,
         increment: sequence.interval,
+        start: sequence.start,
       };
     }
     return false;
