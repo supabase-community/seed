@@ -35,7 +35,7 @@ export function patchUserModelsSequences(props: {
   }
 }
 
-export function computeSequences(props: {
+function computeSequences(props: {
   dataModel: DataModel;
   initialUserModels: UserModels;
   sequencesCurrent: Record<string, number>;
