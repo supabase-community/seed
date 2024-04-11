@@ -68,6 +68,7 @@ export const getSeedClient: GetSeedClient = (props) => {
             }
           }
         }
+        await this.$syncDatabase();
       }
     }
 
