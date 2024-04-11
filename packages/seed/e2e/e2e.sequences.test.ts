@@ -361,17 +361,17 @@ for (const [dialect, adapter] of adapterEntries) {
         `,
     };
     const seedScript = `
-        import { createSeedClient } from "#snaplet/seed";
-        const seed = await createSeedClient();
+      import { createSeedClient } from "#snaplet/seed";
+      const seed = await createSeedClient();
 
-        await seed.teams((x) => x(5));
-        await seed.games((x) => x(10));
+      await seed.teams((x) => x(5));
+      await seed.games((x) => x(10));
 
-        await seed.$resetDatabase(['!*Team']);
+      await seed.$resetDatabase(['!*Team']);
 
-        await seed.teams((x) => x(2));
-        await seed.games((x) => x(4));
-      `;
+      await seed.teams((x) => x(2));
+      await seed.games((x) => x(4));
+    `;
     const { db } = await setupProject({
       seedScript,
       adapter,
