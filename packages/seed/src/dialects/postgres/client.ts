@@ -10,8 +10,8 @@ import { type SeedClientOptions } from "#core/client/types.js";
 import { filterModelsBySelectConfig } from "#core/client/utils.js";
 import { type DataModel } from "#core/dataModel/types.js";
 import { type DatabaseClient } from "#core/databaseClient.js";
-import { updateDataModelSequences } from "#core/sequences/updateDataModelSequences.js";
-import { getDatamodel } from "./dataModel.js";
+import { patchUserModelsSequences } from "#core/sequences/sequences.js";
+import { fetchSequences } from "./introspect/queries/fetchSequences.js";
 import { PgStore } from "./store.js";
 import { escapeIdentifier } from "./utils.js";
 
@@ -57,13 +57,40 @@ export const getSeedClient: GetSeedClient = (props) => {
         if (tablesToTruncate.length > 0) {
           await this.db.execute(`TRUNCATE ${tablesToTruncate} CASCADE`);
         }
+        // reset sequences
+        for (const model of filteredModels) {
+          const sequences = model.fields.map((f) => f.sequence);
+          for (const sequence of sequences) {
+            if (sequence !== false) {
+              await this.db.execute(
+                // TODO: get the "start" value in the dataModel if possible
+                `ALTER SEQUENCE ${sequence.identifier} RESTART WITH 1`,
+              );
+            }
+          }
+        }
       }
     }
 
     async $syncDatabase(): Promise<void> {
-      // TODO: fix this, it's a hack
-      const nextDataModel = await getDatamodel(this.db);
-      this.dataModel = updateDataModelSequences(this.dataModel, nextDataModel);
+      const sequences = await fetchSequences(this.db);
+      const sequencesCurrent = sequences.reduce<Record<string, number>>(
+        (acc, sequence) => {
+          acc[
+            `${escapeIdentifier(
+              sequence.schema,
+            )}.${escapeIdentifier(sequence.name)}`
+          ] = sequence.current;
+          return acc;
+        },
+        {},
+      );
+      patchUserModelsSequences({
+        dataModel: this.dataModel,
+        initialUserModels: this.initialUserModels,
+        sequencesCurrent,
+        userModels: this.userModels,
+      });
     }
   }
 
