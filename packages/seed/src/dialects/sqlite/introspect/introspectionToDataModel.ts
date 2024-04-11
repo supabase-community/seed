@@ -70,11 +70,9 @@ function columnSequence(
   column: IntrospectedSqlite["tables"][number]["columns"][number],
 ): DataModelSequence | false {
   if (column.identity) {
-    const current = column.identity.current;
     return {
       identifier: column.identity.name,
       increment: 1,
-      current: current,
     };
   }
   return false;

@@ -12,6 +12,5 @@ export interface SeedClientOptions {
 export interface ClientState {
   constraints: Constraints;
   seeds: Record<string, number>;
-  sequences: Record<string, Generator<number, never>>;
   store: Store;
 }

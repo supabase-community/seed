@@ -27,6 +27,7 @@ export async function fetchSequences(client: DatabaseClient) {
   return response.map((r) => ({
     schema: r.schema,
     name: r.name,
+    start: Number(r.start),
     // When a sequence is created, the current value is the start value and is available for use
     // but when the sequence is used for the first time, the current values is the last used one not available for use
     // so we increment it by one to get the next available value instead

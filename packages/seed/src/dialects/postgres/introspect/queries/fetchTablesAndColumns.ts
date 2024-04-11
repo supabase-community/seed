@@ -1,4 +1,5 @@
 import { type DatabaseClient } from "#core/databaseClient.js";
+import { escapeIdentifier } from "../../utils.js";
 import { buildSchemaExclusionClause } from "./utils.js";
 
 const TYPE_CATEGORY_DISPLAY_NAMES = {
@@ -38,11 +39,8 @@ interface SelectColumnsResult {
   generated: "ALWAYS" | "NEVER";
   id: string;
   identity?: {
-    current: number;
     generated: "ALWAYS" | "BY DEFAULT";
-    increment: number;
-    sequenceName: string | undefined;
-    start: number;
+    sequenceIdentifier: string | undefined;
   } | null;
   maxLength: null | number;
   name: string;
@@ -211,11 +209,8 @@ const FETCH_TABLES_AND_COLUMNS = `
             'generated', constraints_data.generated,
             'maxLength', constraints_data."maxLength",
             'identity', case when constraints_data.is_identity = 'YES' then json_build_object(
-              'sequenceName', (SELECT pg_get_serial_sequence( '"' || constraints_data.schema || '"."' || constraints_data.table || '"', constraints_data.name)),
-              'generated', constraints_data.identity_generation,
-              'start', constraints_data.identity_start,
-              'increment', constraints_data.identity_increment,
-              'current', (SELECT COALESCE(last_value, start_value) AS current FROM pg_sequences WHERE sequencename = (SELECT replace((SELECT pg_get_serial_sequence( '"' || constraints_data.schema || '"."' || constraints_data.table || '"', constraints_data.name)::regclass::text), '"', '')))
+              'sequenceIdentifier', (SELECT replace((SELECT pg_get_serial_sequence( '"' || constraints_data.schema || '"."' || constraints_data.table || '"', constraints_data.name)::regclass::text), '"', '')),
+              'generated', constraints_data.identity_generation
             ) else null end,
             'typeCategory', constraints_data."typeCategory",
             'constraints', constraints_data."constraints"
@@ -245,22 +240,20 @@ export async function fetchTablesAndColumns(client: DatabaseClient) {
 
   return response.map((r) => ({
     ...r.json_build_object,
-    columns: r.json_build_object.columns.map((c) => ({
-      ...c,
-      identity: c.identity
-        ? {
-            sequenceName: c.identity.sequenceName,
-            generated: c.identity.generated,
-            increment: c.identity.increment,
-            // When a sequence is created, the current value is the start value and is available for use
-            // but when the sequence is used for the first time, the current values is the last used one not available for use
-            // so we increment it by one to get the next available value instead
-            current:
-              c.identity.start === c.identity.current
-                ? c.identity.current
-                : c.identity.current + 1,
-          }
-        : null,
-    })),
+    columns: r.json_build_object.columns.map((c) => {
+      // We patch the sequence name to be properly escaped and fully qualified
+      const sequenceIdentifier = c.identity?.sequenceIdentifier
+        ? `${escapeIdentifier(c.schema)}.${escapeIdentifier(c.identity.sequenceIdentifier)}`
+        : undefined;
+      return {
+        ...c,
+        identity: c.identity
+          ? {
+              sequenceIdentifier,
+              generated: c.identity.generated,
+            }
+          : null,
+      };
+    }),
   }));
 }

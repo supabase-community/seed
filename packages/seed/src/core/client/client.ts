@@ -6,7 +6,6 @@ import { getInitialConstraints } from "../plan/constraints.js";
 import { Plan } from "../plan/plan.js";
 import { type PlanInputs, type PlanOptions } from "../plan/types.js";
 import { captureRuntimeEvent } from "../runtime/captureRuntimeEvent.js";
-import { generateUserModelsSequences } from "../sequences/sequences.js";
 import { type Store } from "../store/store.js";
 import { type UserModels } from "../userModels/types.js";
 import { mergeUserModels } from "../userModels/userModels.js";
@@ -48,12 +47,8 @@ export abstract class SeedClientBase implements SeedClient {
       props.userModels,
       props.options?.models ?? {},
     );
-    this.state = SeedClientBase.getInitialState({
-      createStore: this.createStore,
-      dataModel: props.dataModel,
-      userModels: this.userModels,
-      initialUserModels: this.initialUserModels,
-    });
+
+    this.state = this.getInitialState();
 
     Object.keys(props.dataModel.models).forEach((model) => {
       // @ts-expect-error dynamic methods creation
@@ -76,33 +71,12 @@ export abstract class SeedClientBase implements SeedClient {
     });
   }
 
-  static getInitialState(props: {
-    createStore: (dataModel: DataModel) => Store;
-    dataModel: DataModel;
-    initialUserModels?: UserModels;
-    userModels: UserModels;
-  }) {
-    const initialUserModels = props.initialUserModels ?? props.userModels;
-    const constraints = getInitialConstraints(props.dataModel);
+  getInitialState(): ClientState {
     return {
-      constraints,
-      store: props.createStore(props.dataModel),
+      constraints: getInitialConstraints(this.dataModel),
       seeds: {},
-      sequences: generateUserModelsSequences(
-        initialUserModels,
-        props.userModels,
-        props.dataModel,
-      ),
+      store: this.createStore(this.dataModel),
     };
-  }
-
-  $reset() {
-    this.state = SeedClientBase.getInitialState({
-      createStore: this.createStore,
-      dataModel: this.dataModel,
-      userModels: this.userModels,
-      initialUserModels: this.initialUserModels,
-    });
   }
 
   get $store() {
@@ -115,8 +89,6 @@ export abstract class SeedClientBase implements SeedClient {
 }
 
 interface SeedClient {
-  $reset: () => void;
-
   $resetDatabase: (selectConfig?: SelectConfig) => Promise<void>;
 
   $store: Store["_store"];
@@ -137,7 +109,6 @@ export const setupClient = async <Client extends SeedClient>(props: {
   const seed = await createClient();
 
   await seed.$syncDatabase();
-  seed.$reset();
 
   await promisedEventCapture;
   return seed;
