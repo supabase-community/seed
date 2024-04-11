@@ -215,7 +215,7 @@ const FETCH_TABLES_AND_COLUMNS = `
               'generated', constraints_data.identity_generation,
               'start', constraints_data.identity_start,
               'increment', constraints_data.identity_increment,
-              'current', (SELECT COALESCE(last_value, start_value) AS current FROM pg_sequences WHERE sequencename = (SELECT replace((SELECT pg_get_serial_sequence( '"' || constraints_data.schema || '"."' || constraints_data.table || '"', constraints_data.name)::regclass::text), '"', '')))
+              'current', (SELECT COALESCE(last_value, start_value) AS current FROM pg_sequences WHERE sequencename = (SELECT replace((SELECT pg_get_serial_sequence( '"' || constraints_data.schema || '"."' || constraints_data.table || '"', constraints_data.name)::regclass::text), '"', '')) AND schemaname = constraints_data.schema)
             ) else null end,
             'typeCategory', constraints_data."typeCategory",
             'constraints', constraints_data."constraints"

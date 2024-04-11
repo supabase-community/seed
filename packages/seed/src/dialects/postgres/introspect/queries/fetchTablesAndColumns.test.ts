@@ -717,5 +717,78 @@ describe.concurrent.each(["postgres"] as const)(
         },
       ]);
     });
+
+    test("Multiple schemas with the same sequence names", async () => {
+      const structure = `
+    CREATE SEQUENCE custom_course_id_seq;
+    CREATE TABLE public."Courses" (
+      "CourseID" INT PRIMARY KEY DEFAULT nextval('custom_course_id_seq'::regclass)
+    );
+
+    CREATE SCHEMA private;
+    CREATE SEQUENCE private."custom_course_id_seq";
+    CREATE TABLE private."Courses" (
+      "CourseID" INT PRIMARY KEY DEFAULT nextval('custom_course_id_seq'::regclass)
+    );
+    
+    `;
+      const db = await createTestDb(structure);
+      await db.client.execute(`VACUUM ANALYZE;`);
+      const al_sequences = await db.client.query(`SELECT * FROM pg_sequences;`);
+      console.log(al_sequences);
+      const tablesInfos = await fetchTablesAndColumns(db.client);
+      expect(tablesInfos).toEqual([
+        {
+          bytes: 0,
+          columns: [
+            {
+              constraints: ["p"],
+              default: "nextval('custom_course_id_seq'::regclass)",
+              generated: "NEVER",
+              id: "private.Courses.CourseID",
+              identity: null,
+              maxLength: null,
+              name: "CourseID",
+              nullable: false,
+              schema: "private",
+              table: "Courses",
+              type: "int4",
+              typeCategory: "N",
+              typeId: "pg_catalog.int4",
+            },
+          ],
+          id: "private.Courses",
+          name: "Courses",
+          partitioned: false,
+          rows: 0,
+          schema: "private",
+        },
+        {
+          bytes: 0,
+          columns: [
+            {
+              constraints: ["p"],
+              default: "nextval('custom_course_id_seq'::regclass)",
+              generated: "NEVER",
+              id: "public.Courses.CourseID",
+              identity: null,
+              maxLength: null,
+              name: "CourseID",
+              nullable: false,
+              schema: "public",
+              table: "Courses",
+              type: "int4",
+              typeCategory: "N",
+              typeId: "pg_catalog.int4",
+            },
+          ],
+          id: "public.Courses",
+          name: "Courses",
+          partitioned: false,
+          rows: 0,
+          schema: "public",
+        },
+      ]);
+    });
   },
 );
