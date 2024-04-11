@@ -24,6 +24,7 @@ describe.concurrent.each(["postgres"] as const)(
           name: "seq_example",
           current: 1, // Current value might be '1' if not used yt
           interval: 1,
+          start: 1,
         },
       ]);
     });
@@ -50,12 +51,14 @@ describe.concurrent.each(["postgres"] as const)(
             name: "students_student_id_seq", // The exact name might differ; adjust as necessary
             current: 1,
             interval: 1,
+            start: 1,
           },
           {
             schema: "public",
             name: "courses_course_id_seq", // The exact name might differ; adjust as necessary
             current: 1,
             interval: 1,
+            start: 1,
           },
         ]),
       );
@@ -73,12 +76,14 @@ describe.concurrent.each(["postgres"] as const)(
             name: "students_student_id_seq", // The exact name might differ; adjust as necessary
             current: 3,
             interval: 1,
+            start: 1,
           },
           {
             schema: "public",
             name: "courses_course_id_seq", // The exact name might differ; adjust as necessary
             current: 3,
             interval: 1,
+            start: 1,
           },
         ]),
       );
@@ -107,12 +112,14 @@ describe.concurrent.each(["postgres"] as const)(
             interval: 1,
             name: "seq_example1",
             schema: "public",
+            start: 1,
           },
           {
             current: 50,
             interval: 1,
             name: "seq_example2",
             schema: "public",
+            start: 50,
           },
         ]),
       );
@@ -130,16 +137,18 @@ describe.concurrent.each(["postgres"] as const)(
       expect(sequences).toEqual(
         expect.arrayContaining([
           {
+            current: 1,
+            interval: 1,
             schema: "public",
             name: "seq_public",
-            current: 1,
-            interval: 1,
+            start: 1,
           },
           {
-            schema: "extra",
-            name: "seq_extra",
             current: 1,
             interval: 1,
+            schema: "extra",
+            name: "seq_extra",
+            start: 1,
           },
         ]),
       );

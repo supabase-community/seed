@@ -390,18 +390,19 @@ for (const [dialect, adapter] of adapterEntries) {
     ).toEqual([1, 2, 3, 4]);
   });
 
-  _test.only(
-    "generates valid sequences for tables same name and sequences on different schemas",
-    async () => {
+  if (dialect === "postgres") {
+    test("generates valid sequences for tables same name and sequences on different schemas", async () => {
       const { db } = await setupProject({
         adapter,
         databaseSchema: `
           CREATE TABLE public."course" (
-            "id" SERIAL PRIMARY KEY
+            "id" SERIAL PRIMARY KEY,
+            "idd" INTEGER GENERATED ALWAYS AS IDENTITY NOT NULL
           );
           CREATE SCHEMA private;
           CREATE TABLE private."course" (
-            "id" SERIAL PRIMARY KEY
+            "id" SERIAL PRIMARY KEY,
+            "idd" INTEGER GENERATED ALWAYS AS IDENTITY NOT NULL
           );
         `,
         seedScript: `
@@ -412,22 +413,30 @@ for (const [dialect, adapter] of adapterEntries) {
           `,
       });
 
-      const publicCourses = await db.query<{ id: number }>(
+      const publicCourses = await db.query<{ id: number; idd: number }>(
         'SELECT * FROM public."course"',
       );
       const publicCourseIDs = publicCourses
         .map((row) => Number(row.id))
         .sort((a, b) => a - b);
+      const publicCourseIDDs = publicCourses
+        .map((row) => Number(row.idd))
+        .sort((a, b) => a - b);
 
       expect(publicCourseIDs).toEqual([1, 2]);
-      const privateCourses = await db.query<{ id: number }>(
+      expect(publicCourseIDDs).toEqual([1, 2]);
+      const privateCourses = await db.query<{ id: number; idd: number }>(
         'SELECT * FROM private."course"',
       );
       const privateCourseIDs = privateCourses
         .map((row) => Number(row.id))
         .sort((a, b) => a - b);
+      const privateCourseIDDs = privateCourses
+        .map((row) => Number(row.idd))
+        .sort((a, b) => a - b);
 
       expect(privateCourseIDs).toEqual([1, 2]);
-    },
-  );
+      expect(privateCourseIDDs).toEqual([1, 2]);
+    });
+  }
 }
