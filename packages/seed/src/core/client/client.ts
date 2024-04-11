@@ -48,11 +48,7 @@ export abstract class SeedClientBase implements SeedClient {
       props.options?.models ?? {},
     );
 
-    this.state = {
-      constraints: getInitialConstraints(props.dataModel),
-      seeds: {},
-      store: props.createStore(props.dataModel),
-    };
+    this.state = this.getInitialState();
 
     Object.keys(props.dataModel.models).forEach((model) => {
       // @ts-expect-error dynamic methods creation
@@ -73,6 +69,14 @@ export abstract class SeedClientBase implements SeedClient {
         });
       };
     });
+  }
+
+  getInitialState(): ClientState {
+    return {
+      constraints: getInitialConstraints(this.dataModel),
+      seeds: {},
+      store: this.createStore(this.dataModel),
+    };
   }
 
   get $store() {

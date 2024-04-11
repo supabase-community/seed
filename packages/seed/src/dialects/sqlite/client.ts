@@ -65,6 +65,7 @@ export const getSeedClient: GetSeedClient = (props) => {
             }
           }
         }
+        this.state = this.getInitialState();
         await this.$syncDatabase();
       }
     }

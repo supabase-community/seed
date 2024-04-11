@@ -340,14 +340,10 @@ for (const [dialect, adapter] of adapterEntries) {
       ).length,
     ).toEqual(13);
   });
-  if (dialect === "sqlite") {
-    continue;
-  }
-  _test.only(
-    "sequences should be reset when using $resetDatabase",
-    async () => {
-      const schema: DialectRecordWithDefault = {
-        default: `
+
+  test("should be able to keep up with $resetDatabase", async () => {
+    const schema: DialectRecordWithDefault = {
+      default: `
           CREATE TABLE "Team" (
             "id" SERIAL PRIMARY KEY
           );
@@ -355,7 +351,7 @@ for (const [dialect, adapter] of adapterEntries) {
             "id" INTEGER GENERATED ALWAYS AS IDENTITY PRIMARY KEY
           );
         `,
-        sqlite: `
+      sqlite: `
           CREATE TABLE "Team" (
             "id" INTEGER PRIMARY KEY AUTOINCREMENT
           );
@@ -363,37 +359,75 @@ for (const [dialect, adapter] of adapterEntries) {
             "id" INTEGER PRIMARY KEY AUTOINCREMENT
           );
         `,
-      };
-      const seedScript = `
+    };
+    const seedScript = `
         import { createSeedClient } from "#snaplet/seed";
         const seed = await createSeedClient();
 
-        await seed.$resetDatabase();
+        await seed.teams((x) => x(5));
+        await seed.games((x) => x(10));
 
-        await seed.teams((x) => x(10));
-        await seed.games((x) => x(20));
-
-        await seed.$resetDatabase();
+        await seed.$resetDatabase(['!*Team']);
 
         await seed.teams((x) => x(2));
-        await seed.games((x) => x(2));
+        await seed.games((x) => x(4));
       `;
+    const { db } = await setupProject({
+      seedScript,
+      adapter,
+      databaseSchema: schema[dialect] ?? schema.default,
+    });
+
+    expect(
+      (await db.query<{ id: number }>(`SELECT id FROM "Team"`)).map(
+        (p) => p.id,
+      ),
+    ).toEqual([1, 2, 3, 4, 5, 6, 7]);
+    expect(
+      (await db.query<{ id: number }>(`SELECT id FROM "Game"`)).map(
+        (p) => p.id,
+      ),
+    ).toEqual([1, 2, 3, 4]);
+  });
+
+  _test.only(
+    "generates valid sequences for tables same name and sequences on different schemas",
+    async () => {
       const { db } = await setupProject({
-        seedScript,
         adapter,
-        databaseSchema: schema[dialect] ?? schema.default,
+        databaseSchema: `
+          CREATE TABLE public."course" (
+            "id" SERIAL PRIMARY KEY
+          );
+          CREATE SCHEMA private;
+          CREATE TABLE private."course" (
+            "id" SERIAL PRIMARY KEY
+          );
+        `,
+        seedScript: `
+          import { createSeedClient } from '#snaplet/seed'
+            const seed = await createSeedClient({ dryRun: false })
+            await seed.publicCourses((x) => x(2));
+            await seed.privateCourses((x) => x(2));
+          `,
       });
 
-      expect(
-        (await db.query<{ id: number }>(`SELECT id FROM "Team"`)).map(
-          (p) => p.id,
-        ),
-      ).toEqual([1, 2]);
-      expect(
-        (await db.query<{ id: number }>(`SELECT id FROM "Game"`)).map(
-          (p) => p.id,
-        ),
-      ).toEqual([1, 2, 3, 4]);
+      const publicCourses = await db.query<{ id: number }>(
+        'SELECT * FROM public."course"',
+      );
+      const publicCourseIDs = publicCourses
+        .map((row) => Number(row.id))
+        .sort((a, b) => a - b);
+
+      expect(publicCourseIDs).toEqual([1, 2]);
+      const privateCourses = await db.query<{ id: number }>(
+        'SELECT * FROM private."course"',
+      );
+      const privateCourseIDs = privateCourses
+        .map((row) => Number(row.id))
+        .sort((a, b) => a - b);
+
+      expect(privateCourseIDs).toEqual([1, 2]);
     },
   );
 }

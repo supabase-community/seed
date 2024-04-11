@@ -57,8 +57,8 @@ export const getSeedClient: GetSeedClient = (props) => {
         if (tablesToTruncate.length > 0) {
           await this.db.execute(`TRUNCATE ${tablesToTruncate} CASCADE`);
         }
-        // reset sequences
         for (const model of filteredModels) {
+          // reset sequences
           const sequences = model.fields.map((f) => f.sequence);
           for (const sequence of sequences) {
             if (sequence !== false) {
@@ -69,6 +69,7 @@ export const getSeedClient: GetSeedClient = (props) => {
           }
         }
         await this.$syncDatabase();
+        this.state = this.getInitialState();
       }
     }
 
