@@ -1,4 +1,3 @@
-import { select } from "@inquirer/prompts";
 import fs from "fs-extra";
 import { readFile } from "node:fs/promises";
 import path from "node:path";
@@ -7,30 +6,12 @@ import {
   getDefaultProjectConfigPath,
   getProjectConfigPath,
 } from "#config/project/paths.js";
-import { trpc } from "#trpc/client.js";
 
 const projectConfigSchema = z.object({
   projectId: z.string().optional(),
 });
 
 type ProjectConfig = z.infer<typeof projectConfigSchema>;
-
-export const selectProject = async () => {
-  const projects = await trpc.project.list.query();
-  let selectedProject = projects[0];
-  if (projects.length > 1) {
-    const projectNames = projects.map((p) => p.name);
-    const projectName = await select({
-      message: "Select project",
-      choices: projectNames.map((p) => ({ title: p, value: p })),
-    });
-    const project = projects.find((p) => p.name === projectName);
-    if (project) {
-      selectedProject = project;
-    }
-  }
-  return selectedProject.id;
-};
 
 export const getProjectConfig = async (configPath?: string) => {
   const cPath =
