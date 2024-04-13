@@ -26,9 +26,9 @@ export interface DataModelUniqueConstraint {
 }
 
 export interface DataModelSequence {
-  current: number;
   identifier: null | string;
   increment: number;
+  start?: number;
 }
 
 export type DataModelField = DataModelObjectField | DataModelScalarField;
