@@ -1,6 +1,10 @@
 import { generateConfigTypes as _generateConfigTypes } from "#core/codegen/generateConfigTypes.js";
 import { type DataModel, type DataModelField } from "#core/dataModel/types.js";
-import { PG_DATE_TYPES, PG_JSON_TYPES, PG_NUMBER_TYPES } from "./utils.js";
+import {
+  SQL_DATE_TYPES,
+  SQL_JSON_TYPES,
+  SQL_NUMBER_TYPES,
+} from "../../dialects/sqlite/utils.js";
 
 export function generateConfigTypes(props: {
   dataModel: DataModel;
@@ -17,15 +21,15 @@ function computeFingerprintFieldTypeName(field: DataModelField) {
     return "FingerprintRelationField";
   }
 
-  if (PG_JSON_TYPES.has(field.type)) {
+  if (SQL_JSON_TYPES.has(field.type)) {
     return "FingerprintJsonField";
   }
 
-  if (PG_DATE_TYPES.has(field.type)) {
+  if (SQL_DATE_TYPES.has(field.type)) {
     return "FingerprintDateField";
   }
 
-  if (PG_NUMBER_TYPES.has(field.type)) {
+  if (SQL_NUMBER_TYPES.has(field.type)) {
     return "FingerprintNumberField";
   }
 

@@ -1,3 +1,3 @@
-const FallbackSymbol = Symbol("Snaplet:Fallback");
+const FallbackSymbol = "Snaplet:Fallback";
 
 export { FallbackSymbol };
