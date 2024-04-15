@@ -76,7 +76,7 @@ export const DEFAULT_SQL_TEMPLATES: Required<Templates<SQLTypeName>> = {
     wrap: (code) => `${code}.slice(0, 10)`,
   }),
   datetime: copycatTemplate("dateString", {
-    options: { minYear: 2042 },
+    options: { minYear: 2020 },
   }),
   time: copycatTemplate("dateString", {
     options: { minYear: 2020 },

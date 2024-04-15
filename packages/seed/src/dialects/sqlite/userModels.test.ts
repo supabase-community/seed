@@ -6655,7 +6655,7 @@ describe("SQL_TEMPLATES", () => {
         "datetime": {
           "__DEFAULT": {
             "success": true,
-            "value": "2042-05-21T04:57:14.000Z",
+            "value": "2020-05-21T04:57:14.000Z",
           },
         },
         "datetime2": {
