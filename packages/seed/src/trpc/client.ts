@@ -4,12 +4,30 @@ import { getSystemConfig, updateSystemConfig } from "#config/systemConfig.js";
 import { getVersion } from "#core/version.js";
 import { type CLIRouter } from "./router.js";
 
+type FetchEsque = NonNullable<Parameters<typeof httpLink>[0]["fetch"]>;
+type FetchEsqueInput = URL | string;
+type FetchEsqueInit = Parameters<FetchEsque>[1];
+
 const httpFetch = globalThis.fetch;
 
-const fetch: typeof httpFetch = async (url, init) => {
+const fetch: FetchEsque = async (
+  input: FetchEsqueInput,
+  rawInit: FetchEsqueInit,
+) => {
   const systemConfig = await getSystemConfig();
 
-  const result = await httpFetch(url, init);
+  let init = undefined;
+
+  // context(justinvdm, 15 Apr 2024): There's a minor differences between the typedefs for
+  // trpc's `fetch` and native `fetch`
+  if (rawInit != null) {
+    init = {
+      ...rawInit,
+      signal: rawInit.signal ?? undefined,
+    };
+  }
+
+  const result = await httpFetch(input, init);
 
   const userId = result.headers.get("SNAPLET-USER-ID");
 
