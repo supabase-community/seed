@@ -50,7 +50,6 @@ export class SqliteStore extends StoreBase {
         .filter((f) => f.kind === "scalar" && f.isId)
         .map((f) => f.name);
       const rows = this._store[model.modelName];
-
       if (!rows.length) {
         continue;
       }
@@ -145,7 +144,6 @@ export class SqliteStore extends StoreBase {
         }
         insertRowsValues.push(insertRowValues);
       }
-
       const insertStatementTemplate = "INSERT INTO %I (%I) VALUES %L";
       const columnsMap = Array.from(fieldToColumnMap.values());
       const inserts = insertRowsValues.map((row) => {
@@ -154,16 +152,25 @@ export class SqliteStore extends StoreBase {
           (_, i) => row[i] !== SQL_DEFAULT_SYMBOL,
         );
         const values = row.filter((v) => v !== SQL_DEFAULT_SYMBOL);
-        return format(
+        const hasBufferInValues = values.some((v) => v && v instanceof Buffer);
+        const formattedSql = format(
           insertStatementTemplate,
           model.tableName,
           columnsToFills,
           [values],
         );
+        if (hasBufferInValues) {
+          // We need to override the pg-format behavior for Buffer values as they insert differently in sqlite
+          // TODO: find a better way to handle this
+          return formattedSql.replaceAll(`E'\\\\x`, `X'`);
+        }
+        return formattedSql;
       });
       insertStatements.push(...inserts);
     }
     logToSqlErrors(errorsData);
-    return [...insertStatements, ...updateStatements];
+    const statements = [...insertStatements, ...updateStatements];
+
+    return statements;
   }
 }

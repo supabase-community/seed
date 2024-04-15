@@ -1,6 +1,6 @@
 import { type DetermineShapeFromType } from "#core/dialect/types.js";
 import { unpackNestedType } from "#core/dialect/unpackNestedType.js";
-import { JS_TO_PG_TYPES } from "./utils.js";
+import { JS_TO_SQL_TYPES } from "./utils.js";
 
 const PG_GEOMETRY_TYPES = new Set([
   "point",
@@ -11,7 +11,7 @@ const PG_GEOMETRY_TYPES = new Set([
   "circle",
 ]);
 
-const STRING_TYPES = new Set(JS_TO_PG_TYPES.string);
+const STRING_TYPES = new Set(JS_TO_SQL_TYPES.string);
 
 export const determineShapeFromType: DetermineShapeFromType = (
   wrappedType: string,

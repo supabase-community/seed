@@ -2,9 +2,9 @@ import { generateClientTypes as _generateClientTypes } from "#core/codegen/gener
 import { type DataModel } from "#core/dataModel/types.js";
 import { type Fingerprint } from "#core/fingerprint/types.js";
 import {
-  PG_DATE_TYPES,
-  PG_TO_JS_TYPES,
-  extractPrimitivePgType,
+  SQL_DATE_TYPES,
+  SQL_TO_JS_TYPES,
+  extractPrimitiveSQLType,
   getPgTypeArrayDimensions,
   isNestedArrayPgType,
 } from "./utils.js";
@@ -32,11 +32,11 @@ function pg2tsType(
 }
 
 function pg2tsTypeName(dataModel: DataModel, postgresType: string) {
-  const primitiveType = extractPrimitivePgType(postgresType);
-  if (PG_DATE_TYPES.has(primitiveType)) {
+  const primitiveType = extractPrimitiveSQLType(postgresType);
+  if (SQL_DATE_TYPES.has(primitiveType)) {
     return "( Date | string )";
   }
-  const jsType = PG_TO_JS_TYPES[primitiveType];
+  const jsType = SQL_TO_JS_TYPES[primitiveType];
   // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
   if (jsType) {
     return jsType;
@@ -66,5 +66,5 @@ function refineType(type: string, postgresType: string, isRequired: boolean) {
 }
 
 function isJson(databaseType: string) {
-  return ["json", "jsonb"].includes(extractPrimitivePgType(databaseType));
+  return ["json", "jsonb"].includes(extractPrimitiveSQLType(databaseType));
 }

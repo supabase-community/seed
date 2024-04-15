@@ -38,24 +38,23 @@ export const generateCodeFromTemplate = <Type extends string>(props: {
 
   let result: null | string = null;
   const shapeTemplates = templates[type];
-
-  if (shapeTemplates == null) {
+  if (!shapeTemplates) {
     result = null;
   } else if (typeof shapeTemplates === "function") {
     result = shapeTemplates(context);
   } else {
     let fn: TemplateFn | null | undefined;
 
-    if (shape == null || shapeTemplates[shape] == null) {
+    if (!shape || !shapeTemplates[shape]) {
       fn = shapeTemplates.__DEFAULT ?? null;
     } else {
       fn = shapeTemplates[shape];
     }
 
-    if (fn != null) {
+    if (fn) {
       result = fn(context);
     }
   }
 
-  return result != null ? encloseValueInArray(result, dimensions) : null;
+  return result ? encloseValueInArray(result, dimensions) : null;
 };

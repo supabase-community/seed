@@ -242,6 +242,7 @@ export const generateUserModels = (context: CodegenContext) => {
       },
       "  ",
     ) ?? "";
+
   // TODO: remove self reference to @snaplet/seed
   return dedent`
     import { readFileSync } from "node:fs";
