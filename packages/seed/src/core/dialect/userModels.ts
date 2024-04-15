@@ -6,11 +6,9 @@ import {
   point,
 } from "#core/userModels/templates/categories/geometry.js";
 import { integers } from "#core/userModels/templates/categories/integers.js";
+import { strings } from "#core/userModels/templates/categories/strings.js";
 import { type Templates } from "#core/userModels/templates/types.js";
-import {
-  copycatStringTemplate,
-  copycatTemplate,
-} from "../../core/userModels/templates/copycat.js";
+import { copycatTemplate } from "../../core/userModels/templates/copycat.js";
 import { type SQLTypeName } from "./utils.js";
 
 // We want to provide a default set of templates for all types in SQLTypeName so use use Required
@@ -47,14 +45,14 @@ export const DEFAULT_SQL_TEMPLATES: Required<Templates<SQLTypeName>> = {
   float8: floats(8),
   money: floats(8),
   smallmoney: floats(4),
-  bpchar: copycatStringTemplate("sentence"),
-  char: copycatStringTemplate("sentence"),
-  character: copycatStringTemplate("sentence"),
-  "character varying": copycatStringTemplate("sentence"),
-  character_data: copycatStringTemplate("sentence"),
-  varchar: copycatStringTemplate("sentence"),
-  citext: copycatStringTemplate("sentence"),
-  text: copycatStringTemplate("sentence"),
+  bpchar: strings,
+  char: strings,
+  character: strings,
+  "character varying": strings,
+  character_data: strings,
+  varchar: strings,
+  citext: strings,
+  text: strings,
   inet: ({ input }) => `copycat.ipv4(${input})`,
   cidr: ({ input }) => `copycat.ipv4(${input})`,
   boolean: ({ input }) => `copycat.bool(${input})`,
