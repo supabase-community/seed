@@ -1,4 +1,5 @@
 import { flat } from "remeda";
+import { type DetermineShapeFromType } from "./types.js";
 
 const isNestedArraySQLType = (SQLType: string): boolean =>
   SQLType.startsWith("_") || SQLType.endsWith("[]");
@@ -75,8 +76,8 @@ export const JS_TO_SQL_TYPES = {
     "bigint",
   ] as const,
   boolean: ["boolean", "bool"] as const,
-  Json: ["json", "jsonb", "TVP"] as const,
-  Buffer: ["binary", "varbinary", "image", "UDT", "blob", "bytea"] as const,
+  Json: ["json", "jsonb"] as const,
+  Buffer: ["binary", "varbinary", "image", "blob", "bytea"] as const,
 } as const;
 export const SQL_TYPES_LIST = Object.values(JS_TO_SQL_TYPES).flat();
 type JsToSQLTypes = typeof JS_TO_SQL_TYPES;
@@ -145,7 +146,7 @@ export const SQL_DATE_TYPES = new Set<SQLTypeName>([
   "datetimeoffset",
 ]);
 
-export const SQL_JSON_TYPES = new Set<SQLTypeName>(["json", "jsonb", "TVP"]);
+export const SQL_JSON_TYPES = new Set<SQLTypeName>(["json", "jsonb"]);
 
 export const SQL_NUMBER_TYPES = new Set<SQLTypeName>([
   "tinyint",
@@ -176,6 +177,31 @@ export const SQL_NUMBER_TYPES = new Set<SQLTypeName>([
   "int32",
   "bigint",
 ]);
+
+type SQLStringTypes = (typeof JS_TO_SQL_TYPES.string)[number];
+
+// Contain all string types that will be otherswise tranformed using
+// #core/userModels/templates/categories/strings.js values
+export const LLM_PREDICTABLE_TYPES = new Set<SQLStringTypes>([
+  "bpchar",
+  "character",
+  "character varying",
+  "character_data",
+  "varchar",
+  "citext",
+  "text",
+]);
+
+export const determineShapeFromType: DetermineShapeFromType = (
+  type: string,
+) => {
+  // If the type is a free text field we want to determine the shape and examples by using the LLM
+  if (LLM_PREDICTABLE_TYPES.has(type)) {
+    return null;
+  }
+  // Otherwise we'll use the default shape per type as defined in the DEFAULT_SQL_TEMPLATES
+  return "__DEFAULT";
+};
 
 export function groupBy<T, K extends number | string | symbol>(
   array: Array<T>,

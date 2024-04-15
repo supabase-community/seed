@@ -103,6 +103,7 @@ export class PgStore extends StoreBase {
           const field = fieldMap.get(fieldName)!;
 
           const value = row[fieldName];
+          // console.log("value for field: ", fieldName, value);
 
           if (value === undefined && field.hasDefaultValue) {
             // we use this weird syntax to replace the value in the final sql statements

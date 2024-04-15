@@ -301,6 +301,8 @@ export class Plan implements IPlan {
         const generateFn =
           scalarField === undefined ? userModelsOverride : scalarField;
 
+        // console.log("generateFn: ", generateFn);
+
         const value =
           typeof generateFn === "function"
             ? await generateFn({
@@ -313,6 +315,7 @@ export class Plan implements IPlan {
               })
             : generateFn;
 
+        // console.log("value in plan for field: ", field.name, value);
         modelData[field.name] = serializeValue(value);
       };
 
