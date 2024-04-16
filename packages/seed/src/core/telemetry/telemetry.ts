@@ -28,7 +28,7 @@ const getDistinctId = async () => {
   const projectConfig = await getProjectConfig();
   const projectDistinctId =
     ci.isCI && projectConfig?.projectId
-      ? `${projectConfig.projectId}:${ci.isCI}`
+      ? `${projectConfig.projectId}:ci`
       : undefined;
   if (typeof systemConfig.userId === "string") {
     return systemConfig.userId;
