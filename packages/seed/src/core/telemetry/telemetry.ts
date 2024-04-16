@@ -4,6 +4,7 @@ import os from "node:os";
 import { PostHog } from "posthog-node";
 import { v4 as uuidv4 } from "uuid";
 import { IS_PRODUCTION } from "#config/constants.js";
+import { getProjectConfig } from "#config/project/projectConfig.js";
 import { getSystemConfig, updateSystemConfig } from "#config/systemConfig.js";
 
 const POSTHOG_API_KEY = "phc_F2nspobfCOFDskuwSN7syqKyz8aAzRTw2MEsRvQSB5G";
@@ -24,9 +25,16 @@ const createAnonymousId = async () => {
 
 const getDistinctId = async () => {
   const systemConfig = await getSystemConfig();
+  const projectConfig = await getProjectConfig();
+  const isCi = ci.isCI ? "ci" : "local";
+  const projectDistinctId = projectConfig?.projectId
+    ? `${projectConfig.projectId}:${isCi}`
+    : undefined;
 
   if (typeof systemConfig.userId === "string") {
     return systemConfig.userId;
+  } else if (projectDistinctId) {
+    return projectDistinctId;
   } else if (typeof systemConfig.anonymousId == "string") {
     return systemConfig.anonymousId;
   } else {
