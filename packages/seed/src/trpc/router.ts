@@ -149,7 +149,7 @@ export const createCliRouter = ({ publicProcedure = t.procedure } = {}) =>
               | "PENDING",
           };
         }),
-      getDataGenerationJobProgressRoute: publicProcedure
+      getDataGenerationJobStatusRoute: publicProcedure
         .input(
           z.object({
             dataGenerationJobId: z.string().min(1),
