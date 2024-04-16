@@ -35,10 +35,9 @@ export class SeedPrisma extends DatabaseClient<PrismaLikeClient> {
       case "sqlite":
         super("sqlite", client);
         break;
-      // TODO: uncomment when we add MySQL support
-      // case "mysql":
-      //   super("mysql", client);
-      //   break;
+      case "mysql":
+        super("mysql", client);
+        break;
       default:
         throw new Error(
           `Unsupported Prisma provider ${client._engineConfig?.activeProvider}`,

@@ -2,14 +2,18 @@
 import { type Database } from "better-sqlite3";
 /* eslint-disable @typescript-eslint/consistent-type-imports */
 import dedent from "dedent";
+import { Connection } from "mysql2/promise";
 import { Sql } from "postgres";
 import { SeedBetterSqlite3 } from "#adapters/better-sqlite3/better-sqlite3.js";
+import { SeedMysql2 } from "#adapters/mysql2/mysql2.js";
 import { SeedPostgres } from "#adapters/postgres/postgres.js";
 import { DatabaseClient } from "#core/databaseClient.js";
 import { Dialect } from "#core/dialect/types.js";
+import { mysqlDialect } from "#dialects/mysql/dialect.js";
 import { DialectId } from "../src/dialects/dialects.js";
 import { postgresDialect } from "../src/dialects/postgres/dialect.js";
 import { sqliteDialect } from "../src/dialects/sqlite/dialect.js";
+import { createTestDb as mysqlCreateTestDb } from "./mysql/mysql/createTestDatabase.js";
 import { createTestDb as postgresCreateTestDb } from "./postgres/postgres/createTestDatabase.js";
 import { createTestDb as sqliteCreateTestDb } from "./sqlite/better-sqlite3/createTestDatabase.js";
 
@@ -66,6 +70,30 @@ export const adapters: Record<DialectId, Adapter> = {
 
         export default defineConfig({
           adapter: () => new SeedBetterSqlite3(new Database(new URL("${connectionString}").pathname)),
+          ${alias}
+          ${select}
+        })
+      `;
+    },
+  },
+  mysql: {
+    dialect: mysqlDialect,
+    createTestDb: mysqlCreateTestDb,
+    createClient: (client: Connection) => new SeedMysql2(client),
+    generateSeedConfig: (connectionString, config) => {
+      const alias = `alias: ${config?.alias ?? `{ inflection: true }`},`;
+      const select = config?.select ? `select: ${config.select},` : "";
+      return dedent`
+        import { defineConfig } from "@snaplet/seed/config";
+        import { SeedMysql2 } from "@snaplet/seed/adapter-mysql2";
+        import { createConnection } from "mysql2/promise";
+
+        export default defineConfig({
+          adapter: async () =>  {
+            const client = await createConnection(${connectionString});
+            await client.connect();
+            return new SeedMysql2(client)
+          },
           ${alias}
           ${select}
         })

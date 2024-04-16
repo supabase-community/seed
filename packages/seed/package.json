@@ -57,6 +57,11 @@
       "development": "./src/adapters/postgres/index.ts",
       "default": "./dist/adapters/postgres/index.js"
     },
+    "./adapter-mysql2": {
+      "types": "./dist/adapters/mysql2/index.d.ts",
+      "development": "./src/adapters/mysql2/index.ts",
+      "default": "./dist/adapters/mysql2/index.js"
+    },
     "./adapter-prisma": {
       "types": "./dist/adapters/prisma/index.d.ts",
       "development": "./src/adapters/prisma/index.ts",
@@ -71,6 +76,11 @@
       "types": "./dist/dialects/postgres/client.d.ts",
       "development": "./src/dialects/postgres/client.ts",
       "default": "./dist/dialects/postgres/client.js"
+    },
+    "./dialects/mysql/client": {
+      "types": "./dist/dialects/mysql/client.d.ts",
+      "development": "./src/dialects/mysql/client.ts",
+      "default": "./dist/dialects/mysql/client.js"
     },
     "./dialects/sqlite/client": {
       "types": "./dist/dialects/sqlite/client.d.ts",
@@ -100,6 +110,9 @@
       ],
       "adapter-prisma": [
         "./dist/adapters/prisma/index.d.ts"
+      ],
+      "adapter-mysql2": [
+        "./dist/adapters/mysql2/index.d.ts"
       ],
       "config": [
         "./dist/config/seedConfig/defineConfig.d.ts"
@@ -131,6 +144,7 @@
     "better-sqlite3": "9.4.5",
     "dedent": "1.5.1",
     "eslint": "8.57.0",
+    "mysql2": "^3.9.4",
     "pg": "8.11.5",
     "postgres": "3.4.4",
     "semver": "^7.6.0",
@@ -145,6 +159,7 @@
     "@snaplet/copycat": ">=2",
     "@types/better-sqlite3": "*",
     "@types/pg": "*",
+    "mysql2": ">=3",
     "better-sqlite3": ">=9",
     "pg": ">=8",
     "postgres": ">=3"
@@ -160,6 +175,9 @@
       "optional": true
     },
     "better-sqlite3": {
+      "optional": true
+    },
+    "mysql2": {
       "optional": true
     },
     "pg": {

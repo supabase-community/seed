@@ -1,7 +1,7 @@
 import { type DataModel } from "./dataModel/types.js";
 import { type UserModels } from "./userModels/types.js";
 
-export type DatabaseClientDialect = "postgres" | "sqlite";
+export type DatabaseClientDialect = "mysql" | "postgres" | "sqlite";
 export abstract class DatabaseClient<T = unknown> {
   constructor(
     public dialect: DatabaseClientDialect,

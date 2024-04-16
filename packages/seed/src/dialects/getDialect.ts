@@ -23,5 +23,7 @@ export async function getDialect() {
       return postgresDialect;
     case "sqlite":
       return sqliteDialect;
+    case "mysql":
+      return;
   }
 }
