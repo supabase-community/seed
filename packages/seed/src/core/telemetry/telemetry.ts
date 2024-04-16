@@ -26,17 +26,16 @@ const createAnonymousId = async () => {
 const getDistinctId = async () => {
   const systemConfig = await getSystemConfig();
   const projectConfig = await getProjectConfig();
-  const isCi = ci.isCI ? "ci" : "local";
-  const projectDistinctId = projectConfig?.projectId
-    ? `${projectConfig.projectId}:${isCi}`
-    : undefined;
-
+  const projectDistinctId =
+    ci.isCI && projectConfig?.projectId
+      ? `${projectConfig.projectId}:ci`
+      : undefined;
   if (typeof systemConfig.userId === "string") {
     return systemConfig.userId;
-  } else if (projectDistinctId) {
-    return projectDistinctId;
   } else if (typeof systemConfig.anonymousId == "string") {
     return systemConfig.anonymousId;
+  } else if (projectDistinctId) {
+    return projectDistinctId;
   } else {
     return createAnonymousId();
   }
@@ -71,7 +70,7 @@ export const createTelemetry = (options: TelemetryOptions) => {
     const { anonymousId } = await getSystemConfig();
 
     // Associate the old "anonymousId (alias)" to the new "userId (distinctId)"
-    if (anonymousId != null) {
+    if (anonymousId != null && !distinctId.endsWith(":ci")) {
       posthog?.alias({
         distinctId,
         alias: anonymousId,
