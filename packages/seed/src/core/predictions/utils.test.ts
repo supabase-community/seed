@@ -5,7 +5,7 @@ import { determineShapeFromType as pgDetermineShapeFromType } from "#dialects/po
 import { type DataModel } from "../dataModel/types.js";
 import { columnsToPredict } from "./utils.js";
 
-describe("getSelectFilteredDataModel", () => {
+describe("columnsToPredict", () => {
   const postgresDataModel = JSON.parse(
     readFileSync(
       path.resolve(
@@ -17,7 +17,7 @@ describe("getSelectFilteredDataModel", () => {
       "utf-8",
     ),
   ) as DataModel;
-  test("columnsToPredict > should exlude all non text and ids / relations / constraints columns", () => {
+  test("should exlude all non text and ids / relations / constraints columns", () => {
     expect(
       columnsToPredict(postgresDataModel, pgDetermineShapeFromType),
     ).toEqual(
