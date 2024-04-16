@@ -129,6 +129,41 @@ export const createCliRouter = ({ publicProcedure = t.procedure } = {}) =>
             },
           };
         }),
+      startDataGenerationJobRoute: publicProcedure
+        .input(
+          z.object({
+            projectId: z.string(),
+            input: z.string(),
+            description: z.string(),
+            examples: z.array(z.string()).optional(),
+            sampleSize: z.number().optional(),
+          }),
+        )
+        .mutation(() => {
+          return {
+            dataGenerationJobId: "1" as null | string,
+            status: "COMPLETED" as
+              | "COMPLETED"
+              | "FAILED"
+              | "IN_PROGRESS"
+              | "PENDING",
+          };
+        }),
+      getDataGenerationJobProgressRoute: publicProcedure
+        .input(
+          z.object({
+            dataGenerationJobId: z.string().min(1),
+          }),
+        )
+        .query(() => {
+          return {
+            status: "COMPLETED" as
+              | "COMPLETED"
+              | "FAILED"
+              | "IN_PROGRESS"
+              | "PENDING",
+          };
+        }),
       seedShapeRoute: publicProcedure
         .input(
           z.object({
