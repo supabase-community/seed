@@ -5,9 +5,12 @@ export const enhanceConfigSchema = z.record(
   z.record(
     z.string(),
     z.object({
-      prompt: z.object({
-        description: z.string(),
-      }),
+      prompt: z.union([
+        z.string(),
+        z.object({
+          description: z.string(),
+        }),
+      ]),
     }),
   ),
 );
