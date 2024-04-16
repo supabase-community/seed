@@ -7,7 +7,6 @@ import { getRootPath } from "#config/utils.js";
 import { type Inflection } from "#core/dataModel/aliases.js";
 import { adapterConfigSchema } from "./adapterConfig.js";
 import { aliasConfigSchema } from "./aliasConfig.js";
-import { enhanceConfigSchema } from "./enhanceConfig.js";
 import { fingerprintConfigSchema } from "./fingerprintConfig.js";
 import { selectConfigSchema } from "./selectConfig.js";
 
@@ -17,7 +16,6 @@ const configSchema = z.object({
   adapter: adapterConfigSchema,
   fingerprint: fingerprintConfigSchema.optional(),
   select: selectConfigSchema.optional(),
-  enhance: enhanceConfigSchema.optional(),
   // TODO: add "introspect" config here to enable virtual constraints user defined setup
 });
 
@@ -93,7 +91,6 @@ export interface SeedConfig {
      */
     override?: NonNullable<SeedConfigInferred["alias"]>["override"];
   };
-  enhance?: NonNullable<SeedConfigInferred["enhance"]>;
   fingerprint?: SeedConfigInferred["fingerprint"];
   /**
    * Exclude or include tables from the generated Seed Client.

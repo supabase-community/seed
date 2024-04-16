@@ -20,6 +20,14 @@ export const fingerprintConfigSchema = z.record(
       z.object({
         schema: z.record(z.string(), z.any()).describe("jsonSchema"),
       }),
+      z.object({
+        prompt: z.union([
+          z.string(),
+          z.object({
+            description: z.string(),
+          }),
+        ]),
+      }),
     ]),
   ),
 );
