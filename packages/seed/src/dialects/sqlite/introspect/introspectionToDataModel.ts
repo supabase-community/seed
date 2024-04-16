@@ -4,10 +4,12 @@ import {
   type DataModelModel,
   type DataModelSequence,
 } from "#core/dataModel/types.js";
+import { SQL_TYPES_LIST } from "../utils.js";
 import {
   type Relationship,
   type introspectDatabase,
 } from "./introspectDatabase.js";
+import { type SQLiteAffinity } from "./queries/fetchTablesAndColumns.js";
 import { type AsyncFunctionSuccessType } from "./types.js";
 
 type IntrospectedSqlite = AsyncFunctionSuccessType<typeof introspectDatabase>;
@@ -70,14 +72,25 @@ function columnSequence(
   column: IntrospectedSqlite["tables"][number]["columns"][number],
 ): DataModelSequence | false {
   if (column.identity) {
-    const current = column.identity.current;
     return {
       identifier: column.identity.name,
       increment: 1,
-      current: current,
     };
   }
   return false;
+}
+
+export type SQLiteType = (typeof SQL_TYPES_LIST)[number] | SQLiteAffinity;
+
+function getSqliteType(
+  affinity: SQLiteAffinity,
+  declaredType: string,
+): SQLiteType {
+  const type = declaredType.toLowerCase();
+  if (SQL_TYPES_LIST.includes(type)) {
+    return type as SQLiteType;
+  }
+  return affinity;
 }
 
 export function introspectionToDataModel(
@@ -97,7 +110,7 @@ export function introspectionToDataModel(
       }
     }
     for (const column of table.columns) {
-      const type = column.affinity;
+      const type = getSqliteType(column.affinity, column.type);
       const sequence = columnSequence(column);
       const field: DataModelField = {
         id: column.id,

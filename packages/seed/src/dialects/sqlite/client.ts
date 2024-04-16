@@ -10,8 +10,8 @@ import { type SeedClientOptions } from "#core/client/types.js";
 import { filterModelsBySelectConfig } from "#core/client/utils.js";
 import { type DataModel } from "#core/dataModel/types.js";
 import { type DatabaseClient } from "#core/databaseClient.js";
-import { updateDataModelSequences } from "#core/sequences/updateDataModelSequences.js";
-import { getDatamodel } from "./dataModel.js";
+import { patchUserModelsSequences } from "#core/sequences/sequences.js";
+import { fetchSequences } from "./introspect/queries/fetchSequences.js";
 import { SqliteStore } from "./store.js";
 import { escapeIdentifier } from "./utils.js";
 
@@ -24,6 +24,8 @@ export const getSeedClient: GetSeedClient = (props) => {
     constructor(databaseClient: DatabaseClient, options?: SeedClientOptions) {
       super({
         ...props,
+        adapterPatchUserModels:
+          databaseClient.adapterPatchUserModels.bind(databaseClient),
         createStore: (dataModel: DataModel) => new SqliteStore(dataModel),
         runStatements: async (statements: Array<string>) => {
           if (!this.dryRun) {
@@ -55,13 +57,36 @@ export const getSeedClient: GetSeedClient = (props) => {
           await this.db.execute(`DELETE FROM ${table}`);
         }
         await this.db.execute("PRAGMA foreign_keys = ON");
+        // reset sequences
+        for (const model of filteredModels) {
+          for (const field of model.fields) {
+            if (field.sequence && field.sequence.identifier !== null) {
+              await this.db.execute(
+                `UPDATE sqlite_sequence SET seq = 0 WHERE name = '${field.sequence.identifier}'`,
+              );
+            }
+          }
+        }
+        this.state = this.getInitialState();
+        await this.$syncDatabase();
       }
     }
 
     async $syncDatabase(): Promise<void> {
-      // TODO: fix this, it's a hack
-      const nextDataModel = await getDatamodel(this.db);
-      this.dataModel = updateDataModelSequences(this.dataModel, nextDataModel);
+      const sequences = await fetchSequences(this.db);
+      const sequencesCurrent = sequences.reduce<Record<string, number>>(
+        (acc, sequence) => {
+          acc[sequence.name] = sequence.current;
+          return acc;
+        },
+        {},
+      );
+      patchUserModelsSequences({
+        dataModel: this.dataModel,
+        initialUserModels: this.initialUserModels,
+        sequencesCurrent,
+        userModels: this.userModels,
+      });
     }
   }
 

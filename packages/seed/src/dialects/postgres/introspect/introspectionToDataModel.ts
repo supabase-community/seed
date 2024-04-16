@@ -126,12 +126,12 @@ function extractSequenceDetails(
 } {
   // This regex matches strings that follow the PostgreSQL function format nextval('schema."sequence"'::regclass) for sequences
   const matchWithSchemaName = defaultValue.match(
-    /nextval\('("?)([^.]+)\1\."([^'"]+)"?'::regclass\)/,
+    /nextval\('("?)([^'".]+)\1\.(")?([^'"]+)\3'::regclass\)/,
   );
   if (matchWithSchemaName) {
     return {
       schema: matchWithSchemaName[2],
-      sequence: matchWithSchemaName[3],
+      sequence: matchWithSchemaName[4],
     };
   } else {
     // This regex is for matching strings in the format nextval('"sequence"'::regclass) where the schema name is not provided
@@ -156,16 +156,21 @@ function columnSequence(
 ): DataModelSequence | false {
   // If the column is an identity column we return the identity information
   // https://www.postgresqltutorial.com/postgresql-tutorial/postgresql-identity-column/
-  if (column.identity) {
-    const current = column.identity.current;
+  if (column.identity && sequences) {
+    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+    const sequence = sequences[column.schema].find(
+      (s) =>
+        // Match the sequence identifier with the format schema.sequence
+        `${escapeIdentifier(s.schema)}.${escapeIdentifier(`${s.schema}.${s.name}`)}` ===
+          column.identity?.sequenceIdentifier ||
+        // Or without since pg_get_serial_sequence will trim out the public schema from the sequence identifier
+        `${escapeIdentifier(s.schema)}.${escapeIdentifier(s.name)}` ===
+          column.identity?.sequenceIdentifier,
+    )!;
     return {
-      identifier: column.identity.sequenceName
-        ? // Comes from: pg_get_serial_sequence which will automatically escape the identifier if it needs to
-          // Will be something like: `public."User_id_seq"`
-          column.identity.sequenceName
-        : null,
-      increment: column.identity.increment,
-      current: current,
+      identifier: column.identity.sequenceIdentifier ?? null,
+      increment: sequence.interval,
+      start: sequence.start,
     };
   }
   // Otherwise a column can have a sequence as default value wihtout being an identity column
@@ -190,7 +195,7 @@ function columnSequence(
           sequenceDetails.schema,
         )}.${escapeIdentifier(sequenceDetails.sequence)}`,
         increment: sequence.interval,
-        current: sequence.current,
+        start: sequence.start,
       };
     }
     return false;
@@ -336,6 +341,5 @@ export function introspectionToDataModel(
     const modelName = getModelName(introspection, table);
     dataModel.models[modelName] = model;
   }
-
   return dataModel;
 }
