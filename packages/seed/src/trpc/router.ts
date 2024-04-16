@@ -106,6 +106,7 @@ export const createCliRouter = ({ publicProcedure = t.procedure } = {}) =>
                 engine: z.string(),
               })
               .optional(),
+            tableNames: z.array(z.string()).optional(),
             projectId: z.string().optional(),
           }),
         )
