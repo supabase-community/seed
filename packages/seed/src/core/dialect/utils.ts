@@ -192,11 +192,18 @@ export const LLM_PREDICTABLE_TYPES = new Set<SQLStringTypes>([
   "text",
 ]);
 
+// All the types tranformations that might be improved thank's to shape
+// recognition (eg: LATITUDE -> float, EMAIL -> text, ...)
+export const SHAPES_IMPROVABLES_TYPES = new Set<SQLTypeName>([
+  ...LLM_PREDICTABLE_TYPES,
+  ...SQL_NUMBER_TYPES,
+]);
+
 export const determineShapeFromType: DetermineShapeFromType = (
   type: string,
 ) => {
   // If the type is a free text field we want to determine the shape and examples by using the LLM
-  if (LLM_PREDICTABLE_TYPES.has(type)) {
+  if (SHAPES_IMPROVABLES_TYPES.has(type)) {
     return null;
   }
   // Otherwise we'll use the default shape per type as defined in the DEFAULT_SQL_TEMPLATES

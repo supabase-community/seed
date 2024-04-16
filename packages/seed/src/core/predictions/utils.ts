@@ -3,6 +3,7 @@ import { isPartOfRelation, isUniqueField } from "#core/dataModel/dataModel.js";
 import { shouldGenerateFieldValue } from "#core/dataModel/shouldGenerateFieldValue.js";
 import { type DataModel } from "#core/dataModel/types.js";
 import { type DetermineShapeFromType } from "#core/dialect/types.js";
+import { LLM_PREDICTABLE_TYPES } from "#core/dialect/utils.js";
 import { type StartPredictionsColumn } from "#trpc/shapes.js";
 
 export const columnsToPredict = (
@@ -26,15 +27,19 @@ export const columnsToPredict = (
         ) {
           return null;
         }
+        const isLLMPredictable =
+          // f the field type is not a text field that can benefit from LLM examples
+          LLM_PREDICTABLE_TYPES.has(field.type) &&
+          // If the field is part of an unique constraint with only one field, we rather fallback to copycat
+          // function to generate the value with the most possible uniqueness and avoid collisions rather than pool of examples
+          !isUniqueField(dataModel, modelName, field.name);
 
         return {
           schemaName: model.schemaName ?? "",
           tableName: model.tableName,
           columnName: field.columnName,
           pgType: field.type,
-          // If the field is part of an unique constraint with only one field, we rather fallback to copycat
-          // function to generate the value with the most possible uniqueness and avoid collisions rather than pool of examples
-          useExamplesDefault: !isUniqueField(dataModel, modelName, field.name),
+          useExamplesDefault: isLLMPredictable,
         };
       })
       .filter(Boolean);
