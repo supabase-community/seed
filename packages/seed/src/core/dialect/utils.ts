@@ -177,6 +177,19 @@ export const SQL_NUMBER_TYPES = new Set<SQLTypeName>([
   "bigint",
 ]);
 
+type SQLStringTypes = (typeof JS_TO_SQL_TYPES.string)[number];
+// Contain all string types that will be otherswise tranformed using
+// #core/userModels/templates/categories/strings.js values
+export const LLM_PREDICTABLE_TYPES = new Set<SQLStringTypes>([
+  "bpchar",
+  "character",
+  "character varying",
+  "character_data",
+  "varchar",
+  "citext",
+  "text",
+]);
+
 export function groupBy<T, K extends number | string | symbol>(
   array: Array<T>,
   getKey: (item: T) => K,
