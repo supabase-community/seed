@@ -80,7 +80,7 @@ function columnSequence(
   return false;
 }
 
-export type SQLiteType = (typeof SQL_TYPES_LIST)[number] | SQLiteAffinity;
+type SQLiteType = (typeof SQL_TYPES_LIST)[number] | SQLiteAffinity;
 
 function getSqliteType(
   affinity: SQLiteAffinity,
