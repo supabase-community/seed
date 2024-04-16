@@ -4,7 +4,7 @@ import { type DetermineShapeFromType } from "./types.js";
 const isNestedArraySQLType = (SQLType: string): boolean =>
   SQLType.startsWith("_") || SQLType.endsWith("[]");
 
-export const JS_TO_SQL_TYPES = {
+const JS_TO_SQL_TYPES = {
   string: [
     "char",
     "bpchar",
@@ -194,7 +194,7 @@ export const LLM_PREDICTABLE_TYPES = new Set<SQLStringTypes>([
 
 // All the types tranformations that might be improved thank's to shape
 // recognition (eg: LATITUDE -> float, EMAIL -> text, ...)
-export const SHAPES_IMPROVABLES_TYPES = new Set<SQLTypeName>([
+const SHAPES_IMPROVABLES_TYPES = new Set<SQLTypeName>([
   ...LLM_PREDICTABLE_TYPES,
 ]);
 

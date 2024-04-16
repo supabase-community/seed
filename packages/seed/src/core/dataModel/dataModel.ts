@@ -14,16 +14,6 @@ export function isParentField(
   return field.kind === "object" && field.relationFromFields.length > 0;
 }
 
-export function isPartOfUniqueConstraint(
-  dataModel: DataModel,
-  model: string,
-  fieldName: string,
-) {
-  return dataModel.models[model].uniqueConstraints.some((uc) =>
-    uc.fields.includes(fieldName),
-  );
-}
-
 export function isPartOfRelation(
   dataModel: DataModel,
   model: string,
