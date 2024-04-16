@@ -196,7 +196,6 @@ export const LLM_PREDICTABLE_TYPES = new Set<SQLStringTypes>([
 // recognition (eg: LATITUDE -> float, EMAIL -> text, ...)
 export const SHAPES_IMPROVABLES_TYPES = new Set<SQLTypeName>([
   ...LLM_PREDICTABLE_TYPES,
-  ...SQL_NUMBER_TYPES,
 ]);
 
 export const determineShapeFromType: DetermineShapeFromType = (

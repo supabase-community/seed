@@ -39,7 +39,7 @@ export const columnsToPredict = (
           tableName: model.tableName,
           columnName: field.columnName,
           pgType: field.type,
-          useExamplesDefault: isLLMPredictable,
+          useLLMByDefault: isLLMPredictable,
         };
       })
       .filter(Boolean);
