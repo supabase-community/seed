@@ -35,7 +35,11 @@ export async function predictHandler() {
     });
     dataExamples.push(...customDataSet);
   }
-  const tableNames = Object.values(dataModel.models).map((m) => m.tableName);
+  const tableNames = Object.values(dataModel.models).map((m) =>
+    m.schemaName && m.schemaName != ""
+      ? `${m.schemaName}.${m.tableName}`
+      : m.tableName,
+  );
   const shapePredictions = await fetchShapePredictions(
     columns,
     tableNames,
