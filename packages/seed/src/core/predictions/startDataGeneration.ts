@@ -50,7 +50,9 @@ const gatherPrompts = (
             model.tableName,
             field.columnName,
           ]),
-          ...prompt,
+          description: prompt.description,
+          examples: prompt.examples,
+          sampleSize: prompt.itemCount,
         });
       }
     }
