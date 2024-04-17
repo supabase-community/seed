@@ -71,7 +71,7 @@ export const startDataGeneration = async (
     ),
   );
 
-  const jobs = results.filter((job) => job.status === "IN_PROGRESS");
+  const jobs = results.filter((job) => job.status !== "COMPLETED");
 
   const waitForDataGeneration = async () => {
     if (jobs.length === 0) {
