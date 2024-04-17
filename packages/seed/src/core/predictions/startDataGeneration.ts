@@ -71,16 +71,14 @@ export const startDataGeneration = async (
     ),
   );
 
-  const jobs = results.filter((job) => job.status !== "COMPLETED");
+  const jobs = results.filter((job) => job.status !== "SUCCESS");
 
   const waitForDataGeneration = async () => {
     if (jobs.length === 0) {
       return;
     }
 
-    const pendingJobs = new Set(
-      jobs.map((job) => job.dataGenerationJobId) as Array<string>,
-    );
+    const pendingJobs = new Set(jobs.map((job) => job.dataGenerationJobId));
 
     while (pendingJobs.size) {
       for (const dataGenerationJobId of pendingJobs.values()) {
@@ -89,7 +87,7 @@ export const startDataGeneration = async (
             dataGenerationJobId,
           });
 
-        if (status === "COMPLETED") {
+        if (status === "SUCCESS") {
           pendingJobs.delete(dataGenerationJobId);
         }
 
