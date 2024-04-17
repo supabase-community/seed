@@ -4,6 +4,7 @@ export type FingerprintField =
   | FingerprintJsonField
   | FingerprintLLMField
   | FingerprintOptionsField
+  | FingerprintPromptField
   | FingerprintRelationshipField;
 
 export interface FingerprintJsonField {
@@ -15,9 +16,15 @@ export interface FingerprintOptionsField {
 }
 
 interface FingerprintLLMField {
-  prompt?: { description?: string };
+  description?: string;
 }
 
 interface FingerprintRelationshipField {
   count: { max: number; min: number } | number;
+}
+
+interface FingerprintPromptField {
+  description?: string;
+  examples?: Array<string>;
+  itemCount?: number;
 }

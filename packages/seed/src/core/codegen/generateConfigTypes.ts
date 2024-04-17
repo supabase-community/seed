@@ -138,7 +138,9 @@ function generateFingerprintTypes(props: {
   const { dataModel, computeFingerprintFieldTypeName } = props;
 
   const llmField = `interface FingerprintLLMField {
-    prompt?: { description?: string };
+    description?: string;
+    examples?: string[];
+    itemCount?: number;
   }`;
   const relationField = `interface FingerprintRelationField {
   count?: number | { min?: number; max?: number };
