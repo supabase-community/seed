@@ -7,30 +7,23 @@ export const fingerprintConfigSchema = z.record(
   z.string().describe("modelName"),
   z.record(
     z.string().describe("modelField"),
-    z.union([
-      z.object({
-        count: z.union([
-          z.number(),
-          z.object({ min: z.number(), max: z.number() }),
-        ]),
-      }),
-      z.object({
-        options: z.record(z.string(), z.any()),
-      }),
-      z.object({
-        schema: z.record(z.string(), z.any()).describe("jsonSchema"),
-      }),
-      z.object({
-        prompt: z.union([
+    z.object({
+      count: z
+        .union([z.number(), z.object({ min: z.number(), max: z.number() })])
+        .optional(),
+      options: z.record(z.string(), z.any()).optional(),
+      schema: z.record(z.string(), z.any()).describe("jsonSchema").optional(),
+      prompt: z
+        .union([
           z.string(),
           z.object({
             description: z.string(),
             examples: z.array(z.string()).optional(),
             itemCount: z.number().optional(),
           }),
-        ]),
-      }),
-    ]),
+        ])
+        .optional(),
+    }),
   ),
 );
 
