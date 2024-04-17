@@ -37,12 +37,7 @@ const gatherPrompts = (
       const fieldConfig = modelConfig[fieldName];
       const field = scalarFieldsByName.get(fieldName);
 
-      if (field && "prompt" in fieldConfig) {
-        const prompt =
-          typeof fieldConfig.prompt === "string"
-            ? { description: fieldConfig.prompt }
-            : fieldConfig.prompt;
-
+      if (field && "description" in fieldConfig && fieldConfig.description) {
         prompts.push({
           projectId,
           input: formatInput([
@@ -50,9 +45,9 @@ const gatherPrompts = (
             model.tableName,
             field.columnName,
           ]),
-          description: prompt.description,
-          examples: prompt.examples,
-          sampleSize: prompt.itemCount,
+          description: fieldConfig.description,
+          examples: fieldConfig.examples,
+          sampleSize: fieldConfig.itemCount,
         });
       }
     }
