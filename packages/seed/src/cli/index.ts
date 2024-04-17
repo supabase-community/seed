@@ -26,25 +26,23 @@ predictCommand(program);
 linkCommand(program);
 
 const handleFailure = (message: null | string, error: unknown) => {
-  if (message != null) {
-    console.error(error);
-  }
-
   if (SnapletError.instanceof(error)) {
     console.error(error.toString());
+  } else if (message != null) {
+    console.error(error);
   } else if (isError(error)) {
     console.error(error.stack);
   } else if (error != null) {
     console.error(String(error));
     debug(error);
   }
-
-  gracefulExit(1);
 };
 
 try {
   await program.fail(handleFailure).parseAsync();
   gracefulExit();
 } catch (e) {
-  handleFailure(null, e);
+  // Error are already be handled by the fail handler nothing to do here
+  // except to gracefully exit with an error code
+  gracefulExit(1);
 }
