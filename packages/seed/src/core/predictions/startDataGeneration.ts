@@ -37,7 +37,7 @@ const gatherPrompts = (
       const fieldConfig = modelConfig[fieldName];
       const field = scalarFieldsByName.get(fieldName);
 
-      if (field && fieldConfig.prompt) {
+      if (field && "prompt" in fieldConfig) {
         const prompt =
           typeof fieldConfig.prompt === "string"
             ? { description: fieldConfig.prompt }
