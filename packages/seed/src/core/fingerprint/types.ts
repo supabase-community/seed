@@ -3,6 +3,7 @@ export type Fingerprint = Record<string, Record<string, FingerprintField>>;
 export type FingerprintField =
   | FingerprintJsonField
   | FingerprintOptionsField
+  | FingerprintPromptField
   | FingerprintRelationshipField;
 
 export interface FingerprintJsonField {
@@ -15,4 +16,14 @@ export interface FingerprintOptionsField {
 
 interface FingerprintRelationshipField {
   count: { max: number; min: number } | number;
+}
+
+interface FingerprintPromptField {
+  prompt:
+    | {
+        description: string;
+        examples?: Array<string>;
+        itemCount?: number;
+      }
+    | string;
 }
