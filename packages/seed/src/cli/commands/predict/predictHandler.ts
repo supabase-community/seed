@@ -48,7 +48,6 @@ export async function predictHandler() {
 
   const shapeExamples = await fetchShapeExamples(shapePredictions);
   dataExamples.push(...shapeExamples);
-  await setDataExamples(dataExamples);
 
   await waitForDataGeneration();
 
@@ -59,6 +58,8 @@ export async function predictHandler() {
   if (customDataSet.length > 0) {
     dataExamples.push(...customDataSet);
   }
+
+  await setDataExamples(dataExamples);
 
   spinner.succeed("Got model enhancements 🤖");
 }
