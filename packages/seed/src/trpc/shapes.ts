@@ -219,4 +219,5 @@ export interface StartPredictionsColumn {
   pgType: string;
   schemaName: string;
   tableName: string;
+  useLLMByDefault: boolean;
 }

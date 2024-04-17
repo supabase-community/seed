@@ -4,6 +4,7 @@ import os from "node:os";
 import { PostHog } from "posthog-node";
 import { v4 as uuidv4 } from "uuid";
 import { IS_PRODUCTION } from "#config/constants.js";
+import { getProjectConfig } from "#config/project/projectConfig.js";
 import { getSystemConfig, updateSystemConfig } from "#config/systemConfig.js";
 
 const POSTHOG_API_KEY = "phc_F2nspobfCOFDskuwSN7syqKyz8aAzRTw2MEsRvQSB5G";
@@ -24,11 +25,17 @@ const createAnonymousId = async () => {
 
 const getDistinctId = async () => {
   const systemConfig = await getSystemConfig();
-
+  const projectConfig = await getProjectConfig();
+  const projectDistinctId =
+    ci.isCI && projectConfig?.projectId
+      ? `${projectConfig.projectId}:ci`
+      : undefined;
   if (typeof systemConfig.userId === "string") {
     return systemConfig.userId;
   } else if (typeof systemConfig.anonymousId == "string") {
     return systemConfig.anonymousId;
+  } else if (projectDistinctId) {
+    return projectDistinctId;
   } else {
     return createAnonymousId();
   }
@@ -63,7 +70,7 @@ export const createTelemetry = (options: TelemetryOptions) => {
     const { anonymousId } = await getSystemConfig();
 
     // Associate the old "anonymousId (alias)" to the new "userId (distinctId)"
-    if (anonymousId != null) {
+    if (anonymousId != null && !distinctId.endsWith(":ci")) {
       posthog?.alias({
         distinctId,
         alias: anonymousId,

@@ -82,6 +82,7 @@ export const createCliRouter = ({ publicProcedure = t.procedure } = {}) =>
                 engine: z.literal("FINETUNED_DISTI_BERT_SEED_ONLY"),
               })
               .optional(),
+            tableNames: z.array(z.string()).optional(),
           }),
         )
         .mutation(() => {
@@ -98,6 +99,7 @@ export const createCliRouter = ({ publicProcedure = t.procedure } = {}) =>
                 tableName: z.string().min(1),
                 columnName: z.string().min(1),
                 pgType: z.string().min(1),
+                useLLMByDefault: z.boolean().default(false),
               }),
             ),
             modelInfo: z
