@@ -7,9 +7,12 @@ type ComputeFingerprintFieldTypeName = (
 ) =>
   | "FingerprintDateField"
   | "FingerprintJsonField"
+  | "FingerprintLLMField"
   | "FingerprintNumberField"
   | "FingerprintRelationField"
   | null;
+
+export type FingerprintTypes = ReturnType<ComputeFingerprintFieldTypeName>;
 
 export function generateSelectTypeFromTableIds(
   tableIds: Array<string>,
@@ -133,6 +136,10 @@ function generateFingerprintTypes(props: {
   dataModel: DataModel;
 }) {
   const { dataModel, computeFingerprintFieldTypeName } = props;
+
+  const llmField = `interface FingerprintLLMField {
+    prompt?: { description?: string };
+  }`;
   const relationField = `interface FingerprintRelationField {
   count?: number | { min?: number; max?: number };
 }`;
@@ -171,9 +178,14 @@ ${dataModel.models[modelName].fields
   )
   .join(EOL)}}`;
 
-  return [relationField, jsonField, dateField, numberField, fingerprint].join(
-    EOL,
-  );
+  return [
+    relationField,
+    jsonField,
+    dateField,
+    numberField,
+    llmField,
+    fingerprint,
+  ].join(EOL);
 }
 
 function generateDefineConfigTypes() {
