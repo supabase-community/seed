@@ -24,3 +24,7 @@ export function bold(text: string) {
 export function dim(text: string) {
   return kleur.dim(text);
 }
+
+export function error(text: string) {
+  return kleur.red().bold(text);
+}
