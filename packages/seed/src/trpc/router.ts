@@ -143,12 +143,12 @@ export const createCliRouter = ({ publicProcedure = t.procedure } = {}) =>
         )
         .mutation(() => {
           return {
-            dataGenerationJobId: "1" as null | string,
-            status: "COMPLETED" as
-              | "COMPLETED"
-              | "FAILED"
+            dataGenerationJobId: "1" as string,
+            status: "SUCCESS" as
+              | "FAILURE"
               | "IN_PROGRESS"
-              | "PENDING",
+              | "PENDING"
+              | "SUCCESS",
           };
         }),
       getDataGenerationJobStatusRoute: publicProcedure
@@ -159,11 +159,11 @@ export const createCliRouter = ({ publicProcedure = t.procedure } = {}) =>
         )
         .query(() => {
           return {
-            status: "COMPLETED" as
-              | "COMPLETED"
-              | "FAILED"
+            status: "SUCCESS" as
+              | "FAILURE"
               | "IN_PROGRESS"
-              | "PENDING",
+              | "PENDING"
+              | "SUCCESS",
           };
         }),
       seedShapeRoute: publicProcedure
