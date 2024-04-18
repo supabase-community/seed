@@ -111,11 +111,11 @@ for (const [
 
       await execa(packageManager, [...install], { cwd });
       await expect(
-        execa("npx", ["tsx", "seed.mts"], { cwd }),
+        execa("npx", ["tsx", "seed.ts"], { cwd }),
       ).resolves.not.toThrow();
       await execa(packageManager, [...add, "isodd-iseven"], { cwd });
       await expect(
-        execa("npx", ["tsx", "seed.mts"], { cwd }),
+        execa("npx", ["tsx", "seed.ts"], { cwd }),
       ).resolves.not.toThrow();
     });
   }
