@@ -1,6 +1,7 @@
 import dedent from "dedent";
 import { findUp } from "find-up";
 import { mkdirp } from "fs-extra/esm";
+import { existsSync } from "node:fs";
 import { writeFile } from "node:fs/promises";
 import path from "node:path";
 import { type SeedConfig } from "#config/seedConfig/seedConfig.js";
@@ -109,10 +110,45 @@ export const FILES = {
 } as const;
 
 const findPackageDirPath = async () => {
+  // In case of monorepo like turborepo and workspaces, a depedency can be put in a structure like this:
+  // turborepo/ -> packages/ -> ui/ -> package.json <--- Here is the @snaplet/seed dependency
+  // But the actual code of the modules will be upward in the hierarchy like this:
+  // turborepo/ -> packages/ -> node_modules -> @snaplet/seed/ -> dist/ -> assets/
+  // So we must, first, find the closest node_modules folder to the package.json if there is one
+  // and fallback to the package.json directory as default only if there is none
+  const closestNodeModulesWithSnapletAssets = await findUp(
+    path.join("node_modules", "@snaplet", "seed", "dist", "assets"),
+    {
+      type: "directory",
+    },
+  );
+  if (closestNodeModulesWithSnapletAssets) {
+    if (existsSync(path.join(closestNodeModulesWithSnapletAssets))) {
+      return closestNodeModulesWithSnapletAssets;
+    }
+  }
+  // If we cannot find `@snaplet/seed` from the closest node_modules folder, we fallback to the package.json directory
   const packagePath = await findUp("package.json");
-  if (!packagePath) {
+  if (
+    !packagePath ||
+    !existsSync(
+      path.join(
+        packagePath,
+        "node_modules",
+        "@snaplet",
+        "seed",
+        "dist",
+        "assets",
+      ),
+    )
+  ) {
+    if (!packagePath) {
+      throw new Error(
+        "@snaplet/seed could not find a package.json for your project. We use this to decide where to generate assets. Either add a package.json for your project, or use the --output option when using `npx @snaplet/seed generate`",
+      );
+    }
     throw new Error(
-      "@snaplet/seed could not find a package.json for your project. We use this to decide where to generate assets. Either add a package.json for your project, or use the --output option when using `npx @snaplet/seed generate`",
+      "@snaplet/seed could not find a node_modules folder for @snaplet/seed in your project. We use this to decide where to generate assets. Either add @snaplet/seed to your project, or use the --output option when using `npx @snaplet/seed generate`",
     );
   }
   // This define where the assets folder and subfolders will be generated is must stay consistent with tsconfig.build.json
