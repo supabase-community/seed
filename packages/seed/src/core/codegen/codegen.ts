@@ -113,7 +113,7 @@ const findPackageDirPath = async () => {
   // In case of monorepo like turborepo and workspaces, a depedency can be put in a structure like this:
   // turborepo/ -> packages/ -> ui/ -> package.json <--- Here is the @snaplet/seed dependency
   // But the actual code of the modules will be upward in the hierarchy like this:
-  // turborepo/ -> packages/ -> node_modules -> @snaplet/seed/ -> dist/ -> assets/
+  // turborepo/ -> node_modules -> @snaplet/seed/ -> dist/ -> assets/
   // So we must, first, find the closest node_modules folder to the package.json if there is one
   // and fallback to the package.json directory as default only if there is none
   const closestNodeModulesWithSnapletAssets = await findUp(
