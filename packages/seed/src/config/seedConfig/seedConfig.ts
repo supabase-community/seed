@@ -5,6 +5,7 @@ import { basename, dirname, join, resolve } from "node:path";
 import * as z from "zod";
 import { getRootPath } from "#config/utils.js";
 import { type Inflection } from "#core/dataModel/aliases.js";
+import { SnapletError } from "#core/utils.js";
 import { adapterConfigSchema } from "./adapterConfig.js";
 import { aliasConfigSchema } from "./aliasConfig.js";
 import { fingerprintConfigSchema } from "./fingerprintConfig.js";
@@ -120,16 +121,27 @@ export interface SeedConfig {
 export async function getSeedConfig(configPath?: string) {
   const path = configPath ?? (await getSeedConfigPath());
 
-  const { config } = await loadConfig({
-    dotenv: true,
-    name: "seed",
-    cwd: dirname(path),
-    configFile: basename(path),
-  });
+  const exists = existsSync(path);
+  if (!exists) {
+    throw new SnapletError("SEED_CONFIG_NOT_FOUND", { path });
+  }
 
-  const parsedConfig = configSchema.parse(config ?? {});
+  try {
+    const { config } = await loadConfig({
+      dotenv: true,
+      name: "seed",
+      cwd: dirname(path),
+      configFile: basename(path),
+    });
 
-  return parsedConfig;
+    const parsedConfig = configSchema.parse(config ?? {});
+    return parsedConfig;
+  } catch (error) {
+    throw new SnapletError("SEED_CONFIG_INVALID", {
+      path,
+      error: error as Error,
+    });
+  }
 }
 
 export async function getSeedConfigPath() {

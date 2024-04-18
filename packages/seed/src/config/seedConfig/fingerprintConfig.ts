@@ -1,7 +1,8 @@
-import { findUp, pathExists } from "find-up";
+import { pathExists } from "find-up";
 import { readFile } from "node:fs/promises";
 import { join } from "node:path";
 import * as z from "zod";
+import { getDotSnapletPath } from "#config/dotSnaplet.js";
 
 export const fingerprintConfigSchema = z.record(
   z.string().describe("modelName"),
@@ -34,7 +35,7 @@ type FingerprintConfig = z.infer<typeof fingerprintConfigSchema>;
 export async function getFingerprintConfig() {
   let fingerprintConfig: FingerprintConfig = {};
 
-  const dotSnapletPath = await findUp(".snaplet");
+  const dotSnapletPath = await getDotSnapletPath();
 
   if (dotSnapletPath) {
     const fingerprintConfigPath = join(dotSnapletPath, "fingerprint.json");

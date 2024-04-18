@@ -2,10 +2,7 @@ import fs from "fs-extra";
 import { readFile } from "node:fs/promises";
 import path from "node:path";
 import { z } from "zod";
-import {
-  getDefaultProjectConfigPath,
-  getProjectConfigPath,
-} from "#config/project/paths.js";
+import { getProjectConfigPath } from "#config/project/paths.js";
 
 const projectConfigSchema = z.object({
   projectId: z.string().optional(),
@@ -13,11 +10,11 @@ const projectConfigSchema = z.object({
 
 type ProjectConfig = z.infer<typeof projectConfigSchema>;
 
-export const getProjectConfig = async (configPath?: string) => {
-  const cPath =
-    configPath ??
-    (await getProjectConfigPath()) ??
-    getDefaultProjectConfigPath();
+export const getProjectConfig = async (
+  // this should only be used in tests in production we should use the default path always
+  configPath?: string,
+) => {
+  const cPath = configPath ?? (await getProjectConfigPath());
 
   if (!fs.existsSync(cPath)) {
     return null;
@@ -27,17 +24,20 @@ export const getProjectConfig = async (configPath?: string) => {
     .parse(JSON.parse(await readFile(cPath, "utf8")));
 };
 
+export const projectConfigExists = async () => {
+  const path = await getProjectConfigPath();
+  return path && fs.existsSync(path);
+};
+
 export const saveProjectConfig = async ({
   config,
   configPath,
 }: {
   config: ProjectConfig;
+  // this should only be used in tests in production we should use the default path always
   configPath?: string;
 }) => {
-  const cPath =
-    configPath ??
-    (await getProjectConfigPath()) ??
-    getDefaultProjectConfigPath();
+  const cPath = configPath ?? (await getProjectConfigPath());
   fs.mkdirSync(path.dirname(cPath), { recursive: true });
 
   const cachedConfig = await getProjectConfig(cPath);
