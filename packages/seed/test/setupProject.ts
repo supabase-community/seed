@@ -74,7 +74,7 @@ async function seedSetup(props: {
         name: path.basename(cwd),
         type: "module",
         imports: {
-          "#snaplet/seed": "./assets/index.js",
+          "#snaplet/seed": "./dist/assets/index.js",
         },
       },
       null,
@@ -96,7 +96,7 @@ async function seedSetup(props: {
 
     // We need to load the typed defineConfig types explicitly for the test environment
     seedConfig = dedent`
-      /// <reference path="./assets/defineConfig.d.ts" />
+      /// <reference path="./dist/assets/defineConfig.d.ts" />
 
       ${seedConfig}
     `;

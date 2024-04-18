@@ -10,11 +10,13 @@ let version: string | undefined;
 
 export const writePkg = (data: Record<string, unknown>) => {
   const content = jsonStringify(data, undefined, 2);
-  writeFileSync(join(__dirname, "..", "..", "package.json"), content);
+  writeFileSync(join(__dirname, "..", "..", "..", "package.json"), content);
 };
 
 export const readPkg = <Result>() => {
-  const content = readFileSync(join(__dirname, "..", "..", "package.json"));
+  const content = readFileSync(
+    join(__dirname, "..", "..", "..", "package.json"),
+  );
   return JSON.parse(content.toString("utf-8")) as Result;
 };
 

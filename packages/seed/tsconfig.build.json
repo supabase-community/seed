@@ -1,7 +1,7 @@
 {
   "extends": "@snaplet/tsconfig",
   "compilerOptions": {
-    "rootDir": "src",
+    "rootDirs": ["src", "assets"],
     "outDir": "dist",
     "emitDeclarationOnly": false,
     "tsBuildInfoFile": "dist/tsconfig.tsbuildinfo",
@@ -11,6 +11,7 @@
   },
   "include": [
     "src",
+    "assets/index.ts",
     "global.d.ts"
   ],
   "exclude": [
