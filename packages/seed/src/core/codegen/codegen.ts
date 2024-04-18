@@ -60,7 +60,7 @@ export const FILES = {
 
         const dataModel = JSON.parse(readFileSync(join(__dirname, "${FILES.DATA_MODEL.name}")));
 
-        const seedConfigPath = "${seedConfigPath}";
+        const seedConfigPath = "${seedConfigPath.replaceAll("\\", "\\\\")}";
 
         export const createSeedClient = getSeedClient({ dataModel, seedConfigPath, userModels });
       `;
