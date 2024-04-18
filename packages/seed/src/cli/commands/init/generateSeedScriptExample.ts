@@ -9,7 +9,7 @@ import { sortModels } from "#core/store/topologicalSort.js";
 import { link, spinner } from "../../lib/output.js";
 
 export async function generateSeedScriptExample() {
-  const seedScriptPath = join(dirname(await getSeedConfigPath()), "seed.mts");
+  const seedScriptPath = join(dirname(await getSeedConfigPath()), "seed.ts");
 
   // If the seed script already exists, we don't want to overwrite it
   if (existsSync(seedScriptPath)) {
@@ -22,20 +22,26 @@ export async function generateSeedScriptExample() {
     /**
      * ! Executing this script will delete all data in your database and seed it with 10 versions.
      * ! Make sure to adjust the script to your needs.
-     * Use any TypeScript runner to run this script, for example: \`npx tsx seed.mts\`
+     * Use any TypeScript runner to run this script, for example: \`npx tsx seed.ts\`
      * Learn more about the Seed Client by following our guide: https://docs.snaplet.dev/seed/getting-started
      */
     import { createSeedClient } from "@snaplet/seed";
 
-    const seed = await createSeedClient();
+    const main = async () => {
+      const seed = await createSeedClient();
 
-    // Truncate all tables in the database
-    await seed.$resetDatabase();
+      // Truncate all tables in the database
+      await seed.$resetDatabase();
 
-    // Seed the database with 10 ${model.modelName}
-    await seed.${model.modelName}((x) => x(10));
+      // Seed the database with 10 ${model.modelName}
+      await seed.${model.modelName}((x) => x(10));
 
-    process.exit();
+      console.log("Database seeded successfully!");
+
+      process.exit();
+    };
+
+    main();
   `;
 
   await writeFile(seedScriptPath, template);
