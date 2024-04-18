@@ -50,7 +50,7 @@ export const FILES = {
       // TODO: remove self reference to @snaplet/seed
       return dedent`
         import { readFileSync } from "node:fs";
-        import { dirname, join, resolve } from "node:path";
+        import { dirname, join } from "node:path";
         import { fileURLToPath } from "node:url";
         import { getSeedClient } from "@snaplet/seed/dialects/${dialect.id}/client";
         import { userModels } from "./${FILES.USER_MODELS.name}";
@@ -60,7 +60,7 @@ export const FILES = {
 
         const dataModel = JSON.parse(readFileSync(join(__dirname, "${FILES.DATA_MODEL.name}")));
 
-        const seedConfigPath = resolve("${seedConfigPath}");
+        const seedConfigPath = "${seedConfigPath.replaceAll("\\", "\\\\")}";
 
         export const createSeedClient = getSeedClient({ dataModel, seedConfigPath, userModels });
       `;
