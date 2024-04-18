@@ -1,10 +1,14 @@
-import { generateConfigTypes as _generateConfigTypes } from "#core/codegen/generateConfigTypes.js";
+import {
+  generateConfigTypes as _generateConfigTypes,
+  type FingerprintTypes,
+} from "#core/codegen/generateConfigTypes.js";
 import { type DataModel, type DataModelField } from "#core/dataModel/types.js";
 import {
+  LLM_PREDICTABLE_TYPES,
   SQL_DATE_TYPES,
   SQL_JSON_TYPES,
   SQL_NUMBER_TYPES,
-} from "../../dialects/sqlite/utils.js";
+} from "./utils.js";
 
 export function generateConfigTypes(props: {
   dataModel: DataModel;
@@ -16,7 +20,9 @@ export function generateConfigTypes(props: {
   });
 }
 
-function computeFingerprintFieldTypeName(field: DataModelField) {
+function computeFingerprintFieldTypeName(
+  field: DataModelField,
+): FingerprintTypes {
   if (field.kind === "object") {
     return "FingerprintRelationField";
   }
@@ -31,6 +37,10 @@ function computeFingerprintFieldTypeName(field: DataModelField) {
 
   if (SQL_NUMBER_TYPES.has(field.type)) {
     return "FingerprintNumberField";
+  }
+
+  if (LLM_PREDICTABLE_TYPES.has(field.type)) {
+    return "FingerprintLLMField";
   }
 
   return null;

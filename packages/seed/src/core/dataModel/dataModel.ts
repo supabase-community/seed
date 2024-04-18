@@ -14,6 +14,27 @@ export function isParentField(
   return field.kind === "object" && field.relationFromFields.length > 0;
 }
 
+export function isPartOfRelation(
+  dataModel: DataModel,
+  model: string,
+  fieldName: string,
+) {
+  const relations = dataModel.models[model].fields.filter(isParentField);
+  return relations.some((relation) =>
+    relation.relationFromFields.includes(fieldName),
+  );
+}
+
+export function isUniqueField(
+  dataModel: DataModel,
+  model: string,
+  fieldName: string,
+) {
+  return dataModel.models[model].uniqueConstraints.some(
+    (uc) => uc.fields.length === 1 && uc.fields.includes(fieldName),
+  );
+}
+
 export function isNullableParent(
   dataModel: DataModel,
   model: string,
