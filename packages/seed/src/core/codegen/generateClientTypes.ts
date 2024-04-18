@@ -505,8 +505,8 @@ ${fields.children
 
   const connectScalarsType =
     idFields.length > 0
-      ? `Pick<${modelName}Scalars, "${idFields.join(" | ")}"> | ${modelName}Scalars`
-      : `${modelName}Scalars`;
+      ? `Pick<${modelName}Scalars, "${idFields.join(" | ")}"> & Partial<Omit<${modelName}Scalars, "${idFields.join(" | ")}">>`
+      : `Partial<${modelName}Scalars>`;
 
   const extraTypes = `type ${modelName}Inputs = Inputs<
   ${scalarsInputsType},
