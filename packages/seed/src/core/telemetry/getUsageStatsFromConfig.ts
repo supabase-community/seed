@@ -105,7 +105,7 @@ async function extractAdapterStats(adapter: SeedConfig["adapter"]) {
   };
 }
 
-export async function extractInsightFromSeedConfig(seedConfig: SeedConfig) {
+async function extractInsightFromSeedConfig(seedConfig: SeedConfig) {
   const selectStats = extractSelectStats(seedConfig.select);
   const aliasStats = extractAliasStats(seedConfig.alias);
   const fingerprintStats = extractFingerprintStats(seedConfig.fingerprint);
@@ -118,7 +118,7 @@ export async function extractInsightFromSeedConfig(seedConfig: SeedConfig) {
   };
 }
 
-export async function getProjectInfos() {
+async function getProjectInfos() {
   try {
     const projectConfig = await getProjectConfig();
     return { ...projectConfig };
