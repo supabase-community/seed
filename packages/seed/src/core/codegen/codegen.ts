@@ -123,7 +123,7 @@ const findPackageDirPath = async () => {
     },
   );
   if (closestNodeModulesWithSnapletAssets) {
-    if (existsSync(path.join(closestNodeModulesWithSnapletAssets))) {
+    if (existsSync(closestNodeModulesWithSnapletAssets)) {
       return closestNodeModulesWithSnapletAssets;
     }
   }
