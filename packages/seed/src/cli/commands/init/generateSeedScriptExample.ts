@@ -35,6 +35,8 @@ export async function generateSeedScriptExample() {
     // Seed the database with 10 ${model.modelName}
     await seed.${model.modelName}((x) => x(10));
 
+    console.log("Database seeded successfully!");
+
     process.exit();
   `;
 
