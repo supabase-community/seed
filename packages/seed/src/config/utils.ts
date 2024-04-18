@@ -1,7 +1,7 @@
 import { execa } from "execa";
 import { findUp } from "find-up";
 import { readFile } from "node:fs/promises";
-import { dirname, join } from "node:path";
+import { dirname } from "node:path";
 
 interface PackageManager {
   add: (
@@ -72,26 +72,33 @@ const packageManagers = {
   [yarn.id]: yarn,
 };
 
-export async function getRootPath() {
+export async function getPackageJsonPath() {
   const packageJsonPath = await findUp("package.json");
-
   if (!packageJsonPath) {
     throw new Error("No package.json found");
   }
+  return packageJsonPath;
+}
 
+export async function getRootPath() {
+  // First we try to find the closest seed.config.ts file
+  const seedConfigPath = await findUp("seed.config.ts");
+  // If we found a seed.config.ts file we use its directory as root
+  // (used when --config option is passed to sync/init commands)
+  if (seedConfigPath) {
+    return dirname(seedConfigPath);
+  }
+  // Otherwise we use the directory of the closest package.json as root
+  const packageJsonPath = await getPackageJsonPath();
   return dirname(packageJsonPath);
 }
 
 export async function getInstalledDependencies() {
-  const rootPath = await getRootPath();
-
-  const packageJson = JSON.parse(
-    await readFile(join(rootPath, "package.json"), "utf8"),
-  ) as {
+  const packageJsonPath = await getPackageJsonPath();
+  const packageJson = JSON.parse(await readFile(packageJsonPath, "utf8")) as {
     dependencies?: Record<string, string>;
     devDependencies?: Record<string, string>;
   };
-
   return {
     ...packageJson.dependencies,
     ...packageJson.devDependencies,
@@ -107,11 +114,7 @@ export async function getPackageManager() {
     }
   }
 
-  const packageJsonPath = await findUp("package.json");
-
-  if (!packageJsonPath) {
-    throw new Error("No package.json found");
-  }
+  const packageJsonPath = await getPackageJsonPath();
 
   const packageJson = JSON.parse(await readFile(packageJsonPath, "utf8")) as {
     packageManager?: string;

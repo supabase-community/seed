@@ -26,92 +26,92 @@
   "imports": {
     "#*": {
       "development": "./src/*",
-      "default": "./dist/*"
+      "default": "./dist/src/*"
     },
     "#test": "./test/index.js",
     "#test/*": "./test/*"
   },
   "exports": {
     ".": {
-      "types": "./dist/index.d.ts",
+      "types": "./dist/src/index.d.ts",
       "development": "./src/index.ts",
-      "default": "./dist/index.js"
+      "default": "./dist/src/index.js"
     },
     "./adapter": {
-      "types": "./dist/core/databaseClient.d.ts",
+      "types": "./dist/src/core/databaseClient.d.ts",
       "development": "./src/core/databaseClient.ts",
-      "default": "./dist/core/databaseClient.js"
+      "default": "./dist/src/core/databaseClient.js"
     },
     "./adapter-better-sqlite3": {
-      "types": "./dist/adapters/better-sqlite3/index.d.ts",
+      "types": "./dist/src/adapters/better-sqlite3/index.d.ts",
       "development": "./src/adapters/better-sqlite3/index.ts",
-      "default": "./dist/adapters/better-sqlite3/index.js"
+      "default": "./dist/src/adapters/better-sqlite3/index.js"
     },
     "./adapter-pg": {
-      "types": "./dist/adapters/pg/index.d.ts",
+      "types": "./dist/src/adapters/pg/index.d.ts",
       "development": "./src/adapters/pg/index.ts",
-      "default": "./dist/adapters/pg/index.js"
+      "default": "./dist/src/adapters/pg/index.js"
     },
     "./adapter-postgres": {
-      "types": "./dist/adapters/postgres/index.d.ts",
+      "types": "./dist/src/adapters/postgres/index.d.ts",
       "development": "./src/adapters/postgres/index.ts",
-      "default": "./dist/adapters/postgres/index.js"
+      "default": "./dist/src/adapters/postgres/index.js"
     },
     "./adapter-prisma": {
-      "types": "./dist/adapters/prisma/index.d.ts",
+      "types": "./dist/src/adapters/prisma/index.d.ts",
       "development": "./src/adapters/prisma/index.ts",
-      "default": "./dist/adapters/prisma/index.js"
+      "default": "./dist/src/adapters/prisma/index.js"
     },
     "./config": {
-      "types": "./dist/config/seedConfig/defineConfig.d.ts",
+      "types": "./dist/src/config/seedConfig/defineConfig.d.ts",
       "development": "./src/config/seedConfig/defineConfig.ts",
-      "default": "./dist/config/seedConfig/defineConfig.js"
+      "default": "./dist/src/config/seedConfig/defineConfig.js"
     },
     "./dialects/postgres/client": {
-      "types": "./dist/dialects/postgres/client.d.ts",
+      "types": "./dist/src/dialects/postgres/client.d.ts",
       "development": "./src/dialects/postgres/client.ts",
-      "default": "./dist/dialects/postgres/client.js"
+      "default": "./dist/src/dialects/postgres/client.js"
     },
     "./dialects/sqlite/client": {
-      "types": "./dist/dialects/sqlite/client.d.ts",
+      "types": "./dist/src/dialects/sqlite/client.d.ts",
       "development": "./src/dialects/sqlite/client.ts",
-      "default": "./dist/dialects/sqlite/client.js"
+      "default": "./dist/src/dialects/sqlite/client.js"
     },
     "./core/symbols": {
-      "types": "./dist/core/symbols.d.ts",
+      "types": "./dist/src/core/symbols.d.ts",
       "development": "./src/core/symbols.ts",
-      "default": "./dist/core/symbols.js"
+      "default": "./dist/src/core/symbols.js"
     }
   },
-  "types": "./dist/index.d.ts",
+  "types": "./dist/src/index.d.ts",
   "typesVersions": {
     "*": {
       "adapter": [
-        "./dist/core/databaseClient.d.ts"
+        "./dist/src/core/databaseClient.d.ts"
       ],
       "adapter-better-sqlite3": [
-        "./dist/adapters/better-sqlite3/index.d.ts"
+        "./dist/src/adapters/better-sqlite3/index.d.ts"
       ],
       "adapter-pg": [
-        "./dist/adapters/pg/index.d.ts"
+        "./dist/src/adapters/pg/index.d.ts"
       ],
       "adapter-postgres": [
-        "./dist/adapters/postgres/index.d.ts"
+        "./dist/src/adapters/postgres/index.d.ts"
       ],
       "adapter-prisma": [
-        "./dist/adapters/prisma/index.d.ts"
+        "./dist/src/adapters/prisma/index.d.ts"
       ],
       "config": [
-        "./dist/config/seedConfig/defineConfig.d.ts"
+        "./dist/src/config/seedConfig/defineConfig.d.ts"
       ],
       "dialects/postgres/client": [
-        "./dist/dialects/postgres/client.d.ts"
+        "./dist/src/dialects/postgres/client.d.ts"
       ],
       "dialects/sqlite/client": [
-        "./dist/dialects/sqlite/client.d.ts"
+        "./dist/src/dialects/sqlite/client.d.ts"
       ],
       "core/symbols": [
-        "./dist/core/symbols.d.ts"
+        "./dist/src/core/symbols.d.ts"
       ]
     }
   },

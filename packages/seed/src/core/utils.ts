@@ -58,6 +58,12 @@ const ERROR_CODES = {
   SEED_SELECT_RELATIONSHIP_ERROR: 9301,
   SEED_ADAPTER_CANNOT_CONNECT: 9302,
 
+  SEED_CONFIG_INVALID: 9303,
+  SEED_CONFIG_NOT_FOUND: 9304,
+  SEED_DATA_MODEL_NOT_FOUND: 9305,
+  SEED_DATA_MODEL_INVALID: 9306,
+  SNAPLET_FOLDER_NOT_FOUND: 9307,
+  SNAPLET_PROJECT_CONFIG_NOT_FOUND: 9308,
   PACKAGE_NOT_EXISTS: 9400,
 };
 
@@ -83,8 +89,28 @@ interface Data extends Record<CodeType, unknown> {
   SEED_ALIAS_MODEL_NAME_CONFLICTS: {
     conflicts: Array<AliasModelNameConflict>;
   };
+  SEED_CONFIG_INVALID: {
+    error: Error;
+    path: string;
+  };
+  SEED_CONFIG_NOT_FOUND: {
+    path: string;
+  };
+  SEED_DATA_MODEL_INVALID: {
+    error: Error;
+    path: string;
+  };
+  SEED_DATA_MODEL_NOT_FOUND: {
+    path: string;
+  };
   SEED_SELECT_RELATIONSHIP_ERROR: {
     errors: Array<SeedSelectRelationshipError>;
+  };
+  SNAPLET_FOLDER_NOT_FOUND: {
+    path: string;
+  };
+  SNAPLET_PROJECT_CONFIG_NOT_FOUND: {
+    path: string;
   };
 }
 
@@ -131,6 +157,34 @@ ${conflicts}
     ].join(EOL),
   PACKAGE_NOT_EXISTS: (data) => {
     return `Please install required package: '${data.packageName}'`;
+  },
+  SEED_CONFIG_INVALID: (data) => {
+    return `Invalid seed config at path: ${data.path}${EOL}${data.error}`;
+  },
+  SEED_CONFIG_NOT_FOUND: (data) => {
+    return [
+      `Seed config not found at path: ${data.path}`,
+      `run npx @snaplet/seed init to generate it if you haven't already.`,
+    ].join(EOL);
+  },
+  SEED_DATA_MODEL_NOT_FOUND: (data) => {
+    return `dataModel.json not found at path: ${data.path}`;
+  },
+  SEED_DATA_MODEL_INVALID: (data) => {
+    return `Invalid dataModel.json at path: ${data.path}${EOL}${data.error}`;
+  },
+  SNAPLET_FOLDER_NOT_FOUND: (data) => {
+    return [
+      `.snaplet folder not found at path: ${data.path}`,
+      `.snaplet folder must collocate the seed.config.ts file`,
+      `run npx @snaplet/seed init if you haven't already.`,
+    ].join(EOL);
+  },
+  SNAPLET_PROJECT_CONFIG_NOT_FOUND: (data) => {
+    return [
+      `config.json not found at path: ${data.path}`,
+      `run npx @snaplet/seed init to generate it if you haven't already.`,
+    ].join(EOL);
   },
 };
 

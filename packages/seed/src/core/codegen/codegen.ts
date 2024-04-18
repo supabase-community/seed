@@ -115,11 +115,13 @@ const findPackageDirPath = async () => {
       "@snaplet/seed could not find a package.json for your project. We use this to decide where to generate assets. Either add a package.json for your project, or use the --output option when using `npx @snaplet/seed generate`",
     );
   }
+  // This define where the assets folder and subfolders will be generated is must stay consistent with tsconfig.build.json
   return path.resolve(
     path.dirname(packagePath),
     "node_modules",
     "@snaplet",
     "seed",
+    "dist",
     "assets",
   );
 };

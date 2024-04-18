@@ -1,4 +1,9 @@
-import { getDataModelConfig } from "#config/dataModelConfig.js";
+import {
+  getDataModelConfig,
+  getDataModelConfigPath,
+} from "#config/dataModelConfig.js";
+import { getDotSnapletPath } from "#config/dotSnaplet.js";
+import { SnapletError } from "#core/utils.js";
 import { getSeedConfig } from "../../config/seedConfig/seedConfig.js";
 import { getAliasedDataModel } from "./aliases.js";
 import { getSelectFilteredDataModel } from "./select.js";
@@ -56,10 +61,11 @@ export function isNullableParent(
 export async function getRawDataModel() {
   const dataModel = await getDataModelConfig();
   if (dataModel === null) {
-    // TODO: Add a better error
-    throw new Error(
-      "DataModel not found. Please run `snaplet introspect` to generate it.",
-    );
+    const dataModelConfigPath = await getDataModelConfigPath();
+    const dotSnapletPath = await getDotSnapletPath();
+    throw new SnapletError("SEED_DATA_MODEL_NOT_FOUND", {
+      path: dataModelConfigPath ?? dotSnapletPath,
+    });
   }
   return dataModel;
 }
@@ -68,10 +74,11 @@ export async function getDataModel() {
   const dataModelConfig = await getDataModelConfig();
 
   if (dataModelConfig === null) {
-    // TODO: Add a better error
-    throw new Error(
-      "DataModel not found. Please run `snaplet sync` to generate it.",
-    );
+    const dataModelConfigPath = await getDataModelConfigPath();
+    const dotSnapletPath = await getDotSnapletPath();
+    throw new SnapletError("SEED_DATA_MODEL_NOT_FOUND", {
+      path: dataModelConfigPath ?? dotSnapletPath,
+    });
   }
 
   const snapletConfig = await getSeedConfig();

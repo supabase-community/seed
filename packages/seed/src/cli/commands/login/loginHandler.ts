@@ -7,7 +7,7 @@ import { telemetry } from "../../lib/telemetry.js";
 import { getAccessTokenFromHttpServer } from "./getAccessTokenFromHttpServer.js";
 
 export async function loginHandler(args?: { accessToken?: string }) {
-  let accessToken = args?.accessToken;
+  let accessToken = args?.accessToken ?? process.env["SNAPLET_ACCESS_TOKEN"];
   let prompted = false;
 
   if (!accessToken) {
