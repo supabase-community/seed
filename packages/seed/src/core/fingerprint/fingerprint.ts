@@ -6,7 +6,7 @@ import {
   quicktype,
 } from "quicktype-core";
 import { mergeDeep } from "remeda";
-import { getFingerprintConfig } from "../../config/seedConfig/fingerprintConfig.js";
+import { getFingerprintConfig } from "../../config/seedConfig/fingerprint/config.js";
 import { getSeedConfig } from "../../config/seedConfig/seedConfig.js";
 import {
   type Fingerprint,

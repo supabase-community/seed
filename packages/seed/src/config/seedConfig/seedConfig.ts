@@ -8,7 +8,7 @@ import { type Inflection } from "#core/dataModel/aliases.js";
 import { SnapletError } from "#core/utils.js";
 import { adapterConfigSchema } from "./adapterConfig.js";
 import { aliasConfigSchema } from "./aliasConfig.js";
-import { fingerprintConfigSchema } from "./fingerprintConfig.js";
+import { fingerprintConfigSchema } from "./fingerprint/schemas.js";
 import { selectConfigSchema } from "./selectConfig.js";
 
 // We place the "seed" config at the root of the config object
