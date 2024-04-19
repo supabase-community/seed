@@ -1,5 +1,5 @@
 import { type DatabaseClient } from "#core/databaseClient.js";
-import { buildSchemaExclusionClause } from "./utils.js";
+import { buildSchemaInclusionClause } from "./utils.js";
 
 interface FetchUniqueConstraintsResult {
   /**
@@ -33,48 +33,40 @@ interface FetchUniqueConstraintsResult {
   tableId: string;
 }
 
-const FETCH_UNIQUE_CONSTRAINTS = `
-SELECT
-    CONCAT(tc.table_schema, '.', tc.table_name) AS "tableId",
-    tc.table_schema AS "schema",
-    tc.table_name AS "table",
-    FALSE AS "dirty", -- Assuming all constraints are initially not dirty (unmodified)
-    tc.constraint_name AS "name",
-    json_agg(ccu.column_name ORDER BY ccu.column_name) AS "columns",
-    pg_get_constraintdef(con.oid) ILIKE '%NULLS NOT DISTINCT%' AS "nullNotDistinct"
-FROM
-    information_schema.table_constraints AS tc
-JOIN
-    information_schema.constraint_column_usage AS ccu
-ON
-    tc.constraint_catalog = ccu.constraint_catalog
-    AND tc.constraint_schema = ccu.constraint_schema
-    AND tc.constraint_name = ccu.constraint_name
-LEFT JOIN
-    pg_constraint AS con
-ON
-    con.conname = tc.constraint_name
-    AND con.connamespace = (SELECT oid FROM pg_namespace WHERE nspname = tc.constraint_schema)
-WHERE
-  ${buildSchemaExclusionClause("tc.table_schema")} AND
-  -- If the constraint is either UNIQUE or PRIMARY KEY (implicit unique constraint)
-  (tc.constraint_type = 'UNIQUE' OR tc.constraint_type = 'PRIMARY KEY')
-GROUP BY
-    tc.table_schema,
-    tc.table_name,
-    tc.constraint_name,
-    tc.constraint_type,
-    con.oid
-ORDER BY
-    tc.table_schema,
-    tc.table_name,
-    tc.constraint_name;
+const FETCH_UNIQUE_CONSTRAINTS = (schemas: Array<string>) => `
+SELECT 
+  tc.CONSTRAINT_SCHEMA as \`schema\`,
+  tc.TABLE_NAME as \`table\`,
+  tc.CONSTRAINT_NAME as \`name\`,
+  GROUP_CONCAT(kcu.COLUMN_NAME ORDER BY kcu.ORDINAL_POSITION) as \`columns\`
+FROM information_schema.TABLE_CONSTRAINTS tc
+JOIN information_schema.KEY_COLUMN_USAGE kcu ON tc.CONSTRAINT_NAME = kcu.CONSTRAINT_NAME
+  AND tc.TABLE_SCHEMA = kcu.TABLE_SCHEMA
+  AND tc.TABLE_NAME = kcu.TABLE_NAME
+WHERE (tc.CONSTRAINT_TYPE = 'UNIQUE' OR tc.CONSTRAINT_TYPE = 'PRIMARY KEY') AND ${buildSchemaInclusionClause(schemas, "tc.TABLE_SCHEMA")}
+GROUP BY tc.CONSTRAINT_SCHEMA, tc.TABLE_NAME, tc.CONSTRAINT_NAME
 `;
 
-export async function fetchUniqueConstraints(client: DatabaseClient) {
-  const response = await client.query<FetchUniqueConstraintsResult>(
-    FETCH_UNIQUE_CONSTRAINTS,
-  );
+export async function fetchUniqueConstraints(
+  client: DatabaseClient,
+  schemas: Array<string>,
+) {
+  const response = await client.query<{
+    columns: string;
+    name: string;
+    schema: string;
+    table: string;
+  }>(FETCH_UNIQUE_CONSTRAINTS(schemas));
 
-  return response;
+  return response.map(
+    (row) =>
+      ({
+        columns: row.columns.split(","),
+        dirty: false,
+        name: `${row.schema}.${row.table}.${row.columns.split(",").join("_")}`,
+        schema: row.schema,
+        table: row.table,
+        tableId: `${row.schema}.${row.table}`,
+      }) satisfies FetchUniqueConstraintsResult,
+  );
 }
