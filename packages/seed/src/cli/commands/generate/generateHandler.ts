@@ -4,17 +4,23 @@ import { bold, link, spinner } from "../../lib/output.js";
 import { computeCodegenContext } from "./computeCodegenContext.js";
 
 export async function generateHandler(args: { output?: string }) {
-  spinner.start(`Generating your ${bold("Seed Client")}`);
+  try {
+    spinner.start(`Generating your ${bold("Seed Client")}`);
 
-  const context = await computeCodegenContext({ outputDir: args.output });
+    const context = await computeCodegenContext({ outputDir: args.output });
 
-  const outputDir = await generateAssets(context);
+    const outputDir = await generateAssets(context);
 
-  spinner.succeed(
-    `Generated your ${bold("Seed Client")} to ${link(pathToFileURL(outputDir).toString())}`,
-  );
+    spinner.succeed(
+      `Generated your ${bold("Seed Client")} to ${link(pathToFileURL(outputDir).toString())}`,
+    );
 
-  spinner.info(
-    `You might want to reload your TypeScript Server to pick up the changes`,
-  );
+    spinner.info(
+      `You might want to reload your TypeScript Server to pick up the changes`,
+    );
+    return { ok: true };
+  } catch (error) {
+    spinner.fail(`Generation failed`);
+    throw error as Error;
+  }
 }

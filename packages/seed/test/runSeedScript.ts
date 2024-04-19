@@ -42,7 +42,7 @@ export const runSeedScript = async ({
   );
 
   const scriptName = `script${++scriptId}`;
-  const scriptFilename = `${scriptName}.mts`;
+  const scriptFilename = `${scriptName}.ts`;
 
   const scriptPath = path.join(cwd, scriptFilename);
   await writeFile(scriptPath, script);

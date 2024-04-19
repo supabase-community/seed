@@ -74,6 +74,7 @@ async function seedSetup(props: {
         name: path.basename(cwd),
         type: "module",
         imports: {
+          // this path must be consisten with --output in runCLI sync
           "#snaplet/seed": "./assets/index.js",
         },
       },
@@ -95,6 +96,7 @@ async function seedSetup(props: {
     }
 
     // We need to load the typed defineConfig types explicitly for the test environment
+    // this path must be consisten with --output in runCLI sync
     seedConfig = dedent`
       /// <reference path="./assets/defineConfig.d.ts" />
 

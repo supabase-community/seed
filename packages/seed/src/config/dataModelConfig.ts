@@ -1,8 +1,8 @@
-import { pathExists } from "find-up";
+import { existsSync } from "node:fs";
 import { readFile, writeFile } from "node:fs/promises";
 import { join } from "node:path";
 import { type DataModel } from "#core/dataModel/types.js";
-import { jsonStringify } from "#core/utils.js";
+import { SnapletError, jsonStringify } from "#core/utils.js";
 import { ensureDotSnapletPath, getDotSnapletPath } from "./dotSnaplet.js";
 
 export async function getDataModelConfig() {
@@ -12,10 +12,17 @@ export async function getDataModelConfig() {
 
   if (dotSnapletPath) {
     const dataModelConfigPath = join(dotSnapletPath, "dataModel.json");
-    if (await pathExists(dataModelConfigPath)) {
-      dataModelConfig = JSON.parse(
-        await readFile(dataModelConfigPath, "utf8"),
-      ) as DataModel;
+    if (existsSync(dataModelConfigPath)) {
+      try {
+        dataModelConfig = JSON.parse(
+          await readFile(dataModelConfigPath, "utf8"),
+        ) as DataModel;
+      } catch (error) {
+        throw new SnapletError("SEED_DATA_MODEL_INVALID", {
+          path: dataModelConfigPath,
+          error: error as Error,
+        });
+      }
     }
   }
 

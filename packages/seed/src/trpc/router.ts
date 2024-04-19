@@ -82,6 +82,7 @@ export const createCliRouter = ({ publicProcedure = t.procedure } = {}) =>
                 engine: z.literal("FINETUNED_DISTI_BERT_SEED_ONLY"),
               })
               .optional(),
+            tableNames: z.array(z.string()).optional(),
           }),
         )
         .mutation(() => {
@@ -98,6 +99,7 @@ export const createCliRouter = ({ publicProcedure = t.procedure } = {}) =>
                 tableName: z.string().min(1),
                 columnName: z.string().min(1),
                 pgType: z.string().min(1),
+                useLLMByDefault: z.boolean().default(false),
               }),
             ),
             modelInfo: z
@@ -127,6 +129,41 @@ export const createCliRouter = ({ publicProcedure = t.procedure } = {}) =>
               total: 1,
               message: "finished" as string | undefined,
             },
+          };
+        }),
+      startDataGenerationJobRoute: publicProcedure
+        .input(
+          z.object({
+            projectId: z.string(),
+            input: z.string(),
+            description: z.string(),
+            examples: z.array(z.string()).optional(),
+            sampleSize: z.number().optional(),
+          }),
+        )
+        .mutation(() => {
+          return {
+            dataGenerationJobId: "1" as string,
+            status: "SUCCESS" as
+              | "FAILURE"
+              | "IN_PROGRESS"
+              | "PENDING"
+              | "SUCCESS",
+          };
+        }),
+      getDataGenerationJobStatusRoute: publicProcedure
+        .input(
+          z.object({
+            dataGenerationJobId: z.string().min(1),
+          }),
+        )
+        .query(() => {
+          return {
+            status: "SUCCESS" as
+              | "FAILURE"
+              | "IN_PROGRESS"
+              | "PENDING"
+              | "SUCCESS",
           };
         }),
       seedShapeRoute: publicProcedure
