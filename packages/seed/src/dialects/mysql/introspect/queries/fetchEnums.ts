@@ -1,38 +1,36 @@
 import { type DatabaseClient } from "#core/databaseClient.js";
-import { buildSchemaExclusionClause } from "./utils.js";
+import { buildSchemaInclusionClause } from "./utils.js";
 
 interface FetchEnumsResult {
   id: string;
   name: string;
   schema: string;
-  values: Array<string>;
+  values: string;
 }
 
-const FETCH_ENUMS = `
-  WITH
-  accessible_schemas AS (
-    SELECT
-      schema_name
-    FROM information_schema.schemata
-    WHERE
-      ${buildSchemaExclusionClause("schema_name")}
-  )
+const FETCH_ENUMS = (schemas: Array<string>) => `
   SELECT
-    pg_namespace.nspname AS schema,
-    pg_type.typname AS name,
-    concat(pg_namespace.nspname, '.', pg_type.typname) AS id,
-    json_agg(pg_enum.enumlabel ORDER BY pg_enum.enumlabel) AS values
-  FROM pg_type
-  INNER JOIN pg_enum ON pg_enum.enumtypid = pg_type.oid
-  INNER JOIN pg_namespace ON pg_namespace.oid = pg_type.typnamespace
-  INNER JOIN accessible_schemas s ON s.schema_name = pg_namespace.nspname
-  WHERE ${buildSchemaExclusionClause("pg_namespace.nspname")}
-  GROUP BY pg_namespace.nspname, pg_type.typname
-  ORDER BY concat(pg_namespace.nspname, '.', pg_type.typname)
+    TABLE_SCHEMA AS \`schema\`,
+    COLUMN_NAME AS name,
+    CONCAT(TABLE_SCHEMA, '.', COLUMN_NAME) AS id,
+    SUBSTRING(COLUMN_TYPE FROM 6 FOR LENGTH(COLUMN_TYPE) - 6) AS \`values\`
+  FROM information_schema.COLUMNS
+  WHERE
+    DATA_TYPE = 'enum' AND
+    ${buildSchemaInclusionClause(schemas, "TABLE_SCHEMA")}
+  ORDER BY CONCAT(TABLE_SCHEMA, '.', COLUMN_NAME);
 `;
 
-export async function fetchEnums(client: DatabaseClient) {
-  const response = await client.query<FetchEnumsResult>(FETCH_ENUMS);
-
-  return response;
+export async function fetchEnums(
+  client: DatabaseClient,
+  schemas: Array<string>, // list of schemas related to the current database
+) {
+  const response = await client.query<FetchEnumsResult>(FETCH_ENUMS(schemas));
+  return response.map((row) => ({
+    ...row,
+    // Splitting the values string by comma, then trim spaces and remove single quotes
+    values: row.values
+      .split(",")
+      .map((value) => value.trim().replace(/^'(.*)'$/, "$1")),
+  }));
 }

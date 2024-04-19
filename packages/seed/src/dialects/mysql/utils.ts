@@ -1,3 +1,4 @@
+import { escape, escapeId } from "mysql2";
 import { type Json, type Serializable } from "#core/data/types.js";
 import {
   type JsTypeName,
@@ -7,6 +8,9 @@ import {
 import { jsonStringify } from "#core/utils.js";
 
 export * from "#core/dialect/utils.js";
+
+export const escapeIdentifier = escapeId;
+export const escaleLiteral = escape;
 
 export const isNestedArrayPgType = (pgType: string): boolean =>
   pgType.startsWith("_") || pgType.endsWith("[]");

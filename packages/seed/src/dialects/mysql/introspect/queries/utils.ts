@@ -7,5 +7,13 @@ function buildSchemaExclusionClause(escapedColumn: string) {
     (s) => `${escapedColumn} NOT LIKE ${escapeLiteral(s)}`,
   ).join(" AND ");
 }
+function buildSchemaInclusionClause(
+  schemas: Array<string>,
+  escapedColumn: string,
+) {
+  return schemas
+    .map((s) => `${escapedColumn} = ${escapeLiteral(s)}`)
+    .join(" OR ");
+}
 
-export { buildSchemaExclusionClause };
+export { buildSchemaExclusionClause, buildSchemaInclusionClause };

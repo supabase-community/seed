@@ -1,26 +1,30 @@
 import { describe, expect, test } from "vitest";
-import { SeedPostgres } from "#adapters/postgres/index.js";
-import { postgres } from "#test/postgres/postgres/index.js";
+import { mysql } from "#test/mysql/mysql/index.js";
 import { fetchEnums } from "./fetchEnums.js";
 
 const adapters = {
-  postgres: () => postgres,
+  mysql: () => mysql,
 };
 
-describe.concurrent.each(["postgres"] as const)("fetchEnums: %s", (adapter) => {
-  const { createTestDb, createTestRole } = adapters[adapter]();
+describe.concurrent.each(["mysql"] as const)("fetchEnums: %s", (adapter) => {
+  const { createTestDb } = adapters[adapter]();
+
   test("should fetch basic enums", async () => {
     const structure = `
-    CREATE TYPE public."enum_example" AS ENUM ('A', 'B', 'C');
-  `;
+      CREATE TABLE test_table (
+        id INT,
+        status ENUM('A', 'B', 'C')
+      );
+    `;
     const db = await createTestDb(structure);
 
-    const enums = await fetchEnums(db.client);
+    const schemas = [db.name];
+    const enums = await fetchEnums(db.client, schemas);
     expect(enums).toEqual([
       {
-        id: "public.enum_example",
-        schema: "public",
-        name: "enum_example",
+        id: `${db.name}.status`,
+        schema: db.name,
+        name: "status",
         values: expect.arrayContaining(["A", "B", "C"]),
       },
     ]);
@@ -28,24 +32,31 @@ describe.concurrent.each(["postgres"] as const)("fetchEnums: %s", (adapter) => {
 
   test("should fetch multiple enums", async () => {
     const structure = `
-    CREATE TYPE public."enum_example1" AS ENUM ('A', 'B', 'C');
-    CREATE TYPE public."enum_example2" AS ENUM ('D', 'E', 'F');
-  `;
+      CREATE TABLE test_table1 (
+        id INT,
+        status1 ENUM('A', 'B', 'C')
+      );
+      CREATE TABLE test_table2 (
+        id INT,
+        status2 ENUM('D', 'E', 'F')
+      );
+    `;
     const db = await createTestDb(structure);
 
-    const enums = await fetchEnums(db.client);
+    const schemas = [db.name];
+    const enums = await fetchEnums(db.client, schemas);
     expect(enums).toEqual(
       expect.arrayContaining([
         {
-          id: "public.enum_example1",
-          schema: "public",
-          name: "enum_example1",
+          id: `${db.name}.status1`,
+          schema: db.name,
+          name: "status1",
           values: expect.arrayContaining(["A", "B", "C"]),
         },
         {
-          id: "public.enum_example2",
-          schema: "public",
-          name: "enum_example2",
+          id: `${db.name}.status2`,
+          schema: db.name,
+          name: "status2",
           values: expect.arrayContaining(["D", "E", "F"]),
         },
       ]),
@@ -54,29 +65,8 @@ describe.concurrent.each(["postgres"] as const)("fetchEnums: %s", (adapter) => {
 
   test("should handle empty result when no accessible enums", async () => {
     const db = await createTestDb();
-
-    const enums = await fetchEnums(db.client);
+    const schemas = [db.name];
+    const enums = await fetchEnums(db.client, schemas);
     expect(enums).toEqual([]);
-  });
-
-  test("should not fetch enums on schemas the user does not have access to", async () => {
-    const structure = `
-    CREATE TYPE public."enum_example" AS ENUM ('A', 'B', 'C');
-    CREATE SCHEMA private;
-    CREATE TYPE private."enum_example_private" AS ENUM ('D', 'E', 'F');
-  `;
-    const db = await createTestDb(structure);
-    const testRoleClient = await createTestRole(db.client.client);
-    const enums = await fetchEnums(new SeedPostgres(testRoleClient.client));
-    expect(enums).toEqual(
-      expect.arrayContaining([
-        {
-          id: "public.enum_example",
-          schema: "public",
-          name: "enum_example",
-          values: expect.arrayContaining(["A", "B", "C"]),
-        },
-      ]),
-    );
   });
 });

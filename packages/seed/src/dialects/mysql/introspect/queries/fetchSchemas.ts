@@ -1,18 +1,25 @@
 import { type DatabaseClient } from "#core/databaseClient.js";
-import { buildSchemaExclusionClause } from "./utils.js";
 
 interface FetchSchemasResult {
   schemaName: string;
 }
 const FETCH_AUTHORIZED_SCHEMAS = `
-  SELECT
-    SCHEMA_NAME as schemaName
-  FROM
-    information_schema.schemata
+SELECT DISTINCT related_database as schemaName
+FROM (
+  SELECT 
+    CASE
+      WHEN CONSTRAINT_SCHEMA = DATABASE() THEN REFERENCED_TABLE_SCHEMA
+      WHEN REFERENCED_TABLE_SCHEMA = DATABASE() THEN CONSTRAINT_SCHEMA
+    END AS related_database
+  FROM information_schema.KEY_COLUMN_USAGE
   WHERE
-    ${buildSchemaExclusionClause("SCHEMA_NAME")} AND
-    SCHEMA_NAME = DATABASE()
-  ORDER BY SCHEMA_NAME
+    (CONSTRAINT_SCHEMA = DATABASE() OR REFERENCED_TABLE_SCHEMA = DATABASE())
+    AND REFERENCED_TABLE_SCHEMA IS NOT NULL
+    AND TABLE_SCHEMA != REFERENCED_TABLE_SCHEMA
+  UNION
+  SELECT DATABASE() AS related_database
+) AS subquery
+ORDER BY related_database;
 `;
 
 export async function fetchSchemas(client: DatabaseClient) {
