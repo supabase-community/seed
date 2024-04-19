@@ -47,9 +47,8 @@ export async function fetchTablesAndColumns(
   client: DatabaseClient,
   schemas: Array<string>,
 ) {
-  const tablesPromise = client.query<TableResult>(FETCH_TABLES(schemas));
-  const columnsPromise = client.query<ColumnResult>(FETCH_COLUMNS(schemas));
-  const [tables, columns] = await Promise.all([tablesPromise, columnsPromise]);
+  const tables = await client.query<TableResult>(FETCH_TABLES(schemas));
+  const columns = await client.query<ColumnResult>(FETCH_COLUMNS(schemas));
 
   const tablesWithColumns = tables.map((table) => ({
     ...table,
@@ -57,6 +56,8 @@ export async function fetchTablesAndColumns(
       (column) => column.table === table.name && column.schema === table.schema,
     ),
   }));
+
+  console.log(tablesWithColumns);
 
   return tablesWithColumns;
 }
