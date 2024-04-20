@@ -31,4 +31,45 @@ describe.concurrent.each(["mysql"] as const)("fetchSchemas: %s", (adapter) => {
     expect(schemas).toEqual(expect.arrayContaining([db1.name, db2.name]));
     expect(schema2).toEqual(expect.arrayContaining([db1.name, db2.name]));
   });
+  test("should fetch all related databases event not with direct relation", async () => {
+    // Create the first database and table
+    const publicDb = await createTestDb(`
+      CREATE TABLE Courses (
+        CourseID SERIAL PRIMARY KEY,
+        CourseName VARCHAR(255) NOT NULL
+      );
+      CREATE TABLE Students (
+          StudentID SERIAL PRIMARY KEY,
+          FirstName VARCHAR(255) NOT NULL,
+          LastName VARCHAR(255) NOT NULL,
+          StudentCourseId BIGINT UNSIGNED,
+          FOREIGN KEY (StudentCourseId) REFERENCES Courses(CourseID)
+      );`);
+    const privateDb = await createTestDb(`
+      CREATE TABLE Courses (
+          CourseID SERIAL PRIMARY KEY,
+          CourseName VARCHAR(255) NOT NULL
+      );
+      CREATE TABLE Enrollments (
+          CourseID BIGINT UNSIGNED,
+          StudentID BIGINT UNSIGNED,
+          UNIQUE (CourseID, StudentID),
+          FOREIGN KEY (CourseID) REFERENCES Courses(CourseID),
+          FOREIGN KEY (StudentID) REFERENCES \`${publicDb.name}\`.Students(StudentID)
+      );`);
+    const otherDb = await createTestDb(`
+      CREATE TABLE Grades (
+          CourseID BIGINT UNSIGNED,
+          StudentID BIGINT UNSIGNED,
+          ExamName VARCHAR(255),
+          Grade FLOAT NOT NULL,
+          PRIMARY KEY (CourseID, StudentID, ExamName),
+          FOREIGN KEY (CourseID, StudentID) REFERENCES \`${privateDb.name}\`.Enrollments(CourseID, StudentID)
+      );`);
+
+    const schemas = await fetchSchemas(publicDb.client);
+    expect(schemas).toEqual(
+      expect.arrayContaining([publicDb.name, privateDb.name, otherDb.name]),
+    );
+  });
 });
