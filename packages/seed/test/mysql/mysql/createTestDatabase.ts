@@ -86,7 +86,7 @@ const defineCreateTestDb = (state: State) => {
     state.dbs = [];
 
     const failures: Array<{ dbName: string; error: Error }> = [];
-
+    await serverAdapter.execute("SET foreign_key_checks = 0");
     // Close all pools connections on the database, if there is more than one to be able to drop it
     for (const { name } of dbs) {
       try {
@@ -98,6 +98,7 @@ const defineCreateTestDb = (state: State) => {
         });
       }
     }
+    await serverAdapter.execute("SET foreign_key_checks = 1");
 
     if (failures.length) {
       throw new Error(
