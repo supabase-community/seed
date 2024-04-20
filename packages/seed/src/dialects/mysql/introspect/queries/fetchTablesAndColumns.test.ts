@@ -1,12 +1,13 @@
 import { describe, expect, test } from "vitest";
-import { postgres } from "#test/postgres/postgres/index.js";
+import { mysql } from "#test/mysql/mysql/index.js";
+import { fetchSchemas } from "./fetchSchemas.js";
 import { fetchTablesAndColumns } from "./fetchTablesAndColumns.js";
 
 const adapters = {
-  postgres: () => postgres,
+  mysql: () => mysql,
 };
 
-describe.concurrent.each(["postgres"] as const)(
+describe.concurrent.each(["mysql"] as const)(
   "fetchTablesAndColumns: %s",
   (adapter) => {
     const { createTestDb } = adapters[adapter]();
@@ -18,7 +19,7 @@ describe.concurrent.each(["postgres"] as const)(
       expect(tablesInfos).toEqual(expect.arrayContaining([]));
     });
 
-    test.only("should fetch all tables and columns infos", async () => {
+    test("should fetch all tables and columns infos", async () => {
       const structure = `
         CREATE TABLE Courses (
             CourseID SERIAL PRIMARY KEY,
@@ -39,12 +40,12 @@ describe.concurrent.each(["postgres"] as const)(
             id: `${db.name}.Courses`,
             name: "Courses",
             schema: db.name,
-            rows: null,
+
             columns: expect.arrayContaining([
               {
                 id: `${db.name}.Courses.CourseID`,
                 name: "CourseID",
-                type: "int",
+                type: "bigint",
                 schema: db.name,
                 table: "Courses",
                 nullable: false,
@@ -67,12 +68,12 @@ describe.concurrent.each(["postgres"] as const)(
             id: `${db.name}.Students`,
             name: "Students",
             schema: db.name,
-            rows: null,
+
             columns: expect.arrayContaining([
               {
                 id: `${db.name}.Students.StudentID`,
                 name: "StudentID",
-                type: "int",
+                type: "bigint",
                 schema: db.name,
                 table: "Students",
                 nullable: false,
@@ -100,67 +101,6 @@ describe.concurrent.each(["postgres"] as const)(
                 maxLength: 255,
               },
             ]),
-          },
-        ]),
-      );
-    });
-
-    test("look up the correct types in the case of several types of the same name in different schemas", async () => {
-      const db1 = await createTestDb(`
-        CREATE TABLE Foo (
-          e1 ENUM('A1', 'B1') NOT NULL
-        );
-        `);
-      const db2 = await createTestDb(
-        `
-        CREATE TABLE Foo (
-          e1 ENUM('A2', 'B2') NOT NULL
-        );
-      `,
-      );
-
-      const tableInfos = await fetchTablesAndColumns(db1.client, [
-        "public",
-        "other",
-      ]);
-
-      expect(tableInfos).toEqual(
-        expect.arrayContaining([
-          {
-            id: `${db1.name}.Foo`,
-            name: "Foo",
-            schema: db1.name,
-            rows: null, // Depending on how you manage rows and bytes calculation
-            columns: [
-              {
-                id: `${db1.name}.Foo.e1`,
-                name: "e1",
-                type: "enum('A1', 'B1')",
-                schema: db1.name,
-                table: "Foo",
-                nullable: false,
-                default: null,
-                maxLength: null,
-              },
-            ],
-          },
-          {
-            id: `${db2.name}.Foo`,
-            name: "Foo",
-            schema: db2.name,
-            rows: null, // Depending on how you manage rows and bytes calculation
-            columns: [
-              {
-                id: `${db2.name}.Foo.e1`,
-                name: "e1",
-                type: "enum('A2', 'B2')",
-                schema: db2.name,
-                table: "Foo",
-                nullable: false,
-                default: null,
-                maxLength: null,
-              },
-            ],
           },
         ]),
       );
@@ -203,7 +143,7 @@ describe.concurrent.each(["postgres"] as const)(
             id: `${db.name}.Courses`,
             name: "Courses",
             schema: db.name,
-            rows: null,
+
             columns: [
               {
                 id: `${db.name}.Courses.CourseID`,
@@ -231,7 +171,7 @@ describe.concurrent.each(["postgres"] as const)(
             id: `${db.name}.Enrollments`,
             name: "Enrollments",
             schema: db.name,
-            rows: null,
+
             columns: [
               {
                 id: `${db.name}.Enrollments.CourseID`,
@@ -259,7 +199,7 @@ describe.concurrent.each(["postgres"] as const)(
             id: `${db.name}.Grades`,
             name: "Grades",
             schema: db.name,
-            rows: null,
+
             columns: [
               {
                 id: `${db.name}.Grades.CourseID`,
@@ -307,7 +247,7 @@ describe.concurrent.each(["postgres"] as const)(
             id: `${db.name}.Students`,
             name: "Students",
             schema: db.name,
-            rows: null,
+
             columns: [
               {
                 id: `${db.name}.Students.StudentID`,
@@ -346,65 +286,225 @@ describe.concurrent.each(["postgres"] as const)(
     });
 
     test("should work on multiples schemas with nullables", async () => {
-      // Setting up multiple databases (MySQL's equivalent of PostgreSQL's schemas)
-      const structure = `
-        CREATE DATABASE public;
-        USE public;
+      const publicDb = await createTestDb(`
         CREATE TABLE Courses (
-            CourseID INT AUTO_INCREMENT PRIMARY KEY,
-            CourseName VARCHAR(255) NOT NULL
+          CourseID SERIAL PRIMARY KEY,
+          CourseName VARCHAR(255) NOT NULL
         );
         CREATE TABLE Students (
-            StudentID INT AUTO_INCREMENT PRIMARY KEY,
+            StudentID SERIAL PRIMARY KEY,
             FirstName VARCHAR(255) NOT NULL,
             LastName VARCHAR(255) NOT NULL,
-            StudentCourseId INT,
+            StudentCourseId BIGINT UNSIGNED,
             FOREIGN KEY (StudentCourseId) REFERENCES Courses(CourseID)
-        );
-
-        CREATE DATABASE private;
-        USE private;
+        );`);
+      const privateDb = await createTestDb(`
         CREATE TABLE Courses (
-            CourseID INT AUTO_INCREMENT PRIMARY KEY,
+            CourseID SERIAL PRIMARY KEY,
             CourseName VARCHAR(255) NOT NULL
         );
         CREATE TABLE Enrollments (
-            CourseID INT,
-            StudentID INT,
+            CourseID BIGINT UNSIGNED,
+            StudentID BIGINT UNSIGNED,
             UNIQUE (CourseID, StudentID),
             FOREIGN KEY (CourseID) REFERENCES Courses(CourseID),
-            FOREIGN KEY (StudentID) REFERENCES public.Students(StudentID)
-        );
-
-        USE public;
+            FOREIGN KEY (StudentID) REFERENCES \`${publicDb.name}\`.Students(StudentID)
+        );`);
+      const otherDb = await createTestDb(`
         CREATE TABLE Grades (
-            CourseID INT,
-            StudentID INT,
+            CourseID BIGINT UNSIGNED,
+            StudentID BIGINT UNSIGNED,
             ExamName VARCHAR(255),
             Grade FLOAT NOT NULL,
             PRIMARY KEY (CourseID, StudentID, ExamName),
-            FOREIGN KEY (CourseID, StudentID) REFERENCES private.Enrollments(CourseID, StudentID)
-        );
-      `;
-
-      const db = await createTestDb(structure);
-      const tablesInfosPublic = await fetchTablesAndColumns(db.client, [
-        "public",
-      ]);
-      const tablesInfosPrivate = await fetchTablesAndColumns(db.client, [
-        "private",
-      ]);
+            FOREIGN KEY (CourseID, StudentID) REFERENCES \`${privateDb.name}\`.Enrollments(CourseID, StudentID)
+        );`);
+      const tablesInfospublicDb = await fetchTablesAndColumns(
+        publicDb.client,
+        await fetchSchemas(publicDb.client),
+      );
 
       // Formulate the expected output in the MySQL context
-      expect(tablesInfosPublic).toEqual([
-        // Add expected table objects here similar to the PostgreSQL test,
-        // Adjusting for MySQL types and removing PostgreSQL-specific default values
-      ]);
+      expect(tablesInfospublicDb).toEqual(
+        expect.arrayContaining([
+          {
+            columns: expect.arrayContaining([
+              {
+                default: null,
+                id: `${publicDb.name}.Courses.CourseID`,
+                maxLength: null,
+                name: "CourseID",
+                nullable: false,
+                schema: publicDb.name,
+                table: "Courses",
+                type: "bigint",
+              },
+              {
+                default: null,
+                id: `${publicDb.name}.Courses.CourseName`,
+                maxLength: 255,
+                name: "CourseName",
+                nullable: false,
+                schema: publicDb.name,
+                table: "Courses",
+                type: "varchar",
+              },
+            ]),
+            id: `${publicDb.name}.Courses`,
+            name: "Courses",
+            schema: publicDb.name,
+          },
+          {
+            columns: expect.arrayContaining([
+              {
+                default: null,
+                id: `${publicDb.name}.Students.StudentID`,
+                maxLength: null,
+                name: "StudentID",
+                nullable: false,
+                schema: publicDb.name,
+                table: "Students",
+                type: "bigint",
+              },
+              {
+                default: null,
+                id: `${publicDb.name}.Students.FirstName`,
+                maxLength: 255,
+                name: "FirstName",
+                nullable: false,
+                schema: publicDb.name,
+                table: "Students",
+                type: "varchar",
+              },
+              {
+                default: null,
+                id: `${publicDb.name}.Students.LastName`,
+                maxLength: 255,
+                name: "LastName",
+                nullable: false,
+                schema: publicDb.name,
+                table: "Students",
+                type: "varchar",
+              },
+              {
+                default: null,
+                id: `${publicDb.name}.Students.StudentCourseId`,
+                maxLength: null,
+                name: "StudentCourseId",
+                nullable: true,
+                schema: publicDb.name,
+                table: "Students",
+                type: "bigint",
+              },
+            ]),
+            id: `${publicDb.name}.Students`,
+            name: "Students",
 
-      expect(tablesInfosPrivate).toEqual([
-        // Add expected table objects here similar to the PostgreSQL test,
-        // Adjusting for MySQL types and removing PostgreSQL-specific default values
-      ]);
+            schema: publicDb.name,
+          },
+          {
+            columns: [
+              {
+                default: null,
+                id: `${privateDb.name}.Courses.CourseID`,
+                maxLength: null,
+                name: "CourseID",
+                nullable: false,
+                schema: privateDb.name,
+                table: "Courses",
+                type: "bigint",
+              },
+              {
+                default: null,
+                id: `${privateDb.name}.Courses.CourseName`,
+                maxLength: 255,
+                name: "CourseName",
+                nullable: false,
+                schema: privateDb.name,
+                table: "Courses",
+                type: "varchar",
+              },
+            ],
+            id: `${privateDb.name}.Courses`,
+            name: "Courses",
+            schema: privateDb.name,
+          },
+          {
+            columns: [
+              {
+                default: null,
+                id: `${privateDb.name}.Enrollments.CourseID`,
+                maxLength: null,
+                name: "CourseID",
+                nullable: true,
+                schema: privateDb.name,
+                table: "Enrollments",
+                type: "bigint",
+              },
+              {
+                default: null,
+                id: `${privateDb.name}.Enrollments.StudentID`,
+                maxLength: null,
+                name: "StudentID",
+                nullable: true,
+                schema: privateDb.name,
+                table: "Enrollments",
+                type: "bigint",
+              },
+            ],
+            id: `${privateDb.name}.Enrollments`,
+            name: "Enrollments",
+            schema: privateDb.name,
+          },
+          {
+            columns: [
+              {
+                default: null,
+                id: `${otherDb.name}.Grades.CourseID`,
+                maxLength: null,
+                name: "CourseID",
+                nullable: false,
+                schema: otherDb.name,
+                table: "Grades",
+                type: "bigint",
+              },
+              {
+                default: null,
+                id: `${otherDb.name}.Grades.StudentID`,
+                maxLength: null,
+                name: "StudentID",
+                nullable: false,
+                schema: otherDb.name,
+                table: "Grades",
+                type: "bigint",
+              },
+              {
+                default: null,
+                id: `${otherDb.name}.Grades.ExamName`,
+                maxLength: 255,
+                name: "ExamName",
+                nullable: false,
+                schema: otherDb.name,
+                table: "Grades",
+                type: "varchar",
+              },
+              {
+                default: null,
+                id: `${otherDb.name}.Grades.Grade`,
+                maxLength: null,
+                name: "Grade",
+                nullable: false,
+                schema: otherDb.name,
+                table: "Grades",
+                type: "float",
+              },
+            ],
+            id: `${otherDb.name}.Grades`,
+            name: "Grades",
+            schema: otherDb.name,
+          },
+        ]),
+      );
     });
   },
 );

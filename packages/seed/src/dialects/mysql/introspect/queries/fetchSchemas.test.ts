@@ -32,7 +32,6 @@ describe.concurrent.each(["mysql"] as const)("fetchSchemas: %s", (adapter) => {
     expect(schema2).toEqual(expect.arrayContaining([db1.name, db2.name]));
   });
   test("should fetch all related databases event not with direct relation", async () => {
-    // Create the first database and table
     const publicDb = await createTestDb(`
       CREATE TABLE Courses (
         CourseID SERIAL PRIMARY KEY,
