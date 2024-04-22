@@ -15,4 +15,4 @@ export const SNAPLET_APP_URL =
 // we can't use env var replacement like we would do with esbuild or webpack.
 // So instead we check whether we are using src (dev - this would be the case
 // for our test runs) or dist (production)
-export const IS_PRODUCTION = basename(dirname(__dirname)) !== "src";
+export const IS_PRODUCTION = basename(dirname(dirname(__dirname))) !== "src";
