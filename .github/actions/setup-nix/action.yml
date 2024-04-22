@@ -7,7 +7,7 @@ runs:
       uses: nixbuild/nix-quick-install-action@v26
 
     - name: Restore and cache Nix store
-      uses: nix-community/cache-nix-action@v5.1.0
+      uses: avallete/cache-nix-action@v0.0.1
       with:
         primary-key: cache-${{ runner.os }}-nix-store-${{ hashFiles('**/*.nix') }}
         restore-prefixes-first-match: cache-${{ runner.os }}-nix-store-
