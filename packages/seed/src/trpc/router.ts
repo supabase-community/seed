@@ -32,6 +32,15 @@ export const createCliRouter = ({ publicProcedure = t.procedure } = {}) =>
           name: string;
         }>;
       }),
+      organizationGetByProjectId: publicProcedure
+        .input(z.object({ projectId: z.string() }))
+        .query(() => {
+          return {
+            id: "1",
+          } as {
+            id: string;
+          };
+        }),
     }),
     project: router({
       create: publicProcedure

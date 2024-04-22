@@ -1,3 +1,4 @@
+import { SNAPLET_APP_URL } from "#config/constants.js";
 import { getProjectConfigPath } from "#config/project/paths.js";
 import { getProjectConfig } from "#config/project/projectConfig.js";
 import { getSeedConfig } from "#config/seedConfig/seedConfig.js";
@@ -66,6 +67,13 @@ export async function predictHandler() {
     await setDataExamples(dataExamples);
 
     spinner.succeed("Got model enhancements 🤖");
+    const organization =
+      await trpc.organization.organizationGetByProjectId.query({
+        projectId: projectConfig.projectId,
+      });
+    console.log(
+      `You can improve your generated data with Snaplet's LLM here: ${SNAPLET_APP_URL}/o/${organization.id}/p/${projectConfig.projectId}/seed`,
+    );
     return { ok: true };
   } catch (error) {
     spinner.fail(`Failed to get model enhancements`);
