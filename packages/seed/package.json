@@ -1,7 +1,7 @@
 {
   "name": "@snaplet/seed",
   "type": "module",
-  "version": "0.94.1",
+  "version": "0.95.1",
   "sideEffects": false,
   "bin": {
     "snaplet-seed": "./bin/cli.js"
@@ -194,7 +194,7 @@
     "ora": "^8.0.1",
     "portfinder": "^1.0.32",
     "posthog-node": "^4.0.0",
-    "quicktype-core": "^23.0.115",
+    "quicktype-core": "^23.0.149",
     "remeda": "^1.58.0",
     "terminal-link": "^3.0.0",
     "uuid": "^9.0.1",

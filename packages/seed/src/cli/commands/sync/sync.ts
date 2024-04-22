@@ -1,5 +1,5 @@
 import { type Argv } from "yargs";
-import { telemetryMiddleware } from "#cli/lib/middlewares/telemetry.js";
+import { telemetryWithUsageStatsMiddleware } from "#cli/lib/middlewares/telemetry.js";
 
 export function syncCommand(program: Argv) {
   return program.command(
@@ -13,7 +13,7 @@ export function syncCommand(program: Argv) {
         type: "string",
       },
     },
-    telemetryMiddleware(async (args) => {
+    telemetryWithUsageStatsMiddleware(async (args) => {
       const { syncHandler } = await import("./syncHandler.js");
       await syncHandler(args);
     }),
