@@ -72,7 +72,7 @@ export async function predictHandler() {
         projectId: projectConfig.projectId,
       });
     console.log(
-      `You can improve your generated data with LLM here: ${SNAPLET_APP_URL}/o/${organization.id}/p/${projectConfig.projectId}/seed`,
+      `You can improve your generated data with Snaplet AI here: ${SNAPLET_APP_URL}/o/${organization.id}/p/${projectConfig.projectId}/seed`,
     );
     return { ok: true };
   } catch (error) {
