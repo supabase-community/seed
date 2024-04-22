@@ -1,3 +1,4 @@
+import { SNAPLET_APP_URL } from "#config/constants.js";
 import { getProjectConfigPath } from "#config/project/paths.js";
 import { getProjectConfig } from "#config/project/projectConfig.js";
 import { getSeedConfig } from "#config/seedConfig/seedConfig.js";
@@ -12,7 +13,7 @@ import { columnsToPredict, formatInput } from "#core/predictions/utils.js";
 import { SnapletError } from "#core/utils.js";
 import { getDialect } from "#dialects/getDialect.js";
 import { trpc } from "#trpc/client.js";
-import { spinner } from "../../lib/output.js";
+import { brightGreen, link, spinner } from "../../lib/output.js";
 
 export async function predictHandler() {
   try {
@@ -66,6 +67,14 @@ export async function predictHandler() {
     await setDataExamples(dataExamples);
 
     spinner.succeed("Got model enhancements 🤖");
+    const organization =
+      await trpc.organization.organizationGetByProjectId.query({
+        projectId: projectConfig.projectId,
+      });
+
+    console.log(
+      `\n✨ You can ${brightGreen("improve your generated data")} with ${brightGreen("Snaplet AI")} here: ${link(`${SNAPLET_APP_URL}/o/${organization.id}/p/${projectConfig.projectId}/seed`)}\n`,
+    );
     return { ok: true };
   } catch (error) {
     spinner.fail(`Failed to get model enhancements`);
