@@ -118,17 +118,19 @@ async function seedSetup(props: {
 
   const runSeedScript = async (
     script: string,
-    options?: { env?: Record<string, string> },
+    options?: {
+      delete?: boolean;
+      env?: Record<string, string>;
+    },
   ) => {
-    const runScriptResult = await baseRunSeedScript({
+    return baseRunSeedScript({
       script,
       adapter: props.adapter,
       cwd,
       connectionString: props.connectionString,
       env: options?.env,
+      delete: options?.delete,
     });
-
-    return runScriptResult;
   };
 
   let stdout = "";
