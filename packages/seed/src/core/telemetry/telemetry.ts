@@ -3,6 +3,7 @@ import deepmerge from "deepmerge";
 import os from "node:os";
 import { PostHog } from "posthog-node";
 import { v4 as uuidv4 } from "uuid";
+import { IS_PRODUCTION } from "#config/constants.js";
 import { getProjectConfig } from "#config/project/projectConfig.js";
 import { getSystemConfig, updateSystemConfig } from "#config/systemConfig.js";
 
@@ -43,7 +44,11 @@ const getDistinctId = async () => {
 export const createTelemetry = (options: TelemetryOptions) => {
   let posthog: PostHog | null = null;
 
-  const { source, properties: baseProperties = () => ({}) } = options;
+  const {
+    source,
+    properties: baseProperties = () => ({}),
+    isProduction = IS_PRODUCTION,
+  } = options;
 
   const initPosthog = () =>
     (posthog ??= new PostHog(POSTHOG_API_KEY, {
@@ -52,7 +57,7 @@ export const createTelemetry = (options: TelemetryOptions) => {
       flushInterval: 0,
     }));
 
-  if (process.env["SNAPLET_DISABLE_TELEMETRY"] !== "1") {
+  if (process.env["SNAPLET_DISABLE_TELEMETRY"] !== "1" && isProduction) {
     initPosthog();
   }
 
