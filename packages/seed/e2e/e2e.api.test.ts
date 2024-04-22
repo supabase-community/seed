@@ -585,6 +585,232 @@ for (const [dialect, adapter] of adapterEntries) {
     ]);
   });
 
+  test("connect option requires all ids for composite primary key", async () => {
+    const schema: SchemaRecord = {
+      default: `
+          CREATE TABLE "Member" (
+            "teamId" integer not null,
+            "personId" integer not null,
+            primary key ("teamId", "personId")
+          );
+
+          CREATE TABLE "Post" (
+            "id" serial primary key,
+            "teamId" integer not null,
+            "personId" integer not null,
+            foreign key ("teamId", "personId")
+            references "Member" ("teamId", "personId")
+          );
+        `,
+      sqlite: `
+          CREATE TABLE "Member" (
+            "teamId" integer not null,
+            "personId" integer not null,
+            primary key ("teamId", "personId")
+          );
+
+          CREATE TABLE "Post" (
+            "id" integer primary key autoincrement,
+            "teamId" integer not null,
+            "personId" integer not null,
+            foreign key ("teamId", "personId")
+            references "Member" ("teamId", "personId")
+          );
+        `,
+    };
+
+    const { db, runSeedScript } = await setupProject({
+      adapter,
+      databaseSchema: schema[dialect] ?? schema.default,
+    });
+
+    const incompleteIdsPromise = runSeedScript(`
+        import { createSeedClient } from '#snaplet/seed'
+
+        const seed = await createSeedClient()
+
+        await seed.members([{
+          teamId: 1,
+          personId: 1
+        }, {
+          teamId: 2,
+          personId: 2
+        }])
+
+        await seed.posts(x => x(3), {
+          connect: {
+            members: [{
+              teamId: 1
+            }]
+          }
+        })
+      `);
+
+    await expect(incompleteIdsPromise).rejects.toEqual(
+      expect.objectContaining({
+        message: expect.stringContaining("is not assignable to type"),
+      }),
+    );
+
+    const completeIdsPromise = runSeedScript(`
+        import { createSeedClient } from '#snaplet/seed'
+
+        const seed = await createSeedClient()
+
+        await seed.members([{
+          teamId: 1,
+          personId: 1
+        }, {
+          teamId: 2,
+          personId: 2
+        }])
+
+        await seed.posts(x => x(3), {
+          connect: {
+            members: [{
+              teamId: 1,
+              personId: 1
+            }]
+          }
+        })
+      `);
+
+    await expect(completeIdsPromise).resolves.toEqual(expect.anything());
+
+    const posts = await db.query<{ fullName: string }>('select * from "Post"');
+
+    expect(posts).toEqual([
+      {
+        id: 1,
+        teamId: 1,
+        personId: 1,
+      },
+      {
+        id: 2,
+        teamId: 1,
+        personId: 1,
+      },
+      {
+        id: 3,
+        teamId: 1,
+        personId: 1,
+      },
+    ]);
+  });
+
+  test("connect callback needs only ids for composite primary key", async () => {
+    const schema: SchemaRecord = {
+      default: `
+          CREATE TABLE "Member" (
+            "teamId" integer not null,
+            "personId" integer not null,
+            primary key ("teamId", "personId")
+          );
+
+          CREATE TABLE "Post" (
+            "id" serial primary key,
+            "teamId" integer not null,
+            "personId" integer not null,
+            foreign key ("teamId", "personId")
+            references "Member" ("teamId", "personId")
+          );
+        `,
+      sqlite: `
+          CREATE TABLE "Member" (
+            "teamId" integer not null,
+            "personId" integer not null,
+            primary key ("teamId", "personId")
+          );
+
+          CREATE TABLE "Post" (
+            "id" integer primary key autoincrement,
+            "teamId" integer not null,
+            "personId" integer not null,
+            foreign key ("teamId", "personId")
+            references "Member" ("teamId", "personId")
+          );
+        `,
+    };
+
+    const { db, runSeedScript } = await setupProject({
+      adapter,
+      databaseSchema: schema[dialect] ?? schema.default,
+    });
+
+    const incompleteIdsPromise = runSeedScript(
+      `
+        import { createSeedClient } from '#snaplet/seed'
+
+        const seed = await createSeedClient()
+
+        await seed.members([{
+          teamId: 1,
+          personId: 1
+        }, {
+          teamId: 2,
+          personId: 2
+        }])
+
+        await seed.posts(x => x(3, () => ({
+          team: ctx => ctx.connect(({ $store }) => ({
+            teamId: $store.members[0].teamId
+          }))
+        })))
+      `,
+    );
+
+    await expect(incompleteIdsPromise).rejects.toEqual(
+      expect.objectContaining({
+        message: expect.stringContaining("is not assignable to type"),
+      }),
+    );
+
+    const completeIdsPromise = runSeedScript(
+      `
+        import { createSeedClient } from '#snaplet/seed'
+
+        const seed = await createSeedClient()
+
+        await seed.members([{
+          teamId: 1,
+          personId: 1
+        }, {
+          teamId: 2,
+          personId: 2
+        }])
+
+        await seed.posts(x => x(3, () => ({
+          team: ctx => ctx.connect(({ $store }) => ({
+            teamId: $store.members[0].teamId,
+            personId: $store.members[0].personId
+          }))
+        })))
+      `,
+    );
+
+    await expect(completeIdsPromise).resolves.toEqual(expect.anything());
+
+    const posts = await db.query<{ fullName: string }>('select * from "Post"');
+
+    expect(posts).toEqual([
+      {
+        id: 1,
+        teamId: 1,
+        personId: 1,
+      },
+      {
+        id: 2,
+        teamId: 1,
+        personId: 1,
+      },
+      {
+        id: 3,
+        teamId: 1,
+        personId: 1,
+      },
+    ]);
+  });
+
   if (dialect === "postgres") {
     test("seed.$resetDatabase should reset all schemas and tables per default", async () => {
       const seedScript = `
