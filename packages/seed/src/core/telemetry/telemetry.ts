@@ -108,7 +108,6 @@ export const createTelemetry = (options: TelemetryOptions) => {
     };
 
     properties = deepmerge(baseProperties(), properties);
-
     posthog?.capture({
       distinctId: await getDistinctId(),
       event,
