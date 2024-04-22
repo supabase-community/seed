@@ -1,3 +1,4 @@
+import { mkdirp } from "fs-extra";
 import { readFile, writeFile } from "node:fs/promises";
 import path from "node:path";
 import { jsonStringify } from "#core/utils.js";
@@ -15,6 +16,7 @@ const getSystemManifestPath = () => {
 };
 
 const saveSystemManifest = async (next: SystemManifest) => {
+  await mkdirp(getSystemPath());
   await writeFile(getSystemManifestPath(), jsonStringify(next));
 };
 
