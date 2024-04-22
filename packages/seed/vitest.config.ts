@@ -14,6 +14,9 @@ export default defineProject({
     name: pkg.name,
     root,
     testTimeout: 120_000,
+    sequence: {
+      shuffle: false,
+    },
   },
   esbuild: {
     target: "es2022",
