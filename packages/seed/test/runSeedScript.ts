@@ -1,6 +1,6 @@
 import c from "ansi-colors";
 import { execa } from "execa";
-import { writeFile } from "fs-extra";
+import { rm, writeFile } from "fs-extra";
 import path from "node:path";
 import tmp from "tmp-promise";
 import { expect } from "vitest";
@@ -14,6 +14,7 @@ interface RunScriptProps {
   adapter: Adapter;
   connectionString: string;
   cwd?: string;
+  delete?: boolean;
   env?: Record<string, string>;
   script: string;
 }
@@ -24,6 +25,7 @@ export const runSeedScript = async ({
   script: inputScript,
   cwd,
   env = {},
+  delete: shouldDelete = true,
 }: RunScriptProps) => {
   const script = [inputScript, "process.exit()"].join("\n");
 
@@ -47,46 +49,52 @@ export const runSeedScript = async ({
   const scriptPath = path.join(cwd, scriptFilename);
   await writeFile(scriptPath, script);
 
-  const typecheckResult = execa(
-    "tsc",
-    ["--project", path.join(cwd, "tsconfig.json")],
-    {
+  try {
+    const typecheckResult = execa(
+      "tsc",
+      ["--project", path.join(cwd, "tsconfig.json")],
+      {
+        stderr: "pipe",
+        stdout: "pipe",
+        extendEnv: true,
+        preferLocal: true,
+        cwd,
+        env: {
+          DEBUG_COLORS: "1",
+          ...env,
+        },
+      },
+    );
+    typecheckResult.stdout?.on("data", (chunk: Buffer) => {
+      debugScriptOutput(chunk.toString().trim());
+    });
+    typecheckResult.stderr?.on("data", (chunk: Buffer) => {
+      debugScriptOutput(chunk.toString().trim());
+    });
+    await typecheckResult;
+
+    const result = execa("tsx", ["--conditions=development", scriptPath], {
       stderr: "pipe",
       stdout: "pipe",
       extendEnv: true,
-      preferLocal: true,
       cwd,
+      preferLocal: true,
       env: {
         DEBUG_COLORS: "1",
         ...env,
       },
-    },
-  );
-  typecheckResult.stdout?.on("data", (chunk: Buffer) => {
-    debugScriptOutput(chunk.toString().trim());
-  });
-  typecheckResult.stderr?.on("data", (chunk: Buffer) => {
-    debugScriptOutput(chunk.toString().trim());
-  });
-  await typecheckResult;
+    });
+    result.stdout?.on("data", (chunk: Buffer) => {
+      debugScriptOutput(chunk.toString().trim());
+    });
+    result.stderr?.on("data", (chunk: Buffer) => {
+      debugScriptOutput(chunk.toString().trim());
+    });
 
-  const result = execa("tsx", ["--conditions=development", scriptPath], {
-    stderr: "pipe",
-    stdout: "pipe",
-    extendEnv: true,
-    cwd,
-    preferLocal: true,
-    env: {
-      DEBUG_COLORS: "1",
-      ...env,
-    },
-  });
-  result.stdout?.on("data", (chunk: Buffer) => {
-    debugScriptOutput(chunk.toString().trim());
-  });
-  result.stderr?.on("data", (chunk: Buffer) => {
-    debugScriptOutput(chunk.toString().trim());
-  });
-
-  return result;
+    return await result;
+  } finally {
+    if (shouldDelete) {
+      await rm(scriptPath);
+    }
+  }
 };

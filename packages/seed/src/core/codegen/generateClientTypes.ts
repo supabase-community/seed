@@ -500,12 +500,12 @@ ${fields.children
 
   const scalarsInputsType =
     generatedFields.length > 0
-      ? `Omit<${modelName}Scalars, "${generatedFields.join(" | ")}">`
+      ? `Omit<${modelName}Scalars, "${generatedFields.join('" | "')}">`
       : `${modelName}Scalars`;
 
   const connectScalarsType =
     idFields.length > 0
-      ? `Pick<${modelName}Scalars, "${idFields.join(" | ")}"> & Partial<Omit<${modelName}Scalars, "${idFields.join(" | ")}">>`
+      ? `Pick<${modelName}Scalars, "${idFields.join('" | "')}"> & Partial<Omit<${modelName}Scalars, "${idFields.join('" | "')}">>`
       : `Partial<${modelName}Scalars>`;
 
   const extraTypes = `type ${modelName}Inputs = Inputs<
