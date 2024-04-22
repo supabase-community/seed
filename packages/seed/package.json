@@ -214,7 +214,7 @@
     "release:latest": "tsx scripts/release-latest.mts",
     "type-check": "tsc --build",
     "test": "vitest run src",
-    "test:e2e": "vitest run e2e",
+    "test:e2e": "vitest --reporter=tap run e2e",
     "test:debug": "vitest run",
     "test:watch": "vitest"
   }
