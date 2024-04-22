@@ -22,6 +22,7 @@ defaults:
     shell: devenv {0}
 
 env:
+  SNAPLET_DISABLE_TELEMETRY: '1'
   PG_TEST_DATABASE_SERVER: postgresql://postgres:postgres@localhost:5432/postgres
   TURBO_TOKEN: ${{ secrets.TURBO_TOKEN }}
   TURBO_TEAM: ${{ vars.TURBO_TEAM }}
