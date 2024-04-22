@@ -13,7 +13,7 @@ import { columnsToPredict, formatInput } from "#core/predictions/utils.js";
 import { SnapletError } from "#core/utils.js";
 import { getDialect } from "#dialects/getDialect.js";
 import { trpc } from "#trpc/client.js";
-import { spinner } from "../../lib/output.js";
+import { brightGreen, link, spinner } from "../../lib/output.js";
 
 export async function predictHandler() {
   try {
@@ -71,8 +71,9 @@ export async function predictHandler() {
       await trpc.organization.organizationGetByProjectId.query({
         projectId: projectConfig.projectId,
       });
+
     console.log(
-      `You can improve your generated data with Snaplet AI here: ${SNAPLET_APP_URL}/o/${organization.id}/p/${projectConfig.projectId}/seed`,
+      `\n✨ You can ${brightGreen("improve your generated data")} with ${brightGreen("Snaplet AI")} here: ${link(`${SNAPLET_APP_URL}/o/${organization.id}/p/${projectConfig.projectId}/seed`)}\n`,
     );
     return { ok: true };
   } catch (error) {
