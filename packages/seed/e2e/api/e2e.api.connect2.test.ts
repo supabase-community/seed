@@ -245,16 +245,16 @@ for (const [dialect, adapter] of adapterEntries) {
         }])
 
         await seed.posts(x => x(3, () => ({
-          team: ctx => ctx.connect(({ $store }) => ({
-            teamId: $store.members[0].teamId
-          }))
+          team: ctx => ctx.connect({ teamId: seed.$store.members[0].teamId })
         })))
       `,
     );
 
     await expect(incompleteIdsPromise).rejects.toEqual(
       expect.objectContaining({
-        message: expect.stringContaining("is not assignable to type"),
+        message: expect.stringContaining(
+          "is not assignable to parameter of type",
+        ),
       }),
     );
 
@@ -273,10 +273,10 @@ for (const [dialect, adapter] of adapterEntries) {
         }])
 
         await seed.posts(x => x(3, () => ({
-          team: ctx => ctx.connect(({ $store }) => ({
-            teamId: $store.members[0].teamId,
-            personId: $store.members[0].personId
-          }))
+          team: ctx => ctx.connect({
+            teamId: seed.$store.members[0].teamId,
+            personId: seed.$store.members[0].personId,
+          })
         })))
       `,
     );

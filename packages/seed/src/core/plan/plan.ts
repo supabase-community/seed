@@ -120,7 +120,6 @@ export class Plan implements IPlan {
         } else if (typeof cb === "function") {
           result.push(
             cb({
-              $store: this.ctx.store._store,
               data: {},
               store: this.store._store,
               index: i,
@@ -159,7 +158,6 @@ export class Plan implements IPlan {
       const inputsData = (
         typeof modelInputs === "function"
           ? modelInputs({
-              $store: this.ctx.store._store,
               data: {},
               index,
               seed: modelSeed,
@@ -223,20 +221,15 @@ export class Plan implements IPlan {
           // is the parentField a modelCallback
           if (typeof parentField === "function") {
             const modelCallbackResult = parentField({
-              $store: this.ctx.store._store,
-              connect: (cb: ConnectCallback) => new ConnectInstruction(cb),
+              connect: (modelData: ModelData) =>
+                new ConnectInstruction(modelData),
               data: {},
               seed: [modelSeed, field.name, 0].join("/"),
               store: this.store._store,
             });
 
             if (modelCallbackResult instanceof ConnectInstruction) {
-              return modelCallbackResult.callback({
-                $store: this.ctx.store._store,
-                store: this.store._store,
-                index,
-                seed: `${modelSeed}/${field.name}`,
-              });
+              return modelCallbackResult.modelData;
             }
 
             parentField = modelCallbackResult;
@@ -394,7 +387,6 @@ export class Plan implements IPlan {
             return childField(cb).map((childData, index) => {
               if (typeof childData === "function") {
                 childData = childData({
-                  $store: this.ctx.store._store,
                   data: {},
                   index,
                   seed: [modelSeed, field.name, index].join("/"),
@@ -411,7 +403,6 @@ export class Plan implements IPlan {
           childInputs = childField.map((childData, index) => {
             if (typeof childData === "function") {
               childData = childData({
-                $store: this.ctx.store._store,
                 data: {},
                 index,
                 seed: [modelSeed, field.name, index].join("/"),

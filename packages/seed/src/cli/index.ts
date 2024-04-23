@@ -28,11 +28,11 @@ linkCommand(program);
 const handleFailure = (message: null | string, error: unknown) => {
   if (SnapletError.instanceof(error)) {
     console.error(error.toString());
-  } else if (message != null) {
-    console.error(error);
+  } else if (message !== null) {
+    console.error(message);
   } else if (isError(error)) {
     console.error(error.stack);
-  } else if (error != null) {
+  } else if (error) {
     console.error(String(error));
     debug(error);
   }

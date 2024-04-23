@@ -3,7 +3,7 @@ import { telemetryWithUsageStatsMiddleware } from "#cli/lib/middlewares/telemetr
 
 export function initCommand(program: Argv) {
   return program.command(
-    "init <directory>",
+    "init [directory]",
     "Initialize Snaplet Seed locally for your project",
     (y) =>
       y.positional("directory", {
