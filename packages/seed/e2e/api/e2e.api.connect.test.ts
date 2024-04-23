@@ -51,7 +51,7 @@ for (const [dialect, adapter] of adapterEntries) {
         await seed.users(x => x(3))
 
         await seed.posts(x => x(3, () => ({
-          user: ctx => ctx.connect(({ $store }) => ({ id: $store.users[0].id }))
+          user: ctx => ctx.connect({ id: seed.$store.users[0].id })
         })))
       `,
     });
@@ -111,7 +111,7 @@ for (const [dialect, adapter] of adapterEntries) {
         await seed.users(x => x(3))
 
         await seed.posts(x => x(3, () => ({
-          user: ctx => ctx.connect(({ $store }) => $store.users[0])
+          user: ctx => ctx.connect(seed.$store.users[0])
         })))
       `,
     });
