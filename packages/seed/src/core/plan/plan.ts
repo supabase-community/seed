@@ -23,7 +23,6 @@ import {
   type ChildField,
   type ChildModel,
   type ConnectCallback,
-  ConnectInstruction,
   type CountCallback,
   type GenerateOptions,
   type IPlan,
@@ -120,7 +119,6 @@ export class Plan implements IPlan {
         } else if (typeof cb === "function") {
           result.push(
             cb({
-              $store: this.ctx.store._store,
               data: {},
               store: this.store._store,
               index: i,
@@ -159,7 +157,6 @@ export class Plan implements IPlan {
       const inputsData = (
         typeof modelInputs === "function"
           ? modelInputs({
-              $store: this.ctx.store._store,
               data: {},
               index,
               seed: modelSeed,
@@ -220,26 +217,31 @@ export class Plan implements IPlan {
           }
 
           // if parentField is defined, it means the user wants to override the default behavior
-          // is the parentField a modelCallback
-          if (typeof parentField === "function") {
-            const modelCallbackResult = parentField({
-              $store: this.ctx.store._store,
-              connect: (cb: ConnectCallback) => new ConnectInstruction(cb),
-              data: {},
-              seed: [modelSeed, field.name, 0].join("/"),
-              store: this.store._store,
-            });
+          const parentFieldRecord =
+            typeof parentField === "function"
+              ? parentField({
+                  data: {},
+                  seed: [modelSeed, field.name, 0].join("/"),
+                  store: this.store._store,
+                })
+              : parentField ?? {};
 
-            if (modelCallbackResult instanceof ConnectInstruction) {
-              return modelCallbackResult.callback({
-                $store: this.ctx.store._store,
-                store: this.store._store,
-                index,
-                seed: `${modelSeed}/${field.name}`,
-              });
-            }
-
-            parentField = modelCallbackResult;
+          // if the parentField is present in the $store, then it's a connect, no need to generate it
+          if (
+            this.ctx.store._store[parentModelName].some((p) => {
+              for (const [i] of field.relationFromFields.entries()) {
+                if (
+                  p[field.relationToFields[i]] !==
+                  parentFieldRecord[field.relationToFields[i]]
+                ) {
+                  return false;
+                }
+              }
+              return true;
+            })
+          ) {
+            // we assume that the parentFieldRecord ids are static values in the context of a connect
+            return parentFieldRecord as ModelData;
           }
 
           const parent = (
@@ -251,7 +253,7 @@ export class Plan implements IPlan {
                 },
                 model: parentModelName,
                 // todo: support aliases or fetch relation names
-                inputs: [parentField ?? {}] as ChildField,
+                inputs: [parentFieldRecord] as ChildField,
               },
               options,
             )
@@ -394,7 +396,6 @@ export class Plan implements IPlan {
             return childField(cb).map((childData, index) => {
               if (typeof childData === "function") {
                 childData = childData({
-                  $store: this.ctx.store._store,
                   data: {},
                   index,
                   seed: [modelSeed, field.name, index].join("/"),
@@ -411,7 +412,6 @@ export class Plan implements IPlan {
           childInputs = childField.map((childData, index) => {
             if (typeof childData === "function") {
               childData = childData({
-                $store: this.ctx.store._store,
                 data: {},
                 index,
                 seed: [modelSeed, field.name, index].join("/"),
