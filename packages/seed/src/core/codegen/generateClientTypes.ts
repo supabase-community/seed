@@ -191,48 +191,7 @@ type OmitChildInputs<T, TKeys extends string> = T extends ChildCallbackInputs<Ch
   ? Array<ChildModel<Omit<U, TKeys>>>
   : never;
 
-type ConnectCallbackContext = {
-  /**
-   * The index of the current iteration.
-   */
-  index: number;
-
-  /**
-   * The seed of the relationship field.
-   */
-  seed: string;
-
-  /**
-   * The store containing models already created in this plan.
-   *
-   * @example
-   * \`\`\`ts
-   * { posts: [{ id: 1, authorId: 1 }], authors: [{ id: 1 }] }
-   * \`\`\`
-   */
-  store: Store
-
-  /**
-   * The global store containing all models created in this \`snaplet\` instance so far.
-   *
-   * @example
-   * \`\`\`ts
-   * { posts: [{ id: 1, authorId: 1 }], authors: [{ id: 1 }] }
-   * \`\`\`
-   */
-  $store: Store
-};
-
-/**
- * The callback function we can pass to a parent field to connect it to another model
- * @example
- * seed.posts([{ user: ctx => ctx.connect(({ store }) => store.User[0])])
- */
-type ConnectCallback<T> = (
-  ctx: ConnectCallbackContext
-) => T;
-
-type ModelCallbackContextConnect<T> =  (cb: ConnectCallback<T>) => Connect<T>
+type ModelCallbackContextConnect<T> =  (modelData: T) => Connect<T>
 
 type ModelCallbackContext = {
   /**
@@ -249,19 +208,7 @@ type ModelCallbackContext = {
    * \`\`\`
    */
   store: Store
-
-  /**
-   * The global store containing all models created in this \`snaplet\` instance so far.
-   *
-   * @example
-   * \`\`\`ts
-   * { posts: [{ id: 1, authorId: 1 }], authors: [{ id: 1 }] }
-   * \`\`\`
-   */
-  $store: Store
 }
-
-type ModelCallback<T> = (ctx: ModelCallbackContext) => T
 
 type ParentModelCallback<T, TConnectScalars> = (ctx: ModelCallbackContext & {
   connect: ModelCallbackContextConnect<TConnectScalars>
@@ -272,7 +219,7 @@ type ParentInputs<T, TConnectScalars> =
   | ParentModelCallback<T, TConnectScalars>;
 
 declare class Connect<TConnectScalars> {
-  private callback: ConnectCallback<TConnectScalars>
+  private modelData: TConnectScalars
 }
 
 /**
