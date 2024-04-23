@@ -226,9 +226,9 @@ export class Plan implements IPlan {
                 })
               : parentField ?? {};
 
-          // if the parentField is present in the $store, then it's a connect, no need to generate it
+          // if the parentField is present in the connectStore, then it's a connect, no need to generate it
           if (
-            this.ctx.store._store[parentModelName].some((p) => {
+            this.connectStore?.[parentModelName].some((p) => {
               for (const [i] of field.relationFromFields.entries()) {
                 if (
                   p[field.relationToFields[i]] !==
