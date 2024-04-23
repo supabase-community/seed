@@ -1,3 +1,4 @@
+import path from "node:path";
 import { dotSnapletPathExists } from "#config/dotSnaplet.js";
 import { projectConfigExists } from "#config/project/projectConfig.js";
 import { seedConfigExists } from "#config/seedConfig/seedConfig.js";
@@ -40,7 +41,13 @@ export async function loggedCommandPrerun(
   };
 }
 
-export async function initHandler() {
+export async function initHandler(args: { directory: string }) {
+  // Every files are created in the same directory as the seed.config.ts file
+  process.env["SNAPLET_SEED_CONFIG"] = path.join(
+    args.directory,
+    "seed.config.ts",
+  );
+
   const { isFirstTimeInit } = await loggedCommandPrerun({ showWelcome: true });
   if (isFirstTimeInit) {
     await linkHandler();
