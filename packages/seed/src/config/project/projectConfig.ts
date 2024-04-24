@@ -1,9 +1,11 @@
-import fs from "fs-extra";
-import { readFile } from "node:fs/promises";
+import { pathExists } from "fs-extra";
+import { readFile, writeFile } from "node:fs/promises";
 import path from "node:path";
+import { existsSync } from "node:fs";
 import { z } from "zod";
 import { type AdapterId, adapters } from "#adapters/index.js";
-import { getProjectConfigPath } from "#config/project/paths.js";
+import { getDotSnapletPath } from "#config/dotSnaplet.js";
+import { jsonStringify } from "#core/utils.js";
 
 const projectConfigSchema = z.object({
   projectId: z.string().optional(),
@@ -14,43 +16,53 @@ const projectConfigSchema = z.object({
 
 type ProjectConfig = z.infer<typeof projectConfigSchema>;
 
-export const getProjectConfig = async (
-  // this should only be used in tests in production we should use the default path always
-  configPath?: string,
-) => {
-  const cPath = configPath ?? (await getProjectConfigPath());
-
-  if (!fs.existsSync(cPath)) {
-    return null;
+export async function getProjectConfigPath(
+  // This parameter is only used in tests to override the default path
+  // and should not be used in production code.
+  projectBase?: string,
+) {
+  let base = projectBase ?? (await getDotSnapletPath());
+  if (process.env["SNAPLET_CONFIG"]) {
+    return process.env["SNAPLET_CONFIG"];
   }
-  return projectConfigSchema
-    .passthrough()
-    .parse(JSON.parse(await readFile(cPath, "utf8")));
-};
+  return path.join(base, "config.json");
+}
 
-export const projectConfigExists = async () => {
-  const path = await getProjectConfigPath();
-  return path && fs.existsSync(path);
-};
+export async function getProjectConfig() {
+  const projectConfigPath = await getProjectConfigPath();
 
-export const saveProjectConfig = async ({
-  config,
-  configPath,
-}: {
-  config: Partial<ProjectConfig>;
-  // this should only be used in tests in production we should use the default path always
-  configPath?: string;
-}) => {
-  const cPath = configPath ?? (await getProjectConfigPath());
-  fs.mkdirSync(path.dirname(cPath), { recursive: true });
-
-  const cachedConfig = await getProjectConfig(cPath);
-  if (cachedConfig) {
-    const newConfig = { ...cachedConfig, ...config };
-    fs.writeFileSync(cPath, JSON.stringify(newConfig, undefined, 2));
+  if (await pathExists(projectConfigPath)) {
+    return projectConfigSchema
+      .passthrough()
+      .parse(JSON.parse(await readFile(projectConfigPath, "utf8")));
   } else {
-    fs.writeFileSync(cPath, JSON.stringify(config, undefined, 2));
+    return {} as ProjectConfig;
   }
+}
 
-  return cPath;
-};
+async function setProjectConfig(projectConfig: ProjectConfig) {
+  const projectConfigPath = await getProjectConfigPath();
+
+  await writeFile(
+    projectConfigPath,
+    jsonStringify(projectConfig, undefined, 2),
+    "utf8",
+  );
+}
+
+export async function updateProjectConfig(
+  projectConfig: Partial<ProjectConfig>,
+) {
+  const currentProjectConfig = await getProjectConfig();
+
+  const nextProjectConfig = {
+    ...currentProjectConfig,
+    ...projectConfig,
+  };
+
+  await setProjectConfig(nextProjectConfig);
+}
+
+export async function projectConfigExists() {
+  return existsSync(await getProjectConfigPath());
+}

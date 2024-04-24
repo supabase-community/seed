@@ -1,5 +1,5 @@
 import { SNAPLET_APP_URL } from "#config/constants.js";
-import { getProjectConfigPath } from "#config/project/paths.js";
+import { getProjectConfigPath } from "#config/project/projectConfig.js";
 import { getProjectConfig } from "#config/project/projectConfig.js";
 import { getSeedConfig } from "#config/seedConfig/seedConfig.js";
 import { getDataModel } from "#core/dataModel/dataModel.js";
