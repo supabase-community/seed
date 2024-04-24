@@ -109,8 +109,7 @@ export const getSeedClient: GetSeedClient = (props) => {
     return setupClient({
       dialect: "postgres",
       async createClient() {
-        const databaseClient =
-          options?.adapter ?? (await getDatabaseClient());
+        const databaseClient = options?.adapter ?? (await getDatabaseClient());
         const adapter = await getAdapter();
         const userModels = adapter.patchUserModels
           ? await adapter.patchUserModels({
