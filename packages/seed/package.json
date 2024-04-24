@@ -116,6 +116,8 @@
     }
   },
   "devDependencies": {
+    "@prisma/generator-helper": "^5.13.0",
+    "@prisma/internals": "^5.13.0",
     "@snaplet/copycat": "5.0.0",
     "@snaplet/eslint-config": "workspace:*",
     "@snaplet/tsconfig": "workspace:*",
