@@ -120,8 +120,8 @@ export interface SeedConfig {
   select?: SeedConfigInferred["select"];
 }
 
-async function getRawSeedConfig(configPath?: string) {
-  const path = configPath ?? (await getSeedConfigPath());
+async function getRawSeedConfig() {
+  const path = await getSeedConfigPath();
 
   const exists = existsSync(path);
   if (!exists) {
@@ -148,10 +148,9 @@ async function getRawSeedConfig(configPath?: string) {
 }
 
 export async function getSeedConfig(props?: {
-  configPath?: string;
   disablePatch?: boolean;
 }) {
-  const seedConfig = await getRawSeedConfig(props?.configPath);
+  const seedConfig = await getRawSeedConfig();
 
   if (!props?.disablePatch) {
     const adapter = await getAdapter();

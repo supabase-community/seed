@@ -18,6 +18,8 @@ import { SqliteStore } from "./store.js";
 import { escapeIdentifier } from "./utils.js";
 
 export const getSeedClient: GetSeedClient = (props) => {
+  process.env["SNAPLET_SEED_CONFIG"] = props.seedConfigPath;
+
   class SqliteSeedClient extends SeedClientBase {
     readonly db: DatabaseClient;
     readonly dryRun: boolean;
@@ -101,7 +103,7 @@ export const getSeedClient: GetSeedClient = (props) => {
       dialect: "sqlite",
       async createClient() {
         const databaseClient =
-          options?.adapter ?? (await getDatabaseClient(props.seedConfigPath));
+          options?.adapter ?? (await getDatabaseClient());
         const adapter = await getAdapter();
         const userModels = adapter.patchUserModels
           ? await adapter.patchUserModels({

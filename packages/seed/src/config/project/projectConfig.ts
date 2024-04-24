@@ -17,16 +17,8 @@ const projectConfigSchema = z.object({
 
 type ProjectConfig = z.infer<typeof projectConfigSchema>;
 
-export async function getProjectConfigPath(
-  // This parameter is only used in tests to override the default path
-  // and should not be used in production code.
-  projectBase?: string,
-) {
-  let base = projectBase ?? (await getDotSnapletPath());
-  if (process.env["SNAPLET_CONFIG"]) {
-    return process.env["SNAPLET_CONFIG"];
-  }
-  return path.join(base, "config.json");
+export async function getProjectConfigPath() {
+  return path.join(await getDotSnapletPath(), "config.json");
 }
 
 export async function getProjectConfig() {
