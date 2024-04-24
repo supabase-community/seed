@@ -1,5 +1,6 @@
 import * as R from "remeda";
 import { type SeedConfig } from "#config/seedConfig/seedConfig.js";
+import { getSelectFilteredDataModel } from "#core/dataModel/select.js";
 import { type DataModel } from "#core/dataModel/types.js";
 import { getPrismaDataModel } from "./getPrismaDataModel.js";
 
@@ -8,11 +9,19 @@ const difference = (
   other: Readonly<Array<unknown>>,
 ) => R.filter(data, R.isNot(R.isIncludedIn(other)));
 
-async function getAliasOverride(dataModel: DataModel) {
+async function getAliasOverride(props: {
+  dataModel: DataModel;
+  seedConfig: SeedConfig;
+}) {
   const aliasOverride: NonNullable<
     NonNullable<SeedConfig["alias"]>["override"]
   > = {};
   const prismaDataModel = await getPrismaDataModel();
+
+  const dataModel = getSelectFilteredDataModel(
+    props.dataModel,
+    props.seedConfig.select,
+  );
 
   for (const [modelName, model] of Object.entries(dataModel.models)) {
     const prismaModel = prismaDataModel.datamodel.models.find(
@@ -61,13 +70,16 @@ export async function patchSeedConfig(props: {
   dataModel: DataModel;
   seedConfig: SeedConfig;
 }) {
-  const aliasOverride = await getAliasOverride(props.dataModel);
+  const aliasOverride = await getAliasOverride(props);
 
   return {
     ...props.seedConfig,
     alias: {
-      override: aliasOverride,
       ...props.seedConfig.alias,
+      override: R.mergeDeep(
+        aliasOverride,
+        props.seedConfig.alias?.override ?? {},
+      ),
     },
   };
 }

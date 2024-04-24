@@ -3,8 +3,10 @@ import { existsSync } from "node:fs";
 import { writeFile } from "node:fs/promises";
 import { basename, dirname, join, resolve } from "node:path";
 import * as z from "zod";
+import { getAdapter } from "#adapters/getAdapter.js";
 import { getRootPath } from "#config/utils.js";
 import { type Inflection } from "#core/dataModel/aliases.js";
+import { getRawDataModel } from "#core/dataModel/dataModel.js";
 import { SnapletError } from "#core/utils.js";
 import { adapterConfigSchema } from "./adapterConfig.js";
 import { aliasConfigSchema } from "./aliasConfig.js";
@@ -118,7 +120,7 @@ export interface SeedConfig {
   select?: SeedConfigInferred["select"];
 }
 
-export async function getSeedConfig(configPath?: string) {
+async function getRawSeedConfig(configPath?: string) {
   const path = configPath ?? (await getSeedConfigPath());
 
   const exists = existsSync(path);
@@ -135,6 +137,7 @@ export async function getSeedConfig(configPath?: string) {
     });
 
     const parsedConfig = configSchema.parse(config ?? {});
+
     return parsedConfig;
   } catch (error) {
     throw new SnapletError("SEED_CONFIG_INVALID", {
@@ -142,6 +145,21 @@ export async function getSeedConfig(configPath?: string) {
       error: error as Error,
     });
   }
+}
+
+export async function getSeedConfig(configPath?: string) {
+  const seedConfig = await getRawSeedConfig(configPath);
+
+  const adapter = await getAdapter();
+
+  if (adapter.patchSeedConfig) {
+    return adapter.patchSeedConfig({
+      seedConfig,
+      dataModel: await getRawDataModel(),
+    });
+  }
+
+  return seedConfig;
 }
 
 export async function getSeedConfigPath() {
