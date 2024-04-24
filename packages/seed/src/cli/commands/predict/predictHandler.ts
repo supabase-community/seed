@@ -61,6 +61,7 @@ export async function predictHandler({
       });
 
     if (isInit) {
+      console.log();
       console.log(
         `ℹ You can tell us more about your data to further improve the results over here: ${link(`${SNAPLET_APP_URL}/o/${organization.id}/p/${projectConfig.projectId}/seed`)}`,
       );
@@ -76,10 +77,12 @@ export async function predictHandler({
       ]);
 
       if (status === "CANCELLED_BY_USER") {
+        console.log();
         console.log(
           `ℹ We'll continue with the data enhancements in the background, you can get the results by running ${bold(`npx @snaplet/seed sync`)}`,
         );
       } else if (status === "MAX_WAIT_REACHED") {
+        console.log();
         sKeyPress.cancel();
         console.log(
           `ℹ The data enhancements are taking a while, we'll continue with the data enhancements in the backround. You can get the results by running ${bold(`npx @snaplet/seed sync`)}`,
