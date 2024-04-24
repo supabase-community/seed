@@ -104,7 +104,14 @@ async function seedSetup(props: {
     await writeFile(path.join(cwd, "seed.config.ts"), seedConfig);
     // Create a project config file
     const projectConfigPath = path.join(cwd, ".snaplet/config.json");
-    await writeFile(projectConfigPath, JSON.stringify({ projectId: "testProject", adapter: props.adapter.id }, null, 2));
+    await writeFile(
+      projectConfigPath,
+      JSON.stringify(
+        { projectId: "testProject", adapter: props.adapter.id },
+        null,
+        2,
+      ),
+    );
   }
 
   await runCLI(["sync", "--output", "./assets"], {
