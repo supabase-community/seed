@@ -104,6 +104,7 @@ async function seedSetup(props: {
     await writeFile(path.join(cwd, "seed.config.ts"), seedConfig);
     // Create a project config file
     const projectConfigPath = path.join(cwd, ".snaplet/config.json");
+    await mkdirp(path.dirname(projectConfigPath));
     await writeFile(
       projectConfigPath,
       JSON.stringify(
