@@ -1,4 +1,3 @@
-import dedent from "dedent";
 import { SNAPLET_APP_URL } from "#config/constants.js";
 import { getProjectConfigPath } from "#config/project/paths.js";
 import { getProjectConfig } from "#config/project/projectConfig.js";
@@ -21,7 +20,7 @@ export async function predictHandler({
   isInit = false,
 }: { isInit?: boolean } = {}) {
   try {
-    spinner.start("Getting the models' enhancements 🤖");
+    spinner.start(`Enhancing your generated data using ${bold("Snaplet AI")}`);
     const dataModel = await getDataModel();
     const dialect = await getDialect();
     const dataExamples: Array<DataExample> = [];
@@ -55,22 +54,16 @@ export async function predictHandler({
     const shapePredictions = await waitForShapePredictions();
     await setShapePredictions(shapePredictions);
 
-    const shapeExamples = await fetchShapeExamples(shapePredictions);
-    dataExamples.push(...shapeExamples);
-
     const organization =
       await trpc.organization.organizationGetByProjectId.query({
         projectId: projectConfig.projectId,
       });
 
     if (isInit) {
-      console.log(dedent`
-        We're busy enhancing your generated data using Snaplet AI
-
-        You can tell us more about your data to further improve the results over here: ${link(`${SNAPLET_APP_URL}/o/${organization.id}/p/${projectConfig.projectId}/seed`)}
-
-        Or you can skip this step by hitting the ${bold("s")} key
-      `);
+      spinner.info(
+        `You can tell us more about your data to further improve the results over here: ${link(`${SNAPLET_APP_URL}/o/${organization.id}/p/${projectConfig.projectId}/seed`)}`,
+      );
+      spinner.info(`You can skip this step by hitting the ${bold("s")} key`);
 
       const sKeyPress = listenForKeyPress("s");
 
@@ -82,21 +75,25 @@ export async function predictHandler({
       ]);
 
       if (status === "CANCELLED_BY_USER") {
-        console.log(
+        spinner.info(
           `We'll continue with the data enhancements in the background - you can get the results by running ${bold(`npx @snaplet/seed sync`)}`,
         );
       } else if (status === "MAX_WAIT_REACHED") {
         sKeyPress.cancel();
-        console.log(
+        spinner.info(
           `The data enhancements are taking a while - we'll continue with the data enhancements in the background. You can get the results by running ${bold(`npx @snaplet/seed sync`)}`,
         );
       }
     } else {
+      console.log();
       console.log(
-        `\n✨ You can ${brightGreen("improve your generated data")} with ${brightGreen("Snaplet AI")} here: ${link(`${SNAPLET_APP_URL}/o/${organization.id}/p/${projectConfig.projectId}/seed`)}\n`,
+        `✨ You can ${brightGreen("improve your generated data")} with ${brightGreen("Snaplet AI")} here: ${link(`${SNAPLET_APP_URL}/o/${organization.id}/p/${projectConfig.projectId}/seed`)}`,
       );
       await waitForDataGeneration();
     }
+
+    const shapeExamples = await fetchShapeExamples(shapePredictions);
+    dataExamples.push(...shapeExamples);
 
     const customDataSet = await trpc.predictions.customSeedDatasetRoute.mutate({
       inputs,

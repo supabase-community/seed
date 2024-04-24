@@ -182,10 +182,12 @@ export const createCliRouter = ({ publicProcedure = t.procedure } = {}) =>
           }),
         )
         .query(() => {
-          return [] as Array<{
-            id: string;
-            status: "IN_PROGRESS" | "PENDING";
-          }>;
+          return {
+            incompleteJobs: [] as Array<{
+              id: string;
+              status: "IN_PROGRESS" | "PENDING";
+            }>,
+          };
         }),
       seedShapeRoute: publicProcedure
         .input(
