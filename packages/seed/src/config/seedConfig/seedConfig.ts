@@ -147,16 +147,18 @@ async function getRawSeedConfig(configPath?: string) {
   }
 }
 
-export async function getSeedConfig(configPath?: string) {
-  const seedConfig = await getRawSeedConfig(configPath);
+export async function getSeedConfig(props?: { configPath?: string, disablePatch?: boolean }) {
+  const seedConfig = await getRawSeedConfig(props?.configPath);
 
-  const adapter = await getAdapter();
+  if (!props?.disablePatch) {
+    const adapter = await getAdapter();
 
-  if (adapter.patchSeedConfig) {
-    return adapter.patchSeedConfig({
-      seedConfig,
-      dataModel: await getRawDataModel(),
-    });
+    if (adapter.patchSeedConfig) {
+      return adapter.patchSeedConfig({
+        seedConfig,
+        dataModel: await getRawDataModel(),
+      });
+    }
   }
 
   return seedConfig;
