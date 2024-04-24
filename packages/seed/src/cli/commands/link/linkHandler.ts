@@ -37,7 +37,7 @@ const selectOrganization = async () => {
   const choice = await select({
     message: "Select which organization to create your project under",
     choices: [createOption, ...organizationItems],
-    default: organizationItems[0].name,
+    default: organizationItems[0].value,
   });
 
   if (choice === "create") {
@@ -85,7 +85,7 @@ const selectProject = async () => {
   const choice = await select({
     message: "Select which project to link @snaplet/seed to",
     choices: [createOption, ...projectItems],
-    default: projectItems[0].name,
+    default: projectItems[0].value,
   });
 
   if (choice === "create") {

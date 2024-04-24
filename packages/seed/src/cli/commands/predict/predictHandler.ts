@@ -21,6 +21,7 @@ export async function predictHandler({
 }: { isInit?: boolean } = {}) {
   try {
     spinner.start(`Enhancing your generated data using ${bold("Snaplet AI")}`);
+
     const dataModel = await getDataModel();
     const dialect = await getDialect();
     const dataExamples: Array<DataExample> = [];
@@ -60,10 +61,10 @@ export async function predictHandler({
       });
 
     if (isInit) {
-      spinner.info(
-        `You can tell us more about your data to further improve the results over here: ${link(`${SNAPLET_APP_URL}/o/${organization.id}/p/${projectConfig.projectId}/seed`)}`,
+      console.log(
+        `ℹ You can tell us more about your data to further improve the results over here: ${link(`${SNAPLET_APP_URL}/o/${organization.id}/p/${projectConfig.projectId}/seed`)}`,
       );
-      spinner.info(`You can skip this step by hitting the ${bold("s")} key`);
+      console.log(`ℹ You can skip this step by hitting the ${bold("s")} key`);
 
       const sKeyPress = listenForKeyPress("s");
 
@@ -75,13 +76,13 @@ export async function predictHandler({
       ]);
 
       if (status === "CANCELLED_BY_USER") {
-        spinner.info(
-          `We'll continue with the data enhancements in the background - you can get the results by running ${bold(`npx @snaplet/seed sync`)}`,
+        console.log(
+          `ℹ We'll continue with the data enhancements in the background, you can get the results by running ${bold(`npx @snaplet/seed sync`)}`,
         );
       } else if (status === "MAX_WAIT_REACHED") {
         sKeyPress.cancel();
-        spinner.info(
-          `The data enhancements are taking a while - we'll continue with the data enhancements in the background. You can get the results by running ${bold(`npx @snaplet/seed sync`)}`,
+        console.log(
+          `ℹ The data enhancements are taking a while, we'll continue with the data enhancements in the backround. You can get the results by running ${bold(`npx @snaplet/seed sync`)}`,
         );
       }
     } else {
