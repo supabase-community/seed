@@ -70,14 +70,6 @@ export async function getRawDataModel() {
   return dataModel;
 }
 
-export async function getFilteredDataModel() {
-  const dataModelConfig = await getRawDataModel();
-
-  const snapletConfig = await getSeedConfig();
-
-  return getSelectFilteredDataModel(dataModelConfig, snapletConfig.select);
-}
-
 export async function getDataModel() {
   const dataModelConfig = await getRawDataModel();
 
