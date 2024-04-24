@@ -2,10 +2,14 @@ import fs from "fs-extra";
 import { readFile } from "node:fs/promises";
 import path from "node:path";
 import { z } from "zod";
+import { type AdapterId, adapters } from "#adapters/index.js";
 import { getProjectConfigPath } from "#config/project/paths.js";
 
 const projectConfigSchema = z.object({
   projectId: z.string().optional(),
+  adapter: z
+    .string()
+    .refine((v) => Object.keys(adapters).includes(v)) as z.ZodType<AdapterId>,
 });
 
 type ProjectConfig = z.infer<typeof projectConfigSchema>;
@@ -33,7 +37,7 @@ export const saveProjectConfig = async ({
   config,
   configPath,
 }: {
-  config: ProjectConfig;
+  config: Partial<ProjectConfig>;
   // this should only be used in tests in production we should use the default path always
   configPath?: string;
 }) => {

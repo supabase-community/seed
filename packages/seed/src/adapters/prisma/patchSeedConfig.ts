@@ -1,6 +1,6 @@
 import * as R from "remeda";
 import { type SeedConfig } from "#config/seedConfig/seedConfig.js";
-import { getFilteredDataModel } from "#core/dataModel/dataModel.js";
+import { type DataModel } from "#core/dataModel/types.js";
 import { getPrismaDataModel } from "./getPrismaDataModel.js";
 
 const difference = (
@@ -8,12 +8,11 @@ const difference = (
   other: Readonly<Array<unknown>>,
 ) => R.filter(data, R.isNot(R.isIncludedIn(other)));
 
-export async function getAliasOverride() {
+async function getAliasOverride(dataModel: DataModel) {
   const aliasOverride: NonNullable<
     NonNullable<SeedConfig["alias"]>["override"]
   > = {};
   const prismaDataModel = await getPrismaDataModel();
-  const dataModel = await getFilteredDataModel();
 
   for (const [modelName, model] of Object.entries(dataModel.models)) {
     const prismaModel = prismaDataModel.datamodel.models.find(
@@ -56,4 +55,19 @@ export async function getAliasOverride() {
   }
 
   return aliasOverride;
+}
+
+export async function patchSeedConfig(props: {
+  dataModel: DataModel;
+  seedConfig: SeedConfig;
+}) {
+  const aliasOverride = await getAliasOverride(props.dataModel);
+
+  return {
+    ...props.seedConfig,
+    alias: {
+      override: aliasOverride,
+      ...props.seedConfig.alias,
+    },
+  };
 }

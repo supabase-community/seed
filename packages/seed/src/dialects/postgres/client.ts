@@ -24,8 +24,6 @@ export const getSeedClient: GetSeedClient = (props) => {
     constructor(databaseClient: DatabaseClient, options?: SeedClientOptions) {
       super({
         ...props,
-        adapterPatchUserModels:
-          databaseClient.adapterPatchUserModels.bind(databaseClient),
         createStore: (dataModel: DataModel) => new PgStore(dataModel),
         runStatements: async (statements: Array<string>) => {
           if (!this.dryRun) {
