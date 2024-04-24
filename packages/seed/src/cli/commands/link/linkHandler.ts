@@ -29,15 +29,15 @@ const selectOrganization = async () => {
     value: "create",
   };
 
+  const organizationItems = organizations.map((organization) => ({
+    name: organization.name,
+    value: organization.id,
+  }));
+
   const choice = await select({
     message: "Select which organization to create your project under",
-    choices: [
-      createOption,
-      ...organizations.map((organization) => ({
-        name: organization.name,
-        value: organization.id,
-      })),
-    ],
+    choices: [createOption, ...organizationItems],
+    default: organizationItems[0].name,
   });
 
   if (choice === "create") {
@@ -77,15 +77,15 @@ const selectProject = async () => {
     value: "create",
   };
 
+  const projectItems = projects.map((project) => ({
+    name: project.name,
+    value: project.id,
+  }));
+
   const choice = await select({
     message: "Select which project to link @snaplet/seed to",
-    choices: [
-      createOption,
-      ...projects.map((project) => ({
-        name: project.name,
-        value: project.id,
-      })),
-    ],
+    choices: [createOption, ...projectItems],
+    default: projectItems[0].name,
   });
 
   if (choice === "create") {
