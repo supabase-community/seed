@@ -1,6 +1,8 @@
 import { SNAPLET_APP_URL } from "#config/constants.js";
-import { getProjectConfigPath } from "#config/project/projectConfig.js";
-import { getProjectConfig } from "#config/project/projectConfig.js";
+import {
+  getProjectConfig,
+  getProjectConfigPath,
+} from "#config/project/projectConfig.js";
 import { getSeedConfig } from "#config/seedConfig/seedConfig.js";
 import { getDataModel } from "#core/dataModel/dataModel.js";
 import { fetchShapeExamples } from "#core/predictions/shapeExamples/fetchShapeExamples.js";
@@ -23,7 +25,7 @@ export async function predictHandler() {
     const dataExamples: Array<DataExample> = [];
     const projectConfig = await getProjectConfig();
     const seedConfig = await getSeedConfig();
-    if (!projectConfig || !projectConfig.projectId) {
+    if (!projectConfig.projectId) {
       throw new SnapletError("SNAPLET_PROJECT_CONFIG_NOT_FOUND", {
         path: await getProjectConfigPath(),
       });

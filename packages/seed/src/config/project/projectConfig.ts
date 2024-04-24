@@ -1,7 +1,7 @@
 import { pathExists } from "fs-extra";
+import { existsSync } from "node:fs";
 import { readFile, writeFile } from "node:fs/promises";
 import path from "node:path";
-import { existsSync } from "node:fs";
 import { z } from "zod";
 import { type AdapterId, adapters } from "#adapters/index.js";
 import { getDotSnapletPath } from "#config/dotSnaplet.js";
@@ -11,7 +11,8 @@ const projectConfigSchema = z.object({
   projectId: z.string().optional(),
   adapter: z
     .string()
-    .refine((v) => Object.keys(adapters).includes(v)) as z.ZodType<AdapterId>,
+    .refine((v) => Object.keys(adapters).includes(v))
+    .optional() as z.ZodType<AdapterId | undefined>,
 });
 
 type ProjectConfig = z.infer<typeof projectConfigSchema>;

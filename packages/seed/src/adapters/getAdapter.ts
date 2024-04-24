@@ -8,9 +8,9 @@ export async function getAdapter(id?: AdapterId): Promise<Adapter> {
   }
 
   const projectConfig = await getProjectConfig();
-  if (projectConfig?.adapter === undefined) {
+  if (projectConfig.adapter === undefined) {
     throw new Error(
-      "Adapter not found, please ensure that the 'adapter' is set in `.snaplet/config.json`",
+      "Adapter not found, please ensure that the 'adapter' key is set in `.snaplet/config.json`",
     );
   }
 
