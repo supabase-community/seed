@@ -4,7 +4,7 @@ import { readFile, writeFile } from "node:fs/promises";
 import path from "node:path";
 import { z } from "zod";
 import { type AdapterId, adapters } from "#adapters/index.js";
-import { getDotSnapletPath } from "#config/dotSnaplet.js";
+import { ensureDotSnapletPath, getDotSnapletPath } from "#config/dotSnaplet.js";
 import { jsonStringify } from "#core/utils.js";
 
 const projectConfigSchema = z.object({
@@ -42,6 +42,8 @@ export async function getProjectConfig() {
 }
 
 async function setProjectConfig(projectConfig: ProjectConfig) {
+  await ensureDotSnapletPath();
+
   const projectConfigPath = await getProjectConfigPath();
 
   await writeFile(
