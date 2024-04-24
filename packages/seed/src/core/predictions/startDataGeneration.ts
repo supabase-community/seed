@@ -6,6 +6,9 @@ import {
 import { trpc } from "#trpc/client.js";
 import { formatInput } from "./utils.js";
 
+const POLL_INTERVAL = 1000;
+const MAX_WAIT = 5000;
+
 const gatherPrompts = (
   projectId: string,
   dataModel: DataModel,
@@ -72,30 +75,27 @@ export const startDataGeneration = async (
   );
 
   const jobs = results.filter((job) => job.status !== "SUCCESS");
+  const hasPromptJobs = jobs.length > 0;
 
   const waitForDataGeneration = async () => {
-    if (jobs.length === 0) {
-      return;
-    }
+    let isDone = false;
+    const timeoutTime = hasPromptJobs ? Infinity : Date.now() + MAX_WAIT;
 
-    const pendingJobs = new Set(jobs.map((job) => job.dataGenerationJobId));
-
-    while (pendingJobs.size) {
-      for (const dataGenerationJobId of pendingJobs.values()) {
-        const { status } =
-          await trpc.predictions.getDataGenerationJobStatusRoute.query({
-            dataGenerationJobId,
-          });
-
-        if (status === "SUCCESS") {
-          pendingJobs.delete(dataGenerationJobId);
-        }
-
-        await new Promise((resolve) => setTimeout(resolve, 100));
+    while (!isDone && Date.now() < timeoutTime) {
+      const result =
+        await trpc.predictions.getIncompleteDataGenerationJobsStatusRoute.query(
+          {
+            projectId,
+          },
+        );
+      if (result.length > 0) {
+        await new Promise((resolve) => setTimeout(resolve, POLL_INTERVAL));
+      } else {
+        isDone = true;
       }
-
-      await new Promise((resolve) => setTimeout(resolve, 1000));
     }
+
+    return isDone;
   };
 
   return { waitForDataGeneration };
