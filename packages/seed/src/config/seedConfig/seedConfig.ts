@@ -147,7 +147,10 @@ async function getRawSeedConfig(configPath?: string) {
   }
 }
 
-export async function getSeedConfig(props?: { configPath?: string, disablePatch?: boolean }) {
+export async function getSeedConfig(props?: {
+  configPath?: string;
+  disablePatch?: boolean;
+}) {
   const seedConfig = await getRawSeedConfig(props?.configPath);
 
   if (!props?.disablePatch) {
