@@ -4,6 +4,7 @@ import { type Database } from "better-sqlite3";
 import dedent from "dedent";
 import { Sql } from "postgres";
 import { SeedBetterSqlite3 } from "#adapters/better-sqlite3/better-sqlite3.js";
+import { AdapterId } from "#adapters/index.js";
 import { SeedPostgres } from "#adapters/postgres/postgres.js";
 import { DatabaseClient } from "#core/databaseClient.js";
 import { Dialect } from "#core/dialect/types.js";
@@ -28,11 +29,13 @@ export interface Adapter<Client = unknown> {
       select?: string;
     },
   ): string;
+  id: AdapterId;
   skipReason?: string;
 }
 
 export const adapters: Record<DialectId, Adapter> = {
   postgres: {
+    id: "postgres",
     dialect: postgresDialect,
     createTestDb: postgresCreateTestDb,
     generateSeedConfig: (connectionString, config) => {
@@ -53,6 +56,7 @@ export const adapters: Record<DialectId, Adapter> = {
     createClient: (client: Sql) => new SeedPostgres(client),
   },
   sqlite: {
+    id: "better-sqlite3",
     dialect: sqliteDialect,
     createTestDb: sqliteCreateTestDb,
     createClient: (client: Database) => new SeedBetterSqlite3(client),

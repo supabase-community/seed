@@ -4,12 +4,16 @@ import { SnapletError } from "#core/utils.js";
 
 let databaseClient: DatabaseClient | undefined;
 
-export async function getDatabaseClient(seedConfigPath?: string) {
+export async function getDatabaseClient() {
   if (databaseClient) {
     return databaseClient;
   }
 
-  const seedConfig = await getSeedConfig(seedConfigPath);
+  // patching the seedConfig requires the dataModel which doesn't exist yet during the introspection
+  // this will be better when we will split the config between adapter.ts and seed.config.json
+  const seedConfig = await getSeedConfig({
+    disablePatch: true,
+  });
 
   try {
     const _databaseClient = await seedConfig.adapter();

@@ -24,10 +24,6 @@ export abstract class SeedClientBase implements SeedClient {
   readonly userModels: UserModels;
 
   constructor(props: {
-    adapterPatchUserModels: (props: {
-      dataModel: DataModel;
-      userModels: UserModels;
-    }) => UserModels;
     createStore: (dataModel: DataModel) => Store;
     dataModel: DataModel;
     emit?: (event: string) => void;
@@ -47,13 +43,10 @@ export abstract class SeedClientBase implements SeedClient {
       props.options?.models ?? {},
     );
 
-    this.userModels = props.adapterPatchUserModels({
-      dataModel: this.dataModel,
-      userModels: mergeUserModels(
-        props.userModels,
-        props.options?.models ?? {},
-      ),
-    });
+    this.userModels = mergeUserModels(
+      props.userModels,
+      props.options?.models ?? {},
+    );
 
     this.state = this.getInitialState();
 
