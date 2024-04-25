@@ -2,10 +2,11 @@ import { type DatabaseClient } from "#core/databaseClient.js";
 import { buildSchemaInclusionClause } from "./utils.js";
 
 interface FetchPrimaryKeysResult {
-  dirty: boolean;
-  keys: Array<{ name: string; type: string }>;
+  name: string;
+  schema: string;
   table: string;
   tableId: string;
+  type: string;
 }
 
 const FETCH_PRIMARY_KEYS = (schemas: Array<string>) => `
@@ -13,8 +14,8 @@ SELECT
   tc.TABLE_SCHEMA AS \`schema\`,
   tc.TABLE_NAME AS \`table\`,
   CONCAT(tc.TABLE_SCHEMA, '.', tc.TABLE_NAME) AS tableId,
-  JSON_ARRAYAGG(JSON_OBJECT('name', kcu.COLUMN_NAME, 'type', cols.DATA_TYPE)) AS \`keys\`,
-  false AS dirty
+  kcu.COLUMN_NAME AS name,
+  cols.DATA_TYPE AS type
 FROM 
   information_schema.TABLE_CONSTRAINTS AS tc
 JOIN 
@@ -30,15 +31,13 @@ JOIN
 WHERE 
   tc.CONSTRAINT_TYPE = 'PRIMARY KEY' AND
   ${buildSchemaInclusionClause(schemas, "tc.TABLE_SCHEMA")}
-GROUP BY 
-  tc.TABLE_SCHEMA, tc.TABLE_NAME
 UNION ALL
 SELECT 
   s.TABLE_SCHEMA AS \`schema\`,
   s.TABLE_NAME AS \`table\`,
   CONCAT(s.TABLE_SCHEMA, '.', s.TABLE_NAME) AS tableId,
-  JSON_ARRAYAGG(JSON_OBJECT('name', s.COLUMN_NAME, 'type', cols.DATA_TYPE)) AS \`keys\`,
-  false AS dirty
+  s.COLUMN_NAME AS name,
+  cols.DATA_TYPE AS type
 FROM 
   information_schema.STATISTICS AS s
 JOIN
@@ -51,10 +50,6 @@ WHERE
   s.INDEX_NAME != 'PRIMARY' AND
   cols.IS_NULLABLE = 'NO' AND
   ${buildSchemaInclusionClause(schemas, "s.TABLE_SCHEMA")}
-GROUP BY 
-  s.TABLE_SCHEMA, s.TABLE_NAME
-HAVING 
-  COUNT(s.COLUMN_NAME) > 0
 ORDER BY 
   \`schema\`, \`table\`;
 `;
@@ -63,10 +58,48 @@ export async function fetchPrimaryKeys(
   client: DatabaseClient,
   schemas: Array<string>,
 ) {
-  const query = FETCH_PRIMARY_KEYS(schemas);
-  const response = await client.query<FetchPrimaryKeysResult>(query);
-  return response.map((row) => ({
-    ...row,
-    dirty: Boolean(row.dirty),
-  }));
+  const rawRows = await client.query<FetchPrimaryKeysResult>(
+    FETCH_PRIMARY_KEYS(schemas),
+  );
+  const groupedResults = rawRows.reduce<
+    Record<
+      string,
+      {
+        dirty: boolean;
+        keys: Array<{
+          name: string;
+          type: string;
+        }>;
+        schema: string;
+        table: string;
+        tableId: string;
+      }
+    >
+  >((acc, row) => {
+    const key = row.tableId;
+    // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
+    if (!acc[key]) {
+      acc[key] = {
+        dirty: false,
+        table: row.table,
+        schema: row.schema,
+        tableId: row.tableId,
+        keys: [],
+      };
+    }
+    // rawRows might contains duplicates for the same column
+    if (
+      !acc[key].keys.some(
+        (key) => key.name === row.name && key.type === row.type,
+      )
+    ) {
+      acc[key].keys.push({
+        name: row.name,
+        type: row.type,
+      });
+    }
+    return acc;
+  }, {});
+
+  return Object.values(groupedResults);
 }

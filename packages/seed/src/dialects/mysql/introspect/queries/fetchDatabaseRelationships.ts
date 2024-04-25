@@ -1,63 +1,86 @@
 import { type DatabaseClient } from "#core/databaseClient.js";
-import { buildSchemaExclusionClause } from "./utils.js";
+import { buildSchemaInclusionClause } from "./utils.js";
 
-interface RelationKeyInfos {
+interface FetchRelationshipsInfosResult {
   fkColumn: string;
+  fkTable: string;
   fkType: string;
+  id: string;
   nullable: boolean;
   targetColumn: string;
+  targetTable: string;
   targetType: string;
 }
-interface FetchRelationshipsInfosResult {
-  fkTable: string;
-  id: string;
-  keys: Array<RelationKeyInfos>;
-  targetTable: string;
-}
-const FETCH_RELATIONSHIPS_INFOS = `
+
+const FETCH_RELATIONSHIPS_INFOS = (schemas: Array<string>) => `
   SELECT
-    constraint_name AS "id",
-    concat(fk_nsp.nspname, '.', fk_table) AS "fkTable",
-    json_agg(json_build_object(
-      'fkColumn', fk_att.attname,
-      'fkType', fk_typ.typname,
-      'targetColumn', tar_att.attname,
-      'targetType', tar_typ.typname,
-      'nullable', fk_att.attnotnull = false
-    ) ORDER BY fk_att.attnum) AS "keys",
-    concat(tar_nsp.nspname, '.', target_table) AS "targetTable"
-    FROM (
-        SELECT
-            fk.oid AS fk_table_id,
-            fk.relnamespace AS fk_schema_id,
-            fk.relname AS fk_table,
-            unnest(con.conkey) as fk_column_id,
-            tar.oid AS target_table_id,
-            tar.relnamespace AS target_schema_id,
-            tar.relname AS target_table,
-            unnest(con.confkey) as target_column_id,
-            con.connamespace AS constraint_nsp,
-            con.conname AS constraint_name
-        FROM pg_constraint con
-        JOIN pg_class fk ON con.conrelid = fk.oid
-        JOIN pg_class tar ON con.confrelid = tar.oid
-        WHERE con.contype = 'f' AND fk.relispartition IS FALSE
-    ) sub
-    JOIN pg_attribute fk_att ON fk_att.attrelid = fk_table_id AND fk_att.attnum = fk_column_id
-    JOIN pg_attribute tar_att ON tar_att.attrelid = target_table_id AND tar_att.attnum = target_column_id
-    JOIN pg_type fk_typ ON fk_att.atttypid = fk_typ.oid
-    JOIN pg_type tar_typ ON tar_att.atttypid = tar_typ.oid
-    JOIN pg_namespace fk_nsp ON fk_schema_id = fk_nsp.oid
-    JOIN pg_namespace tar_nsp ON target_schema_id = tar_nsp.oid
-  WHERE ${buildSchemaExclusionClause("fk_nsp.nspname")}
-  GROUP BY "fkTable", "targetTable", sub.constraint_nsp, sub.constraint_name
-  ORDER BY "fkTable", "targetTable";
+    kcu.CONSTRAINT_NAME AS id,
+    CONCAT(kcu.TABLE_SCHEMA, '.', kcu.TABLE_NAME) AS fkTable,
+    kcu.COLUMN_NAME AS fkColumn,
+    col.COLUMN_TYPE AS fkType,
+    kcu.REFERENCED_COLUMN_NAME AS targetColumn,
+    refcol.COLUMN_TYPE AS targetType,
+    col.IS_NULLABLE = 'YES' AS nullable,
+    CONCAT(kcu.REFERENCED_TABLE_SCHEMA, '.', kcu.REFERENCED_TABLE_NAME) AS targetTable
+  FROM information_schema.KEY_COLUMN_USAGE kcu
+  JOIN information_schema.COLUMNS col ON col.TABLE_SCHEMA = kcu.TABLE_SCHEMA
+    AND col.TABLE_NAME = kcu.TABLE_NAME
+    AND col.COLUMN_NAME = kcu.COLUMN_NAME
+  JOIN information_schema.COLUMNS refcol ON refcol.TABLE_SCHEMA = kcu.REFERENCED_TABLE_SCHEMA
+    AND refcol.TABLE_NAME = kcu.REFERENCED_TABLE_NAME
+    AND refcol.COLUMN_NAME = kcu.REFERENCED_COLUMN_NAME
+  WHERE kcu.REFERENCED_TABLE_NAME IS NOT NULL
+    AND ${buildSchemaInclusionClause(schemas, "kcu.TABLE_SCHEMA")}
+  ORDER BY fkTable, targetTable, kcu.CONSTRAINT_NAME, kcu.ORDINAL_POSITION;
 `;
 
-export async function fetchDatabaseRelationships(client: DatabaseClient) {
-  const response = await client.query<FetchRelationshipsInfosResult>(
-    FETCH_RELATIONSHIPS_INFOS,
-  );
+export async function fetchDatabaseRelationships(
+  client: DatabaseClient,
+  schemas: Array<string>,
+) {
+  const query = FETCH_RELATIONSHIPS_INFOS(schemas);
+  const rows = await client.query<FetchRelationshipsInfosResult>(query);
 
-  return response;
+  const relationships = rows.reduce<
+    Record<
+      string,
+      {
+        dirty: boolean;
+        fkTable: string;
+        id: string;
+        keys: Array<{
+          fkColumn: string;
+          fkType: string;
+          nullable: boolean;
+          targetColumn: string;
+          targetType: string;
+        }>;
+        targetTable: string;
+      }
+    >
+  >((acc, row) => {
+    const { id, fkTable, targetTable } = row;
+    const keyInfo = {
+      fkColumn: row.fkColumn,
+      fkType: row.fkType,
+      nullable: Boolean(row.nullable),
+      targetColumn: row.targetColumn,
+      targetType: row.targetType,
+    };
+
+    // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
+    if (!acc[id]) {
+      acc[id] = {
+        fkTable,
+        id,
+        keys: [],
+        targetTable,
+        dirty: false,
+      };
+    }
+    acc[id].keys.push(keyInfo);
+    return acc;
+  }, {});
+
+  return Object.values(relationships);
 }
