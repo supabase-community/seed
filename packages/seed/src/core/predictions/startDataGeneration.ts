@@ -6,6 +6,8 @@ import {
 import { trpc } from "#trpc/client.js";
 import { formatInput } from "./utils.js";
 
+console.log();
+
 const gatherPrompts = (
   projectId: string,
   dataModel: DataModel,
