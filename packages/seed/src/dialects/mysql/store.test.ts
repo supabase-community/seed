@@ -1,11 +1,10 @@
 import { describe, expect, test } from "vitest";
 import { type DatabaseClient } from "#core/databaseClient.js";
-import { postgres } from "#test/postgres/postgres/index.js";
 import { getDatamodel } from "./dataModel.js";
 import { PgStore } from "./store.js";
 
 const adapters = {
-  postgres: () => postgres,
+  mysql: () => mysql,
 };
 
 async function execQueries(client: DatabaseClient, queries: Array<string>) {
@@ -14,7 +13,7 @@ async function execQueries(client: DatabaseClient, queries: Array<string>) {
   }
 }
 
-describe.concurrent.each(["postgres"] as const)("store: %s", (adapter) => {
+describe.concurrent.each(["mysql"] as const)("store: %s", (adapter) => {
   const { createTestDb } = adapters[adapter]();
   describe("SQL -> Store -> SQL", () => {
     test("should be able to insert basic rows into table", async () => {

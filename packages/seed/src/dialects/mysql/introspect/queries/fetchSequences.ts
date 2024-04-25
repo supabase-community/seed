@@ -1,5 +1,8 @@
 import { type DatabaseClient } from "#core/databaseClient.js";
-import { buildSchemaExclusionClause } from "./utils.js";
+import {
+  buildSchemaInclusionClause,
+  updateDatabasesTablesInfos,
+} from "./utils.js";
 
 interface FetchSequencesResult {
   current: bigint | number;
@@ -9,29 +12,37 @@ interface FetchSequencesResult {
   start: number;
 }
 
-const FETCH_SEQUENCES = `
+// Query to fetch AUTO_INCREMENT information, which behaves like sequences in MySQL
+const FETCH_SEQUENCES = (schemas: Array<string>) => `
 SELECT
-  schemaname AS schema,
-  sequencename AS name,
-  start_value AS start,
-  COALESCE(last_value, start_value) AS current,
-  increment_by AS interval
+  TABLE_SCHEMA AS \`schema\`,
+  TABLE_NAME AS name,
+  AUTO_INCREMENT AS current
 FROM
- pg_sequences
-WHERE ${buildSchemaExclusionClause("pg_sequences.schemaname")}
+  information_schema.TABLES
+WHERE
+  TABLE_TYPE = 'BASE TABLE' AND
+  AUTO_INCREMENT IS NOT NULL AND
+  ${buildSchemaInclusionClause(schemas, "TABLE_SCHEMA")}
+ORDER BY TABLE_SCHEMA, TABLE_NAME;
 `;
 
-export async function fetchSequences(client: DatabaseClient) {
-  const response = await client.query<FetchSequencesResult>(FETCH_SEQUENCES);
+export async function fetchSequences(
+  client: DatabaseClient,
+  schemas: Array<string>,
+) {
+  // MySQL will delegate updating the informations_schemas infos by default
+  // When fetching sequences, we need to make sure the tables infos are up-to-date
+  await updateDatabasesTablesInfos(client, schemas);
+  const response = await client.query<FetchSequencesResult>(
+    FETCH_SEQUENCES(schemas),
+  );
 
   return response.map((r) => ({
     schema: r.schema,
-    name: r.name,
-    start: Number(r.start),
-    // When a sequence is created, the current value is the start value and is available for use
-    // but when the sequence is used for the first time, the current values is the last used one not available for use
-    // so we increment it by one to get the next available value instead
-    current: r.start === r.current ? Number(r.current) : Number(r.current) + 1,
-    interval: Number(r.interval),
+    name: `${r.name}_seq`,
+    start: 1, // Auto-increment always starts from 1 in MySQL
+    current: r.current, // Adjusting to simulate 'last_value' from PostgreSQL
+    interval: 1, // Interval is always 1 in MySQL
   }));
 }

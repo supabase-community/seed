@@ -1,12 +1,12 @@
 import { describe, expect, test } from "vitest";
-import { postgres } from "#test/postgres/postgres/index.js";
+import { mysql } from "#test/mysql/mysql/index.js";
 import { fetchDatabaseRelationships } from "./fetchDatabaseRelationships.js";
 
 const adapters = {
-  postgres: () => postgres,
+  mysql: () => mysql,
 };
 
-describe.concurrent.each(["postgres"] as const)(
+describe.concurrent.each(["mysql"] as const)(
   "fetchDatabaseRelationships: %s",
   (adapter) => {
     const { createTestDb } = adapters[adapter]();

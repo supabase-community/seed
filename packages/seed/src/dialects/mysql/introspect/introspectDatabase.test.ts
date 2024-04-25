@@ -1,13 +1,13 @@
 import { describe, expect, test } from "vitest";
 import { SeedPostgres } from "#adapters/postgres/index.js";
-import { postgres } from "#test/postgres/postgres/index.js";
+import { mysql } from "#test/mysql/mysql/index.js";
 import { type Relationship, introspectDatabase } from "./introspectDatabase.js";
 
 const adapters = {
-  postgres: () => postgres,
+  mysql: () => mysql,
 };
 
-describe.concurrent.each(["postgres"] as const)(
+describe.concurrent.each(["mysql"] as const)(
   "introspectDatabase: %s",
   (adapter) => {
     const { createTestDb, createSnapletTestDb, createTestRole } =
