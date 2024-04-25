@@ -95,7 +95,7 @@ export const createTelemetry = (options: TelemetryOptions) => {
     properties = {
       ...properties,
       source,
-      version: getVersion(),
+      version: `seed@${getVersion()}`,
       isCI: ci.isCI,
       ci: {
         isPR: ci.isPR,
