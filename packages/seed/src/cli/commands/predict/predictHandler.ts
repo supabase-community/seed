@@ -79,13 +79,13 @@ export async function predictHandler({
       if (status === "CANCELLED_BY_USER") {
         console.log();
         console.log(
-          `ℹ We'll continue with the data enhancements in the background, you can get the results by running ${bold(`npx @snaplet/seed sync`)}`,
+          `ℹ Skipped! You can start using what's already available now. We'll keep generating the rest in the cloud. You can retrieve these later with ${bold("npx @snaplet/seed sync")}`,
         );
       } else if (status === "MAX_WAIT_REACHED") {
         console.log();
         sKeyPress.cancel();
         console.log(
-          `ℹ The data enhancements are taking a while, we'll continue with the data enhancements in the backround. You can get the results by running ${bold(`npx @snaplet/seed sync`)}`,
+          `ℹ Data enhancements are taking a while. You can start using what's already available now. We'll keep generating the rest in the cloud. You can retrieve these later with ${bold("npx @snaplet/seed sync")}`,
         );
       }
     } else {

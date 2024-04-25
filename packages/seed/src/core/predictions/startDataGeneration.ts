@@ -8,7 +8,7 @@ import { formatInput } from "./utils.js";
 
 const POLL_INTERVAL = 1000;
 const MAX_START_WAIT = 1000 * 5;
-const MAX_COMPLETION_WAIT = 1000 * 60;
+const MAX_COMPLETION_WAIT = 1000 * 30;
 
 const gatherPrompts = (
   projectId: string,
