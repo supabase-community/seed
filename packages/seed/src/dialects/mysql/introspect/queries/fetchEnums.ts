@@ -12,7 +12,7 @@ const FETCH_ENUMS = (schemas: Array<string>) => `
   SELECT
     TABLE_SCHEMA AS \`schema\`,
     COLUMN_NAME AS name,
-    CONCAT(TABLE_SCHEMA, '.', COLUMN_NAME) AS id,
+    CONCAT(TABLE_SCHEMA, '.', TABLE_NAME, '.', COLUMN_NAME) AS id,
     SUBSTRING(COLUMN_TYPE FROM 6 FOR LENGTH(COLUMN_TYPE) - 6) AS \`values\`
   FROM information_schema.COLUMNS
   WHERE

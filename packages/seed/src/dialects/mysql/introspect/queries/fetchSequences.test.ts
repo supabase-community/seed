@@ -22,8 +22,10 @@ describe.concurrent.each(["mysql"] as const)(
       const sequences = await fetchSequences(client, [name]);
       expect(sequences).toEqual([
         {
+          columnName: "id",
           schema: name,
-          name: "example_seq",
+          tableId: `${name}.example`,
+          name: `${name}.example.id`,
           current: 1,
           interval: 1,
           start: 1,
@@ -48,15 +50,19 @@ describe.concurrent.each(["mysql"] as const)(
       expect(sequences).toEqual(
         expect.arrayContaining([
           {
+            columnName: "student_id",
+            tableId: `${name}.students`,
             schema: name,
-            name: "students_seq",
+            name: `${name}.students.student_id`,
             current: 1,
             interval: 1,
             start: 1,
           },
           {
+            columnName: "course_id",
+            tableId: `${name}.courses`,
             schema: name,
-            name: "courses_seq",
+            name: `${name}.courses.course_id`,
             current: 1,
             interval: 1,
             start: 1,
@@ -73,15 +79,19 @@ describe.concurrent.each(["mysql"] as const)(
       expect(updatedSequences).toEqual(
         expect.arrayContaining([
           {
+            columnName: "student_id",
+            tableId: `${name}.students`,
             schema: name,
-            name: "students_seq",
+            name: `${name}.students.student_id`,
             current: 3,
             interval: 1,
             start: 1,
           },
           {
+            columnName: "course_id",
+            tableId: `${name}.courses`,
             schema: name,
-            name: "courses_seq",
+            name: `${name}.courses.course_id`,
             current: 3,
             interval: 1,
             start: 1,
@@ -113,16 +123,20 @@ describe.concurrent.each(["mysql"] as const)(
       expect(sequences).toEqual(
         expect.arrayContaining([
           {
+            columnName: "id",
+            tableId: `${name}.example1`,
             current: 1,
             interval: 1,
-            name: "example1_seq",
+            name: `${name}.example1.id`,
             schema: name,
             start: 1,
           },
           {
+            columnName: "id",
+            tableId: `${name}.example2`,
             current: 1,
             interval: 1,
-            name: "example2_seq",
+            name: `${name}.example2.id`,
             schema: name,
             start: 1,
           },

@@ -101,11 +101,11 @@ const computeEnumType = (
   introspection: IntrospectedStructure,
   column: IntrospectedStructure["tables"][number]["columns"][number],
 ): string => {
-  const matchingEnum = introspection.enums.find((e) => e.id === column.typeId);
+  const matchingEnum = introspection.enums.find((e) => e.id === column.type);
 
   if (!matchingEnum) {
     throw new Error(
-      `Could not find enum "${column.typeId}" when creating data model`,
+      `Could not find enum "${column.type}" when creating data model`,
     );
   }
 
@@ -206,7 +206,7 @@ function columnSequence(
 export function introspectionToDataModel(
   introspection: IntrospectedStructure,
 ): DataModel {
-  const dataModel: DataModel = { dialect: "postgres", models: {}, enums: {} };
+  const dataModel: DataModel = { dialect: "mysql", models: {}, enums: {} };
 
   for (const e of introspection.enums) {
     const enumName = getEnumName(introspection, e);
@@ -229,10 +229,9 @@ export function introspectionToDataModel(
     }
 
     for (const column of table.columns) {
-      const type =
-        column.typeCategory === "E"
-          ? computeEnumType(introspection, column)
-          : column.type;
+      const type = column.type.startsWith("enum")
+        ? computeEnumType(introspection, column)
+        : column.type;
       const sequence = columnSequence(column, introspection.sequences);
       const field: DataModelField = {
         id: column.id,
@@ -242,9 +241,7 @@ export function introspectionToDataModel(
         isRequired: !column.nullable,
         kind: "scalar",
         isList: false,
-        isGenerated:
-          column.generated === "ALWAYS" ||
-          column.identity?.generated === "ALWAYS",
+        isGenerated: false,
         sequence,
         hasDefaultValue: column.default !== null,
         isId: Boolean(primaryKeysColumnsNames.get(column.name)),
@@ -334,7 +331,6 @@ export function introspectionToDataModel(
         table.uniqueConstraints?.map((c) => ({
           name: c.name,
           fields: c.columns,
-          nullNotDistinct: c.nullNotDistinct,
         })) ?? [],
     };
 

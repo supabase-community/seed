@@ -4,12 +4,11 @@ import { buildSchemaInclusionClause } from "./utils.js";
 interface FetchRelationshipsInfosResult {
   fkColumn: string;
   fkTable: string;
-  fkType: string;
   id: string;
   nullable: boolean;
   targetColumn: string;
   targetTable: string;
-  targetType: string;
+  type: string;
 }
 
 const FETCH_RELATIONSHIPS_INFOS = (schemas: Array<string>) => `
@@ -17,9 +16,8 @@ const FETCH_RELATIONSHIPS_INFOS = (schemas: Array<string>) => `
     kcu.CONSTRAINT_NAME AS id,
     CONCAT(kcu.TABLE_SCHEMA, '.', kcu.TABLE_NAME) AS fkTable,
     kcu.COLUMN_NAME AS fkColumn,
-    col.COLUMN_TYPE AS fkType,
+    col.COLUMN_TYPE AS type,
     kcu.REFERENCED_COLUMN_NAME AS targetColumn,
-    refcol.COLUMN_TYPE AS targetType,
     col.IS_NULLABLE = 'YES' AS nullable,
     CONCAT(kcu.REFERENCED_TABLE_SCHEMA, '.', kcu.REFERENCED_TABLE_NAME) AS targetTable
   FROM information_schema.KEY_COLUMN_USAGE kcu
@@ -50,10 +48,9 @@ export async function fetchDatabaseRelationships(
         id: string;
         keys: Array<{
           fkColumn: string;
-          fkType: string;
           nullable: boolean;
           targetColumn: string;
-          targetType: string;
+          type: string;
         }>;
         targetTable: string;
       }
@@ -62,10 +59,9 @@ export async function fetchDatabaseRelationships(
     const { id, fkTable, targetTable } = row;
     const keyInfo = {
       fkColumn: row.fkColumn,
-      fkType: row.fkType,
+      type: row.type,
       nullable: Boolean(row.nullable),
       targetColumn: row.targetColumn,
-      targetType: row.targetType,
     };
 
     // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition

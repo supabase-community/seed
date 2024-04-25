@@ -16,10 +16,6 @@ interface FetchUniqueConstraintsResult {
    */
   name: string;
   /**
-   * Whether the constraint is NULLS NOT DISTINCT
-   */
-  nullNotDistinct?: boolean;
-  /**
    * The schema name
    */
   schema: string;

@@ -58,6 +58,10 @@ export async function fetchTablesAndColumns(
       )
       .map((column) => ({
         ...column,
+        type:
+          column.type === "enum"
+            ? `enum.${table.schema}.${table.name}.${column.name}`
+            : column.type,
         nullable: column.nullable === 1,
       })),
   }));

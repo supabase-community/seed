@@ -22,7 +22,7 @@ describe.concurrent.each(["mysql"] as const)("fetchEnums: %s", (adapter) => {
     const enums = await fetchEnums(db.client, schemas);
     expect(enums).toEqual([
       {
-        id: `${db.name}.status`,
+        id: `${db.name}.test_table.status`,
         schema: db.name,
         name: "status",
         values: expect.arrayContaining(["A", "B", "C"]),
@@ -48,13 +48,13 @@ describe.concurrent.each(["mysql"] as const)("fetchEnums: %s", (adapter) => {
     expect(enums).toEqual(
       expect.arrayContaining([
         {
-          id: `${db.name}.status1`,
+          id: `${db.name}.test_table1.status1`,
           schema: db.name,
           name: "status1",
           values: expect.arrayContaining(["A", "B", "C"]),
         },
         {
-          id: `${db.name}.status2`,
+          id: `${db.name}.test_table2.status2`,
           schema: db.name,
           name: "status2",
           values: expect.arrayContaining(["D", "E", "F"]),

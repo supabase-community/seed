@@ -65,9 +65,8 @@ describe.concurrent.each(["mysql"] as const)(
             keys: [
               {
                 fkColumn: "CourseID",
-                fkType: "int",
+                type: "int",
                 targetColumn: "CourseID",
-                targetType: "int",
                 nullable: false,
               },
             ],
@@ -78,9 +77,8 @@ describe.concurrent.each(["mysql"] as const)(
             keys: [
               {
                 fkColumn: "StudentID",
-                fkType: "int",
+                type: "int",
                 targetColumn: "StudentID",
-                targetType: "int",
                 nullable: false,
               },
             ],
@@ -91,16 +89,14 @@ describe.concurrent.each(["mysql"] as const)(
             keys: [
               {
                 fkColumn: "CourseID",
-                fkType: "int",
+                type: "int",
                 targetColumn: "CourseID",
-                targetType: "int",
                 nullable: false,
               },
               {
                 fkColumn: "StudentID",
-                fkType: "int",
+                type: "int",
                 targetColumn: "StudentID",
-                targetType: "int",
                 nullable: false,
               },
             ],
@@ -147,9 +143,8 @@ describe.concurrent.each(["mysql"] as const)(
             keys: [
               {
                 fkColumn: "StudentCourseId",
-                fkType: "int",
+                type: "int",
                 targetColumn: "CourseID",
-                targetType: "int",
                 nullable: false,
               },
             ],
@@ -160,9 +155,8 @@ describe.concurrent.each(["mysql"] as const)(
             keys: [
               {
                 fkColumn: "CourseID",
-                fkType: "int",
+                type: "int",
                 targetColumn: "CourseID",
-                targetType: "int",
                 nullable: false,
               },
             ],
@@ -229,10 +223,9 @@ describe.concurrent.each(["mysql"] as const)(
             keys: [
               {
                 fkColumn: "CourseID",
-                fkType: "int",
+                type: "int",
                 nullable: true,
                 targetColumn: "CourseID",
-                targetType: "int",
               },
             ],
           }),
@@ -242,17 +235,15 @@ describe.concurrent.each(["mysql"] as const)(
             keys: [
               {
                 fkColumn: "CourseID",
-                fkType: "int",
+                type: "int",
                 nullable: false,
                 targetColumn: "CourseID",
-                targetType: "int",
               },
               {
                 fkColumn: "StudentID",
-                fkType: "int",
+                type: "int",
                 nullable: false,
                 targetColumn: "StudentID",
-                targetType: "int",
               },
             ],
           }),
@@ -262,10 +253,9 @@ describe.concurrent.each(["mysql"] as const)(
             keys: [
               {
                 fkColumn: "StudentCourseId",
-                fkType: "int",
+                type: "int",
                 nullable: true,
                 targetColumn: "CourseID",
-                targetType: "int",
               },
             ],
           }),

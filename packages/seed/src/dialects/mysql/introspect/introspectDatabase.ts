@@ -4,9 +4,11 @@ import { groupBy } from "../utils.js";
 import { fetchDatabaseRelationships } from "./queries/fetchDatabaseRelationships.js";
 import { fetchEnums } from "./queries/fetchEnums.js";
 import { fetchPrimaryKeys } from "./queries/fetchPrimaryKeys.js";
+import { fetchSchemas } from "./queries/fetchSchemas.js";
 import { fetchSequences } from "./queries/fetchSequences.js";
 import { fetchTablesAndColumns } from "./queries/fetchTablesAndColumns.js";
 import { fetchUniqueConstraints } from "./queries/fetchUniqueConstraints.js";
+import { updateDatabasesTablesInfos } from "./queries/utils.js";
 import { type AsyncFunctionSuccessType } from "./types.js";
 
 type PrimaryKeys = AsyncFunctionSuccessType<typeof fetchPrimaryKeys>;
@@ -45,12 +47,16 @@ export interface IntrospectedStructure extends IntrospectedStructureBase {
 export async function introspectDatabase(
   client: DatabaseClient,
 ): Promise<IntrospectedStructure> {
-  const tablesInfos = await fetchTablesAndColumns(client);
-  const enums = await fetchEnums(client);
-  const relationships = await fetchDatabaseRelationships(client);
-  const primaryKeys = await fetchPrimaryKeys(client);
-  const uniqueConstraints = await fetchUniqueConstraints(client);
-  const sequences = await fetchSequences(client);
+  const schemas = await fetchSchemas(client);
+  // MySQL will delegate updating the informations_schemas infos by default
+  // we want to ensure we get the latest infos
+  await updateDatabasesTablesInfos(client, schemas);
+  const tablesInfos = await fetchTablesAndColumns(client, schemas);
+  const enums = await fetchEnums(client, schemas);
+  const relationships = await fetchDatabaseRelationships(client, schemas);
+  const primaryKeys = await fetchPrimaryKeys(client, schemas);
+  const uniqueConstraints = await fetchUniqueConstraints(client, schemas);
+  const sequences = await fetchSequences(client, schemas);
   const tableIds = tablesInfos.map((table) => table.id);
   const groupedRelationships = groupParentsChildrenRelations(
     relationships,
@@ -59,26 +65,38 @@ export async function introspectDatabase(
   const sequencesGroupesBySchema = groupBy(sequences, (s) => s.schema);
   // tableId is the schema.table of the pk in our results
   const groupedPrimaryKeys = groupBy(primaryKeys, (k) => k.tableId);
-  const groupedUniqueConstraints = groupBy(uniqueConstraints, (c) => c.tableId);
+  const groupedConstraints = groupBy(uniqueConstraints, (c) => c.tableId);
   // We build or final table structure here, augmenting the basic one with
   // relations and primary keys infos
   const tablesWithRelations: IntrospectedStructure["tables"] = tablesInfos.map(
     (table) => {
-      const tableRelationships = groupedRelationships.get(table.id);
+      const tableRelations = groupedRelationships.get(table.id) ?? {
+        parents: [],
+        children: [],
+      };
       const primaryKeys = groupedPrimaryKeys[table.id]?.[0] ?? null;
-      const uniqueConstraints = groupedUniqueConstraints[table.id] ?? [];
+      const tableConstraints = groupedConstraints[table.id] ?? [];
+      const columns = table.columns.map((column) => {
+        const sequence = sequences.find(
+          (s) => s.name === `${table.id}.${column.name}`,
+        );
+        return {
+          ...column,
+          identity: sequence
+            ? {
+                current: sequence.current,
+                name: sequence.name,
+              }
+            : null,
+        };
+      });
+
       return {
-        id: table.id,
-        name: table.name,
-        schema: table.schema,
-        rows: table.rows,
-        bytes: table.bytes,
-        partitioned: table.partitioned,
-        columns: table.columns,
-        parents: tableRelationships?.parents ?? [],
-        children: tableRelationships?.children ?? [],
+        ...table,
+        ...tableRelations,
+        columns,
+        constraints: tableConstraints,
         primaryKeys,
-        uniqueConstraints,
       };
     },
   );

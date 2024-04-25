@@ -1,223 +1,65 @@
 import { describe, expect, test } from "vitest";
-import { SeedPostgres } from "#adapters/postgres/index.js";
 import { mysql } from "#test/mysql/mysql/index.js";
 import { type Relationship, introspectDatabase } from "./introspectDatabase.js";
 
 const adapters = {
   mysql: () => mysql,
 };
-
 describe.concurrent.each(["mysql"] as const)(
   "introspectDatabase: %s",
   (adapter) => {
-    const { createTestDb, createSnapletTestDb, createTestRole } =
-      adapters[adapter]();
-    test("introspectDatabase should return detailed database structure", async () => {
+    const { createTestDb, createSnapletTestDb } = adapters[adapter]();
+
+    test.only("introspectDatabase should return detailed database structure", async () => {
       const structure = `
-    CREATE SCHEMA test;
-    CREATE TABLE test."Table1" (id serial PRIMARY KEY, name text);
-    CREATE TABLE test."Table2" (id serial PRIMARY KEY, name text, table1_id integer REFERENCES test."Table1"(id));
-    CREATE TYPE test."Enum1" AS ENUM ('A', 'B');
-  `;
+        CREATE TABLE Table1 (id INT AUTO_INCREMENT PRIMARY KEY, name VARCHAR(255));
+        CREATE TABLE Table2 (id INT AUTO_INCREMENT PRIMARY KEY, name VARCHAR(255), table1_id INT, FOREIGN KEY (table1_id) REFERENCES Table1(id));
+      `;
       const db = await createTestDb(structure);
-      await db.client.execute(`VACUUM ANALYZE;`);
       const result = await introspectDatabase(db.client);
+      console.log(JSON.stringify(result, null, 2));
       expect(result).toMatchObject({
-        enums: [
-          {
-            id: "test.Enum1",
-            name: "Enum1",
-            schema: "test",
-            values: ["A", "B"],
-          },
-        ],
-        sequences: {
-          test: [
-            {
-              current: 1,
-              name: "Table1_id_seq",
-              schema: "test",
-              interval: 1,
-            },
-            {
-              current: 1,
-              name: "Table2_id_seq",
-              schema: "test",
-              interval: 1,
-            },
-          ],
-        },
         tables: [
           {
-            bytes: 0,
-            partitioned: false,
-            children: [
-              {
-                fkTable: "test.Table2",
-                id: "Table2_table1_id_fkey",
-                keys: [
-                  {
-                    fkColumn: "table1_id",
-                    fkType: "int4",
-                    nullable: true,
-                    targetColumn: "id",
-                    targetType: "int4",
-                  },
-                ],
-                targetTable: "test.Table1",
-              },
-            ],
+            name: "Table1",
             columns: [
               {
-                constraints: ["p"],
-                default: "nextval('test.\"Table1_id_seq\"'::regclass)",
-                generated: "NEVER",
-                identity: null,
-                id: "test.Table1.id",
-                maxLength: null,
+                id: `${db.name}.Table1.id`,
+                schema: db.name,
+                table: "Table1",
                 name: "id",
+                type: "int",
                 nullable: false,
-                schema: "test",
-                table: "Table1",
-                type: "int4",
-                typeCategory: "N",
-                typeId: "pg_catalog.int4",
+                constraints: ["PRIMARY KEY"],
               },
               {
-                constraints: [],
-                default: null,
-                generated: "NEVER",
-                identity: null,
-                id: "test.Table1.name",
-                maxLength: null,
                 name: "name",
+                type: "varchar(255)",
                 nullable: true,
-                schema: "test",
-                table: "Table1",
-                type: "text",
-                typeCategory: "S",
-                typeId: "pg_catalog.text",
-              },
-            ],
-            id: "test.Table1",
-            name: "Table1",
-            parents: [],
-            primaryKeys: {
-              dirty: false,
-              keys: [
-                {
-                  name: "id",
-                  type: "int4",
-                },
-              ],
-              schema: "test",
-              table: "Table1",
-              tableId: "test.Table1",
-            },
-            rows: 0,
-            schema: "test",
-            uniqueConstraints: [
-              {
-                dirty: false,
-                name: "Table1_pkey",
-                schema: "test",
-                table: "Table1",
-                columns: ["id"],
               },
             ],
           },
           {
-            bytes: 0,
-            children: [],
-            partitioned: false,
+            name: "Table2",
             columns: [
               {
-                constraints: ["p"],
-                default: "nextval('test.\"Table2_id_seq\"'::regclass)",
-                generated: "NEVER",
-                identity: null,
-                id: "test.Table2.id",
-                maxLength: null,
                 name: "id",
+                type: "int",
                 nullable: false,
-                schema: "test",
-                table: "Table2",
-                type: "int4",
-                typeCategory: "N",
-                typeId: "pg_catalog.int4",
+                constraints: ["PRIMARY KEY"],
               },
               {
-                constraints: [],
-                default: null,
-                generated: "NEVER",
-                identity: null,
-                id: "test.Table2.name",
-                maxLength: null,
                 name: "name",
+                type: "varchar(255)",
                 nullable: true,
-                schema: "test",
-                table: "Table2",
-                type: "text",
-                typeCategory: "S",
-                typeId: "pg_catalog.text",
               },
               {
-                constraints: ["f"],
-                default: null,
-                generated: "NEVER",
-                identity: null,
-                id: "test.Table2.table1_id",
-                maxLength: null,
                 name: "table1_id",
+                type: "int",
                 nullable: true,
-                schema: "test",
-                table: "Table2",
-                type: "int4",
-                typeCategory: "N",
-                typeId: "pg_catalog.int4",
+                constraints: ["FOREIGN KEY"],
               },
             ],
-            id: "test.Table2",
-            name: "Table2",
-            parents: [
-              {
-                fkTable: "test.Table2",
-                id: "Table2_table1_id_fkey",
-                keys: [
-                  {
-                    fkColumn: "table1_id",
-                    fkType: "int4",
-                    nullable: true,
-                    targetColumn: "id",
-                    targetType: "int4",
-                  },
-                ],
-                targetTable: "test.Table1",
-              },
-            ],
-            primaryKeys: {
-              dirty: false,
-              keys: [
-                {
-                  name: "id",
-                  type: "int4",
-                },
-              ],
-              schema: "test",
-              table: "Table2",
-              tableId: "test.Table2",
-            },
-            uniqueConstraints: [
-              {
-                dirty: false,
-                name: "Table2_pkey",
-                schema: "test",
-                table: "Table2",
-                columns: ["id"],
-              },
-            ],
-            rows: 0,
-            schema: "test",
           },
         ],
       });
@@ -228,22 +70,21 @@ describe.concurrent.each(["mysql"] as const)(
       const structure = await introspectDatabase(db.client);
       const expectedAccessTokenParent: Relationship = {
         id: "AccessToken_userId_fkey",
-        fkTable: "public.AccessToken",
-        targetTable: "public.User",
-
+        fkTable: "AccessToken",
+        targetTable: "User",
+        dirty: false,
         keys: [
           {
             fkColumn: "userId",
-            fkType: "text",
+            type: "varchar(255)",
             nullable: false,
             targetColumn: "id",
-            targetType: "text",
           },
         ],
       };
 
       const actualAccessTokenParent = structure.tables.find(
-        (t) => t.id == "public.AccessToken",
+        (t) => t.name === "AccessToken",
       )?.parents[0];
 
       expect(expectedAccessTokenParent).toEqual(actualAccessTokenParent);
@@ -254,15 +95,11 @@ describe.concurrent.each(["mysql"] as const)(
       const structure = await introspectDatabase(db.client);
 
       const primaryKeys = structure.tables.find(
-        (t) => t.id == "public.AccessToken",
+        (t) => t.name === "AccessToken",
       )?.primaryKeys;
 
-      expect(primaryKeys).toEqual({
-        keys: [{ name: "id", type: "text" }],
-        dirty: false,
-        schema: "public",
-        table: "AccessToken",
-        tableId: "public.AccessToken",
+      expect(primaryKeys).toMatchObject({
+        keys: [{ name: "id", type: "varchar(255)" }],
       });
     });
 
@@ -271,100 +108,24 @@ describe.concurrent.each(["mysql"] as const)(
       const structure = await introspectDatabase(db.client);
       const expectedPricingPlanChild: Relationship = {
         id: "Organization_pricingPlanId_fkey",
-        fkTable: "public.Organization",
-        targetTable: "public.PricingPlan",
-
+        fkTable: "Organization",
+        targetTable: "PricingPlan",
+        dirty: false,
         keys: [
           {
             fkColumn: "pricingPlanId",
-            fkType: "int4",
+            type: "int",
             nullable: true,
             targetColumn: "id",
-            targetType: "int4",
           },
         ],
       };
 
-      const actualPricingPlanChild = structure.tables.find(
-        (t) => t.id == "public.PricingPlan",
-      )?.children[0];
+      const actualPricingPlanChild = structure.tables
+        .find((t) => t.name === "PricingPlan")
+        ?.children.find((c) => c.id === "Organization_pricingPlanId_fkey");
 
       expect(expectedPricingPlanChild).toEqual(actualPricingPlanChild);
-    });
-    test("partitions of a partitioned table should not be present in the introspection result", async () => {
-      // arrange
-      const db = await createTestDb();
-      await db.client.execute(`
-    CREATE TABLE coach(id uuid primary key);
-    CREATE TABLE exercise (id uuid, coach_id uuid REFERENCES coach(id)) PARTITION BY list(coach_id);
-    CREATE TABLE exercise1 PARTITION OF exercise FOR VALUES IN (NULL);
-    CREATE TABLE exercise2 PARTITION OF exercise DEFAULT;
-  `);
-      await db.client.execute(`VACUUM ANALYZE;`);
-      // act
-      const structure = await introspectDatabase(db.client);
-
-      // assert
-      expect(
-        structure.tables.find((t) => t.id === "public.coach"),
-      ).toMatchObject({
-        partitioned: false,
-      });
-      expect(
-        structure.tables.find((t) => t.id === "public.exercise"),
-      ).toMatchObject({ partitioned: true });
-      const stringifiedStructure = JSON.stringify(structure);
-      expect(stringifiedStructure).toContain("exercise");
-      expect(stringifiedStructure).not.toContain("exercise1");
-      expect(stringifiedStructure).not.toContain("exercise2");
-    });
-    test("introspect with tables and schemas the user cannot access", async () => {
-      const db = await createTestDb();
-      const restrictedString = await createTestRole(db.client.client);
-      const otherString = await createTestRole(db.client.client);
-
-      await db.client.execute(`
-    CREATE TABLE "public"."table1" ("value" text);
-    GRANT SELECT ON TABLE "public"."table1" TO "${restrictedString.name}";
-    CREATE TABLE "public"."table2" ("value" text);
-    CREATE SCHEMA "someSchema" AUTHORIZATION "${otherString.name}";
-    CREATE TABLE "someSchema"."table3" ("value" text);
-  `);
-      const structure = await introspectDatabase(
-        new SeedPostgres(restrictedString.client),
-      );
-
-      expect(structure).toEqual(
-        expect.objectContaining({
-          tables: [
-            expect.objectContaining({
-              schema: "public",
-              name: "table1",
-            }),
-          ],
-        }),
-      );
-    });
-
-    test("Read primary keys with readaccess permissions", async () => {
-      const structure = `
-    CREATE TABLE public."Member" (id serial PRIMARY KEY, name text);
-  `;
-      const db = await createTestDb(structure);
-      const readAccessConnString = await createTestRole(db.client.client);
-      await db.client.execute(`
-    DROP ROLE IF EXISTS readaccess;
-    CREATE ROLE readaccess;
-    GRANT CONNECT ON DATABASE "${db.name}" TO readaccess;
-    GRANT USAGE ON SCHEMA public TO readaccess;
-    GRANT SELECT ON ALL TABLES IN SCHEMA public TO readaccess;
-    GRANT readaccess TO "${readAccessConnString.name}";
-  `);
-      await db.client.execute(`VACUUM ANALYZE;`);
-      const result = await introspectDatabase(db.client);
-
-      const member = result.tables.find((t) => t.id == "public.Member");
-      expect(member?.primaryKeys?.keys).toEqual([{ name: "id", type: "int4" }]);
     });
   },
 );

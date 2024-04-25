@@ -506,5 +506,68 @@ describe.concurrent.each(["mysql"] as const)(
         ]),
       );
     });
+    test("should handle tables with ENUM type", async () => {
+      const structure = `
+        CREATE TABLE Employees (
+          EmployeeID INT AUTO_INCREMENT PRIMARY KEY,
+          FirstName VARCHAR(255) NOT NULL,
+          LastName VARCHAR(255) NOT NULL,
+          Status ENUM('ACTIVE', 'INACTIVE', 'RETIRED') NOT NULL DEFAULT 'ACTIVE'
+        );
+      `;
+      const db = await createTestDb(structure);
+      const tablesInfos = await fetchTablesAndColumns(db.client, [db.name]);
+      expect(tablesInfos).toEqual(
+        expect.arrayContaining([
+          {
+            id: `${db.name}.Employees`,
+            name: "Employees",
+            schema: db.name,
+            columns: expect.arrayContaining([
+              {
+                id: `${db.name}.Employees.EmployeeID`,
+                name: "EmployeeID",
+                type: "int",
+                schema: db.name,
+                table: "Employees",
+                nullable: false,
+                default: null,
+                maxLength: null,
+              },
+              {
+                id: `${db.name}.Employees.FirstName`,
+                name: "FirstName",
+                type: "varchar",
+                schema: db.name,
+                table: "Employees",
+                nullable: false,
+                default: null,
+                maxLength: 255,
+              },
+              {
+                id: `${db.name}.Employees.LastName`,
+                name: "LastName",
+                type: "varchar",
+                schema: db.name,
+                table: "Employees",
+                nullable: false,
+                default: null,
+                maxLength: 255,
+              },
+              {
+                id: `${db.name}.Employees.Status`,
+                name: "Status",
+                type: `enum.${db.name}.Employees.Status`,
+                schema: db.name,
+                table: "Employees",
+                nullable: false,
+                default: "ACTIVE",
+                maxLength: 8,
+              },
+            ]),
+          },
+        ]),
+      );
+    });
   },
 );

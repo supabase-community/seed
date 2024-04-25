@@ -5,6 +5,7 @@ import {
 } from "./utils.js";
 
 interface FetchSequencesResult {
+  columnName: string;
   current: bigint | number;
   interval: bigint | number;
   name: string;
@@ -12,19 +13,23 @@ interface FetchSequencesResult {
   start: number;
 }
 
-// Query to fetch AUTO_INCREMENT information, which behaves like sequences in MySQL
+// Updated query to fetch AUTO_INCREMENT information along with the specific column
 const FETCH_SEQUENCES = (schemas: Array<string>) => `
 SELECT
-  TABLE_SCHEMA AS \`schema\`,
-  TABLE_NAME AS name,
-  AUTO_INCREMENT AS current
+  t.TABLE_SCHEMA AS \`schema\`,
+  t.TABLE_NAME AS name,
+  t.AUTO_INCREMENT AS current,
+  c.COLUMN_NAME AS columnName
 FROM
-  information_schema.TABLES
+  information_schema.TABLES t
+JOIN
+  information_schema.COLUMNS c ON t.TABLE_SCHEMA = c.TABLE_SCHEMA AND t.TABLE_NAME = c.TABLE_NAME
 WHERE
-  TABLE_TYPE = 'BASE TABLE' AND
-  AUTO_INCREMENT IS NOT NULL AND
-  ${buildSchemaInclusionClause(schemas, "TABLE_SCHEMA")}
-ORDER BY TABLE_SCHEMA, TABLE_NAME;
+  t.TABLE_TYPE = 'BASE TABLE' AND
+  t.AUTO_INCREMENT IS NOT NULL AND
+  c.EXTRA LIKE '%auto_increment%' AND
+  ${buildSchemaInclusionClause(schemas, "t.TABLE_SCHEMA")}
+ORDER BY t.TABLE_SCHEMA, t.TABLE_NAME;
 `;
 
 export async function fetchSequences(
@@ -39,8 +44,10 @@ export async function fetchSequences(
   );
 
   return response.map((r) => ({
+    columnName: r.columnName,
+    tableId: `${r.schema}.${r.name}`,
     schema: r.schema,
-    name: `${r.name}_seq`,
+    name: `${r.schema}.${r.name}.${r.columnName}`,
     start: 1, // Auto-increment always starts from 1 in MySQL
     current: r.current, // Adjusting to simulate 'last_value' from PostgreSQL
     interval: 1, // Interval is always 1 in MySQL
