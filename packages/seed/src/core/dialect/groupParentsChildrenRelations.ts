@@ -1,4 +1,4 @@
-import { groupBy } from "../utils.js";
+import { groupBy } from "./utils.js";
 
 export function groupParentsChildrenRelations<
   C extends {

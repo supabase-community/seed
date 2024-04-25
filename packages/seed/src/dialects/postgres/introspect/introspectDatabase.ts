@@ -1,6 +1,6 @@
 import { type DatabaseClient } from "#core/databaseClient.js";
+import { groupParentsChildrenRelations } from "#core/dialect/groupParentsChildrenRelations.js";
 import { groupBy } from "../utils.js";
-import { groupParentsChildrenRelations } from "./groupParentsChildrenRelations.js";
 import { fetchDatabaseRelationships } from "./queries/fetchDatabaseRelationships.js";
 import { fetchEnums } from "./queries/fetchEnums.js";
 import { fetchPrimaryKeys } from "./queries/fetchPrimaryKeys.js";
