@@ -86,6 +86,12 @@ export const createTelemetry = (options: TelemetryOptions) => {
     });
   };
 
+  const getIsAnonymous = async () => {
+    const distinctId = await getDistinctId();
+    const { anonymousId } = await getSystemConfig();
+    return distinctId === anonymousId;
+  };
+
   const captureEvent = async (
     event: string,
     properties: Record<string, unknown> = {},
@@ -96,6 +102,7 @@ export const createTelemetry = (options: TelemetryOptions) => {
       ...properties,
       source,
       version: `seed@${getVersion()}`,
+      isAnonymous: await getIsAnonymous(),
       isCI: ci.isCI,
       ci: {
         isPR: ci.isPR,
