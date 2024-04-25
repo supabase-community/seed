@@ -1,78 +1,72 @@
 import { type DatabaseClient } from "#core/databaseClient.js";
-import { buildSchemaExclusionClause } from "./utils.js";
+import { buildSchemaInclusionClause } from "./utils.js";
 
 interface FetchPrimaryKeysResult {
-  // are the one retrieved from the database or the one we fallback on
   dirty: boolean;
   keys: Array<{ name: string; type: string }>;
-  schema: string;
-  // Simple boolean who'll allows us to always know if the primary keys we are using
   table: string;
   tableId: string;
 }
 
-const FETCH_PRIMARY_KEYS = `
-WITH
-keys_order AS (
-  VALUES (1), (2), (3)
-),
-keys_search AS (
-  SELECT
-    n.nspname as schema_name,
-    c.relname as table_name,
-    a.attname as "column",
-    t.typname as "type",
-    k.order_num,
-    con.contype
-  FROM
-    (VALUES (1, 'p'), (2, 'u'), (3, 'ui')) as k(order_num, contype)
-  LEFT JOIN pg_class c ON true
-  LEFT JOIN pg_namespace n ON c.relnamespace = n.oid
-  LEFT JOIN pg_attribute a ON a.attrelid = c.oid
-  LEFT JOIN pg_type t ON a.atttypid = t.oid
-  LEFT JOIN pg_constraint con ON con.conrelid = c.oid AND a.attnum = ANY(con.conkey) AND con.contype = k.contype
-  LEFT JOIN pg_index i ON i.indrelid = c.oid AND a.attnum = ANY (i.indkey) AND i.indisunique AND NOT i.indisprimary
-  WHERE
-    ${buildSchemaExclusionClause("n.nspname")}
-    AND (
-      -- First we will try to use the primary keys constraints
-      (k.contype = 'p' AND con.contype = 'p')
-      OR
-      -- If there are no primary keys, we will try to use unique non nullable constraints as fallback
-      (k.contype = 'u' AND a.attnotnull AND con.contype = 'u')
-      OR
-      --  If we still find nothing, we will try to look for an UNIQUE index on non nullable column
-      (k.contype = 'ui' AND a.attnotnull AND i.indisunique AND NOT i.indisprimary)
-    )
-    AND ${buildSchemaExclusionClause("c.relname")}
-  ORDER BY n.nspname, c.relname, a.attname
-),
-selected_keys AS (
-  SELECT DISTINCT ON (schema_name, table_name)
-  	schema_name,
-	table_name,
-	json_agg(json_build_object('name', "column", 'type', "type") ORDER BY "column") as "keys"
-  FROM
-    keys_search
-  GROUP BY order_num, schema_name, table_name
-  ORDER BY
-    schema_name, table_name, order_num
-)
-SELECT
-  concat(sk.schema_name, '.', sk.table_name) AS "tableId",
-  sk.schema_name as "schema",
-  sk.table_name as "table",
-  false as "dirty",
-  sk."keys"
-FROM
-  selected_keys sk
-ORDER BY
-  "schema", "table";
+const FETCH_PRIMARY_KEYS = (schemas: Array<string>) => `
+SELECT 
+  tc.TABLE_SCHEMA AS \`schema\`,
+  tc.TABLE_NAME AS \`table\`,
+  CONCAT(tc.TABLE_SCHEMA, '.', tc.TABLE_NAME) AS tableId,
+  JSON_ARRAYAGG(JSON_OBJECT('name', kcu.COLUMN_NAME, 'type', cols.DATA_TYPE)) AS \`keys\`,
+  false AS dirty
+FROM 
+  information_schema.TABLE_CONSTRAINTS AS tc
+JOIN 
+  information_schema.KEY_COLUMN_USAGE AS kcu 
+    ON tc.CONSTRAINT_NAME = kcu.CONSTRAINT_NAME 
+    AND tc.TABLE_SCHEMA = kcu.TABLE_SCHEMA 
+    AND tc.TABLE_NAME = kcu.TABLE_NAME
+JOIN
+  information_schema.COLUMNS AS cols
+    ON cols.TABLE_SCHEMA = tc.TABLE_SCHEMA
+    AND cols.TABLE_NAME = tc.TABLE_NAME
+    AND cols.COLUMN_NAME = kcu.COLUMN_NAME
+WHERE 
+  tc.CONSTRAINT_TYPE = 'PRIMARY KEY' AND
+  ${buildSchemaInclusionClause(schemas, "tc.TABLE_SCHEMA")}
+GROUP BY 
+  tc.TABLE_SCHEMA, tc.TABLE_NAME
+UNION ALL
+SELECT 
+  s.TABLE_SCHEMA AS \`schema\`,
+  s.TABLE_NAME AS \`table\`,
+  CONCAT(s.TABLE_SCHEMA, '.', s.TABLE_NAME) AS tableId,
+  JSON_ARRAYAGG(JSON_OBJECT('name', s.COLUMN_NAME, 'type', cols.DATA_TYPE)) AS \`keys\`,
+  false AS dirty
+FROM 
+  information_schema.STATISTICS AS s
+JOIN
+  information_schema.COLUMNS AS cols
+    ON cols.TABLE_SCHEMA = s.TABLE_SCHEMA
+    AND cols.TABLE_NAME = s.TABLE_NAME
+    AND cols.COLUMN_NAME = s.COLUMN_NAME
+WHERE 
+  s.NON_UNIQUE = 0 AND
+  s.INDEX_NAME != 'PRIMARY' AND
+  cols.IS_NULLABLE = 'NO' AND
+  ${buildSchemaInclusionClause(schemas, "s.TABLE_SCHEMA")}
+GROUP BY 
+  s.TABLE_SCHEMA, s.TABLE_NAME
+HAVING 
+  COUNT(s.COLUMN_NAME) > 0
+ORDER BY 
+  \`schema\`, \`table\`;
 `;
 
-export async function fetchPrimaryKeys(client: DatabaseClient) {
-  const response =
-    await client.query<FetchPrimaryKeysResult>(FETCH_PRIMARY_KEYS);
-
-  return response;
+export async function fetchPrimaryKeys(
+  client: DatabaseClient,
+  schemas: Array<string>,
+) {
+  const query = FETCH_PRIMARY_KEYS(schemas);
+  const response = await client.query<FetchPrimaryKeysResult>(query);
+  return response.map((row) => ({
+    ...row,
+    dirty: Boolean(row.dirty),
+  }));
 }
