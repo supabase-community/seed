@@ -52,7 +52,7 @@ const pack = `snaplet-seed-${getVersion()}.tgz`;
 
 beforeAll(async () => {
   await execa("pnpm", ["build"]);
-});
+}, 30_000);
 
 for (const [
   packageManager,

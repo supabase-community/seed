@@ -1,5 +1,5 @@
 import { input, select } from "@inquirer/prompts";
-import { saveProjectConfig } from "#config/project/projectConfig.js";
+import { updateProjectConfig } from "#config/project/projectConfig.js";
 import { trpc } from "#trpc/client.js";
 
 const createOrganization = async () => {
@@ -97,5 +97,5 @@ const selectProject = async () => {
 
 export const linkHandler = async () => {
   const projectId = await selectProject();
-  await saveProjectConfig({ config: { projectId } });
+  await updateProjectConfig({ projectId });
 };
