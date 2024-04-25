@@ -185,6 +185,8 @@ export const createCliRouter = ({ publicProcedure = t.procedure } = {}) =>
           return {
             incompleteJobs: [] as Array<{
               id: string;
+              progressCurrent: number;
+              progressTotal: number;
               status: "IN_PROGRESS" | "PENDING";
             }>,
           };

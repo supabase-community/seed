@@ -9,6 +9,12 @@ import { formatInput } from "./utils.js";
 const POLL_INTERVAL = 1000;
 const MAX_START_WAIT = 1000 * 3;
 
+type DataGenerationJob = Awaited<
+  ReturnType<
+    typeof trpc.predictions.getIncompleteDataGenerationJobsStatusRoute.query
+  >
+>["incompleteJobs"][number];
+
 const gatherPrompts = (
   projectId: string,
   dataModel: DataModel,
@@ -59,12 +65,39 @@ const gatherPrompts = (
   return prompts;
 };
 
+const computeDataGenerationProgressPercent = (
+  seenJobs: Set<string>,
+  incompleteJobs: Array<DataGenerationJob>,
+) => {
+  if (incompleteJobs.length === 0) {
+    return 100;
+  }
+
+  const incompleteJobSet = new Map(incompleteJobs.map((job) => [job.id, job]));
+
+  const jobTotal = Array.from(seenJobs).reduce(
+    (total: number, jobId: string) => {
+      const job = incompleteJobSet.get(jobId);
+      const progress = job ? job.progressCurrent / job.progressTotal : 1;
+      return total + progress;
+    },
+    0,
+  );
+
+  return (jobTotal / seenJobs.size) * 100;
+};
+
+type WaitForDataGeneration = (options?: {
+  isInit?: boolean;
+  onProgress?: (context: { percent: number }) => unknown;
+}) => Promise<unknown>;
+
 export const startDataGeneration = async (
   projectId: string,
   dataModel: DataModel,
   fingerprintConfig: SeedConfig["fingerprint"],
 ): Promise<{
-  waitForDataGeneration: (options?: { isInit?: boolean }) => Promise<unknown>;
+  waitForDataGeneration: WaitForDataGeneration;
 }> => {
   const prompts = gatherPrompts(projectId, dataModel, fingerprintConfig);
 
@@ -74,8 +107,12 @@ export const startDataGeneration = async (
     ),
   );
 
-  const waitForDataGeneration = async ({ isInit = false } = {}) => {
+  const waitForDataGeneration: WaitForDataGeneration = async ({
+    isInit = false,
+    onProgress,
+  } = {}) => {
     let isDone = false;
+    const seenJobs = new Set<string>();
 
     if (isInit) {
       const startTimeoutTime = Date.now() + MAX_START_WAIT;
@@ -89,6 +126,18 @@ export const startDataGeneration = async (
               projectId,
             },
           );
+
+        for (const job of result.incompleteJobs) {
+          seenJobs.add(job.id);
+        }
+
+        onProgress?.({
+          percent: computeDataGenerationProgressPercent(
+            seenJobs,
+            result.incompleteJobs,
+          ),
+        });
+
         if (result.incompleteJobs.length > 0) {
           isDone = true;
         } else {
