@@ -84,6 +84,9 @@ importers:
       '@prisma/client':
         specifier: '>=5'
         version: 5.12.0
+      '@prisma/generator-helper':
+        specifier: ^5.13.0
+        version: 5.13.0
       '@prisma/internals':
         specifier: ^5.13.0
         version: 5.13.0
@@ -175,9 +178,6 @@ importers:
         specifier: ^3.22.4
         version: 3.22.4
     devDependencies:
-      '@prisma/generator-helper':
-        specifier: ^5.13.0
-        version: 5.13.0
       '@snaplet/copycat':
         specifier: 5.0.0
         version: 5.0.0
@@ -1182,6 +1182,7 @@ packages:
 
   /@prisma/debug@5.13.0:
     resolution: {integrity: sha512-699iqlEvzyCj9ETrXhs8o8wQc/eVW+FigSsHpiskSFydhjVuwTJEfj/nIYqTaWFYuxiWQRfm3r01meuW97SZaQ==}
+    dev: false
 
   /@prisma/engines-version@5.13.0-23.b9a39a7ee606c28e3455d0fd60e78c3ba82b1a2b:
     resolution: {integrity: sha512-AyUuhahTINGn8auyqYdmxsN+qn0mw3eg+uhkp8zwknXYIqoT3bChG4RqNY/nfDkPvzWAPBa9mrDyBeOnWSgO6A==}
@@ -1209,6 +1210,7 @@ packages:
     resolution: {integrity: sha512-i+53beJ0dxkDrkHdsXxmeMf+eVhyhOIpL0SdBga8vwe0qHPrAIJ/lpuT/Hj0y5awTmq40qiUEmhXwCEuM/Z17w==}
     dependencies:
       '@prisma/debug': 5.13.0
+    dev: false
 
   /@prisma/get-platform@5.13.0:
     resolution: {integrity: sha512-B/WrQwYTzwr7qCLifQzYOmQhZcFmIFhR81xC45gweInSUn2hTEbfKUPd2keAog+y5WI5xLAFNJ3wkXplvSVkSw==}

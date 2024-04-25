@@ -117,6 +117,7 @@
   },
   "dependencies": {
     "@inquirer/prompts": "^4.3.2",
+    "@prisma/generator-helper": "^5.13.0",
     "@prisma/internals": "^5.13.0",
     "@scaleleap/pg-format": "^1.0.0",
     "@total-typescript/ts-reset": "^0.5.1",
@@ -149,7 +150,6 @@
     "zod": "^3.22.4"
   },
   "devDependencies": {
-    "@prisma/generator-helper": "^5.13.0",
     "@snaplet/copycat": "5.0.0",
     "@snaplet/eslint-config": "workspace:*",
     "@snaplet/tsconfig": "workspace:*",
