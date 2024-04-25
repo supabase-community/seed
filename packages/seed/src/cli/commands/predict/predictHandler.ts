@@ -20,7 +20,9 @@ export async function predictHandler({
   isInit = false,
 }: { isInit?: boolean } = {}) {
   try {
-    spinner.start(`Enhancing your generated data using ${bold("Snaplet AI")}`);
+    spinner.start(
+      `Enhancing your generated data using ${bold("Snaplet AI")} 🤖"`,
+    );
 
     const dataModel = await getDataModel();
     const dialect = await getDialect();
@@ -68,13 +70,8 @@ export async function predictHandler({
 
     const sKeyPress = listenForKeyPress("s");
 
-    // context(justinvdm: 25 Apr 2024):
-    // * If this is an `init`, we use a "MAX_WAIT" deadline, after which we'll continue the flow even if there are still data generation jobs going
-    // * If this a different flow (most likely `sync`), we do _not_ use this same deadline
     const status = await Promise.race([
-      waitForDataGeneration({ isInit }).then((isComplete) =>
-        isComplete ? ("COMPLETE" as const) : ("MAX_WAIT_REACHED" as const),
-      ),
+      waitForDataGeneration({ isInit }).then(() => "COMPLETE"),
       sKeyPress.promise.then(() => "CANCELLED_BY_USER" as const),
     ]);
 
@@ -82,12 +79,6 @@ export async function predictHandler({
       console.log();
       console.log(
         `ℹ Skipped! You can start using what's already available now. We'll keep generating the rest in the cloud. You can retrieve these later with ${bold("npx @snaplet/seed sync")}`,
-      );
-    } else if (status === "MAX_WAIT_REACHED") {
-      console.log();
-      sKeyPress.cancel();
-      console.log(
-        `ℹ Data enhancements are taking a while. You can start using what's already available now. We'll keep generating the rest in the cloud. You can retrieve these later with ${bold("npx @snaplet/seed sync")}`,
       );
     }
 
@@ -104,11 +95,11 @@ export async function predictHandler({
 
     await setDataExamples(dataExamples);
 
-    spinner.succeed("Got model enhancements 🤖");
+    spinner.succeed("Enhancements complete! 🤖");
 
     return { ok: true };
   } catch (error) {
-    spinner.fail(`Failed to get model enhancements`);
+    spinner.fail(`Failed to enhancements`);
     throw error;
   }
 }

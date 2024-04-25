@@ -7,8 +7,7 @@ import { trpc } from "#trpc/client.js";
 import { formatInput } from "./utils.js";
 
 const POLL_INTERVAL = 1000;
-const MAX_START_WAIT = 1000 * 5;
-const MAX_COMPLETION_WAIT = 1000 * 30;
+const MAX_START_WAIT = 1000 * 3;
 
 const gatherPrompts = (
   projectId: string,
@@ -69,23 +68,17 @@ export const startDataGeneration = async (
 }> => {
   const prompts = gatherPrompts(projectId, dataModel, fingerprintConfig);
 
-  const results = await Promise.all(
+  await Promise.all(
     prompts.map((prompt) =>
       trpc.predictions.startDataGenerationJobRoute.mutate(prompt),
     ),
   );
 
-  const jobs = results.filter((job) => job.status !== "SUCCESS");
-  const hasPromptJobs = jobs.length > 0;
-
   const waitForDataGeneration = async ({ isInit = false } = {}) => {
     let isDone = false;
-    const shouldUseDeadline = !hasPromptJobs && isInit;
 
     if (isInit) {
-      const startTimeoutTime = shouldUseDeadline
-        ? Date.now() + MAX_START_WAIT
-        : Infinity;
+      const startTimeoutTime = Date.now() + MAX_START_WAIT;
 
       // context(justinvdm, 25 April 2024): First wait for the first incomplete job to appear so that we don't jump the gun.
       // We won't wait more than MAX_START_WAIT for this first incomplete job
@@ -105,14 +98,10 @@ export const startDataGeneration = async (
     }
 
     // context(justinvdm, 25 April 2024): Now that we have incomplete jobs to wait for, poll until there are no more
-    // incomplete jobs (or until the MAX_WAIT deadline is reached)
+    // incomplete jobs
     isDone = false;
 
-    const completionTimeoutTime = shouldUseDeadline
-      ? Date.now() + MAX_COMPLETION_WAIT
-      : Infinity;
-
-    while (!isDone && Date.now() < completionTimeoutTime) {
+    while (!isDone) {
       const result =
         await trpc.predictions.getIncompleteDataGenerationJobsStatusRoute.query(
           {
