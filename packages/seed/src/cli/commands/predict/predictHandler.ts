@@ -74,7 +74,7 @@ export async function predictHandler({
       waitForDataGeneration({
         isInit,
         onProgress({ percent }) {
-          spinner.text = `[${percent}%] Enhancing your generated data using ${bold("Snaplet AI")} 🤖"`;
+          spinner.text = `[ ${percent}% ] Enhancing your generated data using ${bold("Snaplet AI")} 🤖"`;
         },
       }).then(() => "COMPLETE"),
       sKeyPress.promise.then(() => "CANCELLED_BY_USER" as const),
