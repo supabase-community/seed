@@ -82,7 +82,7 @@ export const startDataGeneration = async (
 
   const waitForDataGeneration = async ({ enableMaxWait = true } = {}) => {
     let isDone = false;
-    const shouldUseDeadline = !hasPromptJobs || enableMaxWait;
+    const shouldUseDeadline = !hasPromptJobs && enableMaxWait;
 
     const startTimeoutTime = shouldUseDeadline
       ? Date.now() + MAX_START_WAIT
