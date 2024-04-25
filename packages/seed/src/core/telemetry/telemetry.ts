@@ -27,7 +27,7 @@ const getDistinctId = async () => {
   const systemConfig = await getSystemConfig();
   const projectConfig = await getProjectConfig();
   const projectDistinctId =
-    ci.isCI && projectConfig?.projectId
+    ci.isCI && projectConfig.projectId
       ? `${projectConfig.projectId}:ci`
       : undefined;
   if (typeof systemConfig.userId === "string") {
@@ -108,7 +108,6 @@ export const createTelemetry = (options: TelemetryOptions) => {
     };
 
     properties = deepmerge(baseProperties(), properties);
-
     posthog?.capture({
       distinctId: await getDistinctId(),
       event,

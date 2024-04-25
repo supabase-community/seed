@@ -2,7 +2,6 @@ import dedent from "dedent";
 import { mkdirp, pathExists, symlink, writeFile } from "fs-extra";
 import path from "node:path";
 import tmp from "tmp-promise";
-import { saveProjectConfig } from "#config/project/projectConfig.js";
 import { type DatabaseClient } from "#core/databaseClient.js";
 import { type Adapter } from "./adapters.js";
 import { ROOT_DIR, TMP_DIR } from "./constants.js";
@@ -104,11 +103,16 @@ async function seedSetup(props: {
     `;
     await writeFile(path.join(cwd, "seed.config.ts"), seedConfig);
     // Create a project config file
-    const configPath = path.join(cwd, ".snaplet/config.json");
-    await saveProjectConfig({
-      config: { projectId: "testProject" },
-      configPath,
-    });
+    const projectConfigPath = path.join(cwd, ".snaplet/config.json");
+    await mkdirp(path.dirname(projectConfigPath));
+    await writeFile(
+      projectConfigPath,
+      JSON.stringify(
+        { projectId: "testProject", adapter: props.adapter.id },
+        null,
+        2,
+      ),
+    );
   }
 
   await runCLI(["sync", "--output", "./assets"], {
@@ -118,17 +122,19 @@ async function seedSetup(props: {
 
   const runSeedScript = async (
     script: string,
-    options?: { env?: Record<string, string> },
+    options?: {
+      delete?: boolean;
+      env?: Record<string, string>;
+    },
   ) => {
-    const runScriptResult = await baseRunSeedScript({
+    return baseRunSeedScript({
       script,
       adapter: props.adapter,
       cwd,
       connectionString: props.connectionString,
       env: options?.env,
+      delete: options?.delete,
     });
-
-    return runScriptResult;
   };
 
   let stdout = "";

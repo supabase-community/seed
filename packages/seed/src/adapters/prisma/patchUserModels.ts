@@ -39,11 +39,20 @@ function patchSqliteDatetimeFields(
   return resultModels;
 }
 
-export function patchSqliteUserModels(
-  dataModel: DataModel,
-  userModels: UserModels,
-) {
+function patchSqliteUserModels(dataModel: DataModel, userModels: UserModels) {
   // In SQLite prisma store the datetime fields as timestamps. We need to patch the default user models
   // tranform to automatically align with what prisma is doing.
   return patchSqliteDatetimeFields(dataModel, userModels);
+}
+
+// eslint-disable-next-line @typescript-eslint/require-await
+export async function patchUserModels(props: {
+  dataModel: DataModel;
+  userModels: UserModels;
+}) {
+  if (props.dataModel.dialect === "sqlite") {
+    return patchSqliteUserModels(props.dataModel, props.userModels);
+  }
+
+  return props.userModels;
 }

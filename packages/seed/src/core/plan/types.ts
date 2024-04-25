@@ -53,11 +53,10 @@ interface WrappedConnectCallback {
 export type ConnectCallback = WrappedConnectCallback;
 
 export class ConnectInstruction {
-  constructor(public callback: ConnectCallback) {}
+  constructor(public modelData: ModelData) {}
 }
 
 interface ModelCallbackContext {
-  $store: Store["_store"];
   data: Record<string, Json>;
   seed: string;
   store: Store["_store"];
@@ -65,7 +64,7 @@ interface ModelCallbackContext {
 
 type ParentModelCallback = (
   ctx: ModelCallbackContext & {
-    connect: (cb: ConnectCallback) => ConnectInstruction;
+    connect: (modelData: ModelData) => ConnectInstruction;
   },
 ) => ConnectInstruction | ModelRecord;
 

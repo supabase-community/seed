@@ -5,6 +5,7 @@ import dedent from "dedent";
 import { Connection } from "mysql2/promise";
 import { Sql } from "postgres";
 import { SeedBetterSqlite3 } from "#adapters/better-sqlite3/better-sqlite3.js";
+import { AdapterId } from "#adapters/index.js";
 import { SeedMysql2 } from "#adapters/mysql2/mysql2.js";
 import { SeedPostgres } from "#adapters/postgres/postgres.js";
 import { DatabaseClient } from "#core/databaseClient.js";
@@ -32,11 +33,13 @@ export interface Adapter<Client = unknown> {
       select?: string;
     },
   ): string;
+  id: AdapterId;
   skipReason?: string;
 }
 
 export const adapters: Record<DialectId, Adapter> = {
   postgres: {
+    id: "postgres",
     dialect: postgresDialect,
     createTestDb: postgresCreateTestDb,
     generateSeedConfig: (connectionString, config) => {
@@ -57,6 +60,7 @@ export const adapters: Record<DialectId, Adapter> = {
     createClient: (client: Sql) => new SeedPostgres(client),
   },
   sqlite: {
+    id: "better-sqlite3",
     dialect: sqliteDialect,
     createTestDb: sqliteCreateTestDb,
     createClient: (client: Database) => new SeedBetterSqlite3(client),
@@ -77,6 +81,7 @@ export const adapters: Record<DialectId, Adapter> = {
     },
   },
   mysql: {
+    id: "mysql2",
     dialect: mysqlDialect,
     createTestDb: mysqlCreateTestDb,
     createClient: (client: Connection) => new SeedMysql2(client),

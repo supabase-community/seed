@@ -191,48 +191,7 @@ type OmitChildInputs<T, TKeys extends string> = T extends ChildCallbackInputs<Ch
   ? Array<ChildModel<Omit<U, TKeys>>>
   : never;
 
-type ConnectCallbackContext = {
-  /**
-   * The index of the current iteration.
-   */
-  index: number;
-
-  /**
-   * The seed of the relationship field.
-   */
-  seed: string;
-
-  /**
-   * The store containing models already created in this plan.
-   *
-   * @example
-   * \`\`\`ts
-   * { posts: [{ id: 1, authorId: 1 }], authors: [{ id: 1 }] }
-   * \`\`\`
-   */
-  store: Store
-
-  /**
-   * The global store containing all models created in this \`snaplet\` instance so far.
-   *
-   * @example
-   * \`\`\`ts
-   * { posts: [{ id: 1, authorId: 1 }], authors: [{ id: 1 }] }
-   * \`\`\`
-   */
-  $store: Store
-};
-
-/**
- * the callback function we can pass to a parent field to connect it to another model
- * @example
- * seed.posts([({ connect }) => ({ user: connect((ctx) => ({ id: ctx.store.User[0] })) }))
- */
-type ConnectCallback<T> = (
-  ctx: ConnectCallbackContext
-) => T;
-
-type ModelCallbackContextConnect<T> =  (cb: ConnectCallback<T>) => Connect<T>
+type ModelCallbackContextConnect<T> =  (modelData: T) => Connect<T>
 
 type ModelCallbackContext = {
   /**
@@ -249,30 +208,18 @@ type ModelCallbackContext = {
    * \`\`\`
    */
   store: Store
-
-  /**
-   * The global store containing all models created in this \`snaplet\` instance so far.
-   *
-   * @example
-   * \`\`\`ts
-   * { posts: [{ id: 1, authorId: 1 }], authors: [{ id: 1 }] }
-   * \`\`\`
-   */
-  $store: Store
 }
 
-type ModelCallback<T> = (ctx: ModelCallbackContext) => T
+type ParentModelCallback<T, TConnectScalars> = (ctx: ModelCallbackContext & {
+  connect: ModelCallbackContextConnect<TConnectScalars>
+}) => T | Connect<TConnectScalars>
 
-type ParentModelCallback<T, TScalars> = (ctx: ModelCallbackContext & {
-  connect: ModelCallbackContextConnect<TScalars>
-}) => T | Connect<TScalars>
-
-type ParentInputs<T, TScalars> =
+type ParentInputs<T, TConnectScalars> =
   | T
-  | ParentModelCallback<T, TScalars>;
+  | ParentModelCallback<T, TConnectScalars>;
 
-declare class Connect<TScalars> {
-  private callback: ConnectCallback<TScalars>
+declare class Connect<TConnectScalars> {
+  private modelData: TConnectScalars
 }
 
 /**
@@ -317,7 +264,7 @@ type PlanOptions = {
    *
    * Learn more in the {@link https://docs.snaplet.dev/core-concepts/seed#using-autoconnect-option | documentation}.
    */
-  connect?: true | Partial<Store>;
+  connect?: true | Partial<StoreConnectScalars>;
   /**
    * Provide custom data generation and connect functions for this plan.
    *
@@ -352,11 +299,21 @@ function generateEnums(dataModel: DataModel) {
 }
 
 function generateStoreTypes(dataModel: DataModel) {
-  return `type Store = {
+  return [
+    `type Store = {
 ${Object.keys(dataModel.models)
   .map((modelName) => `  ${escapeKey(modelName)}: Array<${modelName}Scalars>;`)
   .join(EOL)}
-};`;
+};`,
+    `type StoreConnectScalars = {
+${Object.keys(dataModel.models)
+  .map(
+    (modelName) =>
+      `  ${escapeKey(modelName)}: Array<${modelName}ConnectScalars>;`,
+  )
+  .join(EOL)}
+};`,
+  ].join(EOL + EOL);
 }
 
 async function generateInputsTypes(props: {
@@ -426,6 +383,7 @@ ${(
   )
 ).join(EOL)}
 }`;
+
   const parentsType = `type ${modelName}ParentsInputs = {
 ${fields.parents
   .map((p) => {
@@ -483,10 +441,19 @@ ${fields.children
     .filter((f) => f.isGenerated)
     .map((f) => f.name);
 
+  const idFields = Object.values(fields.scalars)
+    .filter((f) => f.isId)
+    .map((f) => f.name);
+
   const scalarsInputsType =
     generatedFields.length > 0
-      ? `Omit<${modelName}Scalars, "${generatedFields.join(" | ")}">`
+      ? `Omit<${modelName}Scalars, "${generatedFields.join('" | "')}">`
       : `${modelName}Scalars`;
+
+  const connectScalarsType =
+    idFields.length > 0
+      ? `Pick<${modelName}Scalars, "${idFields.join('" | "')}"> & Partial<Omit<${modelName}Scalars, "${idFields.join('" | "')}">>`
+      : `Partial<${modelName}Scalars>`;
 
   const extraTypes = `type ${modelName}Inputs = Inputs<
   ${scalarsInputsType},
@@ -494,7 +461,8 @@ ${fields.children
   ${modelName}ChildrenInputs
 >;
 type ${modelName}ChildInputs = ChildInputs<${modelName}Inputs>;
-type ${modelName}ParentInputs = ParentInputs<${modelName}Inputs, ${modelName}Scalars>;`;
+type ${modelName}ParentInputs = ParentInputs<${modelName}Inputs, ${modelName}ConnectScalars>;
+type ${modelName}ConnectScalars = ${connectScalarsType};`;
 
   return [
     ...jsonSchemaTypes,
