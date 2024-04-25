@@ -1,8 +1,9 @@
 import dedent from "dedent";
+import { type DataModel } from "#core/dataModel/types.js";
 import { DatabaseClient } from "#core/databaseClient.js";
+import { type UserModels } from "#core/userModels/types.js";
 import { type Adapter } from "../types.js";
-import { patchSeedConfig } from "./patchSeedConfig.js";
-import { patchUserModels } from "./patchUserModels.js";
+import { patchSqliteUserModels } from "./patchUserModels.js";
 
 interface PrismaLikeClient {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -45,6 +46,16 @@ export class SeedPrisma extends DatabaseClient<PrismaLikeClient> {
     }
   }
 
+  override adapterPatchUserModels(props: {
+    dataModel: DataModel;
+    userModels: UserModels;
+  }) {
+    if (this.dialect === "sqlite") {
+      return patchSqliteUserModels(props.dataModel, props.userModels);
+    }
+    return props.userModels;
+  }
+
   async execute(query: string): Promise<void> {
     await this.client.$executeRawUnsafe(query);
   }
@@ -72,6 +83,4 @@ export const prismaAdapter = {
       select: ["!*_prisma_migrations"],
     });
   `,
-  patchSeedConfig,
-  patchUserModels,
 } satisfies Adapter;

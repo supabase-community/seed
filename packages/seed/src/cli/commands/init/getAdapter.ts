@@ -1,15 +1,8 @@
 import { adapters } from "#adapters/index.js";
-import { updateProjectConfig } from "#config/project/projectConfig.js";
 import { getInstalledDependencies } from "#config/utils.js";
-import { selectAdapterFromPrompt } from "./selectAdapterFromPrompt.js";
+import { getAdapterFromPrompt } from "./getAdapterFromPrompt.js";
 
 export async function getAdapter() {
-  const adapter = await selectAdapter();
-  await updateProjectConfig({ adapter: adapter.id });
-  return adapter;
-}
-
-async function selectAdapter() {
   const installedDependencies = await getInstalledDependencies();
 
   // look for ORM-like adapters first
@@ -28,5 +21,5 @@ async function selectAdapter() {
   }
 
   // if more than one or no adapter is found, prompt the user
-  return selectAdapterFromPrompt();
+  return getAdapterFromPrompt();
 }

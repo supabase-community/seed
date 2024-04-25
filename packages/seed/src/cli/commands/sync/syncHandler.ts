@@ -1,5 +1,5 @@
 import { getDotSnapletPath } from "#config/dotSnaplet.js";
-import { getProjectConfigPath } from "#config/project/projectConfig.js";
+import { getProjectConfigPath } from "#config/project/paths.js";
 import { getSeedConfigPath } from "#config/seedConfig/seedConfig.js";
 import { SnapletError } from "#core/utils.js";
 import { generateHandler } from "../generate/generateHandler.js";

@@ -71,7 +71,15 @@ export async function getRawDataModel() {
 }
 
 export async function getDataModel() {
-  const dataModelConfig = await getRawDataModel();
+  const dataModelConfig = await getDataModelConfig();
+
+  if (dataModelConfig === null) {
+    const dataModelConfigPath = await getDataModelConfigPath();
+    const dotSnapletPath = await getDotSnapletPath();
+    throw new SnapletError("SEED_DATA_MODEL_NOT_FOUND", {
+      path: dataModelConfigPath ?? dotSnapletPath,
+    });
+  }
 
   const snapletConfig = await getSeedConfig();
 
@@ -79,6 +87,5 @@ export async function getDataModel() {
     dataModelConfig,
     snapletConfig.select,
   );
-
   return getAliasedDataModel(filteredDataModel, snapletConfig.alias);
 }
