@@ -65,9 +65,7 @@ export const startDataGeneration = async (
   dataModel: DataModel,
   fingerprintConfig: SeedConfig["fingerprint"],
 ): Promise<{
-  waitForDataGeneration: (options?: {
-    enableMaxWait?: boolean;
-  }) => Promise<unknown>;
+  waitForDataGeneration: (options?: { isInit?: boolean }) => Promise<unknown>;
 }> => {
   const prompts = gatherPrompts(projectId, dataModel, fingerprintConfig);
 
@@ -80,27 +78,29 @@ export const startDataGeneration = async (
   const jobs = results.filter((job) => job.status !== "SUCCESS");
   const hasPromptJobs = jobs.length > 0;
 
-  const waitForDataGeneration = async ({ enableMaxWait = true } = {}) => {
+  const waitForDataGeneration = async ({ isInit = false } = {}) => {
     let isDone = false;
-    const shouldUseDeadline = !hasPromptJobs && enableMaxWait;
+    const shouldUseDeadline = !hasPromptJobs && isInit;
 
-    const startTimeoutTime = shouldUseDeadline
-      ? Date.now() + MAX_START_WAIT
-      : Infinity;
+    if (isInit) {
+      const startTimeoutTime = shouldUseDeadline
+        ? Date.now() + MAX_START_WAIT
+        : Infinity;
 
-    // context(justinvdm, 25 April 2024): First wait for the first incomplete job to appear so that we don't jump the gun.
-    // We won't wait more than MAX_START_WAIT for this first incomplete job
-    while (!isDone && Date.now() < startTimeoutTime) {
-      const result =
-        await trpc.predictions.getIncompleteDataGenerationJobsStatusRoute.query(
-          {
-            projectId,
-          },
-        );
-      if (result.incompleteJobs.length > 0) {
-        isDone = true;
-      } else {
-        await new Promise((resolve) => setTimeout(resolve, POLL_INTERVAL));
+      // context(justinvdm, 25 April 2024): First wait for the first incomplete job to appear so that we don't jump the gun.
+      // We won't wait more than MAX_START_WAIT for this first incomplete job
+      while (!isDone && Date.now() < startTimeoutTime) {
+        const result =
+          await trpc.predictions.getIncompleteDataGenerationJobsStatusRoute.query(
+            {
+              projectId,
+            },
+          );
+        if (result.incompleteJobs.length > 0) {
+          isDone = true;
+        } else {
+          await new Promise((resolve) => setTimeout(resolve, POLL_INTERVAL));
+        }
       }
     }
 
