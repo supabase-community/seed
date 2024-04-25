@@ -10,7 +10,7 @@ import {
 import { type Adapter } from "#adapters/types.js";
 import { dim } from "#cli/lib/output.js";
 
-export async function selectAdapterFromPrompt() {
+export async function getAdapterFromPrompt() {
   const adapterId = await select<AdapterId>({
     message: "Which database client would you like to use?",
     choices: [

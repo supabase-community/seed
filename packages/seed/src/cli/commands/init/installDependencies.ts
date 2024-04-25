@@ -16,12 +16,7 @@ export async function installDependencies({ adapter }: { adapter: Adapter }) {
     `@snaplet/seed@${getVersion()}`,
     adapter.packageName,
     ...(adapter.typesPackageName ? [adapter.typesPackageName] : []),
-  ].filter((d) => {
-    if (d.startsWith("@snaplet/seed")) {
-      return !installedDependencies["@snaplet/seed"];
-    }
-    return !installedDependencies[d];
-  });
+  ].filter((d) => !installedDependencies[d]);
 
   if (devDependenciesToInstall.length === 0) {
     return;

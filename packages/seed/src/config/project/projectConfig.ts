@@ -1,63 +1,52 @@
-import { pathExists } from "fs-extra";
-import { existsSync } from "node:fs";
-import { readFile, writeFile } from "node:fs/promises";
+import fs from "fs-extra";
+import { readFile } from "node:fs/promises";
 import path from "node:path";
 import { z } from "zod";
-import { type AdapterId, adapters } from "#adapters/index.js";
-import { ensureDotSnapletPath, getDotSnapletPath } from "#config/dotSnaplet.js";
-import { jsonStringify } from "#core/utils.js";
+import { getProjectConfigPath } from "#config/project/paths.js";
 
 const projectConfigSchema = z.object({
   projectId: z.string().optional(),
-  adapter: z
-    .string()
-    .refine((v) => Object.keys(adapters).includes(v))
-    .optional() as z.ZodType<AdapterId | undefined>,
 });
 
 type ProjectConfig = z.infer<typeof projectConfigSchema>;
 
-export async function getProjectConfigPath() {
-  return path.join(await getDotSnapletPath(), "config.json");
-}
+export const getProjectConfig = async (
+  // this should only be used in tests in production we should use the default path always
+  configPath?: string,
+) => {
+  const cPath = configPath ?? (await getProjectConfigPath());
 
-export async function getProjectConfig() {
-  const projectConfigPath = await getProjectConfigPath();
-
-  if (await pathExists(projectConfigPath)) {
-    return projectConfigSchema
-      .passthrough()
-      .parse(JSON.parse(await readFile(projectConfigPath, "utf8")));
-  } else {
-    return {} as ProjectConfig;
+  if (!fs.existsSync(cPath)) {
+    return null;
   }
-}
+  return projectConfigSchema
+    .passthrough()
+    .parse(JSON.parse(await readFile(cPath, "utf8")));
+};
 
-async function setProjectConfig(projectConfig: ProjectConfig) {
-  await ensureDotSnapletPath();
+export const projectConfigExists = async () => {
+  const path = await getProjectConfigPath();
+  return path && fs.existsSync(path);
+};
 
-  const projectConfigPath = await getProjectConfigPath();
+export const saveProjectConfig = async ({
+  config,
+  configPath,
+}: {
+  config: ProjectConfig;
+  // this should only be used in tests in production we should use the default path always
+  configPath?: string;
+}) => {
+  const cPath = configPath ?? (await getProjectConfigPath());
+  fs.mkdirSync(path.dirname(cPath), { recursive: true });
 
-  await writeFile(
-    projectConfigPath,
-    jsonStringify(projectConfig, undefined, 2),
-    "utf8",
-  );
-}
+  const cachedConfig = await getProjectConfig(cPath);
+  if (cachedConfig) {
+    const newConfig = { ...cachedConfig, ...config };
+    fs.writeFileSync(cPath, JSON.stringify(newConfig, undefined, 2));
+  } else {
+    fs.writeFileSync(cPath, JSON.stringify(config, undefined, 2));
+  }
 
-export async function updateProjectConfig(
-  projectConfig: Partial<ProjectConfig>,
-) {
-  const currentProjectConfig = await getProjectConfig();
-
-  const nextProjectConfig = {
-    ...currentProjectConfig,
-    ...projectConfig,
-  };
-
-  await setProjectConfig(nextProjectConfig);
-}
-
-export async function projectConfigExists() {
-  return existsSync(await getProjectConfigPath());
-}
+  return cPath;
+};
