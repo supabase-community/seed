@@ -13,7 +13,7 @@ import { columnsToPredict, formatInput } from "#core/predictions/utils.js";
 import { SnapletError } from "#core/utils.js";
 import { getDialect } from "#dialects/getDialect.js";
 import { trpc } from "#trpc/client.js";
-import { bold, brightGreen, link, spinner } from "../../lib/output.js";
+import { bold, link, spinner } from "../../lib/output.js";
 import { listenForKeyPress } from "./listenForKeyPress.js";
 
 export async function predictHandler({
@@ -60,40 +60,35 @@ export async function predictHandler({
         projectId: projectConfig.projectId,
       });
 
-    if (isInit) {
+    console.log();
+    console.log(
+      `ℹ You can tell us more about your data to further improve the results over here: ${link(`${SNAPLET_APP_URL}/o/${organization.id}/p/${projectConfig.projectId}/seed`)}`,
+    );
+    console.log(`ℹ You can skip this step by hitting the ${bold("s")} key`);
+
+    const sKeyPress = listenForKeyPress("s");
+
+    // context(justinvdm: 25 Apr 2024):
+    // * If this is an `init`, we use a "MAX_WAIT" deadline, after which we'll continue the flow even if there are still data generation jobs going
+    // * If this a different flow (most likely `sync`), we do _not_ use this same deadline
+    const status = await Promise.race([
+      waitForDataGeneration({ enableMaxWait: isInit }).then((isComplete) =>
+        isComplete ? ("COMPLETE" as const) : ("MAX_WAIT_REACHED" as const),
+      ),
+      sKeyPress.promise.then(() => "CANCELLED_BY_USER" as const),
+    ]);
+
+    if (status === "CANCELLED_BY_USER") {
       console.log();
       console.log(
-        `ℹ You can tell us more about your data to further improve the results over here: ${link(`${SNAPLET_APP_URL}/o/${organization.id}/p/${projectConfig.projectId}/seed`)}`,
+        `ℹ Skipped! You can start using what's already available now. We'll keep generating the rest in the cloud. You can retrieve these later with ${bold("npx @snaplet/seed sync")}`,
       );
-      console.log(`ℹ You can skip this step by hitting the ${bold("s")} key`);
-
-      const sKeyPress = listenForKeyPress("s");
-
-      const status = await Promise.race([
-        waitForDataGeneration().then((isComplete) =>
-          isComplete ? ("COMPLETE" as const) : ("MAX_WAIT_REACHED" as const),
-        ),
-        sKeyPress.promise.then(() => "CANCELLED_BY_USER" as const),
-      ]);
-
-      if (status === "CANCELLED_BY_USER") {
-        console.log();
-        console.log(
-          `ℹ Skipped! You can start using what's already available now. We'll keep generating the rest in the cloud. You can retrieve these later with ${bold("npx @snaplet/seed sync")}`,
-        );
-      } else if (status === "MAX_WAIT_REACHED") {
-        console.log();
-        sKeyPress.cancel();
-        console.log(
-          `ℹ Data enhancements are taking a while. You can start using what's already available now. We'll keep generating the rest in the cloud. You can retrieve these later with ${bold("npx @snaplet/seed sync")}`,
-        );
-      }
-    } else {
+    } else if (status === "MAX_WAIT_REACHED") {
       console.log();
+      sKeyPress.cancel();
       console.log(
-        `✨ You can ${brightGreen("improve your generated data")} with ${brightGreen("Snaplet AI")} here: ${link(`${SNAPLET_APP_URL}/o/${organization.id}/p/${projectConfig.projectId}/seed`)}`,
+        `ℹ Data enhancements are taking a while. You can start using what's already available now. We'll keep generating the rest in the cloud. You can retrieve these later with ${bold("npx @snaplet/seed sync")}`,
       );
-      await waitForDataGeneration();
     }
 
     const shapeExamples = await fetchShapeExamples(shapePredictions);

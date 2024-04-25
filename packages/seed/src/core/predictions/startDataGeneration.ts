@@ -65,7 +65,9 @@ export const startDataGeneration = async (
   dataModel: DataModel,
   fingerprintConfig: SeedConfig["fingerprint"],
 ): Promise<{
-  waitForDataGeneration: () => Promise<unknown>;
+  waitForDataGeneration: (options?: {
+    enableMaxWait?: boolean;
+  }) => Promise<unknown>;
 }> => {
   const prompts = gatherPrompts(projectId, dataModel, fingerprintConfig);
 
@@ -78,13 +80,16 @@ export const startDataGeneration = async (
   const jobs = results.filter((job) => job.status !== "SUCCESS");
   const hasPromptJobs = jobs.length > 0;
 
-  const waitForDataGeneration = async () => {
+  const waitForDataGeneration = async ({ enableMaxWait = true } = {}) => {
     let isDone = false;
+    const shouldUseDeadline = !hasPromptJobs || enableMaxWait;
 
-    const startTimeoutTime = hasPromptJobs
-      ? Infinity
-      : Date.now() + MAX_START_WAIT;
+    const startTimeoutTime = shouldUseDeadline
+      ? Date.now() + MAX_START_WAIT
+      : Infinity;
 
+    // context(justinvdm, 25 April 2024): First wait for the first incomplete job to appear so that we don't jump the gun.
+    // We won't wait more than MAX_START_WAIT for this first incomplete job
     while (!isDone && Date.now() < startTimeoutTime) {
       const result =
         await trpc.predictions.getIncompleteDataGenerationJobsStatusRoute.query(
@@ -99,10 +104,13 @@ export const startDataGeneration = async (
       }
     }
 
+    // context(justinvdm, 25 April 2024): Now that we have incomplete jobs to wait for, poll until there are no more
+    // incomplete jobs (or until the MAX_WAIT deadline is reached)
     isDone = false;
-    const completionTimeoutTime = hasPromptJobs
-      ? Infinity
-      : Date.now() + MAX_COMPLETION_WAIT;
+
+    const completionTimeoutTime = shouldUseDeadline
+      ? Date.now() + MAX_COMPLETION_WAIT
+      : Infinity;
 
     while (!isDone && Date.now() < completionTimeoutTime) {
       const result =
