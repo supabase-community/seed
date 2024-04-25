@@ -33,12 +33,12 @@ async function ensureCanSync() {
   }
 }
 
-export async function syncHandler(args: { output?: string }) {
+export async function syncHandler(args: { isInit?: boolean; output?: string }) {
   await ensureCanSync();
   await introspectHandler();
 
   if (!process.env["SNAPLET_DISABLE_SHAPE_PREDICTION"]) {
-    await predictHandler();
+    await predictHandler({ isInit: args.isInit });
   }
 
   await generateHandler(args);

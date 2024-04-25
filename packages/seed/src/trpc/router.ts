@@ -175,6 +175,20 @@ export const createCliRouter = ({ publicProcedure = t.procedure } = {}) =>
               | "SUCCESS",
           };
         }),
+      getIncompleteDataGenerationJobsStatusRoute: publicProcedure
+        .input(
+          z.object({
+            projectId: z.string().min(1),
+          }),
+        )
+        .query(() => {
+          return {
+            incompleteJobs: [] as Array<{
+              id: string;
+              status: "IN_PROGRESS" | "PENDING";
+            }>,
+          };
+        }),
       seedShapeRoute: publicProcedure
         .input(
           z.object({

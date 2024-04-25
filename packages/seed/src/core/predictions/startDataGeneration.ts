@@ -6,7 +6,9 @@ import {
 import { trpc } from "#trpc/client.js";
 import { formatInput } from "./utils.js";
 
-console.log();
+const POLL_INTERVAL = 1000;
+const MAX_START_WAIT = 1000 * 5;
+const MAX_COMPLETION_WAIT = 1000 * 30;
 
 const gatherPrompts = (
   projectId: string,
@@ -63,7 +65,9 @@ export const startDataGeneration = async (
   dataModel: DataModel,
   fingerprintConfig: SeedConfig["fingerprint"],
 ): Promise<{
-  waitForDataGeneration: () => Promise<unknown>;
+  waitForDataGeneration: (options?: {
+    enableMaxWait?: boolean;
+  }) => Promise<unknown>;
 }> => {
   const prompts = gatherPrompts(projectId, dataModel, fingerprintConfig);
 
@@ -74,30 +78,55 @@ export const startDataGeneration = async (
   );
 
   const jobs = results.filter((job) => job.status !== "SUCCESS");
+  const hasPromptJobs = jobs.length > 0;
 
-  const waitForDataGeneration = async () => {
-    if (jobs.length === 0) {
-      return;
-    }
+  const waitForDataGeneration = async ({ enableMaxWait = true } = {}) => {
+    let isDone = false;
+    const shouldUseDeadline = !hasPromptJobs && enableMaxWait;
 
-    const pendingJobs = new Set(jobs.map((job) => job.dataGenerationJobId));
+    const startTimeoutTime = shouldUseDeadline
+      ? Date.now() + MAX_START_WAIT
+      : Infinity;
 
-    while (pendingJobs.size) {
-      for (const dataGenerationJobId of pendingJobs.values()) {
-        const { status } =
-          await trpc.predictions.getDataGenerationJobStatusRoute.query({
-            dataGenerationJobId,
-          });
-
-        if (status === "SUCCESS") {
-          pendingJobs.delete(dataGenerationJobId);
-        }
-
-        await new Promise((resolve) => setTimeout(resolve, 100));
+    // context(justinvdm, 25 April 2024): First wait for the first incomplete job to appear so that we don't jump the gun.
+    // We won't wait more than MAX_START_WAIT for this first incomplete job
+    while (!isDone && Date.now() < startTimeoutTime) {
+      const result =
+        await trpc.predictions.getIncompleteDataGenerationJobsStatusRoute.query(
+          {
+            projectId,
+          },
+        );
+      if (result.incompleteJobs.length > 0) {
+        isDone = true;
+      } else {
+        await new Promise((resolve) => setTimeout(resolve, POLL_INTERVAL));
       }
-
-      await new Promise((resolve) => setTimeout(resolve, 1000));
     }
+
+    // context(justinvdm, 25 April 2024): Now that we have incomplete jobs to wait for, poll until there are no more
+    // incomplete jobs (or until the MAX_WAIT deadline is reached)
+    isDone = false;
+
+    const completionTimeoutTime = shouldUseDeadline
+      ? Date.now() + MAX_COMPLETION_WAIT
+      : Infinity;
+
+    while (!isDone && Date.now() < completionTimeoutTime) {
+      const result =
+        await trpc.predictions.getIncompleteDataGenerationJobsStatusRoute.query(
+          {
+            projectId,
+          },
+        );
+      if (result.incompleteJobs.length > 0) {
+        await new Promise((resolve) => setTimeout(resolve, POLL_INTERVAL));
+      } else {
+        isDone = true;
+      }
+    }
+
+    return isDone;
   };
 
   return { waitForDataGeneration };
