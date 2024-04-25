@@ -15,7 +15,7 @@ import { columnsToPredict, formatInput } from "#core/predictions/utils.js";
 import { SnapletError } from "#core/utils.js";
 import { getDialect } from "#dialects/getDialect.js";
 import { trpc } from "#trpc/client.js";
-import { bold, link, spinner } from "../../lib/output.js";
+import { bold, brightGreen, link, spinner } from "../../lib/output.js";
 import { listenForKeyPress } from "./listenForKeyPress.js";
 
 export async function predictHandler({
@@ -64,7 +64,7 @@ export async function predictHandler({
 
     console.log();
     console.log(
-      `ℹ You can tell us more about your data to further improve the results over here: ${link(`${SNAPLET_APP_URL}/o/${organization.id}/p/${projectConfig.projectId}/seed`)}`,
+      `ℹ You can tell us more about your data to further ${brightGreen("improve the results")} over here: ${link(`${SNAPLET_APP_URL}/o/${organization.id}/p/${projectConfig.projectId}/seed`)}`,
     );
     console.log(`ℹ You can skip this step by hitting the ${bold("s")} key`);
 
