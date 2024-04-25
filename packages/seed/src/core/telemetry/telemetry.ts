@@ -6,6 +6,7 @@ import { v4 as uuidv4 } from "uuid";
 import { IS_PRODUCTION } from "#config/constants.js";
 import { getProjectConfig } from "#config/project/projectConfig.js";
 import { getSystemConfig, updateSystemConfig } from "#config/systemConfig.js";
+import { getVersion } from "#core/version.js";
 
 const POSTHOG_API_KEY = "phc_F2nspobfCOFDskuwSN7syqKyz8aAzRTw2MEsRvQSB5G";
 
@@ -85,6 +86,12 @@ export const createTelemetry = (options: TelemetryOptions) => {
     });
   };
 
+  const getIsAnonymous = async () => {
+    const distinctId = await getDistinctId();
+    const { anonymousId } = await getSystemConfig();
+    return distinctId === anonymousId;
+  };
+
   const captureEvent = async (
     event: string,
     properties: Record<string, unknown> = {},
@@ -94,6 +101,8 @@ export const createTelemetry = (options: TelemetryOptions) => {
     properties = {
       ...properties,
       source,
+      version: `seed@${getVersion()}`,
+      isAnonymous: await getIsAnonymous(),
       isCI: ci.isCI,
       ci: {
         isPR: ci.isPR,
