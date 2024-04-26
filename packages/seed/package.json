@@ -157,6 +157,7 @@
     "posthog-node": "^4.0.0",
     "quicktype-core": "^23.0.149",
     "remeda": "^1.58.0",
+    "sqlstring": "^2.3.3",
     "terminal-link": "^3.0.0",
     "uuid": "^9.0.1",
     "yargs": "^17.7.2",
@@ -193,8 +194,8 @@
     "@snaplet/copycat": ">=2",
     "@types/better-sqlite3": "*",
     "@types/pg": "*",
-    "mysql2": ">=3",
     "better-sqlite3": ">=9",
+    "mysql2": ">=3",
     "pg": ">=8",
     "postgres": ">=3"
   },

@@ -1,7 +1,11 @@
 import { test as _test, type TestFunction, expect } from "vitest";
+import { type DialectId } from "#dialects/dialects.js";
 import { adapterEntries } from "#test/adapters.js";
 import { setupProject } from "#test/setupProject.js";
-import { type DialectRecordWithDefault } from "#test/types.js";
+
+type DialectRecordWithDefault<T> = Partial<Record<DialectId, T>> &
+  Record<"default", T>;
+type SchemaRecord = DialectRecordWithDefault<string>;
 
 for (const [dialect, adapter] of adapterEntries) {
   const computeName = (name: string) => `e2e > ${dialect} > ${name}`;
@@ -12,39 +16,59 @@ for (const [dialect, adapter] of adapterEntries) {
 
   if (dialect !== "sqlite") {
     test("generates for char limits", async () => {
-      const { db } = await setupProject({
-        adapter,
-        databaseSchema: `
-          CREATE TABLE "User" (
-            "id" uuid not null,
-            "fullName" varchar(5) not null
+      const schema: SchemaRecord = {
+        default: `
+          CREATE TABLE testtable (
+            id uuid not null,
+            fullname varchar(5) not null
           );
         `,
+        mysql: `
+          CREATE TABLE testtable (
+            id VARCHAR(36) PRIMARY KEY DEFAULT (uuid()),
+            fullname varchar(5) not null
+          );
+        `,
+      };
+      const { db } = await setupProject({
+        adapter,
+        databaseSchema: schema[dialect] ?? schema.default,
         seedScript: `
           import { createSeedClient } from '#snaplet/seed'
           const seed = await createSeedClient()
-          await seed.users([{}])
+          await seed.testtables([{}])
         `,
       });
 
-      const [{ fullName }] = await db.query<{ fullName: string }>(
-        'select * from "User"',
+      const [{ fullname }] = await db.query<{ fullname: string }>(
+        "select * from testtable",
       );
-      expect(fullName.length).toBeLessThanOrEqual(5);
+      expect(fullname.length).toBeLessThanOrEqual(5);
     });
   }
 
   test("option overriding", async () => {
-    const { db } = await setupProject({
-      adapter,
-      databaseSchema: `
-        CREATE TABLE "Thing" (
+    const schema: SchemaRecord = {
+      default: `
+        CREATE TABLE Thing (
           "id" uuid not null primary key,
           "a" text not null,
           "b" text not null,
           "c" text not null
         );
       `,
+      mysql: `
+        CREATE TABLE Thing (
+          id VARCHAR(36) PRIMARY KEY DEFAULT (uuid()),
+          a text not null,
+          b text not null,
+          c text not null
+        );
+      `,
+    };
+    const { db } = await setupProject({
+      adapter,
+      databaseSchema: schema[dialect] ?? schema.default,
       seedScript: `
         import { createSeedClient } from '#snaplet/seed'
 
@@ -71,7 +95,7 @@ for (const [dialect, adapter] of adapterEntries) {
       `,
     });
 
-    expect(await db.query('select * from "Thing"')).toEqual([
+    expect(await db.query("select * from Thing")).toEqual([
       expect.objectContaining({
         a: "client-a",
         b: "plan-b",
@@ -80,7 +104,7 @@ for (const [dialect, adapter] of adapterEntries) {
   });
 
   test("connect option", async () => {
-    const schema: DialectRecordWithDefault = {
+    const schema: SchemaRecord = {
       default: `
             CREATE TABLE student (
               student_id SERIAL PRIMARY KEY,
@@ -137,6 +161,41 @@ for (const [dialect, adapter] of adapterEntries) {
               tutor_id INT NOT NULL REFERENCES tutor(tutor_id),
               lesson_id INT NOT NULL REFERENCES lesson(lesson_id),
               booking_date TIMESTAMP NOT NULL
+            );
+          `,
+      mysql: `
+            CREATE TABLE student (
+              student_id INT AUTO_INCREMENT PRIMARY KEY,
+              first_name VARCHAR(255) NOT NULL,
+              last_name VARCHAR(255) NOT NULL,
+              email VARCHAR(255) NOT NULL,
+              phone_number VARCHAR(255) NOT NULL
+            );
+            
+            CREATE TABLE tutor (
+              tutor_id INT AUTO_INCREMENT PRIMARY KEY,
+              first_name VARCHAR(255) NOT NULL,
+              last_name VARCHAR(255) NOT NULL,
+              email VARCHAR(255) NOT NULL,
+              phone_number VARCHAR(255) NOT NULL
+            );
+            
+            CREATE TABLE lesson (
+              lesson_id INT AUTO_INCREMENT PRIMARY KEY,
+              lesson_type VARCHAR(255) NOT NULL,
+              duration_minutes INT NOT NULL,
+              price DECIMAL(10, 2) NOT NULL
+            );
+            
+            CREATE TABLE booking (
+              booking_id INT AUTO_INCREMENT PRIMARY KEY,
+              student_id INT NOT NULL,
+              tutor_id INT NOT NULL,
+              lesson_id INT NOT NULL,
+              booking_date DATETIME NOT NULL,
+              FOREIGN KEY (student_id) REFERENCES student(student_id),
+              FOREIGN KEY (tutor_id) REFERENCES tutor(tutor_id),
+              FOREIGN KEY (lesson_id) REFERENCES lesson(lesson_id)
             );
           `,
     };
@@ -235,7 +294,7 @@ for (const [dialect, adapter] of adapterEntries) {
       // context(justinvdm, 24 Jan 2024): We use `user_id` as a field name to
       // make sure any field aliasing / renaming we do (e.g. to camel case)
       // does not affect how sequences are found and updated
-      const schema: DialectRecordWithDefault = {
+      const schema: SchemaRecord = {
         default: `
           CREATE TABLE "User" (
             "user_id" SERIAL PRIMARY KEY

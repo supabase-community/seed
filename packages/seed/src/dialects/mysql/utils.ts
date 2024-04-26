@@ -1,4 +1,5 @@
-import { escape, escapeId } from "mysql2";
+import { escape } from "mysql2";
+import SqlString from "sqlstring";
 import { type Json, type Serializable } from "#core/data/types.js";
 import {
   type JsTypeName,
@@ -9,8 +10,9 @@ import { jsonStringify } from "#core/utils.js";
 
 export * from "#core/dialect/utils.js";
 
-export const escapeIdentifier = escapeId;
-export const escaleLiteral = escape;
+export const escapeIdentifier = SqlString.escapeId;
+export const escaleLiteral = SqlString.escape;
+export const format = SqlString.format;
 
 export const isNestedArrayMySQLType = (pgType: string): boolean =>
   pgType.startsWith("_") || pgType.endsWith("[]");
@@ -86,6 +88,6 @@ export const serializeToSQL = (type: string, value: Serializable) => {
 
 export const formatValues = (values: Array<Array<unknown>>) => {
   return values
-    .map((row) => `(${row.map((v) => escape(v)).join(", ")})`)
+    .map((row) => `(${row.map((v) => escape(format(v))).join(", ")})`)
     .join(", ");
 };
