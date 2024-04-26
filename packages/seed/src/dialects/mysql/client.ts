@@ -12,11 +12,11 @@ import { type DataModel } from "#core/dataModel/types.js";
 import { type DatabaseClient } from "#core/databaseClient.js";
 import { patchUserModelsSequences } from "#core/sequences/sequences.js";
 import { fetchSequences } from "./introspect/queries/fetchSequences.js";
-import { PgStore } from "./store.js";
+import { MySQLStore } from "./store.js";
 import { escapeIdentifier } from "./utils.js";
 
 export const getSeedClient: GetSeedClient = (props) => {
-  class PgSeedClient extends SeedClientBase {
+  class MySQLSeedClient extends SeedClientBase {
     readonly db: DatabaseClient;
     readonly dryRun: boolean;
     readonly options?: SeedClientOptions;
@@ -26,7 +26,7 @@ export const getSeedClient: GetSeedClient = (props) => {
         ...props,
         adapterPatchUserModels:
           databaseClient.adapterPatchUserModels.bind(databaseClient),
-        createStore: (dataModel: DataModel) => new PgStore(dataModel),
+        createStore: (dataModel: DataModel) => new MySQLStore(dataModel),
         runStatements: async (statements: Array<string>) => {
           if (!this.dryRun) {
             for (const statement of statements) {
@@ -103,7 +103,7 @@ export const getSeedClient: GetSeedClient = (props) => {
       async createClient() {
         const databaseClient =
           options?.adapter ?? (await getDatabaseClient(props.seedConfigPath));
-        return new PgSeedClient(databaseClient, options);
+        return new MySQLSeedClient(databaseClient, options);
       },
     });
   };

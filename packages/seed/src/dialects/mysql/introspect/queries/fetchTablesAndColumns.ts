@@ -13,6 +13,7 @@ interface ColumnResult {
     | `${`${ColumnsConstraintsKeys},${ColumnsConstraintsKeys}` | ColumnsConstraintsKeys}`
     | null;
   default: null | string;
+  generated: 0 | 1;
   id: string;
   maxLength: null | number;
   name: string;
@@ -38,6 +39,7 @@ SELECT
   c.IS_NULLABLE = 'YES' AS \`nullable\`,
   c.CHARACTER_MAXIMUM_LENGTH AS maxLength,
   c.COLUMN_DEFAULT AS \`default\`,
+  EXTRA LIKE '%STORED_GENERATED%' AS \`generated\`,
   GROUP_CONCAT(DISTINCT tc.CONSTRAINT_TYPE ORDER BY tc.CONSTRAINT_TYPE) as constraints
 FROM
   information_schema.COLUMNS as c
@@ -56,7 +58,7 @@ WHERE
   (tc.CONSTRAINT_TYPE IN ('PRIMARY KEY', 'FOREIGN KEY', 'UNIQUE') OR tc.CONSTRAINT_TYPE IS NULL)
 GROUP BY
   c.TABLE_SCHEMA, c.TABLE_NAME, c.COLUMN_NAME, c.DATA_TYPE, c.IS_NULLABLE,
-  c.CHARACTER_MAXIMUM_LENGTH, c.COLUMN_DEFAULT
+  c.CHARACTER_MAXIMUM_LENGTH, c.COLUMN_DEFAULT, c.EXTRA
 ORDER BY
   c.TABLE_SCHEMA, c.TABLE_NAME, c.COLUMN_NAME;
 `;
@@ -86,6 +88,7 @@ export async function fetchTablesAndColumns(
       )
       .map((column) => ({
         ...column,
+        generated: Boolean(column.generated),
         constraints: column.constraints
           ? column.constraints
               .split(",")

@@ -4,16 +4,19 @@ import {
   type DataModelModel,
   type DataModelSequence,
 } from "#core/dataModel/types.js";
-import { escapeIdentifier } from "../utils.js";
 import {
   type IntrospectedStructure,
   type IntrospectedTableColumn,
   type Relationship,
 } from "./introspectDatabase.js";
 
+type MinimalRelationship = Pick<Relationship, "fkTable" | "targetTable"> & {
+  keys: Array<Pick<Relationship["keys"][number], "fkColumn" | "targetColumn">>;
+};
+
 function getModelName(
   introspection: { tables: Array<{ name: string; schema: string }> },
-  table: IntrospectedStructure["tables"][number],
+  table: Pick<IntrospectedStructure["tables"][number], "name" | "schema">,
 ) {
   const tableIsInMultipleSchemas = introspection.tables.some(
     (t) => t.name === table.name && t.schema !== table.schema,
@@ -48,9 +51,12 @@ function getParentRelationAndFieldName({
   parentRelation,
 }: {
   introspection: IntrospectedStructure;
-  parentRelation: Relationship;
+  parentRelation: MinimalRelationship;
   table: IntrospectedStructure["tables"][number];
-  targetTable: IntrospectedStructure["tables"][number];
+  targetTable: Pick<
+    IntrospectedStructure["tables"][number],
+    "name" | "schema"
+  > & { parents: Array<MinimalRelationship> };
 }) {
   const modelName = getModelName(introspection, table);
   const targetModelName = getModelName(introspection, targetTable);
@@ -75,7 +81,7 @@ function getChildRelationAndFieldName({
   childTable,
   childRelation,
 }: {
-  childRelation: Relationship;
+  childRelation: MinimalRelationship;
   childTable: IntrospectedStructure["tables"][number];
   introspection: IntrospectedStructure;
   table: IntrospectedStructure["tables"][number];
@@ -117,37 +123,6 @@ const computeEnumType = (
   return [name, suffix].join("");
 };
 
-function extractSequenceDetails(
-  defaultValue: string,
-  defaultSchema: string,
-): {
-  schema: null | string;
-  sequence: null | string;
-} {
-  // This regex matches strings that follow the PostgreSQL function format nextval('schema."sequence"'::regclass) for sequences
-  const matchWithSchemaName = defaultValue.match(
-    /nextval\('("?)([^'".]+)\1\.(")?([^'"]+)\3'::regclass\)/,
-  );
-  if (matchWithSchemaName) {
-    return {
-      schema: matchWithSchemaName[2],
-      sequence: matchWithSchemaName[4],
-    };
-  } else {
-    // This regex is for matching strings in the format nextval('"sequence"'::regclass) where the schema name is not provided
-    const matchWithoutSchema = defaultValue.match(
-      /nextval\('"?([^".]+)"?'::regclass\)/i,
-    );
-    if (matchWithoutSchema) {
-      return {
-        schema: defaultSchema,
-        sequence: matchWithoutSchema[1],
-      };
-    }
-    return { schema: null, sequence: null };
-  }
-}
-
 // Check if a column is a sequence if it is, retrive the sequence information
 // otherwise return false
 function columnSequence(
@@ -157,48 +132,16 @@ function columnSequence(
   // If the column is an identity column we return the identity information
   // https://www.postgresqltutorial.com/postgresql-tutorial/postgresql-identity-column/
   if (column.identity && sequences) {
-    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
     const sequence = sequences[column.schema].find(
-      (s) =>
-        // Match the sequence identifier with the format schema.sequence
-        `${escapeIdentifier(s.schema)}.${escapeIdentifier(`${s.schema}.${s.name}`)}` ===
-          column.identity?.sequenceIdentifier ||
-        // Or without since pg_get_serial_sequence will trim out the public schema from the sequence identifier
-        `${escapeIdentifier(s.schema)}.${escapeIdentifier(s.name)}` ===
-          column.identity?.sequenceIdentifier,
-    )!;
-    return {
-      identifier: column.identity.sequenceIdentifier ?? null,
-      increment: sequence.interval,
-      start: sequence.start,
-    };
-  }
-  // Otherwise a column can have a sequence as default value wihtout being an identity column
-  // in that case, we extract the sequence informations via the default value nextval()
-  // function parameters call
-  if (column.default?.startsWith("nextval(") && sequences) {
-    // Extract the sequence schema and name from the default function definition
-    const sequenceDetails = extractSequenceDetails(
-      column.default,
-      column.schema,
-    );
-    if (!sequenceDetails.schema || !sequenceDetails.sequence) {
-      return false;
-    }
-    const schemaSequences = sequences[sequenceDetails.schema];
-    const sequence = schemaSequences.find(
-      (s) => s.name === sequenceDetails.sequence,
+      (s) => s.name === column.identity?.name,
     );
     if (sequence) {
       return {
-        identifier: `${escapeIdentifier(
-          sequenceDetails.schema,
-        )}.${escapeIdentifier(sequenceDetails.sequence)}`,
+        identifier: sequence.name,
         increment: sequence.interval,
         start: sequence.start,
       };
     }
-    return false;
   }
   return false;
 }
@@ -241,7 +184,7 @@ export function introspectionToDataModel(
         isRequired: !column.nullable,
         kind: "scalar",
         isList: false,
-        isGenerated: false,
+        isGenerated: column.generated,
         sequence,
         hasDefaultValue: column.default !== null,
         isId: Boolean(primaryKeysColumnsNames.get(column.name)),

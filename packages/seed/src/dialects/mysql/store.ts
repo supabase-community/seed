@@ -1,10 +1,14 @@
-import { format, ident, literal } from "@scaleleap/pg-format";
 import { type Json } from "#core/data/types.js";
 import { isNullableParent as checkIsNullableParent } from "#core/dataModel/dataModel.js";
 import { type DataModelScalarField } from "#core/dataModel/types.js";
 import { StoreBase } from "#core/store/store.js";
 import { sortModels } from "#core/store/topologicalSort.js";
-import { escapeIdentifier, escapeLiteral, serializeToSQL } from "./utils.js";
+import {
+  escaleLiteral,
+  escapeIdentifier,
+  formatValues,
+  serializeToSQL,
+} from "./utils.js";
 
 interface MissingPKForUpdateError {
   modelName: string;
@@ -34,7 +38,7 @@ function logToSqlErrors(errors: Array<ToSQLErrors>) {
   }
 }
 
-export class PgStore extends StoreBase {
+export class MySQLStore extends StoreBase {
   toSQL() {
     const SQL_DEFAULT_SYMBOL = "$$DEFAULT$$";
 
@@ -43,7 +47,6 @@ export class PgStore extends StoreBase {
     // we will use this map to create the links between the parent and the child once all the models have been inserted
     const insertStatements: Array<string> = [];
     const updateStatements: Array<string> = [];
-    const sequenceFixerStatements: Array<string> = [];
     const errorsData: Array<ToSQLErrors> = [];
 
     for (const model of sortedModels) {
@@ -64,30 +67,6 @@ export class PgStore extends StoreBase {
       const fieldToColumnMap = new Map(
         Array.from(fieldMap.values()).map((f) => [f.name, f.columnName]),
       );
-      const sequenceFields = model.fields.filter((f) => f.sequence);
-      // If we inserted new rows with sequences, we need to update the database sequence value to the max value of the inserted rows
-      for (const sequenceField of sequenceFields) {
-        const tableName = model.tableName;
-        const schemaName = model.schemaName;
-        const fieldColumn = fieldToColumnMap.get(sequenceField.name);
-        if (
-          fieldColumn &&
-          sequenceField.sequence &&
-          schemaName &&
-          tableName &&
-          sequenceField.sequence.identifier
-        ) {
-          const sequenceIdentifier = sequenceField.sequence.identifier;
-          const sequenceFixerStatement = `SELECT setval(${escapeLiteral(
-            sequenceIdentifier,
-          )}::regclass, (SELECT MAX(${escapeIdentifier(
-            fieldColumn,
-          )}) FROM ${escapeIdentifier(schemaName)}.${escapeIdentifier(
-            tableName,
-          )}))`;
-          sequenceFixerStatements.push(sequenceFixerStatement);
-        }
-      }
       const insertRowsValues: Array<Array<unknown>> = [];
       for (const row of rows) {
         const insertRowValues: Array<unknown> = [];
@@ -182,15 +161,17 @@ export class PgStore extends StoreBase {
         }
         if (updateRow) {
           const updateStatement = [
-            `UPDATE ${ident(model.schemaName)}.${ident(model.tableName)}`,
+            `UPDATE ${escapeIdentifier(model.schemaName)}.${escapeIdentifier(model.tableName)}`,
             `SET ${Object.entries(updateRow.values)
               .map(
-                ([c, v]) => `${ident(fieldToColumnMap.get(c))} = ${literal(v)}`,
+                ([c, v]) =>
+                  `${escapeIdentifier(fieldToColumnMap.get(c))} = ${escaleLiteral(v)}`,
               )
               .join(", ")}`,
             `WHERE ${Object.entries(updateRow.filter)
               .map(
-                ([c, v]) => `${ident(fieldToColumnMap.get(c))} = ${literal(v)}`,
+                ([c, v]) =>
+                  `${escapeIdentifier(fieldToColumnMap.get(c))} = ${escaleLiteral(v)}`,
               )
               .join(" AND ")}`,
           ].join(" ");
@@ -198,34 +179,17 @@ export class PgStore extends StoreBase {
         }
         insertRowsValues.push(insertRowValues);
       }
-
-      const isGeneratedId =
-        model.fields.filter((f) => f.isGenerated && f.isId).length > 0;
-
-      const insertStatementTemplate = [
-        "INSERT INTO %I.%I (%I)",
-        isGeneratedId ? "OVERRIDING SYSTEM VALUE" : undefined,
-        "VALUES %L",
-      ]
-        .filter((s) => Boolean(s))
-        .join(" ");
-
-      const insertStatement = format(
-        insertStatementTemplate,
-        model.schemaName,
-        model.tableName,
-        Array.from(fieldToColumnMap.values()),
-        insertRowsValues,
-      )
-        // We patch the "DEFAULT" values as it's a reserved keyword and we don't want to escape it
-        .replaceAll(`'${SQL_DEFAULT_SYMBOL}'`, "DEFAULT");
-      insertStatements.push(insertStatement);
+      const columnsMap = Array.from(fieldToColumnMap.values());
+      const inserts = insertRowsValues.map((row) => {
+        const columnsToFills = columnsMap.filter(
+          (_, index) => row[index] !== SQL_DEFAULT_SYMBOL,
+        );
+        const values = row.filter((v) => v !== SQL_DEFAULT_SYMBOL);
+        return `INSERT INTO ${escapeIdentifier(model.schemaName)}.${escapeIdentifier(model.tableName)} (${columnsToFills.map(escapeIdentifier).join(", ")}) VALUES ${formatValues([values])}`;
+      });
+      insertStatements.push(...inserts);
     }
     logToSqlErrors(errorsData);
-    return [
-      ...insertStatements,
-      ...updateStatements,
-      ...sequenceFixerStatements,
-    ];
+    return [...insertStatements, ...updateStatements];
   }
 }

@@ -51,6 +51,7 @@ describe.concurrent.each(["mysql"] as const)(
                 table: "Courses",
                 nullable: false,
                 default: null,
+                generated: false,
                 maxLength: null,
               },
               {
@@ -62,6 +63,7 @@ describe.concurrent.each(["mysql"] as const)(
                 table: "Courses",
                 nullable: false,
                 default: null,
+                generated: false,
                 maxLength: 255,
               },
             ]),
@@ -81,6 +83,7 @@ describe.concurrent.each(["mysql"] as const)(
                 table: "Students",
                 nullable: false,
                 default: null,
+                generated: false,
                 maxLength: null,
               },
               {
@@ -92,6 +95,7 @@ describe.concurrent.each(["mysql"] as const)(
                 table: "Students",
                 nullable: false,
                 default: null,
+                generated: false,
                 maxLength: 255,
               },
               {
@@ -103,6 +107,7 @@ describe.concurrent.each(["mysql"] as const)(
                 table: "Students",
                 nullable: false,
                 default: null,
+                generated: false,
                 maxLength: 255,
               },
             ]),
@@ -159,6 +164,7 @@ describe.concurrent.each(["mysql"] as const)(
                 table: "Courses",
                 nullable: false,
                 default: null,
+                generated: false,
                 maxLength: null,
               },
               {
@@ -170,6 +176,7 @@ describe.concurrent.each(["mysql"] as const)(
                 table: "Courses",
                 nullable: false,
                 default: null,
+                generated: false,
                 maxLength: 255,
               },
             ]),
@@ -189,6 +196,7 @@ describe.concurrent.each(["mysql"] as const)(
                 table: "Enrollments",
                 nullable: false,
                 default: null,
+                generated: false,
                 maxLength: null,
               },
               {
@@ -200,6 +208,7 @@ describe.concurrent.each(["mysql"] as const)(
                 table: "Enrollments",
                 nullable: false,
                 default: null,
+                generated: false,
                 maxLength: null,
               },
             ]),
@@ -219,6 +228,7 @@ describe.concurrent.each(["mysql"] as const)(
                 table: "Grades",
                 nullable: false,
                 default: null,
+                generated: false,
                 maxLength: null,
               },
               {
@@ -230,6 +240,7 @@ describe.concurrent.each(["mysql"] as const)(
                 table: "Grades",
                 nullable: false,
                 default: null,
+                generated: false,
                 maxLength: null,
               },
               {
@@ -241,6 +252,7 @@ describe.concurrent.each(["mysql"] as const)(
                 table: "Grades",
                 nullable: false,
                 default: null,
+                generated: false,
                 maxLength: 255,
               },
               {
@@ -252,6 +264,7 @@ describe.concurrent.each(["mysql"] as const)(
                 table: "Grades",
                 nullable: false,
                 default: null,
+                generated: false,
                 maxLength: null,
               },
             ]),
@@ -271,6 +284,7 @@ describe.concurrent.each(["mysql"] as const)(
                 table: "Students",
                 nullable: false,
                 default: null,
+                generated: false,
                 maxLength: null,
               },
               {
@@ -282,6 +296,7 @@ describe.concurrent.each(["mysql"] as const)(
                 table: "Students",
                 nullable: false,
                 default: null,
+                generated: false,
                 maxLength: 255,
               },
               {
@@ -293,6 +308,7 @@ describe.concurrent.each(["mysql"] as const)(
                 table: "Students",
                 nullable: false,
                 default: null,
+                generated: false,
                 maxLength: 255,
               },
             ]),
@@ -348,6 +364,7 @@ describe.concurrent.each(["mysql"] as const)(
             columns: expect.arrayContaining([
               {
                 default: null,
+                generated: false,
                 id: `${publicDb.name}.Courses.CourseID`,
                 maxLength: null,
                 name: "CourseID",
@@ -359,6 +376,7 @@ describe.concurrent.each(["mysql"] as const)(
               },
               {
                 default: null,
+                generated: false,
                 id: `${publicDb.name}.Courses.CourseName`,
                 maxLength: 255,
                 constraints: [],
@@ -377,6 +395,7 @@ describe.concurrent.each(["mysql"] as const)(
             columns: expect.arrayContaining([
               {
                 default: null,
+                generated: false,
                 id: `${publicDb.name}.Students.StudentID`,
                 maxLength: null,
                 name: "StudentID",
@@ -388,6 +407,7 @@ describe.concurrent.each(["mysql"] as const)(
               },
               {
                 default: null,
+                generated: false,
                 id: `${publicDb.name}.Students.FirstName`,
                 maxLength: 255,
                 name: "FirstName",
@@ -399,6 +419,7 @@ describe.concurrent.each(["mysql"] as const)(
               },
               {
                 default: null,
+                generated: false,
                 id: `${publicDb.name}.Students.LastName`,
                 maxLength: 255,
                 name: "LastName",
@@ -410,6 +431,7 @@ describe.concurrent.each(["mysql"] as const)(
               },
               {
                 default: null,
+                generated: false,
                 constraints: expect.arrayContaining(["f"]),
                 id: `${publicDb.name}.Students.StudentCourseId`,
                 maxLength: null,
@@ -429,6 +451,7 @@ describe.concurrent.each(["mysql"] as const)(
             columns: expect.arrayContaining([
               {
                 default: null,
+                generated: false,
                 id: `${privateDb.name}.Courses.CourseID`,
                 maxLength: null,
                 name: "CourseID",
@@ -440,6 +463,7 @@ describe.concurrent.each(["mysql"] as const)(
               },
               {
                 default: null,
+                generated: false,
                 id: `${privateDb.name}.Courses.CourseName`,
                 maxLength: 255,
                 name: "CourseName",
@@ -458,6 +482,7 @@ describe.concurrent.each(["mysql"] as const)(
             columns: expect.arrayContaining([
               {
                 default: null,
+                generated: false,
                 id: `${privateDb.name}.Enrollments.CourseID`,
                 maxLength: null,
                 name: "CourseID",
@@ -469,6 +494,7 @@ describe.concurrent.each(["mysql"] as const)(
               },
               {
                 default: null,
+                generated: false,
                 id: `${privateDb.name}.Enrollments.StudentID`,
                 maxLength: null,
                 name: "StudentID",
@@ -487,6 +513,7 @@ describe.concurrent.each(["mysql"] as const)(
             columns: expect.arrayContaining([
               {
                 default: null,
+                generated: false,
                 constraints: expect.arrayContaining(["p", "f"]),
                 id: `${otherDb.name}.Grades.CourseID`,
                 maxLength: null,
@@ -498,6 +525,7 @@ describe.concurrent.each(["mysql"] as const)(
               },
               {
                 default: null,
+                generated: false,
                 constraints: expect.arrayContaining(["p", "f"]),
                 id: `${otherDb.name}.Grades.StudentID`,
                 maxLength: null,
@@ -509,6 +537,7 @@ describe.concurrent.each(["mysql"] as const)(
               },
               {
                 default: null,
+                generated: false,
                 constraints: expect.arrayContaining(["p"]),
                 id: `${otherDb.name}.Grades.ExamName`,
                 maxLength: 255,
@@ -520,6 +549,7 @@ describe.concurrent.each(["mysql"] as const)(
               },
               {
                 default: null,
+                generated: false,
                 id: `${otherDb.name}.Grades.Grade`,
                 constraints: [],
                 maxLength: null,
@@ -564,6 +594,7 @@ describe.concurrent.each(["mysql"] as const)(
                 table: "Employees",
                 nullable: false,
                 default: null,
+                generated: false,
                 maxLength: null,
               },
               {
@@ -575,6 +606,7 @@ describe.concurrent.each(["mysql"] as const)(
                 table: "Employees",
                 nullable: false,
                 default: null,
+                generated: false,
                 maxLength: 255,
               },
               {
@@ -586,6 +618,7 @@ describe.concurrent.each(["mysql"] as const)(
                 table: "Employees",
                 nullable: false,
                 default: null,
+                generated: false,
                 maxLength: 255,
               },
               {
@@ -598,6 +631,93 @@ describe.concurrent.each(["mysql"] as const)(
                 nullable: false,
                 default: "ACTIVE",
                 maxLength: 8,
+                generated: false,
+              },
+            ]),
+          },
+        ]),
+      );
+    });
+
+    test("should fetch generated columns infos", async () => {
+      const structure = `
+      CREATE TABLE test_customer (
+        id INT AUTO_INCREMENT PRIMARY KEY,
+        name VARCHAR(255) DEFAULT 'default_name' NOT NULL,
+        email VARCHAR(255) NOT NULL,
+        phone VARCHAR(255),
+        full_details VARCHAR(255) AS (CONCAT(name, ' <', email, '>', ' Phone: ', IFNULL(phone, 'N/A'))) STORED
+      );
+      `;
+      const db = await createTestDb(structure);
+      const tablesInfos = await fetchTablesAndColumns(db.client, [db.name]);
+
+      expect(tablesInfos).toEqual(
+        expect.arrayContaining([
+          {
+            id: `${db.name}.test_customer`,
+            name: "test_customer",
+            schema: db.name,
+            columns: expect.arrayContaining([
+              {
+                id: `${db.name}.test_customer.id`,
+                constraints: expect.arrayContaining(["p"]),
+                name: "id",
+                type: "int",
+                schema: db.name,
+                table: "test_customer",
+                nullable: false,
+                default: null,
+                generated: false,
+                maxLength: null,
+              },
+              {
+                id: `${db.name}.test_customer.name`,
+                constraints: [],
+                name: "name",
+                type: "varchar",
+                schema: db.name,
+                table: "test_customer",
+                nullable: false,
+                default: "default_name",
+                generated: false,
+                maxLength: 255,
+              },
+              {
+                id: `${db.name}.test_customer.email`,
+                constraints: [],
+                name: "email",
+                type: "varchar",
+                schema: db.name,
+                table: "test_customer",
+                nullable: false,
+                default: null,
+                generated: false,
+                maxLength: 255,
+              },
+              {
+                id: `${db.name}.test_customer.phone`,
+                constraints: [],
+                name: "phone",
+                type: "varchar",
+                schema: db.name,
+                table: "test_customer",
+                nullable: true,
+                default: null,
+                generated: false,
+                maxLength: 255,
+              },
+              {
+                constraints: [],
+                default: null,
+                generated: true,
+                id: `${db.name}.test_customer.full_details`,
+                maxLength: 255,
+                name: "full_details",
+                nullable: true,
+                schema: db.name,
+                table: "test_customer",
+                type: "varchar",
               },
             ]),
           },

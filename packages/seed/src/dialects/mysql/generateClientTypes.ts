@@ -5,8 +5,6 @@ import {
   SQL_DATE_TYPES,
   SQL_TO_JS_TYPES,
   extractPrimitiveSQLType,
-  getPgTypeArrayDimensions,
-  isNestedArrayPgType,
 } from "./utils.js";
 
 export function generateClientTypes(props: {
@@ -54,10 +52,6 @@ function pg2tsTypeName(dataModel: DataModel, postgresType: string) {
 }
 
 function refineType(type: string, postgresType: string, isRequired: boolean) {
-  if (isNestedArrayPgType(postgresType)) {
-    type = `${type}${"[]".repeat(getPgTypeArrayDimensions(postgresType))}`;
-  }
-
   if (!isRequired) {
     type = `${type} | null`;
   }

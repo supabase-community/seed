@@ -12,10 +12,10 @@ export * from "#core/dialect/utils.js";
 export const escapeIdentifier = escapeId;
 export const escaleLiteral = escape;
 
-export const isNestedArrayPgType = (pgType: string): boolean =>
+export const isNestedArrayMySQLType = (pgType: string): boolean =>
   pgType.startsWith("_") || pgType.endsWith("[]");
 
-export const getPgTypeArrayDimensions = (pgType: string): number => {
+export const getMySQLTypeArrayDimensions = (pgType: string): number => {
   if (pgType.startsWith("_")) {
     return 1;
   }
@@ -73,7 +73,7 @@ const serializeArrayColumn = (value: Json, SQLType: string): string => {
 };
 
 export const serializeToSQL = (type: string, value: Serializable) => {
-  if (isNestedArrayPgType(type)) {
+  if (isNestedArrayMySQLType(type)) {
     return serializeArrayColumn(value as string, type);
   }
 
@@ -82,4 +82,10 @@ export const serializeToSQL = (type: string, value: Serializable) => {
   }
 
   return value;
+};
+
+export const formatValues = (values: Array<Array<unknown>>) => {
+  return values
+    .map((row) => `(${row.map((v) => escape(v)).join(", ")})`)
+    .join(", ");
 };
