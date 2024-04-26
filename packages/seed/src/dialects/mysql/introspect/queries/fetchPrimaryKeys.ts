@@ -15,7 +15,7 @@ SELECT
   tc.TABLE_NAME AS \`table\`,
   CONCAT(tc.TABLE_SCHEMA, '.', tc.TABLE_NAME) AS tableId,
   kcu.COLUMN_NAME AS name,
-  cols.DATA_TYPE AS type
+  cols.DATA_TYPE AS \`type\`
 FROM 
   information_schema.TABLE_CONSTRAINTS AS tc
 JOIN 

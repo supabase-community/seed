@@ -1,7 +1,17 @@
 import { type DatabaseClient } from "#core/databaseClient.js";
 import { buildSchemaInclusionClause } from "./utils.js";
 
+const COLUMN_CONSTRAINTS = {
+  "PRIMARY KEY": "p",
+  "FOREIGN KEY": "f",
+  UNIQUE: "u",
+} as const;
+
+type ColumnsConstraintsKeys = keyof typeof COLUMN_CONSTRAINTS;
 interface ColumnResult {
+  constraints:
+    | `${`${ColumnsConstraintsKeys},${ColumnsConstraintsKeys}` | ColumnsConstraintsKeys}`
+    | null;
   default: null | string;
   id: string;
   maxLength: null | number;
@@ -19,18 +29,36 @@ interface TableResult {
 }
 
 const FETCH_COLUMNS = (schemas: Array<string>) => `
-  SELECT 
-    CONCAT(TABLE_SCHEMA, '.', TABLE_NAME, '.', COLUMN_NAME) AS id,
-    TABLE_SCHEMA AS \`schema\`,
-    TABLE_NAME AS \`table\`,
-    COLUMN_NAME AS \`name\`,
-    DATA_TYPE AS \`type\`,
-    IS_NULLABLE = 'YES' AS \`nullable\`,
-    COLUMN_DEFAULT AS \`default\`,
-    CHARACTER_MAXIMUM_LENGTH AS maxLength
-  FROM information_schema.COLUMNS
-  WHERE ${buildSchemaInclusionClause(schemas, "TABLE_SCHEMA")}
-  ORDER BY ORDINAL_POSITION;
+SELECT
+  CONCAT(c.TABLE_SCHEMA, '.', c.TABLE_NAME, '.', c.COLUMN_NAME) AS id,
+  c.TABLE_SCHEMA as \`schema\`,
+  c.TABLE_NAME as \`table\`,
+  c.COLUMN_NAME as \`name\`,
+  c.DATA_TYPE AS \`type\`,
+  c.IS_NULLABLE = 'YES' AS \`nullable\`,
+  c.CHARACTER_MAXIMUM_LENGTH AS maxLength,
+  c.COLUMN_DEFAULT AS \`default\`,
+  GROUP_CONCAT(DISTINCT tc.CONSTRAINT_TYPE ORDER BY tc.CONSTRAINT_TYPE) as constraints
+FROM
+  information_schema.COLUMNS as c
+LEFT JOIN
+  information_schema.KEY_COLUMN_USAGE as k
+  ON c.TABLE_SCHEMA = k.TABLE_SCHEMA
+  AND c.TABLE_NAME = k.TABLE_NAME
+  AND c.COLUMN_NAME = k.COLUMN_NAME
+LEFT JOIN
+  information_schema.TABLE_CONSTRAINTS as tc
+  ON k.TABLE_SCHEMA = tc.TABLE_SCHEMA
+  AND k.TABLE_NAME = tc.TABLE_NAME
+  AND k.CONSTRAINT_NAME = tc.CONSTRAINT_NAME
+WHERE
+  ${buildSchemaInclusionClause(schemas, "c.TABLE_SCHEMA")} AND
+  (tc.CONSTRAINT_TYPE IN ('PRIMARY KEY', 'FOREIGN KEY', 'UNIQUE') OR tc.CONSTRAINT_TYPE IS NULL)
+GROUP BY
+  c.TABLE_SCHEMA, c.TABLE_NAME, c.COLUMN_NAME, c.DATA_TYPE, c.IS_NULLABLE,
+  c.CHARACTER_MAXIMUM_LENGTH, c.COLUMN_DEFAULT
+ORDER BY
+  c.TABLE_SCHEMA, c.TABLE_NAME, c.COLUMN_NAME;
 `;
 
 const FETCH_TABLES = (schemas: Array<string>) => `
@@ -58,6 +86,11 @@ export async function fetchTablesAndColumns(
       )
       .map((column) => ({
         ...column,
+        constraints: column.constraints
+          ? column.constraints
+              .split(",")
+              .map((ck) => COLUMN_CONSTRAINTS[ck as ColumnsConstraintsKeys])
+          : [],
         type:
           column.type === "enum"
             ? `enum.${table.schema}.${table.name}.${column.name}`

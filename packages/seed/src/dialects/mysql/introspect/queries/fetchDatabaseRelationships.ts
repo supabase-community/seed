@@ -16,7 +16,7 @@ const FETCH_RELATIONSHIPS_INFOS = (schemas: Array<string>) => `
     kcu.CONSTRAINT_NAME AS id,
     CONCAT(kcu.TABLE_SCHEMA, '.', kcu.TABLE_NAME) AS fkTable,
     kcu.COLUMN_NAME AS fkColumn,
-    col.COLUMN_TYPE AS type,
+    col.DATA_TYPE AS type,
     kcu.REFERENCED_COLUMN_NAME AS targetColumn,
     col.IS_NULLABLE = 'YES' AS nullable,
     CONCAT(kcu.REFERENCED_TABLE_SCHEMA, '.', kcu.REFERENCED_TABLE_NAME) AS targetTable

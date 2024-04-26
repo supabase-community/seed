@@ -16,7 +16,7 @@ describe.concurrent.each(["mysql"] as const)(
       const db = await createTestDb(structure);
       const tablesInfos = await fetchTablesAndColumns(db.client, [db.name]);
 
-      expect(tablesInfos).toEqual(expect.arrayContaining([]));
+      expect(tablesInfos).toEqual([]);
     });
 
     test("should fetch all tables and columns infos", async () => {
@@ -44,6 +44,7 @@ describe.concurrent.each(["mysql"] as const)(
             columns: expect.arrayContaining([
               {
                 id: `${db.name}.Courses.CourseID`,
+                constraints: expect.arrayContaining(["p", "u"]),
                 name: "CourseID",
                 type: "bigint",
                 schema: db.name,
@@ -54,6 +55,7 @@ describe.concurrent.each(["mysql"] as const)(
               },
               {
                 id: `${db.name}.Courses.CourseName`,
+                constraints: [],
                 name: "CourseName",
                 type: "varchar",
                 schema: db.name,
@@ -72,6 +74,7 @@ describe.concurrent.each(["mysql"] as const)(
             columns: expect.arrayContaining([
               {
                 id: `${db.name}.Students.StudentID`,
+                constraints: expect.arrayContaining(["p", "u"]),
                 name: "StudentID",
                 type: "bigint",
                 schema: db.name,
@@ -84,6 +87,7 @@ describe.concurrent.each(["mysql"] as const)(
                 id: `${db.name}.Students.FirstName`,
                 name: "FirstName",
                 type: "varchar",
+                constraints: [],
                 schema: db.name,
                 table: "Students",
                 nullable: false,
@@ -93,6 +97,7 @@ describe.concurrent.each(["mysql"] as const)(
               {
                 id: `${db.name}.Students.LastName`,
                 name: "LastName",
+                constraints: [],
                 type: "varchar",
                 schema: db.name,
                 table: "Students",
@@ -144,9 +149,10 @@ describe.concurrent.each(["mysql"] as const)(
             name: "Courses",
             schema: db.name,
 
-            columns: [
+            columns: expect.arrayContaining([
               {
                 id: `${db.name}.Courses.CourseID`,
+                constraints: expect.arrayContaining(["p"]),
                 name: "CourseID",
                 type: "int",
                 schema: db.name,
@@ -157,6 +163,7 @@ describe.concurrent.each(["mysql"] as const)(
               },
               {
                 id: `${db.name}.Courses.CourseName`,
+                constraints: [],
                 name: "CourseName",
                 type: "varchar",
                 schema: db.name,
@@ -165,16 +172,17 @@ describe.concurrent.each(["mysql"] as const)(
                 default: null,
                 maxLength: 255,
               },
-            ],
+            ]),
           },
           {
             id: `${db.name}.Enrollments`,
             name: "Enrollments",
             schema: db.name,
 
-            columns: [
+            columns: expect.arrayContaining([
               {
                 id: `${db.name}.Enrollments.CourseID`,
+                constraints: expect.arrayContaining(["p", "f"]),
                 name: "CourseID",
                 type: "int",
                 schema: db.name,
@@ -186,6 +194,7 @@ describe.concurrent.each(["mysql"] as const)(
               {
                 id: `${db.name}.Enrollments.StudentID`,
                 name: "StudentID",
+                constraints: expect.arrayContaining(["p", "f"]),
                 type: "int",
                 schema: db.name,
                 table: "Enrollments",
@@ -193,16 +202,17 @@ describe.concurrent.each(["mysql"] as const)(
                 default: null,
                 maxLength: null,
               },
-            ],
+            ]),
           },
           {
             id: `${db.name}.Grades`,
             name: "Grades",
             schema: db.name,
 
-            columns: [
+            columns: expect.arrayContaining([
               {
                 id: `${db.name}.Grades.CourseID`,
+                constraints: expect.arrayContaining(["p", "f"]),
                 name: "CourseID",
                 type: "int",
                 schema: db.name,
@@ -213,6 +223,7 @@ describe.concurrent.each(["mysql"] as const)(
               },
               {
                 id: `${db.name}.Grades.StudentID`,
+                constraints: expect.arrayContaining(["p", "f"]),
                 name: "StudentID",
                 type: "int",
                 schema: db.name,
@@ -223,6 +234,7 @@ describe.concurrent.each(["mysql"] as const)(
               },
               {
                 id: `${db.name}.Grades.ExamName`,
+                constraints: expect.arrayContaining(["p"]),
                 name: "ExamName",
                 type: "varchar",
                 schema: db.name,
@@ -233,6 +245,7 @@ describe.concurrent.each(["mysql"] as const)(
               },
               {
                 id: `${db.name}.Grades.Grade`,
+                constraints: [],
                 name: "Grade",
                 type: "float",
                 schema: db.name,
@@ -241,16 +254,17 @@ describe.concurrent.each(["mysql"] as const)(
                 default: null,
                 maxLength: null,
               },
-            ],
+            ]),
           },
           {
             id: `${db.name}.Students`,
             name: "Students",
             schema: db.name,
 
-            columns: [
+            columns: expect.arrayContaining([
               {
                 id: `${db.name}.Students.StudentID`,
+                constraints: expect.arrayContaining(["p"]),
                 name: "StudentID",
                 type: "int",
                 schema: db.name,
@@ -261,6 +275,7 @@ describe.concurrent.each(["mysql"] as const)(
               },
               {
                 id: `${db.name}.Students.FirstName`,
+                constraints: [],
                 name: "FirstName",
                 type: "varchar",
                 schema: db.name,
@@ -271,6 +286,7 @@ describe.concurrent.each(["mysql"] as const)(
               },
               {
                 id: `${db.name}.Students.LastName`,
+                constraints: [],
                 name: "LastName",
                 type: "varchar",
                 schema: db.name,
@@ -279,7 +295,7 @@ describe.concurrent.each(["mysql"] as const)(
                 default: null,
                 maxLength: 255,
               },
-            ],
+            ]),
           },
         ]),
       );
@@ -319,6 +335,7 @@ describe.concurrent.each(["mysql"] as const)(
             PRIMARY KEY (CourseID, StudentID, ExamName),
             FOREIGN KEY (CourseID, StudentID) REFERENCES \`${privateDb.name}\`.Enrollments(CourseID, StudentID)
         );`);
+
       const tablesInfospublicDb = await fetchTablesAndColumns(
         publicDb.client,
         await fetchSchemas(publicDb.client),
@@ -336,6 +353,7 @@ describe.concurrent.each(["mysql"] as const)(
                 name: "CourseID",
                 nullable: false,
                 schema: publicDb.name,
+                constraints: expect.arrayContaining(["p"]),
                 table: "Courses",
                 type: "bigint",
               },
@@ -343,6 +361,7 @@ describe.concurrent.each(["mysql"] as const)(
                 default: null,
                 id: `${publicDb.name}.Courses.CourseName`,
                 maxLength: 255,
+                constraints: [],
                 name: "CourseName",
                 nullable: false,
                 schema: publicDb.name,
@@ -363,6 +382,7 @@ describe.concurrent.each(["mysql"] as const)(
                 name: "StudentID",
                 nullable: false,
                 schema: publicDb.name,
+                constraints: expect.arrayContaining(["p"]),
                 table: "Students",
                 type: "bigint",
               },
@@ -373,6 +393,7 @@ describe.concurrent.each(["mysql"] as const)(
                 name: "FirstName",
                 nullable: false,
                 schema: publicDb.name,
+                constraints: [],
                 table: "Students",
                 type: "varchar",
               },
@@ -383,11 +404,13 @@ describe.concurrent.each(["mysql"] as const)(
                 name: "LastName",
                 nullable: false,
                 schema: publicDb.name,
+                constraints: [],
                 table: "Students",
                 type: "varchar",
               },
               {
                 default: null,
+                constraints: expect.arrayContaining(["f"]),
                 id: `${publicDb.name}.Students.StudentCourseId`,
                 maxLength: null,
                 name: "StudentCourseId",
@@ -403,12 +426,13 @@ describe.concurrent.each(["mysql"] as const)(
             schema: publicDb.name,
           },
           {
-            columns: [
+            columns: expect.arrayContaining([
               {
                 default: null,
                 id: `${privateDb.name}.Courses.CourseID`,
                 maxLength: null,
                 name: "CourseID",
+                constraints: expect.arrayContaining(["p"]),
                 nullable: false,
                 schema: privateDb.name,
                 table: "Courses",
@@ -419,23 +443,25 @@ describe.concurrent.each(["mysql"] as const)(
                 id: `${privateDb.name}.Courses.CourseName`,
                 maxLength: 255,
                 name: "CourseName",
+                constraints: [],
                 nullable: false,
                 schema: privateDb.name,
                 table: "Courses",
                 type: "varchar",
               },
-            ],
+            ]),
             id: `${privateDb.name}.Courses`,
             name: "Courses",
             schema: privateDb.name,
           },
           {
-            columns: [
+            columns: expect.arrayContaining([
               {
                 default: null,
                 id: `${privateDb.name}.Enrollments.CourseID`,
                 maxLength: null,
                 name: "CourseID",
+                constraints: expect.arrayContaining(["f", "u"]),
                 nullable: true,
                 schema: privateDb.name,
                 table: "Enrollments",
@@ -446,20 +472,22 @@ describe.concurrent.each(["mysql"] as const)(
                 id: `${privateDb.name}.Enrollments.StudentID`,
                 maxLength: null,
                 name: "StudentID",
+                constraints: expect.arrayContaining(["f", "u"]),
                 nullable: true,
                 schema: privateDb.name,
                 table: "Enrollments",
                 type: "bigint",
               },
-            ],
+            ]),
             id: `${privateDb.name}.Enrollments`,
             name: "Enrollments",
             schema: privateDb.name,
           },
           {
-            columns: [
+            columns: expect.arrayContaining([
               {
                 default: null,
+                constraints: expect.arrayContaining(["p", "f"]),
                 id: `${otherDb.name}.Grades.CourseID`,
                 maxLength: null,
                 name: "CourseID",
@@ -470,6 +498,7 @@ describe.concurrent.each(["mysql"] as const)(
               },
               {
                 default: null,
+                constraints: expect.arrayContaining(["p", "f"]),
                 id: `${otherDb.name}.Grades.StudentID`,
                 maxLength: null,
                 name: "StudentID",
@@ -480,6 +509,7 @@ describe.concurrent.each(["mysql"] as const)(
               },
               {
                 default: null,
+                constraints: expect.arrayContaining(["p"]),
                 id: `${otherDb.name}.Grades.ExamName`,
                 maxLength: 255,
                 name: "ExamName",
@@ -491,6 +521,7 @@ describe.concurrent.each(["mysql"] as const)(
               {
                 default: null,
                 id: `${otherDb.name}.Grades.Grade`,
+                constraints: [],
                 maxLength: null,
                 name: "Grade",
                 nullable: false,
@@ -498,7 +529,7 @@ describe.concurrent.each(["mysql"] as const)(
                 table: "Grades",
                 type: "float",
               },
-            ],
+            ]),
             id: `${otherDb.name}.Grades`,
             name: "Grades",
             schema: otherDb.name,
@@ -526,6 +557,7 @@ describe.concurrent.each(["mysql"] as const)(
             columns: expect.arrayContaining([
               {
                 id: `${db.name}.Employees.EmployeeID`,
+                constraints: expect.arrayContaining(["p"]),
                 name: "EmployeeID",
                 type: "int",
                 schema: db.name,
@@ -536,6 +568,7 @@ describe.concurrent.each(["mysql"] as const)(
               },
               {
                 id: `${db.name}.Employees.FirstName`,
+                constraints: [],
                 name: "FirstName",
                 type: "varchar",
                 schema: db.name,
@@ -546,6 +579,7 @@ describe.concurrent.each(["mysql"] as const)(
               },
               {
                 id: `${db.name}.Employees.LastName`,
+                constraints: [],
                 name: "LastName",
                 type: "varchar",
                 schema: db.name,
@@ -558,6 +592,7 @@ describe.concurrent.each(["mysql"] as const)(
                 id: `${db.name}.Employees.Status`,
                 name: "Status",
                 type: `enum.${db.name}.Employees.Status`,
+                constraints: [],
                 schema: db.name,
                 table: "Employees",
                 nullable: false,
