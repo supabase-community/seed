@@ -51,7 +51,7 @@ function pg2tsTypeName(dataModel: DataModel, postgresType: string) {
   return "unknown";
 }
 
-function refineType(type: string, postgresType: string, isRequired: boolean) {
+function refineType(type: string, _postgresType: string, isRequired: boolean) {
   if (!isRequired) {
     type = `${type} | null`;
   }

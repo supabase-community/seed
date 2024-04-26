@@ -10,25 +10,6 @@ import {
   type Relationship,
 } from "./introspectDatabase.js";
 
-type MinimalRelationship = Pick<Relationship, "fkTable" | "targetTable"> & {
-  keys: Array<Pick<Relationship["keys"][number], "fkColumn" | "targetColumn">>;
-};
-
-function getModelName(
-  introspection: { tables: Array<{ name: string; schema: string }> },
-  table: Pick<IntrospectedStructure["tables"][number], "name" | "schema">,
-) {
-  const tableIsInMultipleSchemas = introspection.tables.some(
-    (t) => t.name === table.name && t.schema !== table.schema,
-  );
-
-  const modelName = tableIsInMultipleSchemas
-    ? `${table.schema}_${table.name}`
-    : table.name;
-
-  return modelName;
-}
-
 function getEnumName(
   introspection: IntrospectedStructure,
   enumItem: IntrospectedStructure["enums"][number],
@@ -42,6 +23,24 @@ function getEnumName(
     : enumItem.name;
 
   return enumName;
+}
+
+type MinimalRelationship = Pick<Relationship, "fkTable" | "targetTable"> & {
+  keys: Array<Pick<Relationship["keys"][number], "fkColumn" | "targetColumn">>;
+};
+function getModelName(
+  introspection: { tables: Array<{ name: string; schema: string }> },
+  table: Pick<IntrospectedStructure["tables"][number], "name" | "schema">,
+) {
+  const tableIsInMultipleSchemas = introspection.tables.some(
+    (t) => t.name === table.name && t.schema !== table.schema,
+  );
+
+  const modelName = tableIsInMultipleSchemas
+    ? `${table.schema}_${table.name}`
+    : table.name;
+
+  return modelName;
 }
 
 function getParentRelationAndFieldName({

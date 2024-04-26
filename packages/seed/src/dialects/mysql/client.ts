@@ -1,4 +1,5 @@
 import { EOL } from "node:os";
+import { getAdapter } from "#adapters/getAdapter.js";
 import { getDatabaseClient } from "#adapters/getDatabaseClient.js";
 import { type SelectConfig } from "#config/seedConfig/selectConfig.js";
 import {
@@ -11,6 +12,7 @@ import { filterModelsBySelectConfig } from "#core/client/utils.js";
 import { type DataModel } from "#core/dataModel/types.js";
 import { type DatabaseClient } from "#core/databaseClient.js";
 import { patchUserModelsSequences } from "#core/sequences/sequences.js";
+import { type UserModels } from "#core/userModels/types.js";
 import { fetchSequences } from "./introspect/queries/fetchSequences.js";
 import { MySQLStore } from "./store.js";
 import { escapeIdentifier } from "./utils.js";
@@ -21,11 +23,15 @@ export const getSeedClient: GetSeedClient = (props) => {
     readonly dryRun: boolean;
     readonly options?: SeedClientOptions;
 
-    constructor(databaseClient: DatabaseClient, options?: SeedClientOptions) {
+    constructor(
+      databaseClient: DatabaseClient,
+      userModels: UserModels,
+      options?: SeedClientOptions,
+    ) {
       super({
-        ...props,
-        adapterPatchUserModels:
-          databaseClient.adapterPatchUserModels.bind(databaseClient),
+        dataModel: props.dataModel,
+        fingerprint: props.fingerprint,
+        userModels,
         createStore: (dataModel: DataModel) => new MySQLStore(dataModel),
         runStatements: async (statements: Array<string>) => {
           if (!this.dryRun) {
@@ -76,14 +82,15 @@ export const getSeedClient: GetSeedClient = (props) => {
     }
 
     async $syncDatabase(): Promise<void> {
-      const sequences = await fetchSequences(this.db);
+      const schemas = [
+        ...new Set(
+          Object.values(this.dataModel.models).map((m) => m.schemaName),
+        ),
+      ].filter(Boolean);
+      const sequences = await fetchSequences(this.db, schemas);
       const sequencesCurrent = sequences.reduce<Record<string, number>>(
         (acc, sequence) => {
-          acc[
-            `${escapeIdentifier(
-              sequence.schema,
-            )}.${escapeIdentifier(sequence.name)}`
-          ] = sequence.current;
+          acc[sequence.name] = sequence.current as number;
           return acc;
         },
         {},
@@ -99,11 +106,17 @@ export const getSeedClient: GetSeedClient = (props) => {
 
   const createSeedClient = async (options?: SeedClientOptions) => {
     return setupClient({
-      dialect: "postgres",
+      dialect: "mysql",
       async createClient() {
-        const databaseClient =
-          options?.adapter ?? (await getDatabaseClient(props.seedConfigPath));
-        return new MySQLSeedClient(databaseClient, options);
+        const databaseClient = options?.adapter ?? (await getDatabaseClient());
+        const adapter = await getAdapter();
+        const userModels = adapter.patchUserModels
+          ? await adapter.patchUserModels({
+              dataModel: props.dataModel,
+              userModels: props.userModels,
+            })
+          : props.userModels;
+        return new MySQLSeedClient(databaseClient, userModels, options);
       },
     });
   };

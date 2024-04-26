@@ -1,5 +1,6 @@
 import { getDatabaseClient } from "#adapters/getDatabaseClient.js";
 import { getDataModelConfig } from "#config/dataModelConfig.js";
+import { mysqlDialect } from "./mysql/dialect.js";
 import { postgresDialect } from "./postgres/dialect.js";
 import { sqliteDialect } from "./sqlite/dialect.js";
 
@@ -24,6 +25,6 @@ export async function getDialect() {
     case "sqlite":
       return sqliteDialect;
     case "mysql":
-      return;
+      return mysqlDialect;
   }
 }

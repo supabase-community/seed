@@ -95,7 +95,7 @@ export const adapters: Record<DialectId, Adapter> = {
 
         export default defineConfig({
           adapter: async () =>  {
-            const client = await createConnection(${connectionString});
+            const client = await createConnection("${connectionString}");
             await client.connect();
             return new SeedMysql2(client)
           },
