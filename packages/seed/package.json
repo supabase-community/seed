@@ -173,6 +173,7 @@
     "@types/node": "20.12.6",
     "@types/pg": "8.11.5",
     "@types/semver": "^7.5.8",
+    "@types/sqlstring": "^2.3.2",
     "@types/uuid": "9.0.8",
     "@types/yargs": "17.0.32",
     "ansi-colors": "4.1.3",

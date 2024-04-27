@@ -211,12 +211,12 @@ for (const [dialect, adapter] of adapterEntries) {
       `,
     });
 
-    const tutors = await db.query('select * from "tutor"');
+    const tutors = await db.query("select * from tutor");
     const students = await db.query<{ student_id: string }>(
-      'select * from "student"',
+      "select * from student",
     );
     const bookings = await db.query<{ student_id: string }>(
-      'select * from "booking"',
+      "select * from booking",
     );
     expect(tutors.length).toEqual(2);
     expect(students.length).toEqual(1);
@@ -225,22 +225,24 @@ for (const [dialect, adapter] of adapterEntries) {
     expect(bookings[1].student_id).toEqual(students[0].student_id);
   });
 
+  // TODO: understand what this test is really for and why it fail with mysql
+  // add comments to it because it's not obvious what it really asserts
   test("default field ordering for `data` in generate callback", async () => {
     const { db } = await setupProject({
       adapter,
       databaseSchema: `
-        CREATE TABLE "Organization" (
-          "id" serial not null primary key
+        CREATE TABLE organization (
+          id serial not null primary key
         );
-        CREATE TABLE "Member" (
-          "result" text not null,
-          "id" serial not null primary key,
-          "organizationId" int not null references "Organization"("id"),
-          "fromPlanOptions" text not null,
-          "fromPlanDescription1" text not null,
-          "fromPlanDescription2" text not null,
-          "fromClientOptions" text not null,
-          "notInPlanDescription" text not null
+        CREATE TABLE member (
+          result text not null,
+          id serial not null primary key,
+          organizationid int not null references organization(id),
+          fromplanoptions text not null,
+          fromplandescription1 text not null,
+          fromplandescription2 text not null,
+          fromclientoptions text not null,
+          notinplandescription text not null
         );
       `,
       seedScript: `
@@ -250,21 +252,21 @@ for (const [dialect, adapter] of adapterEntries) {
           models: {
             members: {
               data: {
-                fromClientOptions: () => 'fromClientOptionsValue'
+                fromclientoptions: () => 'fromclientoptionsValue'
               }
             }
           }
         })
 
         await seed.members((x) => x(1, {
-          fromPlanDescription1: () => 'fromPlanDescription1Value',
-          fromPlanDescription2: () => 'fromPlanDescription2Value',
+          fromplandescription1: () => 'fromplandescription1Value',
+          fromplandescription2: () => 'fromplandescription2Value',
           result: ({ data }) => JSON.stringify(Object.keys(data))
         }), {
           models: {
             members: {
               data: {
-                fromPlanOptions: () => 'fromPlanOptionsValue'
+                fromplanoptions: () => 'fromplanoptionsValue'
               }
             }
           }
@@ -273,17 +275,17 @@ for (const [dialect, adapter] of adapterEntries) {
     });
 
     const [row] = await db.query<{ result: string }>(
-      'SELECT result FROM "Member"',
+      "SELECT result FROM member",
     );
 
     expect(JSON.parse(row.result)).toEqual([
-      "organizationId",
+      "organizationid",
       "id",
-      "notInPlanDescription",
-      "fromClientOptions",
-      "fromPlanOptions",
-      "fromPlanDescription1",
-      "fromPlanDescription2",
+      "notinplandescription",
+      "fromclientoptions",
+      "fromplanoptions",
+      "fromplandescription1",
+      "fromplandescription2",
     ]);
   });
 

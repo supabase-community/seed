@@ -11,6 +11,14 @@ import { SeedPostgres } from "#adapters/postgres/postgres.js";
 import { DatabaseClient } from "#core/databaseClient.js";
 import { Dialect } from "#core/dialect/types.js";
 import { mysqlDialect } from "#dialects/mysql/dialect.js";
+import {
+  escapeIdentifier as mysqlEscapeIdentifier,
+  escapeLiteral as mysqlEscapeLiteral,
+} from "#dialects/mysql/utils.js";
+import {
+  escapeIdentifier as postgresEscapeIdentifier,
+  escapeLiteral as postgresEscapeLiteral,
+} from "#dialects/postgres/utils.js";
 import { DialectId } from "../src/dialects/dialects.js";
 import { postgresDialect } from "../src/dialects/postgres/dialect.js";
 import { sqliteDialect } from "../src/dialects/sqlite/dialect.js";
@@ -26,6 +34,10 @@ export interface Adapter<Client = unknown> {
     name: string;
   }>;
   dialect: Dialect;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  escapeIdentifier: (value: any) => string;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  escapeLiteral: (value: any) => string;
   generateSeedConfig(
     connectionString: string,
     config?: {
@@ -41,6 +53,8 @@ export const adapters: Record<DialectId, Adapter> = {
   postgres: {
     id: "postgres",
     dialect: postgresDialect,
+    escapeIdentifier: postgresEscapeIdentifier,
+    escapeLiteral: postgresEscapeLiteral,
     createTestDb: postgresCreateTestDb,
     generateSeedConfig: (connectionString, config) => {
       const alias = `alias: ${config?.alias ?? `{ inflection: true }`},`;
@@ -62,6 +76,8 @@ export const adapters: Record<DialectId, Adapter> = {
   sqlite: {
     id: "better-sqlite3",
     dialect: sqliteDialect,
+    escapeIdentifier: postgresEscapeIdentifier,
+    escapeLiteral: postgresEscapeLiteral,
     createTestDb: sqliteCreateTestDb,
     createClient: (client: Database) => new SeedBetterSqlite3(client),
     generateSeedConfig: (connectionString, config) => {
@@ -84,6 +100,8 @@ export const adapters: Record<DialectId, Adapter> = {
     id: "mysql2",
     dialect: mysqlDialect,
     createTestDb: mysqlCreateTestDb,
+    escapeIdentifier: mysqlEscapeIdentifier,
+    escapeLiteral: mysqlEscapeLiteral,
     createClient: (client: Connection) => new SeedMysql2(client),
     generateSeedConfig: (connectionString, config) => {
       const alias = `alias: ${config?.alias ?? `{ inflection: true }`},`;

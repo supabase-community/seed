@@ -50,32 +50,36 @@ export const getSeedClient: GetSeedClient = (props) => {
       this.db = databaseClient;
       this.options = options;
     }
-
     async $resetDatabase(selectConfig?: SelectConfig) {
       const models = Object.values(this.dataModel.models);
       const filteredModels = filterModelsBySelectConfig(models, selectConfig);
+
       if (!this.dryRun) {
-        const tablesToTruncate = filteredModels
-          .map(
-            (model) =>
-              // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-              `${escapeIdentifier(model.schemaName!)}.${escapeIdentifier(model.tableName)}`,
-          )
-          .join(", ");
+        const tablesToTruncate = filteredModels.map(
+          (model) =>
+            `${escapeIdentifier(model.schemaName)}.${escapeIdentifier(model.tableName)}`,
+        );
+
         if (tablesToTruncate.length > 0) {
-          await this.db.execute(`TRUNCATE ${tablesToTruncate} CASCADE`);
+          await this.db.execute(`SET FOREIGN_KEY_CHECKS = 0;`); // Disable foreign key checks
+          for (const table of tablesToTruncate) {
+            await this.db.execute(`TRUNCATE TABLE ${table}`);
+          }
+          await this.db.execute(`SET FOREIGN_KEY_CHECKS = 1;`); // Re-enable foreign key checks
         }
+
+        // Reset AUTO_INCREMENT for tables that have it
         for (const model of filteredModels) {
-          // reset sequences
-          const sequences = model.fields.map((f) => f.sequence);
-          for (const sequence of sequences) {
-            if (sequence !== false) {
-              await this.db.execute(
-                `ALTER SEQUENCE ${sequence.identifier} RESTART WITH ${sequence.start ?? 1}`,
-              );
-            }
+          const autoIncrementField = model.fields.find(
+            (f) => f.isId && f.sequence,
+          );
+          if (autoIncrementField) {
+            await this.db.execute(
+              `ALTER TABLE ${escapeIdentifier(model.schemaName)}.${escapeIdentifier(model.tableName)} AUTO_INCREMENT = 1;`,
+            );
           }
         }
+
         await this.$syncDatabase();
         this.state = this.getInitialState();
       }

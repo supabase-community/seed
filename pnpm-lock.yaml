@@ -208,6 +208,9 @@ importers:
       '@types/semver':
         specifier: ^7.5.8
         version: 7.5.8
+      '@types/sqlstring':
+        specifier: ^2.3.2
+        version: 2.3.2
       '@types/uuid':
         specifier: 9.0.8
         version: 9.0.8
@@ -1474,6 +1477,10 @@ packages:
 
   /@types/semver@7.5.8:
     resolution: {integrity: sha512-I8EUhyrgfLrcTkzV3TSsGyl1tSuPrEDzr0yd5m90UgNxQkyDXULk3b6MlQqTCpZpNtWe1K0hzclnZkTcLBe2UQ==}
+
+  /@types/sqlstring@2.3.2:
+    resolution: {integrity: sha512-lVRe4Iz9UNgiHelKVo8QlC8fb5nfY8+p+jNQNE+UVsuuVlQnWhyWmQ/wF5pE8Ys6TdjfVpqTG9O9i2vi6E0+Sg==}
+    dev: true
 
   /@types/urijs@1.19.25:
     resolution: {integrity: sha512-XOfUup9r3Y06nFAZh3WvO0rBU4OtlfPB/vgxpjg+NRdGU6CN6djdc6OEiH+PcqHCY6eFLo9Ista73uarf4gnBg==}

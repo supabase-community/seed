@@ -3,12 +3,7 @@ import { isNullableParent as checkIsNullableParent } from "#core/dataModel/dataM
 import { type DataModelScalarField } from "#core/dataModel/types.js";
 import { StoreBase } from "#core/store/store.js";
 import { sortModels } from "#core/store/topologicalSort.js";
-import {
-  escaleLiteral,
-  escapeIdentifier,
-  formatValues,
-  serializeToSQL,
-} from "./utils.js";
+import { escapeIdentifier, formatValues, serializeToSQL } from "./utils.js";
 
 interface MissingPKForUpdateError {
   modelName: string;
@@ -165,13 +160,13 @@ export class MySQLStore extends StoreBase {
             `SET ${Object.entries(updateRow.values)
               .map(
                 ([c, v]) =>
-                  `${escapeIdentifier(fieldToColumnMap.get(c))} = ${escaleLiteral(v)}`,
+                  `${escapeIdentifier(fieldToColumnMap.get(c))} = ${v}`,
               )
               .join(", ")}`,
             `WHERE ${Object.entries(updateRow.filter)
               .map(
                 ([c, v]) =>
-                  `${escapeIdentifier(fieldToColumnMap.get(c))} = ${escaleLiteral(v)}`,
+                  `${escapeIdentifier(fieldToColumnMap.get(c))} = ${v}`,
               )
               .join(" AND ")}`,
           ].join(" ");
