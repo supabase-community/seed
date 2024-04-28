@@ -55,7 +55,6 @@ for (const [dialect, adapter] of adapterEntries) {
     expect((await db.query("select * from Organization")).length).toEqual(2);
     expect((await db.query("select * from Member")).length).toEqual(6);
   });
-
   test("dryRun outputs sql statements to stdout", async () => {
     const schema: SchemaRecord = {
       default: `
@@ -106,7 +105,6 @@ for (const [dialect, adapter] of adapterEntries) {
 
     expect((await db.query("select * from Member")).length).toEqual(6);
   });
-
   test("handle existing data in the database", async () => {
     const schema: SchemaRecord = {
       default: `
