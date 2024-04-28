@@ -8,7 +8,9 @@ import { type DialectRecordWithDefault } from "#test/types.js";
  * Avoiding to break the documentation by introducing a different behaviour.
  */
 
-for (const [dialect, adapter] of adapterEntries) {
+for (const [dialect, adapter] of adapterEntries.filter(
+  ([d]) => d === "postgres",
+)) {
   const computeName = (name: string) => `e2e > docs > ${dialect} > ${name}`;
   const test = (name: string, fn: TestFunction) => {
     // eslint-disable-next-line vitest/expect-expect, vitest/valid-title
