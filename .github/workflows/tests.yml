@@ -24,7 +24,7 @@ defaults:
 env:
   SNAPLET_DISABLE_TELEMETRY: '1'
   PG_TEST_DATABASE_SERVER: postgresql://postgres:postgres@localhost:5432/postgres
-  MYSQL_TEST_DATABASE_SERVER: mysql://root:mysql@localhost:3306/mysql
+  MYSQL_TEST_DATABASE_SERVER: mysql://root@localhost:3306/mysql
   TURBO_TOKEN: ${{ secrets.TURBO_TOKEN }}
   TURBO_TEAM: ${{ vars.TURBO_TEAM }}
 
@@ -96,7 +96,7 @@ jobs:
         ports:
           - 3306:3306
         env:
-          MYSQL_ROOT_PASSWORD: mysql
+          MYSQL_ALLOW_EMPTY_PASSWORD: true
           MYSQL_DATABASE: mysql
     steps:
       - name: Checkout
