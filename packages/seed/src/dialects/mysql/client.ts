@@ -94,7 +94,7 @@ export const getSeedClient: GetSeedClient = (props) => {
       const sequences = await fetchSequences(this.db, schemas);
       const sequencesCurrent = sequences.reduce<Record<string, number>>(
         (acc, sequence) => {
-          acc[sequence.name] = sequence.current as number;
+          acc[sequence.name] = sequence.current;
           return acc;
         },
         {},
