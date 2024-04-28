@@ -28,7 +28,7 @@ type GroupedRelationshipsValue = NonNullable<
 >;
 export type IntrospectedTableColumn = Tables[number]["columns"][number] & {
   identity: {
-    current: bigint | number;
+    current: number;
     name: string;
   } | null;
 };

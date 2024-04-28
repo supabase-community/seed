@@ -6,11 +6,9 @@ import {
 
 interface FetchSequencesResult {
   columnName: string;
-  current: number;
-  interval: number;
+  current: bigint | number;
   name: string;
   schema: string;
-  start: number;
 }
 
 // Updated query to fetch AUTO_INCREMENT information along with the specific column
