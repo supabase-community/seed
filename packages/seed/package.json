@@ -58,9 +58,9 @@
       "default": "./dist/src/adapters/postgres/index.js"
     },
     "./adapter-mysql2": {
-      "types": "./dist/adapters/mysql2/index.d.ts",
+      "types": "./dist/src/adapters/mysql2/index.d.ts",
       "development": "./src/adapters/mysql2/index.ts",
-      "default": "./dist/adapters/mysql2/index.js"
+      "default": "./dist/src/adapters/mysql2/index.js"
     },
     "./adapter-prisma": {
       "types": "./dist/src/adapters/prisma/index.d.ts",
@@ -78,9 +78,9 @@
       "default": "./dist/src/dialects/postgres/client.js"
     },
     "./dialects/mysql/client": {
-      "types": "./dist/dialects/mysql/client.d.ts",
+      "types": "./dist/src/dialects/mysql/client.d.ts",
       "development": "./src/dialects/mysql/client.ts",
-      "default": "./dist/dialects/mysql/client.js"
+      "default": "./dist/src/dialects/mysql/client.js"
     },
     "./dialects/sqlite/client": {
       "types": "./dist/src/dialects/sqlite/client.d.ts",
@@ -112,13 +112,16 @@
         "./dist/src/adapters/prisma/index.d.ts"
       ],
       "adapter-mysql2": [
-        "./dist/adapters/mysql2/index.d.ts"
+        "./dist/src/adapters/mysql2/index.d.ts"
       ],
       "config": [
         "./dist/src/config/seedConfig/defineConfig.d.ts"
       ],
       "dialects/postgres/client": [
         "./dist/src/dialects/postgres/client.d.ts"
+      ],
+      "dialects/mysql/client": [
+        "./dist/src/dialects/mysql/client.d.ts"
       ],
       "dialects/sqlite/client": [
         "./dist/src/dialects/sqlite/client.d.ts"

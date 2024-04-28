@@ -6,8 +6,8 @@ import {
 
 interface FetchSequencesResult {
   columnName: string;
-  current: bigint | number;
-  interval: bigint | number;
+  current: number;
+  interval: number;
   name: string;
   schema: string;
   start: number;
@@ -48,8 +48,8 @@ export async function fetchSequences(
     tableId: `${r.schema}.${r.name}`,
     schema: r.schema,
     name: `${r.schema}.${r.name}.${r.columnName}`,
-    start: 1, // Auto-increment always starts from 1 in MySQL
-    current: r.current, // Adjusting to simulate 'last_value' from PostgreSQL
-    interval: 1, // Interval is always 1 in MySQL
+    start: Number(1), // Auto-increment always starts from 1 in MySQL
+    current: Number(r.current), // Adjusting to simulate 'last_value' from Mysql
+    interval: Number(1), // Interval is always 1 in MySQL
   }));
 }
