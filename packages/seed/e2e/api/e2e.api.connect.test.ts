@@ -7,9 +7,7 @@ type DialectRecordWithDefault<T> = Partial<Record<DialectId, T>> &
   Record<"default", T>;
 type SchemaRecord = DialectRecordWithDefault<string>;
 
-for (const [dialect, adapter] of adapterEntries.filter(
-  ([d, _]) => d === "mysql" || d === "postgres",
-)) {
+for (const [dialect, adapter] of adapterEntries) {
   const computeName = (name: string) => `e2e > api > ${dialect} > ${name}`;
   const test = (name: string, fn: TestFunction) => {
     // eslint-disable-next-line vitest/expect-expect, vitest/valid-title

@@ -4,9 +4,7 @@ import { adapterEntries } from "#test/adapters.js";
 import { setupProject } from "#test/setupProject.js";
 import { type DialectRecordWithDefault } from "../../test/types.js";
 
-for (const [dialect, adapter] of adapterEntries.filter(
-  ([d, _]) => d === "mysql" || d === "postgres",
-)) {
+for (const [dialect, adapter] of adapterEntries) {
   const computeName = (name: string) =>
     `e2e > constraints > ${dialect} > ${name}`;
   const test = (name: string, fn: TestFunction) => {
