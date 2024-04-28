@@ -14,32 +14,47 @@ for (const [dialect, adapter] of adapterEntries) {
   test("should update sequences value according to inserted data", async () => {
     const schema: DialectRecordWithDefault = {
       default: `
-          CREATE TABLE "Team" (
-            "id" SERIAL PRIMARY KEY
+          CREATE TABLE team (
+            id SERIAL PRIMARY KEY
           );
-          CREATE TABLE "Player" (
-            "id" BIGSERIAL PRIMARY KEY,
-            "teamId" integer NOT NULL REFERENCES "Team"("id"),
-            "name" text NOT NULL
+          CREATE TABLE player (
+            id BIGSERIAL PRIMARY KEY,
+            team_id INTEGER NOT NULL REFERENCES team(id),
+            name TEXT NOT NULL
           );
-          CREATE TABLE "Game" (
-            "id" INTEGER GENERATED ALWAYS AS IDENTITY PRIMARY KEY
+          CREATE TABLE game (
+            id INTEGER GENERATED ALWAYS AS IDENTITY PRIMARY KEY
           );
           `,
       sqlite: `
-        CREATE TABLE "Team" (
-          "id" INTEGER PRIMARY KEY AUTOINCREMENT
+        CREATE TABLE team (
+          id INTEGER PRIMARY KEY AUTOINCREMENT
         );
-        CREATE TABLE "Player" (
-          "id" INTEGER PRIMARY KEY AUTOINCREMENT,
-          "teamId" INTEGER NOT NULL,
-          "name" TEXT NOT NULL,
-          FOREIGN KEY ("teamId") REFERENCES "Team"("id")
+        CREATE TABLE player (
+          id INTEGER PRIMARY KEY AUTOINCREMENT,
+          team_id INTEGER NOT NULL,
+          name TEXT NOT NULL,
+          FOREIGN KEY (team_id) REFERENCES team(id)
         );
-        CREATE TABLE "Game" (
-          "id" INTEGER PRIMARY KEY AUTOINCREMENT
+        CREATE TABLE game (
+          id INTEGER PRIMARY KEY AUTOINCREMENT
         );`,
+      mysql: `
+        CREATE TABLE team (
+          id INT AUTO_INCREMENT PRIMARY KEY
+        );
+        CREATE TABLE player (
+          id INT AUTO_INCREMENT PRIMARY KEY,
+          team_id INT NOT NULL,
+          name VARCHAR(255) NOT NULL,
+          FOREIGN KEY (team_id) REFERENCES team(id)
+        );
+        CREATE TABLE game (
+          id INT AUTO_INCREMENT PRIMARY KEY
+        );
+      `,
     };
+
     const { db } = await setupProject({
       adapter,
       databaseSchema: schema[dialect] ?? schema.default,
@@ -54,62 +69,75 @@ for (const [dialect, adapter] of adapterEntries) {
     });
 
     // Should be able to insert a new Player with the default database `nextval` call
-    await db.execute(
-      `INSERT INTO "Player" ("teamId", name) VALUES (1, 'test')`,
-    );
+    await db.execute(`INSERT INTO player (team_id, name) VALUES (1, 'test')`);
     expect(
       (
-        await db.query<{ id: number; name: string; teamId: number }>(
-          `SELECT id, name, "teamId" FROM "Player" WHERE name = 'test'`,
+        await db.query<{ id: number; name: string; team_id: number }>(
+          `SELECT id, name, team_id FROM player WHERE name = 'test'`,
         )
       ).map((v) => ({ ...v, id: Number(v.id) })),
-    ).toEqual([{ id: 7, name: "test", teamId: 1 }]);
+    ).toEqual([{ id: 7, name: "test", team_id: 1 }]);
   });
 
   test("should be able to insert sequential data twice with external insertions in between", async () => {
     const seedScript = `
-      import { createSeedClient } from '#snaplet/seed'
-      const seed = await createSeedClient()
-      await seed.teams((x) => x(2, {
-        players: (x) => x(3)
-      }));
-      await seed.games((x) => x(3));
-      // @ts-ignore hidden property
-      await seed.db.execute(\`INSERT INTO "Player" ("teamId", name) VALUES (1, 'test')\`);
-      // @ts-ignore hidden method
-      await seed.$syncDatabase();
-      await seed.teams((x) => x(2, {
-        players: (x) => x(3)
-      }));
-      await seed.games((x) => x(3));
-      `;
+    import { createSeedClient } from '#snaplet/seed'
+    const seed = await createSeedClient()
+    await seed.teams((x) => x(2, {
+      players: (x) => x(3)
+    }));
+    await seed.games((x) => x(3));
+    // Execute raw SQL to simulate external insertions
+    // @ts-ignore hidden property
+    await seed.db.execute("INSERT INTO player (team_id, name) VALUES (1, 'test')");
+    // @ts-ignore hidden property
+    await seed.$syncDatabase();
+    await seed.teams((x) => x(2, {
+      players: (x) => x(3)
+    }));
+    await seed.games((x) => x(3));
+    `;
     const schema: DialectRecordWithDefault = {
       default: `
-          CREATE TABLE "Team" (
-            "id" SERIAL PRIMARY KEY
-          );
-          CREATE TABLE "Player" (
-            "id" BIGSERIAL PRIMARY KEY,
-            "teamId" integer NOT NULL REFERENCES "Team"("id"),
-            "name" text NOT NULL
-          );
-          CREATE TABLE "Game" (
-            "id" INTEGER GENERATED ALWAYS AS IDENTITY PRIMARY KEY
-          );
-          `,
+      CREATE TABLE team (
+        id SERIAL PRIMARY KEY
+      );
+      CREATE TABLE player (
+        id BIGSERIAL PRIMARY KEY,
+        team_id INTEGER NOT NULL REFERENCES team(id),
+        name TEXT NOT NULL
+      );
+      CREATE TABLE game (
+        id INTEGER GENERATED ALWAYS AS IDENTITY PRIMARY KEY
+      );
+      `,
       sqlite: `
-        CREATE TABLE "Team" (
-          "id" INTEGER PRIMARY KEY AUTOINCREMENT
-        );
-        CREATE TABLE "Player" (
-          "id" INTEGER PRIMARY KEY AUTOINCREMENT,
-          "teamId" INTEGER NOT NULL,
-          "name" TEXT NOT NULL,
-          FOREIGN KEY ("teamId") REFERENCES "Team"("id")
-        );
-        CREATE TABLE "Game" (
-          "id" INTEGER PRIMARY KEY AUTOINCREMENT
-        );`,
+      CREATE TABLE team (
+        id INTEGER PRIMARY KEY AUTOINCREMENT
+      );
+      CREATE TABLE player (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        team_id INTEGER NOT NULL,
+        name TEXT NOT NULL,
+        FOREIGN KEY (team_id) REFERENCES team(id)
+      );
+      CREATE TABLE game (
+        id INTEGER PRIMARY KEY AUTOINCREMENT
+      );`,
+      mysql: `
+      CREATE TABLE team (
+        id INT AUTO_INCREMENT PRIMARY KEY
+      );
+      CREATE TABLE player (
+        id INT AUTO_INCREMENT PRIMARY KEY,
+        team_id INT NOT NULL,
+        name VARCHAR(255) NOT NULL,
+        FOREIGN KEY (team_id) REFERENCES team(id)
+      );
+      CREATE TABLE game (
+        id INT AUTO_INCREMENT PRIMARY KEY
+      );
+    `,
     };
     const { db } = await setupProject({
       seedScript,
@@ -119,8 +147,8 @@ for (const [dialect, adapter] of adapterEntries) {
 
     expect(
       (
-        await db.query<{ id: number; name: string; teamId: number }>(
-          `SELECT * FROM "Player"`,
+        await db.query<{ id: number; name: string; team_id: number }>(
+          `SELECT * FROM player`,
         )
       ).length,
     ).toEqual(13);
@@ -129,31 +157,39 @@ for (const [dialect, adapter] of adapterEntries) {
   test("should be able to keep up with $resetDatabase", async () => {
     const schema: DialectRecordWithDefault = {
       default: `
-          CREATE TABLE "Team" (
-            "id" SERIAL PRIMARY KEY
-          );
-          CREATE TABLE "Game" (
-            "id" INTEGER GENERATED ALWAYS AS IDENTITY PRIMARY KEY
-          );
-        `,
+        CREATE TABLE team (
+          id SERIAL PRIMARY KEY
+        );
+        CREATE TABLE game (
+          id INTEGER GENERATED ALWAYS AS IDENTITY PRIMARY KEY
+        );
+      `,
       sqlite: `
-          CREATE TABLE "Team" (
-            "id" INTEGER PRIMARY KEY AUTOINCREMENT
-          );
-          CREATE TABLE "Game" (
-            "id" INTEGER PRIMARY KEY AUTOINCREMENT
-          );
-        `,
+        CREATE TABLE team (
+          id INTEGER PRIMARY KEY AUTOINCREMENT
+        );
+        CREATE TABLE game (
+          id INTEGER PRIMARY KEY AUTOINCREMENT
+        );
+      `,
+      mysql: `
+        CREATE TABLE team (
+          id INT AUTO_INCREMENT PRIMARY KEY
+        );
+        CREATE TABLE game (
+          id INT AUTO_INCREMENT PRIMARY KEY
+        );
+      `,
     };
     const seedScript = `
       import { createSeedClient } from "#snaplet/seed";
       const seed = await createSeedClient();
-
+  
       await seed.teams((x) => x(5));
       await seed.games((x) => x(10));
-
-      await seed.$resetDatabase(['!*Team']);
-
+  
+      await seed.$resetDatabase(['!*team']);
+  
       await seed.teams((x) => x(2));
       await seed.games((x) => x(4));
     `;
@@ -164,14 +200,10 @@ for (const [dialect, adapter] of adapterEntries) {
     });
 
     expect(
-      (await db.query<{ id: number }>(`SELECT id FROM "Team"`)).map(
-        (p) => p.id,
-      ),
+      (await db.query<{ id: number }>(`SELECT id FROM team`)).map((p) => p.id),
     ).toEqual([1, 2, 3, 4, 5, 6, 7]);
     expect(
-      (await db.query<{ id: number }>(`SELECT id FROM "Game"`)).map(
-        (p) => p.id,
-      ),
+      (await db.query<{ id: number }>(`SELECT id FROM game`)).map((p) => p.id),
     ).toEqual([1, 2, 3, 4]);
   });
 
