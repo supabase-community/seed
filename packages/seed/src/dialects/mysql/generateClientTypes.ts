@@ -13,24 +13,29 @@ export function generateClientTypes(props: {
 }) {
   return _generateClientTypes({
     ...props,
-    database2tsType: pg2tsType,
+    database2tsType: mysql2tsType,
     isJson,
     refineType,
   });
 }
 
-function pg2tsType(
+function mysql2tsType(
   dataModel: DataModel,
-  postgresType: string,
+  sqliteType: string,
   isRequired: boolean,
 ) {
-  const type = pg2tsTypeName(dataModel, postgresType);
+  const type = mysql2tsTypeName(dataModel, sqliteType);
 
-  return refineType(type, postgresType, isRequired);
+  return refineType(type, sqliteType, isRequired);
 }
 
-function pg2tsTypeName(dataModel: DataModel, postgresType: string) {
-  const primitiveType = extractPrimitiveSQLType(postgresType);
+function mysql2tsTypeName(dataModel: DataModel, sqliteType: string) {
+  const primitiveType = extractPrimitiveSQLType(sqliteType);
+  // In mysql, booleans are converted and stored as tinyint(1)
+  // in this case, we want to allow the user to priovide a boolean or a number
+  if (primitiveType === "tinyint") {
+    return "( boolean | number )";
+  }
   if (SQL_DATE_TYPES.has(primitiveType)) {
     return "( Date | string )";
   }
@@ -51,7 +56,7 @@ function pg2tsTypeName(dataModel: DataModel, postgresType: string) {
   return "unknown";
 }
 
-function refineType(type: string, _postgresType: string, isRequired: boolean) {
+function refineType(type: string, _sqliteType: string, isRequired: boolean) {
   if (!isRequired) {
     type = `${type} | null`;
   }

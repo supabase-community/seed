@@ -10,20 +10,49 @@ for (const [dialect, adapter] of adapterEntries) {
     _test.concurrent(computeName(name), fn);
   };
 
+  /**
+   * Prisma model used:
+   * model user {
+   *   id    Int     @id @default(autoincrement())
+   *   email String  @unique
+   *   name  String
+   *
+   *   posts post[]
+   * }
+   *
+   * // Define the Post model
+   * model post {
+   *   id        Int       @id @default(autoincrement())
+   *   title     String
+   *   content   String
+   *   published Boolean
+   *   createdAt DateTime  @default(now())
+   *   updatedAt DateTime? @updatedAt
+   *   userId    Int
+   *   bigInt    BigInt
+   *   float     Float
+   *   decimal   Decimal
+   *   bytes     Bytes
+   *
+   *   user user @relation(fields: [userId], references: [id], onDelete: Restrict, onUpdate: Cascade)
+   * }
+   *
+   */
+
   test("generate expected types for common prisma generated SQL accross dialects", async () => {
     const schema: DialectRecordWithDefault = {
       default: `
       -- CreateTable
-      CREATE TABLE "User" (
+      CREATE TABLE "user" (
           "id" SERIAL NOT NULL,
           "email" TEXT NOT NULL,
           "name" TEXT NOT NULL,
       
-          CONSTRAINT "User_pkey" PRIMARY KEY ("id")
+          CONSTRAINT "user_pkey" PRIMARY KEY ("id")
       );
       
       -- CreateTable
-      CREATE TABLE "Post" (
+      CREATE TABLE "post" (
           "id" SERIAL NOT NULL,
           "title" TEXT NOT NULL,
           "content" TEXT NOT NULL,
@@ -36,25 +65,25 @@ for (const [dialect, adapter] of adapterEntries) {
           "decimal" DECIMAL(65,30) NOT NULL,
           "bytes" BYTEA NOT NULL,
       
-          CONSTRAINT "Post_pkey" PRIMARY KEY ("id")
+          CONSTRAINT "post_pkey" PRIMARY KEY ("id")
       );
       
       -- CreateIndex
-      CREATE UNIQUE INDEX "User_email_key" ON "User"("email");
+      CREATE UNIQUE INDEX "user_email_key" ON "user"("email");
       
       -- AddForeignKey
-      ALTER TABLE "Post" ADD CONSTRAINT "Post_userId_fkey" FOREIGN KEY ("userId") REFERENCES "User"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+      ALTER TABLE "post" ADD CONSTRAINT "post_userId_fkey" FOREIGN KEY ("userId") REFERENCES "user"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
         `,
       sqlite: `
       -- CreateTable
-      CREATE TABLE "User" (
+      CREATE TABLE "user" (
           "id" INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
           "email" TEXT NOT NULL,
           "name" TEXT NOT NULL
       );
       
       -- CreateTable
-      CREATE TABLE "Post" (
+      CREATE TABLE "post" (
           "id" INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
           "title" TEXT NOT NULL,
           "content" TEXT NOT NULL,
@@ -66,11 +95,39 @@ for (const [dialect, adapter] of adapterEntries) {
           "float" REAL NOT NULL,
           "decimal" DECIMAL NOT NULL,
           "bytes" BLOB NOT NULL,
-          CONSTRAINT "Post_userId_fkey" FOREIGN KEY ("userId") REFERENCES "User" ("id") ON DELETE RESTRICT ON UPDATE CASCADE
+          CONSTRAINT "post_userId_fkey" FOREIGN KEY ("userId") REFERENCES "user" ("id") ON DELETE RESTRICT ON UPDATE CASCADE
       );
       
       -- CreateIndex
-      CREATE UNIQUE INDEX "User_email_key" ON "User"("email");`,
+      CREATE UNIQUE INDEX "user_email_key" ON "user"("email");`,
+      mysql: `
+        CREATE TABLE \`user\` (
+            \`id\` INTEGER NOT NULL AUTO_INCREMENT,
+            \`email\` VARCHAR(191) NOT NULL,
+            \`name\` VARCHAR(191) NOT NULL,
+
+            UNIQUE INDEX \`user_email_key\`(\`email\`),
+            PRIMARY KEY (\`id\`)
+        ) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+
+        CREATE TABLE \`post\` (
+            \`id\` INTEGER NOT NULL AUTO_INCREMENT,
+            \`title\` VARCHAR(191) NOT NULL,
+            \`content\` VARCHAR(191) NOT NULL,
+            \`published\` BOOLEAN NOT NULL,
+            \`createdAt\` DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
+            \`updatedAt\` DATETIME(3) NULL,
+            \`userId\` INTEGER NOT NULL,
+            \`bigInt\` BIGINT NOT NULL,
+            \`float\` DOUBLE NOT NULL,
+            \`decimal\` DECIMAL(65, 30) NOT NULL,
+            \`bytes\` LONGBLOB NOT NULL,
+
+            PRIMARY KEY (\`id\`)
+        ) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+
+        ALTER TABLE \`post\` ADD CONSTRAINT \`post_userId_fkey\` FOREIGN KEY (\`userId\`) REFERENCES \`user\`(\`id\`) ON DELETE RESTRICT ON UPDATE CASCADE;
+      `,
     };
     const { db } = await setupProject({
       adapter,
@@ -85,7 +142,7 @@ for (const [dialect, adapter] of adapterEntries) {
     });
 
     const users = await db.query<{ email: string; id: number; name: string }>(
-      'SELECT * FROM "User"',
+      `SELECT * FROM ${adapter.escapeIdentifier("user")}`,
     );
     const posts = await db.query<{
       bigInt: number;
@@ -98,7 +155,7 @@ for (const [dialect, adapter] of adapterEntries) {
       published: boolean;
       title: string;
       userId: number;
-    }>('SELECT * FROM "Post"');
+    }>(`SELECT * FROM ${adapter.escapeIdentifier("post")}`);
     expect(users).toEqual(
       expect.arrayContaining([
         expect.objectContaining({
@@ -136,7 +193,7 @@ for (const [dialect, adapter] of adapterEntries) {
           title: expect.any(String),
           content: expect.any(String),
           published:
-            dialect === "sqlite"
+            dialect === "sqlite" || dialect === "mysql"
               ? // @ts-expect-error - sqliteBoolean is a custom matcher
                 // eslint-disable-next-line @typescript-eslint/no-unsafe-call
                 expect.sqliteBoolean()
@@ -153,7 +210,9 @@ for (const [dialect, adapter] of adapterEntries) {
             dialect === "sqlite" ? expect.dateString() : expect.any(Date),
           userId: expect.any(Number),
           bigInt:
-            dialect === "sqlite" ? expect.any(Number) : expect.any(String),
+            dialect === "sqlite" || dialect === "mysql"
+              ? expect.any(Number)
+              : expect.any(String),
           float: expect.any(Number),
           decimal:
             dialect === "sqlite" ? expect.any(Number) : expect.any(String),
@@ -165,64 +224,92 @@ for (const [dialect, adapter] of adapterEntries) {
   test("can override values types for common prisma generated SQL accross dialects", async () => {
     const schema: DialectRecordWithDefault = {
       default: `
-      -- CreateTable
-      CREATE TABLE "User" (
-          "id" SERIAL NOT NULL,
-          "email" TEXT NOT NULL,
-          "name" TEXT NOT NULL,
-      
-          CONSTRAINT "User_pkey" PRIMARY KEY ("id")
-      );
-      
-      -- CreateTable
-      CREATE TABLE "Post" (
-          "id" SERIAL NOT NULL,
-          "title" TEXT NOT NULL,
-          "content" TEXT NOT NULL,
-          "published" BOOLEAN NOT NULL,
-          "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
-          "updatedAt" TIMESTAMP(3),
-          "userId" INTEGER NOT NULL,
-          "bigInt" BIGINT NOT NULL,
-          "float" DOUBLE PRECISION NOT NULL,
-          "decimal" DECIMAL(65,30) NOT NULL,
-          "bytes" BYTEA NOT NULL,
-      
-          CONSTRAINT "Post_pkey" PRIMARY KEY ("id")
-      );
-      
-      -- CreateIndex
-      CREATE UNIQUE INDEX "User_email_key" ON "User"("email");
-      
-      -- AddForeignKey
-      ALTER TABLE "Post" ADD CONSTRAINT "Post_userId_fkey" FOREIGN KEY ("userId") REFERENCES "User"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
-        `,
+    -- CreateTable
+    CREATE TABLE "user" (
+        "id" SERIAL NOT NULL,
+        "email" TEXT NOT NULL,
+        "name" TEXT NOT NULL,
+    
+        CONSTRAINT "user_pkey" PRIMARY KEY ("id")
+    );
+    
+    -- CreateTable
+    CREATE TABLE "post" (
+        "id" SERIAL NOT NULL,
+        "title" TEXT NOT NULL,
+        "content" TEXT NOT NULL,
+        "published" BOOLEAN NOT NULL,
+        "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+        "updatedAt" TIMESTAMP(3),
+        "userId" INTEGER NOT NULL,
+        "bigInt" BIGINT NOT NULL,
+        "float" DOUBLE PRECISION NOT NULL,
+        "decimal" DECIMAL(65,30) NOT NULL,
+        "bytes" BYTEA NOT NULL,
+    
+        CONSTRAINT "post_pkey" PRIMARY KEY ("id")
+    );
+    
+    -- CreateIndex
+    CREATE UNIQUE INDEX "user_email_key" ON "user"("email");
+    
+    -- AddForeignKey
+    ALTER TABLE "post" ADD CONSTRAINT "post_userId_fkey" FOREIGN KEY ("userId") REFERENCES "user"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+      `,
       sqlite: `
-      -- CreateTable
-      CREATE TABLE "User" (
-          "id" INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
-          "email" TEXT NOT NULL,
-          "name" TEXT NOT NULL
-      );
-      
-      -- CreateTable
-      CREATE TABLE "Post" (
-          "id" INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
-          "title" TEXT NOT NULL,
-          "content" TEXT NOT NULL,
-          "published" BOOLEAN NOT NULL,
-          "createdAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
-          "updatedAt" DATETIME,
-          "userId" INTEGER NOT NULL,
-          "bigInt" BIGINT NOT NULL,
-          "float" REAL NOT NULL,
-          "decimal" DECIMAL NOT NULL,
-          "bytes" BLOB NOT NULL,
-          CONSTRAINT "Post_userId_fkey" FOREIGN KEY ("userId") REFERENCES "User" ("id") ON DELETE RESTRICT ON UPDATE CASCADE
-      );
-      
-      -- CreateIndex
-      CREATE UNIQUE INDEX "User_email_key" ON "User"("email");`,
+    -- CreateTable
+    CREATE TABLE "user" (
+        "id" INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
+        "email" TEXT NOT NULL,
+        "name" TEXT NOT NULL
+    );
+    
+    -- CreateTable
+    CREATE TABLE "post" (
+        "id" INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
+        "title" TEXT NOT NULL,
+        "content" TEXT NOT NULL,
+        "published" BOOLEAN NOT NULL,
+        "createdAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+        "updatedAt" DATETIME,
+        "userId" INTEGER NOT NULL,
+        "bigInt" BIGINT NOT NULL,
+        "float" REAL NOT NULL,
+        "decimal" DECIMAL NOT NULL,
+        "bytes" BLOB NOT NULL,
+        CONSTRAINT "post_userId_fkey" FOREIGN KEY ("userId") REFERENCES "user" ("id") ON DELETE RESTRICT ON UPDATE CASCADE
+    );
+    
+    -- CreateIndex
+    CREATE UNIQUE INDEX "user_email_key" ON "user"("email");`,
+      mysql: `
+      CREATE TABLE \`user\` (
+          \`id\` INTEGER NOT NULL AUTO_INCREMENT,
+          \`email\` VARCHAR(191) NOT NULL,
+          \`name\` VARCHAR(191) NOT NULL,
+
+          UNIQUE INDEX \`user_email_key\`(\`email\`),
+          PRIMARY KEY (\`id\`)
+      ) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+
+      CREATE TABLE \`post\` (
+          \`id\` INTEGER NOT NULL AUTO_INCREMENT,
+          \`title\` VARCHAR(191) NOT NULL,
+          \`content\` VARCHAR(191) NOT NULL,
+          \`published\` BOOLEAN NOT NULL,
+          \`createdAt\` DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
+          \`updatedAt\` DATETIME(3) NULL,
+          \`userId\` INTEGER NOT NULL,
+          \`bigInt\` BIGINT NOT NULL,
+          \`float\` DOUBLE NOT NULL,
+          \`decimal\` DECIMAL(65, 30) NOT NULL,
+          \`bytes\` LONGBLOB NOT NULL,
+
+          PRIMARY KEY (\`id\`)
+      ) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+
+      ALTER TABLE \`post\` ADD CONSTRAINT \`post_userId_fkey\` FOREIGN KEY (\`userId\`) REFERENCES \`user\`(\`id\`) ON DELETE RESTRICT ON UPDATE CASCADE;
+    `,
     };
     const { db } = await setupProject({
       adapter,
@@ -245,7 +332,7 @@ for (const [dialect, adapter] of adapterEntries) {
     });
 
     const users = await db.query<{ email: string; id: number; name: string }>(
-      'SELECT * FROM "User"',
+      `SELECT * FROM ${adapter.escapeIdentifier("user")}`,
     );
     const posts = await db.query<{
       bigInt: number;
@@ -258,7 +345,7 @@ for (const [dialect, adapter] of adapterEntries) {
       published: boolean;
       title: string;
       userId: number;
-    }>('SELECT * FROM "Post"');
+    }>(`SELECT * FROM ${adapter.escapeIdentifier("post")}`);
     expect(users).toEqual(
       expect.arrayContaining([
         expect.objectContaining({
@@ -296,9 +383,11 @@ for (const [dialect, adapter] of adapterEntries) {
           title: expect.any(String),
           content: expect.any(String),
           published:
-            // @ts-expect-error - sqliteBoolean is a custom matcher
-            // eslint-disable-next-line @typescript-eslint/no-unsafe-call
-            dialect === "sqlite" ? expect.sqliteBoolean() : expect.any(Boolean),
+            dialect === "sqlite" || dialect === "mysql"
+              ? // @ts-expect-error - sqliteBoolean is a custom matcher
+                // eslint-disable-next-line @typescript-eslint/no-unsafe-call
+                expect.sqliteBoolean()
+              : expect.any(Boolean),
           createdAt:
             // By default the createdAt value will be a date string using CURRENT_TIMESTAMP in sqlite
             // @ts-expect-error - dateString is a custom matcher
@@ -311,7 +400,9 @@ for (const [dialect, adapter] of adapterEntries) {
             dialect === "sqlite" ? expect.dateString() : expect.any(Date),
           userId: expect.any(Number),
           bigInt:
-            dialect === "sqlite" ? expect.any(Number) : expect.any(String),
+            dialect === "sqlite" || dialect === "mysql"
+              ? expect.any(Number)
+              : expect.any(String),
           float: expect.any(Number),
           decimal:
             dialect === "sqlite" ? expect.any(Number) : expect.any(String),
@@ -325,14 +416,14 @@ for (const [dialect, adapter] of adapterEntries) {
       const schema: DialectRecordWithDefault = {
         default: `
       -- CreateTable
-      CREATE TABLE "User" (
+      CREATE TABLE "user" (
           "id" INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
           "email" TEXT NOT NULL,
           "name" TEXT NOT NULL
       );
       
       -- CreateTable
-      CREATE TABLE "Post" (
+      CREATE TABLE "post" (
           "id" INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
           "title" TEXT NOT NULL,
           "content" TEXT NOT NULL,
@@ -344,11 +435,11 @@ for (const [dialect, adapter] of adapterEntries) {
           "float" REAL NOT NULL,
           "decimal" DECIMAL NOT NULL,
           "bytes" BLOB NOT NULL,
-          CONSTRAINT "Post_userId_fkey" FOREIGN KEY ("userId") REFERENCES "User" ("id") ON DELETE RESTRICT ON UPDATE CASCADE
+          CONSTRAINT "post_userId_fkey" FOREIGN KEY ("userId") REFERENCES "user" ("id") ON DELETE RESTRICT ON UPDATE CASCADE
       );
       
       -- CreateIndex
-      CREATE UNIQUE INDEX "User_email_key" ON "User"("email");`,
+      CREATE UNIQUE INDEX "user_email_key" ON "user"("email");`,
       };
       const { db } = await setupProject({
         adapter,
@@ -377,7 +468,7 @@ for (const [dialect, adapter] of adapterEntries) {
         published: boolean;
         title: string;
         userId: number;
-      }>('SELECT * FROM "Post"');
+      }>('SELECT * FROM "post"');
 
       expect(posts).toEqual(
         expect.arrayContaining([
