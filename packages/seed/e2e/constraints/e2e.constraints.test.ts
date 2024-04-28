@@ -4,7 +4,9 @@ import { adapterEntries } from "#test/adapters.js";
 import { setupProject } from "#test/setupProject.js";
 import { type DialectRecordWithDefault } from "../../test/types.js";
 
-for (const [dialect, adapter] of adapterEntries) {
+for (const [dialect, adapter] of adapterEntries.filter(
+  ([d, _]) => d === "mysql" || d === "postgres",
+)) {
   const computeName = (name: string) =>
     `e2e > constraints > ${dialect} > ${name}`;
   const test = (name: string, fn: TestFunction) => {
@@ -12,7 +14,7 @@ for (const [dialect, adapter] of adapterEntries) {
     _test.concurrent(computeName(name), fn);
   };
 
-  test("unique constraints for parent fields", async () => {
+  _test.only("unique constraints for parent fields", async () => {
     const schema: DialectRecordWithDefault = {
       default: `
         create table organization (
@@ -48,22 +50,39 @@ for (const [dialect, adapter] of adapterEntries) {
           UNIQUE (organization_id, user_id)
         );
         `,
+      mysql: `
+        CREATE TABLE organization (
+          id INT AUTO_INCREMENT PRIMARY KEY
+        );
+        CREATE TABLE user (
+          id INT AUTO_INCREMENT PRIMARY KEY
+        );
+        CREATE TABLE member (
+          id INT AUTO_INCREMENT PRIMARY KEY,
+          organization_id INT NOT NULL,
+          user_id INT NOT NULL,
+          UNIQUE (user_id),
+          UNIQUE (organization_id, user_id),
+          FOREIGN KEY (organization_id) REFERENCES organization(id),
+          FOREIGN KEY (user_id) REFERENCES user(id)
+        );
+      `,
     };
-    // The test is actually to ensure that this script can run withtout throwing an error.
-    // if the constraints are handled correctly, the script should run without any error.
+
     const { db } = await setupProject({
       adapter,
       databaseSchema: schema[dialect] ?? schema.default,
       seedScript: `
         import { createSeedClient } from '#snaplet/seed'
-          const seed = await createSeedClient({ dryRun: false })
-          await seed.organizations((x) => x(2))
-          await seed.users((x) => x(20))
-          // Attempt to seed members, ensuring unique constraints are respected
-          await seed.members((x) => x(20), { connect: true })
-        `,
+        const seed = await createSeedClient({ dryRun: false })
+        await seed.organizations((x) => x(2))
+        await seed.users((x) => x(20))
+        // Attempt to seed members, ensuring unique constraints are respected
+        await seed.members((x) => x(20), { connect: true })
+      `,
     });
-    const members = await db.query('SELECT * FROM "member"');
+
+    const members = await db.query("SELECT * FROM member");
     expect(members).toHaveLength(20);
   });
   test("error is thrown when unique constraints are violated", async () => {

@@ -69,6 +69,7 @@ describe.concurrent.each(["mysql"] as const)(
                 maxLength: null,
                 default: null,
                 constraints: ["p"],
+                generated: false,
                 identity: {
                   current: 1,
                   name: `${db.name}.Table1.id`,
@@ -80,6 +81,7 @@ describe.concurrent.each(["mysql"] as const)(
                 table: "Table1",
                 name: "name",
                 type: "varchar",
+                generated: false,
                 nullable: true,
                 maxLength: 255,
                 default: null,
@@ -111,7 +113,7 @@ describe.concurrent.each(["mysql"] as const)(
               table: "Table1",
               tableId: `${db.name}.Table1`,
             },
-            constraints: [
+            uniqueConstraints: [
               {
                 name: `${db.name}.Table1.id`,
                 dirty: false,
@@ -134,6 +136,7 @@ describe.concurrent.each(["mysql"] as const)(
                 name: "id",
                 type: "int",
                 nullable: false,
+                generated: false,
                 maxLength: null,
                 default: null,
                 constraints: ["p"],
@@ -149,6 +152,7 @@ describe.concurrent.each(["mysql"] as const)(
                 name: "name",
                 type: "varchar",
                 nullable: true,
+                generated: false,
                 maxLength: 255,
                 default: null,
                 constraints: [],
@@ -161,6 +165,7 @@ describe.concurrent.each(["mysql"] as const)(
                 name: "status",
                 type: `enum.${db.name}.Table2.status`,
                 nullable: true,
+                generated: false,
                 maxLength: 1,
                 default: null,
                 constraints: [],
@@ -173,6 +178,7 @@ describe.concurrent.each(["mysql"] as const)(
                 name: "table1_id",
                 type: "int",
                 nullable: true,
+                generated: false,
                 maxLength: null,
                 default: null,
                 constraints: ["f"],
@@ -203,7 +209,7 @@ describe.concurrent.each(["mysql"] as const)(
               table: "Table2",
               tableId: `${db.name}.Table2`,
             },
-            constraints: [
+            uniqueConstraints: [
               {
                 name: `${db.name}.Table2.id`,
                 dirty: false,

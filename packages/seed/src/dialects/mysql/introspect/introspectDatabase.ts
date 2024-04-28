@@ -101,7 +101,7 @@ export async function introspectDatabase(
         ...table,
         ...tableRelations,
         columns,
-        constraints: tableConstraints,
+        uniqueConstraints: tableConstraints,
         primaryKeys,
       };
     },

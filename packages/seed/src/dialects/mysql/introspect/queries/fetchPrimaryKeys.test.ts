@@ -10,6 +10,67 @@ describe.concurrent.each(["mysql"] as const)(
   "fetchPrimaryKeys: %s",
   (adapter) => {
     const { createTestDb } = adapters[adapter]();
+    test("should get  primary keys", async () => {
+      const structure = `
+      CREATE TABLE organization (
+        id INT AUTO_INCREMENT PRIMARY KEY
+      );
+      CREATE TABLE user (
+        id INT AUTO_INCREMENT PRIMARY KEY
+      );
+      CREATE TABLE member (
+        id INT AUTO_INCREMENT PRIMARY KEY,
+        organization_id INT NOT NULL,
+        user_id INT NOT NULL,
+        UNIQUE (user_id),
+        UNIQUE (organization_id, user_id),
+        FOREIGN KEY (organization_id) REFERENCES organization(id),
+        FOREIGN KEY (user_id) REFERENCES user(id)
+      );
+      CREATE TABLE other (
+        organization_id INT NOT NULL,
+        user_id INT NOT NULL,
+        UNIQUE (user_id),
+        UNIQUE (organization_id, user_id),
+        FOREIGN KEY (organization_id) REFERENCES organization(id),
+        FOREIGN KEY (user_id) REFERENCES user(id)
+      );
+      `;
+      const db = await createTestDb(structure);
+      const primaryKeys = await fetchPrimaryKeys(db.client, [db.name]);
+      expect(primaryKeys).toEqual(
+        expect.arrayContaining([
+          {
+            keys: [{ name: "id", type: "int" }],
+            table: "member",
+            dirty: false,
+            schema: db.name,
+            tableId: `${db.name}.member`,
+          },
+          {
+            keys: [{ name: "id", type: "int" }],
+            table: "organization",
+            dirty: false,
+            schema: db.name,
+            tableId: `${db.name}.organization`,
+          },
+          {
+            keys: [{ name: "id", type: "int" }],
+            table: "user",
+            dirty: false,
+            schema: db.name,
+            tableId: `${db.name}.user`,
+          },
+          {
+            keys: [{ name: "user_id", type: "int" }],
+            table: "other",
+            dirty: false,
+            schema: db.name,
+            tableId: `${db.name}.other`,
+          },
+        ]),
+      );
+    });
 
     test("should get basics primary keys", async () => {
       const structure = `
@@ -238,13 +299,6 @@ describe.concurrent.each(["mysql"] as const)(
             tableId: `${db.name}.Courses`,
           },
           {
-            keys: [{ name: "StudentID", type: "int" }],
-            table: "Students",
-            dirty: false,
-            schema: db.name,
-            tableId: `${db.name}.Students`,
-          },
-          {
             keys: [
               { name: "CourseID", type: "int" },
               { name: "StudentID", type: "int" },
@@ -253,6 +307,13 @@ describe.concurrent.each(["mysql"] as const)(
             dirty: false,
             schema: db.name,
             tableId: `${db.name}.Enrollments`,
+          },
+          {
+            keys: [{ name: "StudentID", type: "int" }],
+            table: "Students",
+            dirty: false,
+            schema: db.name,
+            tableId: `${db.name}.Students`,
           },
           {
             keys: [

@@ -9,6 +9,15 @@ interface FetchPrimaryKeysResult {
   type: string;
 }
 
+interface FetchUniqueConstraintssResult {
+  columnCount: number;
+  name: string;
+  schema: string;
+  table: string;
+  tableId: string;
+  type: string;
+}
+
 const FETCH_PRIMARY_KEYS = (schemas: Array<string>) => `
 SELECT 
   tc.TABLE_SCHEMA AS \`schema\`,
@@ -31,13 +40,16 @@ JOIN
 WHERE 
   tc.CONSTRAINT_TYPE = 'PRIMARY KEY' AND
   ${buildSchemaInclusionClause(schemas, "tc.TABLE_SCHEMA")}
-UNION ALL
+`;
+
+const FETCH_UNIQUE_CONSTRAINTS = (schemas: Array<string>) => `
 SELECT 
   s.TABLE_SCHEMA AS \`schema\`,
   s.TABLE_NAME AS \`table\`,
   CONCAT(s.TABLE_SCHEMA, '.', s.TABLE_NAME) AS tableId,
   s.COLUMN_NAME AS name,
-  cols.DATA_TYPE AS type
+  cols.DATA_TYPE AS type,
+  COUNT(*) OVER (PARTITION BY s.TABLE_SCHEMA, s.TABLE_NAME, s.INDEX_NAME) AS columnCount
 FROM 
   information_schema.STATISTICS AS s
 JOIN
@@ -50,56 +62,86 @@ WHERE
   s.INDEX_NAME != 'PRIMARY' AND
   cols.IS_NULLABLE = 'NO' AND
   ${buildSchemaInclusionClause(schemas, "s.TABLE_SCHEMA")}
-ORDER BY 
-  \`schema\`, \`table\`;
 `;
+
+interface PrimaryKey {
+  dirty: boolean;
+  keys: Array<{ name: string; type: string }>;
+  schema: string;
+  table: string;
+  tableId: string;
+}
 
 export async function fetchPrimaryKeys(
   client: DatabaseClient,
   schemas: Array<string>,
 ) {
-  const rawRows = await client.query<FetchPrimaryKeysResult>(
+  const results: Record<string, PrimaryKey> = {};
+  const primaryKeys = await client.query<FetchPrimaryKeysResult>(
     FETCH_PRIMARY_KEYS(schemas),
   );
-  const groupedResults = rawRows.reduce<
-    Record<
-      string,
-      {
-        dirty: boolean;
-        keys: Array<{
-          name: string;
-          type: string;
-        }>;
-        schema: string;
-        table: string;
-        tableId: string;
-      }
-    >
-  >((acc, row) => {
-    const key = row.tableId;
+  const uniqueConstraints = await client.query<FetchUniqueConstraintssResult>(
+    FETCH_UNIQUE_CONSTRAINTS(schemas),
+  );
+
+  // Group all primary keys results together by tableId
+  const groupedPrimaryKeys = primaryKeys.reduce<typeof results>((acc, row) => {
     // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
-    if (!acc[key]) {
-      acc[key] = {
+    if (!acc[row.tableId]) {
+      acc[row.tableId] = {
         dirty: false,
-        table: row.table,
-        schema: row.schema,
-        tableId: row.tableId,
         keys: [],
+        schema: row.schema,
+        table: row.table,
+        tableId: row.tableId,
       };
     }
-    // rawRows might contains duplicates for the same column
+    // Raw results can contain duplicates
     if (
-      !acc[key].keys.some(
+      !acc[row.tableId].keys.some(
         (key) => key.name === row.name && key.type === row.type,
       )
     ) {
-      acc[key].keys.push({
+      acc[row.tableId].keys.push({
         name: row.name,
         type: row.type,
       });
     }
     return acc;
   }, {});
-
-  return Object.values(groupedResults);
+  // Group all unique constraints results together by tableId
+  // choosing the constraint with the minimum column count
+  const grouedUniqueConstraints = uniqueConstraints.reduce<typeof results>(
+    (acc, row) => {
+      // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
+      if (!acc[row.tableId]) {
+        acc[row.tableId] = {
+          dirty: false,
+          keys: [],
+          schema: row.schema,
+          table: row.table,
+          tableId: row.tableId,
+        };
+      }
+      if (
+        acc[row.tableId].keys.length === 0 ||
+        row.columnCount < acc[row.tableId].keys[0].name.length
+      ) {
+        acc[row.tableId].keys = [{ name: row.name, type: row.type }];
+      }
+      return acc;
+    },
+    {},
+  );
+  // Merge the two result, giving priority to primary keys and falling back
+  // to unique constraints if there is no primary key
+  const tableIds = new Set([
+    ...Object.keys(groupedPrimaryKeys),
+    ...Object.keys(grouedUniqueConstraints),
+  ]);
+  for (const tableId of tableIds) {
+    results[tableId] =
+      groupedPrimaryKeys[tableId] ?? grouedUniqueConstraints[tableId];
+  }
+  return Object.values(results);
 }
