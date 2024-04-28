@@ -1,9 +1,9 @@
+import { snakeCase } from "change-case";
 import { type DatabaseClient } from "#core/databaseClient.js";
 import { buildSchemaInclusionClause } from "./utils.js";
 
 interface FetchEnumsResult {
   id: string;
-  name: string;
   schema: string;
   values: string;
 }
@@ -11,8 +11,7 @@ interface FetchEnumsResult {
 const FETCH_ENUMS = (schemas: Array<string>) => `
   SELECT
     TABLE_SCHEMA AS \`schema\`,
-    COLUMN_NAME AS name,
-    CONCAT(TABLE_SCHEMA, '.', TABLE_NAME, '.', COLUMN_NAME) AS id,
+    CONCAT('enum_', TABLE_SCHEMA, '_', TABLE_NAME, '_', COLUMN_NAME) AS id,
     SUBSTRING(COLUMN_TYPE FROM 6 FOR LENGTH(COLUMN_TYPE) - 6) AS \`values\`
   FROM information_schema.COLUMNS
   WHERE
@@ -27,7 +26,9 @@ export async function fetchEnums(
 ) {
   const response = await client.query<FetchEnumsResult>(FETCH_ENUMS(schemas));
   return response.map((row) => ({
-    ...row,
+    id: snakeCase(row.id),
+    schema: row.schema,
+    name: snakeCase(row.id),
     // Splitting the values string by comma, then trim spaces and remove single quotes
     values: row.values
       .split(",")

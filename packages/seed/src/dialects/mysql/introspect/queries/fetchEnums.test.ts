@@ -1,3 +1,4 @@
+import { snakeCase } from "change-case";
 import { describe, expect, test } from "vitest";
 import { mysql } from "#test/mysql/mysql/index.js";
 import { fetchEnums } from "./fetchEnums.js";
@@ -22,9 +23,9 @@ describe.concurrent.each(["mysql"] as const)("fetchEnums: %s", (adapter) => {
     const enums = await fetchEnums(db.client, schemas);
     expect(enums).toEqual([
       {
-        id: `${db.name}.test_table.status`,
+        id: snakeCase(`enum_${db.name}_test_table_status`),
         schema: db.name,
-        name: "status",
+        name: snakeCase(`enum_${db.name}_test_table_status`),
         values: expect.arrayContaining(["A", "B", "C"]),
       },
     ]);
@@ -48,15 +49,15 @@ describe.concurrent.each(["mysql"] as const)("fetchEnums: %s", (adapter) => {
     expect(enums).toEqual(
       expect.arrayContaining([
         {
-          id: `${db.name}.test_table1.status1`,
+          id: snakeCase(`enum_${db.name}_test_table1_status1`),
           schema: db.name,
-          name: "status1",
+          name: snakeCase(`enum_${db.name}_test_table1_status1`),
           values: expect.arrayContaining(["A", "B", "C"]),
         },
         {
-          id: `${db.name}.test_table2.status2`,
+          id: snakeCase(`enum_${db.name}_test_table2_status2`),
           schema: db.name,
-          name: "status2",
+          name: snakeCase(`enum_${db.name}_test_table2_status2`),
           values: expect.arrayContaining(["D", "E", "F"]),
         },
       ]),

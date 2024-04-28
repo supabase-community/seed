@@ -10,21 +10,6 @@ import {
   type Relationship,
 } from "./introspectDatabase.js";
 
-function getEnumName(
-  introspection: IntrospectedStructure,
-  enumItem: IntrospectedStructure["enums"][number],
-) {
-  const enumIsInMultipleSchemas = introspection.enums.some(
-    (e) => e.name === enumItem.name && e.schema !== enumItem.schema,
-  );
-
-  const enumName = enumIsInMultipleSchemas
-    ? `${enumItem.schema}_${enumItem.name}`
-    : enumItem.name;
-
-  return enumName;
-}
-
 type MinimalRelationship = Pick<Relationship, "fkTable" | "targetTable"> & {
   keys: Array<Pick<Relationship["keys"][number], "fkColumn" | "targetColumn">>;
 };
@@ -114,12 +99,7 @@ const computeEnumType = (
     );
   }
 
-  const name = getEnumName(introspection, matchingEnum);
-
-  // context(justinvdm, 31 Aug 2023): Preserve array annotations
-  const suffix = column.type.slice(matchingEnum.name.length);
-
-  return [name, suffix].join("");
+  return matchingEnum.id;
 };
 
 // Check if a column is a sequence if it is, retrive the sequence information
@@ -151,7 +131,7 @@ export function introspectionToDataModel(
   const dataModel: DataModel = { dialect: "mysql", models: {}, enums: {} };
 
   for (const e of introspection.enums) {
-    const enumName = getEnumName(introspection, e);
+    const enumName = e.id;
     dataModel.enums[enumName] = {
       schemaName: e.schema,
       values: e.values.map((v) => ({ name: v })),

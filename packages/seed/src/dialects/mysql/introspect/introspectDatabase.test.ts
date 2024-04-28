@@ -163,7 +163,7 @@ describe.concurrent.each(["mysql"] as const)(
                 schema: db.name,
                 table: "Table2",
                 name: "status",
-                type: `enum.${db.name}.Table2.status`,
+                type: `enum_${db.name}_Table2_status`,
                 nullable: true,
                 generated: false,
                 maxLength: 1,

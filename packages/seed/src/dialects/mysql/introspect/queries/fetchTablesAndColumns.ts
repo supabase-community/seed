@@ -1,3 +1,4 @@
+import { snakeCase } from "change-case";
 import { type DatabaseClient } from "#core/databaseClient.js";
 import { buildSchemaInclusionClause } from "./utils.js";
 
@@ -96,7 +97,7 @@ export async function fetchTablesAndColumns(
           : [],
         type:
           column.type === "enum"
-            ? `enum.${table.schema}.${table.name}.${column.name}`
+            ? snakeCase(`enum_${table.schema}_${table.name}_${column.name}`)
             : column.type,
         nullable: column.nullable === 1,
       })),
