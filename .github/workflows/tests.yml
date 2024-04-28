@@ -88,7 +88,7 @@ jobs:
           --health-interval 10s
           --health-timeout 5s
           --health-retries 5
-          -c 'max_connections=200'
+          -c max_connections=200
         env:
           POSTGRES_USER: postgres
           POSTGRES_PASSWORD: postgres
@@ -101,13 +101,8 @@ jobs:
         ports:
           - 3306:3306
         options: >-
-          --health-cmd="mysqladmin ping"
-          --health-interval=10s
-          --health-timeout=10s
-          --health-retries=5
-          --default-authentication-plugin=mysql_native_password
-          -c 'wait_timeout=28800'
-          -c 'interactive_timeout=28800'
+          -c wait_timeout=28800
+          -c interactive_timeout=28800
         env:
           MYSQL_ALLOW_EMPTY_PASSWORD: true
           MYSQL_DATABASE: mysql
