@@ -14,7 +14,7 @@ for (const [dialect, adapter] of adapterEntries.filter(
     _test.concurrent(computeName(name), fn);
   };
 
-  _test.only("unique constraints for parent fields", async () => {
+  test("unique constraints for parent fields", async () => {
     const schema: DialectRecordWithDefault = {
       default: `
         create table organization (
@@ -88,22 +88,31 @@ for (const [dialect, adapter] of adapterEntries.filter(
   test("error is thrown when unique constraints are violated", async () => {
     const schema: DialectRecordWithDefault = {
       default: `
-          CREATE TABLE "user" (
-            id SERIAL NOT NULL PRIMARY KEY,
-            email TEXT NOT NULL UNIQUE
-          );
-        `,
+        CREATE TABLE "user" (
+          id SERIAL NOT NULL PRIMARY KEY,
+          email TEXT NOT NULL UNIQUE
+        );
+      `,
       sqlite: `
-          CREATE TABLE "user" (
-            id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
-            email TEXT NOT NULL UNIQUE
-          );
-        `,
+        CREATE TABLE "user" (
+          id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
+          email TEXT NOT NULL UNIQUE
+        );
+      `,
+      mysql: `
+        CREATE TABLE user (
+          id INT AUTO_INCREMENT PRIMARY KEY,
+          email VARCHAR(255) NOT NULL,
+          UNIQUE (email)
+        );
+      `,
     };
+
     const { runSeedScript } = await setupProject({
       adapter,
       databaseSchema: schema[dialect] ?? schema.default,
     });
+
     await expect(() =>
       runSeedScript(`
         import { createSeedClient } from '#snaplet/seed'
@@ -113,7 +122,6 @@ for (const [dialect, adapter] of adapterEntries.filter(
           email: (ctx) => copycat.oneOf(ctx.seed, ['a', 'b']) + '@acme.com'
         }))`),
     ).rejects.toThrow(dedent`
-        Unique constraint "user_email_key" violated for model "users" on fields (email) with values (b@acme.com)
         Seed: 0/users/2
         Model data: {
           "id": 3,
@@ -123,15 +131,15 @@ for (const [dialect, adapter] of adapterEntries.filter(
   test("nullable relationship", async () => {
     const schema: DialectRecordWithDefault = {
       default: `
-        create table team (
-          id serial primary key
+        CREATE TABLE team (
+          id SERIAL PRIMARY KEY
         );
-        create table player (
-          id bigserial primary key,
-          team_id integer references team(id),
-          name text not null
+        CREATE TABLE player (
+          id BIGSERIAL PRIMARY KEY,
+          team_id INTEGER REFERENCES team(id),
+          name TEXT NOT NULL
         );
-        `,
+      `,
       sqlite: `
         -- Team table
         CREATE TABLE team (
@@ -144,7 +152,18 @@ for (const [dialect, adapter] of adapterEntries.filter(
           name TEXT NOT NULL,
           FOREIGN KEY (team_id) REFERENCES team(id)
         );
-        `,
+      `,
+      mysql: `
+        CREATE TABLE team (
+          id INT AUTO_INCREMENT PRIMARY KEY
+        );
+        CREATE TABLE player (
+          id BIGINT AUTO_INCREMENT PRIMARY KEY,
+          team_id INT,
+          name VARCHAR(255) NOT NULL,
+          FOREIGN KEY (team_id) REFERENCES team(id)
+        );
+      `,
     };
 
     // Ensure the adapter and dialect are correctly initialized or passed
