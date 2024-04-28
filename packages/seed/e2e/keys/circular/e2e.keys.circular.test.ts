@@ -12,33 +12,41 @@ for (const [dialect, adapter] of adapterEntries) {
   test("should handle auto circular references", async () => {
     const schema: DialectRecordWithDefault = {
       default: `
-          create table customer (
-            id serial primary key,
-            name text not null,
-            referrer_id integer references customer(id)
-          );
-        `,
-      sqlite: `
-        create table customer (
-          id integer primary key autoincrement not null,
-          name text not null,
-          referrer_id integer references customer(id)
+        CREATE TABLE customer (
+          id SERIAL PRIMARY KEY,
+          name TEXT NOT NULL,
+          referrer_id INTEGER REFERENCES customer(id)
         );
-        `,
+      `,
+      sqlite: `
+        CREATE TABLE customer (
+          id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
+          name TEXT NOT NULL,
+          referrer_id INTEGER REFERENCES customer(id)
+        );
+      `,
+      mysql: `
+        CREATE TABLE customer (
+          id INT AUTO_INCREMENT PRIMARY KEY,
+          name VARCHAR(255) NOT NULL,
+          referrer_id INT,
+          FOREIGN KEY (referrer_id) REFERENCES customer(id)
+        );
+      `,
     };
     const { db } = await setupProject({
       adapter,
       databaseSchema: schema[dialect] ?? schema.default,
       seedScript: `
-          import { createSeedClient } from "#snaplet/seed"
-          const seed = await createSeedClient()
-          await seed.customers([
-            { name: "John Doe", referrerId: 2 },
-            { name: "Jane Doe", referrerId: 1 },
-          ]);
-        `,
+        import { createSeedClient } from "#snaplet/seed"
+        const seed = await createSeedClient()
+        await seed.customers([
+          { name: "John Doe", referrerId: 2 },
+          { name: "Jane Doe", referrerId: 1 },
+        ]);
+      `,
     });
-    const results = await db.query(`select * from customer order by id asc`);
+    const results = await db.query("SELECT * FROM customer ORDER BY id ASC");
     expect(results).toEqual(
       expect.arrayContaining([
         {
@@ -58,31 +66,39 @@ for (const [dialect, adapter] of adapterEntries) {
   test("should connect auto circular references", async () => {
     const schema: DialectRecordWithDefault = {
       default: `
-          create table customer (
-            id serial primary key,
-            name text not null,
-            referrer_id integer references customer(id)
-          );
-        `,
-      sqlite: `
-        create table customer (
-          id integer primary key autoincrement not null,
-          name text not null,
-          referrer_id integer references customer(id)
+        CREATE TABLE customer (
+          id SERIAL PRIMARY KEY,
+          name TEXT NOT NULL,
+          referrer_id INTEGER REFERENCES customer(id)
         );
-        `,
+      `,
+      sqlite: `
+        CREATE TABLE customer (
+          id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
+          name TEXT NOT NULL,
+          referrer_id INTEGER REFERENCES customer(id)
+        );
+      `,
+      mysql: `
+        CREATE TABLE customer (
+          id INT AUTO_INCREMENT PRIMARY KEY,
+          name VARCHAR(255) NOT NULL,
+          referrer_id INT,
+          FOREIGN KEY (referrer_id) REFERENCES customer(id)
+        );
+      `,
     };
     const { db } = await setupProject({
       adapter,
       databaseSchema: schema[dialect] ?? schema.default,
       seedScript: `
-          import { createSeedClient } from "#snaplet/seed"
-          const seed = await createSeedClient()
-          const {customers} = await seed.customers([{name: "John Doe"}])
-          await seed.customers([{name: "Jane Doe"}], {connect: {customers}})
-        `,
+        import { createSeedClient } from "#snaplet/seed"
+        const seed = await createSeedClient()
+        const {customers} = await seed.customers([{name: "John Doe"}])
+        await seed.customers([{name: "Jane Doe"}], {connect: {customers}})
+      `,
     });
-    const results = await db.query(`select * from customer order by id asc`);
+    const results = await db.query("SELECT * FROM customer ORDER BY id ASC");
     expect(results).toEqual(
       expect.arrayContaining([
         {
@@ -154,8 +170,30 @@ for (const [dialect, adapter] of adapterEntries) {
           FOREIGN KEY(customer_id) REFERENCES customer(id),
           FOREIGN KEY(product_id) REFERENCES product(id)
         );
-        PRAGMA foreign_keys = ON;
         `,
+      mysql: `
+        CREATE TABLE \`order\` (
+          id INT AUTO_INCREMENT PRIMARY KEY,
+          customer_id INT NOT NULL,
+          product_id INT NOT NULL,
+          quantity INT NOT NULL
+        );
+        CREATE TABLE customer (
+          id INT AUTO_INCREMENT PRIMARY KEY,
+          name VARCHAR(255) NOT NULL,
+          last_order_id INT,
+          FOREIGN KEY (last_order_id) REFERENCES \`order\`(id)
+        );
+        CREATE TABLE product (
+          id INT AUTO_INCREMENT PRIMARY KEY,
+          name VARCHAR(255) NOT NULL,
+          first_order_id INT,
+          FOREIGN KEY (first_order_id) REFERENCES \`order\`(id)
+        );
+        ALTER TABLE \`order\`
+          ADD FOREIGN KEY (customer_id) REFERENCES customer(id),
+          ADD FOREIGN KEY (product_id) REFERENCES product(id);
+      `,
     };
     const { db } = await setupProject({
       adapter,
@@ -182,7 +220,7 @@ for (const [dialect, adapter] of adapterEntries) {
       `select * from customer order by id asc`,
     );
     const orderResults = await db.query(
-      `select * from "order" order by id asc`,
+      `select * from ${adapter.escapeIdentifier("order")} order by id asc`,
     );
     const productResults = await db.query(
       `select * from product order by id asc`,
@@ -277,7 +315,6 @@ for (const [dialect, adapter] of adapterEntries) {
           FOREIGN KEY(customer_id) REFERENCES customer(id),
           FOREIGN KEY(product_id) REFERENCES product(id)
         );
-        PRAGMA foreign_keys = ON;
         `,
       };
       const { db } = await setupProject({
