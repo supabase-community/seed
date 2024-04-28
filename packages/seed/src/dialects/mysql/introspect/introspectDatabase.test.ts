@@ -1,3 +1,4 @@
+import { snakeCase } from "change-case";
 import { describe, expect, test } from "vitest";
 import { mysql } from "#test/mysql/mysql/index.js";
 import { type Relationship, introspectDatabase } from "./introspectDatabase.js";
@@ -25,9 +26,9 @@ describe.concurrent.each(["mysql"] as const)(
       expect(result).toMatchObject({
         enums: [
           {
-            id: `${db.name}.Table2.status`,
+            id: snakeCase(`enum_${db.name}_Table2_status`),
             schema: db.name,
-            name: "status",
+            name: snakeCase(`enum_${db.name}_Table2_status`),
             values: ["A", "B"],
           },
         ],
@@ -163,7 +164,7 @@ describe.concurrent.each(["mysql"] as const)(
                 schema: db.name,
                 table: "Table2",
                 name: "status",
-                type: `enum_${db.name}_Table2_status`,
+                type: snakeCase(`enum_${db.name}_Table2_status`),
                 nullable: true,
                 generated: false,
                 maxLength: 1,

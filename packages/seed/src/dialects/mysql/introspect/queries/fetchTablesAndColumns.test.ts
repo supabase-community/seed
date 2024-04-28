@@ -1,3 +1,4 @@
+import { snakeCase } from "change-case";
 import { describe, expect, test } from "vitest";
 import { mysql } from "#test/mysql/mysql/index.js";
 import { fetchSchemas } from "./fetchSchemas.js";
@@ -624,7 +625,7 @@ describe.concurrent.each(["mysql"] as const)(
               {
                 id: `${db.name}.Employees.Status`,
                 name: "Status",
-                type: `enum.${db.name}.Employees.Status`,
+                type: snakeCase(`enum.${db.name}.Employees.Status`),
                 constraints: [],
                 schema: db.name,
                 table: "Employees",
