@@ -27,6 +27,7 @@ env:
   MYSQL_TEST_DATABASE_SERVER: mysql://root@localhost:3306/mysql
   TURBO_TOKEN: ${{ secrets.TURBO_TOKEN }}
   TURBO_TEAM: ${{ vars.TURBO_TEAM }}
+  CI: '1'
 
 jobs:
   test-type-check:
