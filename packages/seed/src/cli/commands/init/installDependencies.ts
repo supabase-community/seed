@@ -5,6 +5,7 @@ import {
   getPackageJsonPath,
   getPackageManager,
 } from "#config/utils.js";
+import { getVersion } from "#core/version.js";
 import { spinner } from "../../lib/output.js";
 
 export async function installDependencies({ adapter }: { adapter: Adapter }) {
@@ -12,7 +13,7 @@ export async function installDependencies({ adapter }: { adapter: Adapter }) {
 
   const devDependenciesToInstall = [
     "@snaplet/copycat",
-    //`@snaplet/seed@${getVersion()}`,
+    `@snaplet/seed@${getVersion()}`,
     adapter.packageName,
     ...(adapter.typesPackageName ? [adapter.typesPackageName] : []),
   ].filter((d) => {
