@@ -1,7 +1,4 @@
-import { type DialectId } from "#dialects/dialects.js";
-
 export interface DataModel {
-  dialect: DialectId;
   enums: Record<string, DataModelEnum>;
   models: Record<string, DataModelModel>;
 }

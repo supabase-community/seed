@@ -212,7 +212,7 @@ function columnSequence(
 export function introspectionToDataModel(
   introspection: IntrospectedStructure,
 ): DataModel {
-  const dataModel: DataModel = { dialect: "postgres", models: {}, enums: {} };
+  const dataModel: DataModel = { models: {}, enums: {} };
 
   for (const e of introspection.enums) {
     const enumName = getEnumName(introspection, e);

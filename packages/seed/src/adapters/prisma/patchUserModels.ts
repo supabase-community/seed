@@ -2,6 +2,7 @@ import { type DataModel } from "#core/dataModel/types.js";
 import { SQL_DATE_TYPES } from "#core/dialect/utils.js";
 import { FallbackSymbol } from "#core/symbols.js";
 import { type UserModels } from "#core/userModels/types.js";
+import { getDialect } from "./getDialect.js";
 
 function patchSqliteDatetimeFields(
   dataModel: DataModel,
@@ -50,7 +51,9 @@ export async function patchUserModels(props: {
   dataModel: DataModel;
   userModels: UserModels;
 }) {
-  if (props.dataModel.dialect === "sqlite") {
+  const dialect = await getDialect();
+
+  if (dialect === "sqlite") {
     return patchSqliteUserModels(props.dataModel, props.userModels);
   }
 
