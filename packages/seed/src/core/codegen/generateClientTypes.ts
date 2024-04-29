@@ -575,6 +575,7 @@ function generateSeedClientTypes() {
     adapter?: DatabaseClient;
     dryRun?: boolean;
     models?: UserModels;
+    connect?: PlanOptions["connect"];
   }
   export declare const createSeedClient: (options?: SeedClientOptions) => Promise<SeedClient>`;
 }
