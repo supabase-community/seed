@@ -14,6 +14,7 @@ export interface Adapter {
   }) => Promise<SeedConfig>;
   patchUserModels?: (props: {
     dataModel: DataModel;
+    dialect: DialectId;
     userModels: UserModels;
   }) => Promise<UserModels>;
   template: (parameters?: string) => string;

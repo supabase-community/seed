@@ -1,5 +1,7 @@
 export async function getDialect() {
-  const { getConfig, getSchema } = (await import("@prisma/internals")).default;
+  const prismaInternals = await import("@prisma/internals");
+  // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
+  const { getConfig, getSchema } = prismaInternals.default ?? prismaInternals;
 
   const config = await getConfig({
     datamodel: await getSchema(),

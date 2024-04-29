@@ -113,6 +113,7 @@ export const getSeedClient: GetSeedClient = (props) => {
         const adapter = await getAdapter();
         const userModels = adapter.patchUserModels
           ? await adapter.patchUserModels({
+              dialect: "postgres",
               dataModel: props.dataModel,
               userModels: props.userModels,
             })
