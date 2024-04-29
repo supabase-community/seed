@@ -225,13 +225,9 @@ for (const [dialect, adapter] of adapterEntries) {
     expect(bookings[1].student_id).toEqual(students[0].student_id);
   });
 
-  // TODO: understand what this test is really for and why it fail with mysql
-  // add comments to it because it's not obvious what it really asserts
-  _test.skip(
-    "default field ordering for `data` in generate callback",
-    async () => {
-      const schema: SchemaRecord = {
-        default: `
+  test("default field override for `data` in generate callback", async () => {
+    const schema: SchemaRecord = {
+      default: `
       CREATE TABLE organization (
         id serial not null primary key
       );
@@ -245,7 +241,7 @@ for (const [dialect, adapter] of adapterEntries) {
         fromclientoptions text not null,
         notinplandescription text not null
       );`,
-        mysql: `
+      mysql: `
       CREATE TABLE organization (
         \`id\` INTEGER NOT NULL AUTO_INCREMENT PRIMARY KEY
       );
@@ -259,11 +255,11 @@ for (const [dialect, adapter] of adapterEntries) {
         fromclientoptions text not null,
         notinplandescription text not null
       );`,
-      };
-      const { db } = await setupProject({
-        adapter,
-        databaseSchema: schema[dialect] ?? schema.default,
-        seedScript: `
+    };
+    const { db } = await setupProject({
+      adapter,
+      databaseSchema: schema[dialect] ?? schema.default,
+      seedScript: `
         import { createSeedClient } from "#snaplet/seed"
 
         const seed = await createSeedClient({
@@ -278,8 +274,11 @@ for (const [dialect, adapter] of adapterEntries) {
 
         await seed.members((x) => x(1, {
           fromplandescription1: () => 'fromplandescription1Value',
+          // The declaration order actually matters here, so in result, we'll have access to all the fields from
+          // above override (models) as well as fromplandescription1, but not fromplandescription2 because it's
+          // declared AFTER result
+          result: ({ data }) => JSON.stringify(data),
           fromplandescription2: () => 'fromplandescription2Value',
-          result: ({ data }) => JSON.stringify(Object.keys(data))
         }), {
           models: {
             members: {
@@ -290,23 +289,21 @@ for (const [dialect, adapter] of adapterEntries) {
           }
         })
       `,
-      });
+    });
 
-      const [row] = await db.query<{ result: string }>(
-        "SELECT result FROM member",
-      );
+    const [row] = await db.query<{ result: string }>(
+      "SELECT result FROM member",
+    );
 
-      expect(JSON.parse(row.result)).toEqual([
-        "organizationid",
-        "id",
-        "notinplandescription",
-        "fromclientoptions",
-        "fromplanoptions",
-        "fromplandescription1",
-        "fromplandescription2",
-      ]);
-    },
-  );
+    expect(JSON.parse(row.result)).toEqual({
+      id: expect.any(Number),
+      notinplandescription: expect.any(String),
+      organizationid: expect.any(Number),
+      fromclientoptions: "fromclientoptionsValue",
+      fromplanoptions: "fromplanoptionsValue",
+      fromplandescription1: "fromplandescription1Value",
+    });
+  });
 
   _test.skip(
     // eslint-disable-next-line vitest/valid-title
