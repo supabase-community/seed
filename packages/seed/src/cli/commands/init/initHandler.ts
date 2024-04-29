@@ -56,7 +56,7 @@ export async function initHandler(args: { directory: string }) {
     await saveSeedConfig({ adapter });
   }
 
-  await syncHandler({});
+  await syncHandler({ isInit: true });
 
   if (isFirstTimeInit) {
     await generateSeedScriptExample();

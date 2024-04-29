@@ -15,11 +15,17 @@ import { columnsToPredict, formatInput } from "#core/predictions/utils.js";
 import { SnapletError } from "#core/utils.js";
 import { getDialect } from "#dialects/getDialect.js";
 import { trpc } from "#trpc/client.js";
-import { brightGreen, link, spinner } from "../../lib/output.js";
+import { bold, brightGreen, link, spinner } from "../../lib/output.js";
+import { listenForKeyPress } from "./listenForKeyPress.js";
 
-export async function predictHandler() {
+export async function predictHandler({
+  isInit = false,
+}: { isInit?: boolean } = {}) {
   try {
-    spinner.start("Getting the models' enhancements 🤖");
+    spinner.start(
+      `Enhancing your generated data using ${bold("Snaplet AI")} 🤖"`,
+    );
+
     const dataModel = await getDataModel();
     const dialect = await getDialect();
     const dataExamples: Array<DataExample> = [];
@@ -53,10 +59,39 @@ export async function predictHandler() {
     const shapePredictions = await waitForShapePredictions();
     await setShapePredictions(shapePredictions);
 
+    const organization =
+      await trpc.organization.organizationGetByProjectId.query({
+        projectId: projectConfig.projectId,
+      });
+
+    console.log();
+    console.log(
+      `ℹ You can tell us more about your data to further ${brightGreen("improve the results")} over here: ${link(`${SNAPLET_APP_URL}/o/${organization.id}/p/${projectConfig.projectId}/seed`)}`,
+    );
+    console.log(`ℹ You can skip this step by hitting the ${bold("s")} key`);
+
+    const sKeyPress = listenForKeyPress("s");
+
+    const status = await Promise.race([
+      waitForDataGeneration({
+        isInit,
+        onProgress({ percent }) {
+          spinner.text = `[ ${percent}% ] Enhancing your generated data using ${bold("Snaplet AI")} 🤖"`;
+        },
+      }).then(() => "COMPLETE"),
+      sKeyPress.promise.then(() => "CANCELLED_BY_USER" as const),
+    ]);
+
+    if (status === "CANCELLED_BY_USER") {
+      console.log();
+      console.log(
+        `ℹ Skipped! You can start using what's already available now. We'll keep generating the rest in the cloud. You can retrieve these later with ${bold("npx @snaplet/seed sync")}`,
+      );
+    }
+
+    spinner.start(`Fetching ${bold("Snaplet AI")} results 🤖"`);
     const shapeExamples = await fetchShapeExamples(shapePredictions);
     dataExamples.push(...shapeExamples);
-
-    await waitForDataGeneration();
 
     const customDataSet = await trpc.predictions.customSeedDatasetRoute.mutate({
       inputs,
@@ -68,18 +103,11 @@ export async function predictHandler() {
 
     await setDataExamples(dataExamples);
 
-    spinner.succeed("Got model enhancements 🤖");
-    const organization =
-      await trpc.organization.organizationGetByProjectId.query({
-        projectId: projectConfig.projectId,
-      });
+    spinner.succeed("Enhancements complete! 🤖");
 
-    console.log(
-      `\n✨ You can ${brightGreen("improve your generated data")} with ${brightGreen("Snaplet AI")} here: ${link(`${SNAPLET_APP_URL}/o/${organization.id}/p/${projectConfig.projectId}/seed`)}\n`,
-    );
     return { ok: true };
   } catch (error) {
-    spinner.fail(`Failed to get model enhancements`);
+    spinner.fail(`Failed to enhancements`);
     throw error;
   }
 }

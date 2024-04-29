@@ -6,6 +6,15 @@ import {
 import { trpc } from "#trpc/client.js";
 import { formatInput } from "./utils.js";
 
+const POLL_INTERVAL = 1000;
+const MAX_START_WAIT = 1000 * 3;
+
+type DataGenerationJob = Awaited<
+  ReturnType<
+    typeof trpc.predictions.getIncompleteDataGenerationJobsStatusRoute.query
+  >
+>["incompleteJobs"][number];
+
 const gatherPrompts = (
   projectId: string,
   dataModel: DataModel,
@@ -56,46 +65,106 @@ const gatherPrompts = (
   return prompts;
 };
 
+const computeDataGenerationProgressPercent = (
+  seenJobs: Set<string>,
+  incompleteJobs: Array<DataGenerationJob>,
+) => {
+  if (incompleteJobs.length === 0) {
+    return 100;
+  }
+
+  const incompleteJobSet = new Map(incompleteJobs.map((job) => [job.id, job]));
+
+  const jobTotal = Array.from(seenJobs).reduce(
+    (total: number, jobId: string) => {
+      const job = incompleteJobSet.get(jobId);
+      const progress = job ? job.progressCurrent / job.progressTotal : 1;
+      return total + progress;
+    },
+    0,
+  );
+
+  return (jobTotal / seenJobs.size) * 100;
+};
+
+type WaitForDataGeneration = (options?: {
+  isInit?: boolean;
+  onProgress?: (context: { percent: number }) => unknown;
+}) => Promise<unknown>;
+
 export const startDataGeneration = async (
   projectId: string,
   dataModel: DataModel,
   fingerprintConfig: SeedConfig["fingerprint"],
 ): Promise<{
-  waitForDataGeneration: () => Promise<unknown>;
+  waitForDataGeneration: WaitForDataGeneration;
 }> => {
   const prompts = gatherPrompts(projectId, dataModel, fingerprintConfig);
 
-  const results = await Promise.all(
+  await Promise.all(
     prompts.map((prompt) =>
       trpc.predictions.startDataGenerationJobRoute.mutate(prompt),
     ),
   );
 
-  const jobs = results.filter((job) => job.status !== "SUCCESS");
+  const waitForDataGeneration: WaitForDataGeneration = async ({
+    isInit = false,
+    onProgress,
+  } = {}) => {
+    let isDone = false;
+    const seenJobs = new Set<string>();
 
-  const waitForDataGeneration = async () => {
-    if (jobs.length === 0) {
-      return;
-    }
+    if (isInit) {
+      const startTimeoutTime = Date.now() + MAX_START_WAIT;
 
-    const pendingJobs = new Set(jobs.map((job) => job.dataGenerationJobId));
+      // context(justinvdm, 25 April 2024): First wait for the first incomplete job to appear so that we don't jump the gun.
+      // We won't wait more than MAX_START_WAIT for this first incomplete job
+      while (!isDone && Date.now() < startTimeoutTime) {
+        const result =
+          await trpc.predictions.getIncompleteDataGenerationJobsStatusRoute.query(
+            {
+              projectId,
+            },
+          );
 
-    while (pendingJobs.size) {
-      for (const dataGenerationJobId of pendingJobs.values()) {
-        const { status } =
-          await trpc.predictions.getDataGenerationJobStatusRoute.query({
-            dataGenerationJobId,
-          });
-
-        if (status === "SUCCESS") {
-          pendingJobs.delete(dataGenerationJobId);
+        for (const job of result.incompleteJobs) {
+          seenJobs.add(job.id);
         }
 
-        await new Promise((resolve) => setTimeout(resolve, 100));
-      }
+        onProgress?.({
+          percent: computeDataGenerationProgressPercent(
+            seenJobs,
+            result.incompleteJobs,
+          ),
+        });
 
-      await new Promise((resolve) => setTimeout(resolve, 1000));
+        if (result.incompleteJobs.length > 0) {
+          isDone = true;
+        } else {
+          await new Promise((resolve) => setTimeout(resolve, POLL_INTERVAL));
+        }
+      }
     }
+
+    // context(justinvdm, 25 April 2024): Now that we have incomplete jobs to wait for, poll until there are no more
+    // incomplete jobs
+    isDone = false;
+
+    while (!isDone) {
+      const result =
+        await trpc.predictions.getIncompleteDataGenerationJobsStatusRoute.query(
+          {
+            projectId,
+          },
+        );
+      if (result.incompleteJobs.length > 0) {
+        await new Promise((resolve) => setTimeout(resolve, POLL_INTERVAL));
+      } else {
+        isDone = true;
+      }
+    }
+
+    return isDone;
   };
 
   return { waitForDataGeneration };

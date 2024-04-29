@@ -119,6 +119,7 @@ export const createCliRouter = ({ publicProcedure = t.procedure } = {}) =>
               .optional(),
             tableNames: z.array(z.string()).optional(),
             projectId: z.string().optional(),
+            shouldEnableDataSets: z.boolean().optional(),
           }),
         )
         .mutation(() => {
@@ -173,6 +174,22 @@ export const createCliRouter = ({ publicProcedure = t.procedure } = {}) =>
               | "IN_PROGRESS"
               | "PENDING"
               | "SUCCESS",
+          };
+        }),
+      getIncompleteDataGenerationJobsStatusRoute: publicProcedure
+        .input(
+          z.object({
+            projectId: z.string().min(1),
+          }),
+        )
+        .query(() => {
+          return {
+            incompleteJobs: [] as Array<{
+              id: string;
+              progressCurrent: number;
+              progressTotal: number;
+              status: "IN_PROGRESS" | "PENDING";
+            }>,
           };
         }),
       seedShapeRoute: publicProcedure
