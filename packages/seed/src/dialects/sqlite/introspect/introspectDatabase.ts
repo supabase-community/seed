@@ -39,20 +39,20 @@ export async function basicIntrospectDatabase(client: DatabaseClient) {
 interface IntrospectedStructure {
   sequences: Array<FetchSequencesResult>;
   tables: Array<
-    FetchTableAndColumnsResult & {
+    {
       children: Array<FetchRelationshipsInfosResult>;
       columns: Array<
-        SelectColumnsResult & {
+        {
           identity: {
             current: number;
             name: string;
           } | null;
-        }
+        } & SelectColumnsResult
       >;
       constraints: Array<FetchUniqueConstraintsResult>;
       parents: Array<FetchRelationshipsInfosResult>;
       primaryKeys: FetchPrimaryKeysResult | null;
-    }
+    } & FetchTableAndColumnsResult
   >;
 }
 

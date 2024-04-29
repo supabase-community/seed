@@ -26,12 +26,12 @@ type GroupedRelationships = ReturnType<typeof groupParentsChildrenRelations>;
 type GroupedRelationshipsValue = NonNullable<
   ReturnType<GroupedRelationships["get"]>
 >;
-export type IntrospectedTableColumn = Tables[number]["columns"][number] & {
+export type IntrospectedTableColumn = {
   identity: {
     current: number;
     name: string;
   } | null;
-};
+} & Tables[number]["columns"][number];
 
 interface IntrospectedStructureBase {
   enums: Enums;
@@ -41,12 +41,12 @@ interface IntrospectedStructureBase {
 export interface IntrospectedStructure extends IntrospectedStructureBase {
   sequences?: Record<string, Sequences>;
   tables: Array<
-    IntrospectedStructureBase["tables"][number] &
-      GroupedRelationshipsValue & {
-        columns: Array<IntrospectedTableColumn>;
-        primaryKeys: PrimaryKeys[number] | null;
-        uniqueConstraints?: UniqueConstraints;
-      }
+    {
+      columns: Array<IntrospectedTableColumn>;
+      primaryKeys: PrimaryKeys[number] | null;
+      uniqueConstraints?: UniqueConstraints;
+    } & GroupedRelationshipsValue &
+      IntrospectedStructureBase["tables"][number]
   >;
 }
 

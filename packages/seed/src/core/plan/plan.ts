@@ -93,13 +93,13 @@ export class Plan implements IPlan {
       ctx,
       model,
       inputs,
-    }: PlanInputs & {
+    }: {
       ctx?: {
         connectPath?: Array<{ model: string; rowId: number }>;
         index?: number;
         path?: Array<number | string>;
       };
-    },
+    } & PlanInputs,
     options: Required<GenerateOptions>,
   ) {
     const connectPath = ctx?.connectPath ?? [];

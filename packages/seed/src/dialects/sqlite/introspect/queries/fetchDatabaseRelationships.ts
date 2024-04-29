@@ -56,12 +56,12 @@ function groupedForeignKeysById(
   tableColumnsInfosGrouped: Record<
     string,
     Array<
-      Pick<
+      {
+        affinity: SQLiteAffinity;
+      } & Pick<
         FetchTableAndColumnsResultRaw,
         "colName" | "colNotNull" | "colPk" | "colType"
-      > & {
-        affinity: SQLiteAffinity;
-      }
+      >
     >
   >,
 ) {
@@ -135,7 +135,7 @@ export async function fetchDatabaseRelationships(client: DatabaseClient) {
   const tableColumnsInfosGrouped = tableColumnsInfos.reduce<
     Record<
       string,
-      Array<FetchTableAndColumnsResultRaw & { affinity: SQLiteAffinity }>
+      Array<{ affinity: SQLiteAffinity } & FetchTableAndColumnsResultRaw>
     >
   >((acc, row) => {
     // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
