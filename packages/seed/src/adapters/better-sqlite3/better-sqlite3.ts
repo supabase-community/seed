@@ -6,10 +6,6 @@ import { type Adapter } from "../types.js";
 export class SeedBetterSqlite3 extends DatabaseClient<Database> {
   static id = "better-sqlite3" as const;
 
-  constructor(client: Database) {
-    super("sqlite", client);
-  }
-
   // eslint-disable-next-line @typescript-eslint/require-await
   async execute(query: string): Promise<void> {
     this.client.prepare(query).run();
@@ -22,6 +18,7 @@ export class SeedBetterSqlite3 extends DatabaseClient<Database> {
 }
 
 export const betterSqlite3Adapter = {
+  getDialect: () => "sqlite",
   id: "better-sqlite3" as const,
   name: "better-sqlite3",
   packageName: "better-sqlite3",

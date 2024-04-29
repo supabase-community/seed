@@ -4,10 +4,6 @@ import { DatabaseClient } from "#core/databaseClient.js";
 import { type Adapter } from "../types.js";
 
 export class SeedMysql2 extends DatabaseClient<Connection | Pool> {
-  constructor(client: Connection) {
-    super("mysql", client);
-  }
-
   async execute(query: string): Promise<void> {
     await this.client.query(query);
   }
@@ -19,6 +15,7 @@ export class SeedMysql2 extends DatabaseClient<Connection | Pool> {
 }
 
 export const mysql2Adapter = {
+  getDialect: () => "mysql",
   id: "mysql2" as const,
   name: "mysql2",
   packageName: "mysql2",

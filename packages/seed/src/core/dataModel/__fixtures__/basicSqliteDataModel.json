@@ -1,5 +1,4 @@
 {
-  "dialect": "sqlite",
   "models": {
     "test_customer": {
       "id": "test_customer",

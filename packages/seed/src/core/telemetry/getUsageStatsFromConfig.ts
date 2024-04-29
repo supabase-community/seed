@@ -1,3 +1,4 @@
+import { getAdapter } from "#adapters/getAdapter.js";
 import { getProjectConfig } from "#config/project/projectConfig.js";
 import {
   type SeedConfig,
@@ -89,13 +90,13 @@ function extractAliasStats(alias: SeedConfig["alias"]) {
   };
 }
 
-async function extractAdapterStats(adapter: SeedConfig["adapter"]) {
+async function extractAdapterStats() {
   let adapterName = undefined;
   let dialect = undefined;
   try {
-    const adapterInstance = await adapter();
-    adapterName = adapterInstance.constructor.name;
-    dialect = adapterInstance.dialect;
+    const adapterInstance = await getAdapter();
+    adapterName = adapterInstance.id;
+    dialect = await adapterInstance.getDialect();
   } catch (e) {
     // Ignore errors if the adapter is usable.
   }
@@ -109,7 +110,7 @@ async function extractInsightFromSeedConfig(seedConfig: SeedConfig) {
   const selectStats = extractSelectStats(seedConfig.select);
   const aliasStats = extractAliasStats(seedConfig.alias);
   const fingerprintStats = extractFingerprintStats(seedConfig.fingerprint);
-  const adapterStats = await extractAdapterStats(seedConfig.adapter);
+  const adapterStats = await extractAdapterStats();
   return {
     ...fingerprintStats,
     ...selectStats,
