@@ -70,21 +70,10 @@ const computeDataGenerationProgressPercent = (
   incompleteJobs: Array<DataGenerationJob>,
 ) => {
   if (seenJobs.size === 0) {
-    return 100;
+    return 0;
   }
 
-  const incompleteJobSet = new Map(incompleteJobs.map((job) => [job.id, job]));
-
-  const jobTotal = Array.from(seenJobs).reduce(
-    (total: number, jobId: string) => {
-      const job = incompleteJobSet.get(jobId);
-      const progress = job ? job.progressCurrent / job.progressTotal : 1;
-      return total + progress;
-    },
-    0,
-  );
-
-  return (jobTotal / seenJobs.size) * 100;
+  return ((seenJobs.size - incompleteJobs.length) / seenJobs.size) * 100;
 };
 
 type WaitForDataGeneration = (options?: {

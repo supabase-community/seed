@@ -41,7 +41,7 @@ export async function loggedCommandPrerun(
   };
 }
 
-export async function initHandler(args: { directory: string }) {
+export async function initHandler(args: { directory: string; reset: boolean }) {
   // Every files are created in the same directory as the seed.config.ts file
   process.env["SNAPLET_SEED_CONFIG"] = path.join(
     args.directory,
@@ -49,7 +49,7 @@ export async function initHandler(args: { directory: string }) {
   );
 
   const { isFirstTimeInit } = await loggedCommandPrerun({ showWelcome: true });
-  if (isFirstTimeInit) {
+  if (isFirstTimeInit || args.reset) {
     await linkHandler();
     const adapter = await getAdapter();
     await installDependencies({ adapter });
@@ -58,7 +58,7 @@ export async function initHandler(args: { directory: string }) {
 
   await syncHandler({ isInit: true });
 
-  if (isFirstTimeInit) {
+  if (isFirstTimeInit || args.reset) {
     await generateSeedScriptExample();
   }
 
