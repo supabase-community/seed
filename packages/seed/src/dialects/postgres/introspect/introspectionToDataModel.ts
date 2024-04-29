@@ -11,21 +11,6 @@ import {
   type Relationship,
 } from "./introspectDatabase.js";
 
-function getModelName(
-  introspection: { tables: Array<{ name: string; schema: string }> },
-  table: IntrospectedStructure["tables"][number],
-) {
-  const tableIsInMultipleSchemas = introspection.tables.some(
-    (t) => t.name === table.name && t.schema !== table.schema,
-  );
-
-  const modelName = tableIsInMultipleSchemas
-    ? `${table.schema}_${table.name}`
-    : table.name;
-
-  return modelName;
-}
-
 function getEnumName(
   introspection: IntrospectedStructure,
   enumItem: IntrospectedStructure["enums"][number],
@@ -41,6 +26,24 @@ function getEnumName(
   return enumName;
 }
 
+type MinimalRelationship = Pick<Relationship, "fkTable" | "targetTable"> & {
+  keys: Array<Pick<Relationship["keys"][number], "fkColumn" | "targetColumn">>;
+};
+function getModelName(
+  introspection: { tables: Array<{ name: string; schema: string }> },
+  table: Pick<IntrospectedStructure["tables"][number], "name" | "schema">,
+) {
+  const tableIsInMultipleSchemas = introspection.tables.some(
+    (t) => t.name === table.name && t.schema !== table.schema,
+  );
+
+  const modelName = tableIsInMultipleSchemas
+    ? `${table.schema}_${table.name}`
+    : table.name;
+
+  return modelName;
+}
+
 function getParentRelationAndFieldName({
   introspection,
   table,
@@ -48,9 +51,12 @@ function getParentRelationAndFieldName({
   parentRelation,
 }: {
   introspection: IntrospectedStructure;
-  parentRelation: Relationship;
+  parentRelation: MinimalRelationship;
   table: IntrospectedStructure["tables"][number];
-  targetTable: IntrospectedStructure["tables"][number];
+  targetTable: Pick<
+    IntrospectedStructure["tables"][number],
+    "name" | "schema"
+  > & { parents: Array<MinimalRelationship> };
 }) {
   const modelName = getModelName(introspection, table);
   const targetModelName = getModelName(introspection, targetTable);
@@ -75,7 +81,7 @@ function getChildRelationAndFieldName({
   childTable,
   childRelation,
 }: {
-  childRelation: Relationship;
+  childRelation: MinimalRelationship;
   childTable: IntrospectedStructure["tables"][number];
   introspection: IntrospectedStructure;
   table: IntrospectedStructure["tables"][number];

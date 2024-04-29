@@ -27,9 +27,10 @@ const getServer = async ({ router }: { router: typeof cliRouter }) => {
   };
 };
 
-for (const [dialect, adapter] of adapterEntries) {
-  const computeName = (name: string) =>
-    `e2e > sequences > ${dialect} > ${name}`;
+for (const [dialect, adapter] of adapterEntries.filter(
+  ([d]) => d === "postgres",
+)) {
+  const computeName = (name: string) => `e2e > shapes > ${dialect} > ${name}`;
   const test = (name: string, fn: TestFunction) => {
     // eslint-disable-next-line vitest/expect-expect, vitest/valid-title
     _test.concurrent(computeName(name), fn);
@@ -208,7 +209,6 @@ for (const [dialect, adapter] of adapterEntries) {
       await using server = await getServer({
         router: createCliRouter({
           publicProcedure: trpc.procedure.use(async (context) => {
-            // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
             const schemaName = dialect === "postgres" ? "public" : "";
             const result = await context.next();
             let nextData;

@@ -17,9 +17,6 @@ export interface FetchUniqueConstraintsResult {
   table: string;
   // Unique identifier allowing to access the table in the database
   tableId: string;
-  // Allow to know if the constraint is a primary key or a unique constraint
-  // or coming from an isolated CREATE INDEX
-  // origin?: 'c' | 'u' | 'pk'
   // TODO: Add support for partial indexes (will tipically be used to change the behavior for NULL values)
   // partial?: 0 | 1
 }

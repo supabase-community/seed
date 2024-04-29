@@ -109,5 +109,8 @@ export const DEFAULT_SQL_TEMPLATES: Required<Templates<SQLTypeName>> = {
   "bit varying": bits,
   bytea: ({ input }) => `copycat.hex(${input})`,
   blob: ({ input }) => `copycat.hex(${input})`,
+  longblob: ({ input }) => `copycat.hex(${input})`,
+  mediumblob: ({ input }) => `copycat.hex(${input})`,
+  tinyblob: ({ input }) => `copycat.hex(${input})`,
   uuid: ({ input }) => `copycat.uuid(${input})`,
 };

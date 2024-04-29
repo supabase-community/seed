@@ -77,7 +77,16 @@ const JS_TO_SQL_TYPES = {
   ] as const,
   boolean: ["boolean", "bool"] as const,
   Json: ["json", "jsonb"] as const,
-  Buffer: ["binary", "varbinary", "image", "blob", "bytea"] as const,
+  Buffer: [
+    "binary",
+    "varbinary",
+    "image",
+    "blob",
+    "bytea",
+    "tinyblob",
+    "mediumblob",
+    "longblob",
+  ] as const,
 } as const;
 export const SQL_TYPES_LIST = Object.values(JS_TO_SQL_TYPES).flat();
 type JsToSQLTypes = typeof JS_TO_SQL_TYPES;

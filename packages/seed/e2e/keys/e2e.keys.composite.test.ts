@@ -13,47 +13,71 @@ for (const [dialect, adapter] of adapterEntries) {
   test("work as expected with composites primary keys", async () => {
     const schema: DialectRecordWithDefault = {
       default: `
-          CREATE TABLE "Team" (
-            "id" SERIAL PRIMARY KEY
-          );
-          CREATE TABLE "Player" (
-            "id" BIGSERIAL PRIMARY KEY,
-            "teamId" integer NOT NULL REFERENCES "Team"("id"),
-            "name" text NOT NULL
-          );
-          CREATE TABLE "Game" (
-            "id" INTEGER GENERATED ALWAYS AS IDENTITY PRIMARY KEY
-          );
-          -- Create a Match table with a composite primary key based on two foreign keys
-          CREATE TABLE "Match" (
-            "teamId" integer REFERENCES "Team"("id"),
-            "gameId" integer REFERENCES "Game"("id"),
-            "score" integer NOT NULL,
-            PRIMARY KEY ("teamId", "gameId")
-          );
-        `,
+        CREATE TABLE team (
+          id SERIAL PRIMARY KEY
+        );
+        CREATE TABLE player (
+          id BIGSERIAL PRIMARY KEY,
+          team_id INTEGER NOT NULL,
+          name TEXT NOT NULL,
+          FOREIGN KEY (team_id) REFERENCES team(id)
+        );
+        CREATE TABLE game (
+          id INTEGER GENERATED ALWAYS AS IDENTITY PRIMARY KEY
+        );
+        CREATE TABLE match (
+          team_id INTEGER NOT NULL,
+          game_id INTEGER NOT NULL,
+          score INTEGER NOT NULL,
+          PRIMARY KEY (game_id, team_id),
+          FOREIGN KEY (team_id) REFERENCES team(id),
+          FOREIGN KEY (game_id) REFERENCES game(id)
+        );
+      `,
       sqlite: `
-        CREATE TABLE "Team" (
-          "id" INTEGER PRIMARY KEY AUTOINCREMENT
+        CREATE TABLE team (
+          id INTEGER PRIMARY KEY AUTOINCREMENT
         );
-        CREATE TABLE "Player" (
-          "id" INTEGER PRIMARY KEY AUTOINCREMENT,
-          "teamId" INTEGER NOT NULL,
-          "name" TEXT NOT NULL,
-          FOREIGN KEY ("teamId") REFERENCES "Team"("id")
+        CREATE TABLE player (
+          id INTEGER PRIMARY KEY AUTOINCREMENT,
+          team_id INTEGER NOT NULL,
+          name TEXT NOT NULL,
+          FOREIGN KEY (team_id) REFERENCES team(id)
         );
-        CREATE TABLE "Game" (
-          "id" INTEGER PRIMARY KEY AUTOINCREMENT
+        CREATE TABLE game (
+          id INTEGER PRIMARY KEY AUTOINCREMENT
         );
-        -- Composite primary key in SQLite
-        CREATE TABLE "Match" (
-          "teamId" INTEGER NOT NULL,
-          "gameId" INTEGER NOT NULL,
-          "score" INTEGER NOT NULL,
-          PRIMARY KEY ("teamId", "gameId"),
-          FOREIGN KEY ("teamId") REFERENCES "Team"("id"),
-          FOREIGN KEY ("gameId") REFERENCES "Game"("id")
-        );`,
+        CREATE TABLE match (
+          team_id INTEGER NOT NULL,
+          game_id INTEGER NOT NULL,
+          score INTEGER NOT NULL,
+          PRIMARY KEY (game_id, team_id),
+          FOREIGN KEY (team_id) REFERENCES team(id),
+          FOREIGN KEY (game_id) REFERENCES game(id)
+        );
+      `,
+      mysql: `
+        CREATE TABLE team (
+          id INT AUTO_INCREMENT PRIMARY KEY
+        );
+        CREATE TABLE player (
+          id INT AUTO_INCREMENT PRIMARY KEY,
+          team_id INT NOT NULL,
+          name VARCHAR(255) NOT NULL,
+          FOREIGN KEY (team_id) REFERENCES team(id)
+        );
+        CREATE TABLE game (
+          id INT AUTO_INCREMENT PRIMARY KEY
+        );
+        CREATE TABLE \`match\` (
+          team_id INT NOT NULL,
+          game_id INT NOT NULL,
+          score INT NOT NULL,
+          PRIMARY KEY (game_id, team_id),
+          FOREIGN KEY (team_id) REFERENCES team(id),
+          FOREIGN KEY (game_id) REFERENCES game(id)
+        );
+      `,
     };
     const { db } = await setupProject({
       adapter,
@@ -69,21 +93,21 @@ for (const [dialect, adapter] of adapterEntries) {
         `,
     });
 
-    const teams = await db.query<{ id: number }>('SELECT * FROM "Team"');
+    const teams = await db.query<{ id: number }>("SELECT * FROM team");
     expect(teams.length).toEqual(2);
     const players = await db.query<{
       id: number;
       name: string;
-      teamId: number;
-    }>('SELECT * FROM "Player"');
+      team_id: number;
+    }>("SELECT * FROM player");
     expect(players.length).toEqual(6);
-    const games = await db.query<{ id: number }>('SELECT * FROM "Game"');
+    const games = await db.query<{ id: number }>("SELECT * FROM game");
     expect(games.length).toEqual(3);
     const matches = await db.query<{
-      gameId: number;
+      game_id: number;
       score: number;
-      teamId: number;
-    }>('SELECT * FROM "Match"');
+      team_id: null | number;
+    }>(`SELECT * FROM ${adapter.escapeIdentifier("match")}`);
     expect(matches.length).toEqual(3);
 
     // Assuming db.query returns an array of objects with column names as keys
@@ -98,57 +122,80 @@ for (const [dialect, adapter] of adapterEntries) {
     expect(gameIDs).toEqual([1, 2, 3]);
     // Adapt your expectation for matches to the actual data and structure you expect
     expect(matches).toEqual([
-      { gameId: 1, score: expect.any(Number), teamId: 1 },
-      { gameId: 2, score: expect.any(Number), teamId: 1 },
-      { gameId: 3, score: expect.any(Number), teamId: 2 },
+      { game_id: 1, score: expect.any(Number), team_id: 1 },
+      { game_id: 2, score: expect.any(Number), team_id: 1 },
+      { game_id: 3, score: expect.any(Number), team_id: 2 },
     ]);
   });
 
   test("work as expected with composite primary keys made by non nullable unique index", async () => {
     const schema: DialectRecordWithDefault = {
       default: `
-          CREATE TABLE "Team" (
-            "id" SERIAL PRIMARY KEY
-          );
-          CREATE TABLE "Player" (
-            "id" BIGSERIAL PRIMARY KEY,
-            "teamId" integer NOT NULL REFERENCES "Team"("id"),
-            "name" text NOT NULL
-          );
-          CREATE TABLE "Game" (
-            "id" INTEGER GENERATED ALWAYS AS IDENTITY PRIMARY KEY
-          );
-          -- Original Match table with a composite key made unique
-          CREATE TABLE "Match" (
-            "teamId" integer NOT NULL REFERENCES "Team"("id"),
-            "gameId" integer NOT NULL REFERENCES "Game"("id"),
-            "score" integer NOT NULL,
-            UNIQUE ("teamId", "gameId")
-          );
-        `,
+        CREATE TABLE team (
+          id SERIAL PRIMARY KEY
+        );
+        CREATE TABLE player (
+          id BIGSERIAL PRIMARY KEY,
+          team_id INTEGER NOT NULL,
+          name TEXT NOT NULL,
+          FOREIGN KEY (team_id) REFERENCES team(id)
+        );
+        CREATE TABLE game (
+          id INTEGER GENERATED ALWAYS AS IDENTITY PRIMARY KEY
+        );
+        CREATE TABLE match (
+          team_id INTEGER NOT NULL,
+          game_id INTEGER NOT NULL,
+          score INTEGER NOT NULL,
+          UNIQUE (game_id, team_id),
+          FOREIGN KEY (team_id) REFERENCES team(id),
+          FOREIGN KEY (game_id) REFERENCES game(id)
+        );
+      `,
       sqlite: `
-          CREATE TABLE "Team" (
-            "id" INTEGER PRIMARY KEY AUTOINCREMENT
-          );
-          CREATE TABLE "Player" (
-            "id" INTEGER PRIMARY KEY AUTOINCREMENT,
-            "teamId" INTEGER NOT NULL,
-            "name" TEXT NOT NULL,
-            FOREIGN KEY ("teamId") REFERENCES "Team"("id")
-          );
-          CREATE TABLE "Game" (
-            "id" INTEGER PRIMARY KEY AUTOINCREMENT
-          );
-          -- Adjusted Match table for SQLite
-          CREATE TABLE "Match" (
-            "teamId" INTEGER NOT NULL,
-            "gameId" INTEGER NOT NULL,
-            "score" INTEGER NOT NULL,
-            FOREIGN KEY ("teamId") REFERENCES "Team"("id"),
-            FOREIGN KEY ("gameId") REFERENCES "Game"("id"),
-            UNIQUE ("teamId", "gameId")
-          );
-        `,
+        CREATE TABLE team (
+          id INTEGER PRIMARY KEY AUTOINCREMENT
+        );
+        CREATE TABLE player (
+          id INTEGER PRIMARY KEY AUTOINCREMENT,
+          team_id INTEGER NOT NULL,
+          name TEXT NOT NULL,
+          FOREIGN KEY (team_id) REFERENCES team(id)
+        );
+        CREATE TABLE game (
+          id INTEGER PRIMARY KEY AUTOINCREMENT
+        );
+        CREATE TABLE match (
+          team_id INTEGER NOT NULL,
+          game_id INTEGER NOT NULL,
+          score INTEGER NOT NULL,
+          UNIQUE (game_id, team_id),
+          FOREIGN KEY (team_id) REFERENCES team(id),
+          FOREIGN KEY (game_id) REFERENCES game(id)
+        );
+      `,
+      mysql: `
+        CREATE TABLE team (
+          id INT AUTO_INCREMENT PRIMARY KEY
+        );
+        CREATE TABLE player (
+          id INT AUTO_INCREMENT PRIMARY KEY,
+          team_id INT NOT NULL,
+          name VARCHAR(255) NOT NULL,
+          FOREIGN KEY (team_id) REFERENCES team(id)
+        );
+        CREATE TABLE game (
+          id INT AUTO_INCREMENT PRIMARY KEY
+        );
+        CREATE TABLE \`match\` (
+          team_id INT NOT NULL,
+          game_id INT NOT NULL,
+          score INT NOT NULL,
+          UNIQUE (game_id, team_id),
+          FOREIGN KEY (team_id) REFERENCES team(id),
+          FOREIGN KEY (game_id) REFERENCES game(id)
+        );
+      `,
     };
     const { db } = await setupProject({
       adapter,
@@ -165,22 +212,21 @@ for (const [dialect, adapter] of adapterEntries) {
     });
 
     // Perform the queries and assertions similar to the previous tests
-
-    const teams = await db.query<{ id: number }>('SELECT * FROM "Team"');
+    const teams = await db.query<{ id: number }>("SELECT * FROM team");
     expect(teams.length).toEqual(2);
     const players = await db.query<{
       id: number;
       name: string;
-      teamId: number;
-    }>('SELECT * FROM "Player"');
+      team_id: number;
+    }>("SELECT * FROM player");
     expect(players.length).toEqual(6);
-    const games = await db.query<{ id: number }>('SELECT * FROM "Game"');
+    const games = await db.query<{ id: number }>("SELECT * FROM game");
     expect(games.length).toEqual(3);
     const matches = await db.query<{
-      gameId: number;
+      game_id: number;
       score: number;
-      teamId: number;
-    }>('SELECT * FROM "Match"');
+      team_id: null | number;
+    }>(`SELECT * FROM ${adapter.escapeIdentifier("match")}`);
     expect(matches.length).toEqual(3);
 
     const teamIDs = teams.map((row) => Number(row.id)).sort((a, b) => a - b);
@@ -190,55 +236,76 @@ for (const [dialect, adapter] of adapterEntries) {
     expect(teamIDs).toEqual([1, 2]);
     expect(playerIDs).toEqual([1, 2, 3, 4, 5, 6]);
     expect(matches).toEqual([
-      { gameId: 1, score: expect.any(Number), teamId: 1 },
-      { gameId: 2, score: expect.any(Number), teamId: 1 },
-      { gameId: 3, score: expect.any(Number), teamId: 2 },
+      { game_id: 1, score: expect.any(Number), team_id: 1 },
+      { game_id: 2, score: expect.any(Number), team_id: 1 },
+      { game_id: 3, score: expect.any(Number), team_id: 2 },
     ]);
   });
 
   test("work as expected with composite primary keys made by nullable unique index", async () => {
     const schema: DialectRecordWithDefault = {
       default: `
-          CREATE TABLE "Team" (
-            "id" SERIAL PRIMARY KEY
+      CREATE TABLE team (
+        "id" SERIAL PRIMARY KEY
           );
-          CREATE TABLE "Player" (
+          CREATE TABLE player (
             "id" BIGSERIAL PRIMARY KEY,
-            "teamId" integer NOT NULL REFERENCES "Team"("id"),
+            "team_id" integer NOT NULL REFERENCES "team"("id"),
             "name" text NOT NULL
           );
-          CREATE TABLE "Game" (
+          CREATE TABLE game (
             "id" INTEGER GENERATED ALWAYS AS IDENTITY PRIMARY KEY
           );
-          -- Original Match table allowing nullable composite keys
-          CREATE TABLE "Match" (
-            "teamId" integer REFERENCES "Team"("id"),
-            "gameId" integer REFERENCES "Game"("id"),
+          CREATE TABLE match (
+            "team_id" integer REFERENCES "team"("id"),
+            "game_id" integer REFERENCES "game"("id"),
             "score" integer NOT NULL,
-            UNIQUE ("teamId", "gameId")
+            UNIQUE ("team_id", "game_id")
           );
         `,
       sqlite: `
-          CREATE TABLE "Team" (
+          CREATE TABLE "team" (
             "id" INTEGER PRIMARY KEY AUTOINCREMENT
           );
-          CREATE TABLE "Player" (
+          CREATE TABLE "player" (
             "id" INTEGER PRIMARY KEY AUTOINCREMENT,
-            "teamId" INTEGER NOT NULL,
+            "team_id" INTEGER NOT NULL,
             "name" TEXT NOT NULL,
-            FOREIGN KEY ("teamId") REFERENCES "Team"("id")
+            FOREIGN KEY ("team_id") REFERENCES "team"("id")
           );
-          CREATE TABLE "Game" (
+          CREATE TABLE "game" (
             "id" INTEGER PRIMARY KEY AUTOINCREMENT
           );
           -- Adjusted Match table for SQLite, explicitly allowing NULLs in composite unique keys
-          CREATE TABLE "Match" (
-            "teamId" INTEGER,
-            "gameId" INTEGER,
+          CREATE TABLE "match" (
+            "team_id" INTEGER,
+            "game_id" INTEGER,
             "score" INTEGER NOT NULL,
-            FOREIGN KEY ("teamId") REFERENCES "Team"("id"),
-            FOREIGN KEY ("gameId") REFERENCES "Game"("id"),
-            UNIQUE ("teamId", "gameId")
+            FOREIGN KEY ("team_id") REFERENCES "team"("id"),
+            FOREIGN KEY ("game_id") REFERENCES "game"("id"),
+            UNIQUE ("team_id", "game_id")
+          );
+        `,
+      mysql: `
+          CREATE TABLE team (
+            id INT AUTO_INCREMENT PRIMARY KEY
+          );
+          CREATE TABLE player (
+            id INT AUTO_INCREMENT PRIMARY KEY,
+            team_id INT NOT NULL,
+            name VARCHAR(255) NOT NULL,
+            FOREIGN KEY (team_id) REFERENCES team(id)
+          );
+          CREATE TABLE game (
+            id INT AUTO_INCREMENT PRIMARY KEY
+          );
+          CREATE TABLE \`match\` (
+            team_id INT,
+            game_id INT,
+            score INT NOT NULL,
+            UNIQUE (game_id, team_id),
+            FOREIGN KEY (team_id) REFERENCES team(id),
+            FOREIGN KEY (game_id) REFERENCES game(id)
           );
         `,
     };
@@ -256,22 +323,22 @@ for (const [dialect, adapter] of adapterEntries) {
     });
 
     // Perform the queries and assertions
-    const teams = await db.query<{ id: number }>('SELECT * FROM "Team"');
+    const teams = await db.query<{ id: number }>("SELECT * FROM team");
     expect(teams.length).toEqual(2);
     const players = await db.query<{
       id: number;
       name: string;
-      teamId: number;
-    }>('SELECT * FROM "Player"');
+      team_id: number;
+    }>("SELECT * FROM player");
     expect(players.length).toEqual(6);
-    const games = await db.query<{ id: number }>('SELECT * FROM "Game"');
+    const games = await db.query<{ id: number }>("SELECT * FROM game");
     // Expected to have no games inserted; adjust based on seed logic
     expect(games.length).toEqual(0);
     const matches = await db.query<{
-      gameId: null | number;
+      game_id: null | number;
       score: number;
-      teamId: null | number;
-    }>('SELECT * FROM "Match" ORDER BY "score"');
+      team_id: null | number;
+    }>(`SELECT * FROM ${adapter.escapeIdentifier("match")} ORDER BY "score"`);
     expect(matches.length).toEqual(3);
 
     // Assertions for IDs and matches according to your test setup
@@ -284,28 +351,28 @@ for (const [dialect, adapter] of adapterEntries) {
 
     // Only in postgres dialect it's possible for a table to have no primary key or UNIQUE NON NULLABLE index
     // on sqlite we'll always fallback on the table rowid and be able to do the connection
-    if (dialect === "postgres") {
+    if (dialect === "postgres" || dialect === "mysql") {
       // Matches will have null values for teamId and gameId due to the fact there is not PK on this table to perform subsequent UPDATE
       expect(matches).toEqual([
-        { teamId: null, gameId: null, score: expect.any(Number) },
-        { teamId: null, gameId: null, score: expect.any(Number) },
-        { teamId: null, gameId: null, score: expect.any(Number) },
+        { team_id: null, game_id: null, score: expect.any(Number) },
+        { team_id: null, game_id: null, score: expect.any(Number) },
+        { team_id: null, game_id: null, score: expect.any(Number) },
       ]);
     } else {
       expect(matches).toEqual([
         {
-          teamId: expect.any(Number),
-          gameId: null,
+          team_id: expect.any(Number),
+          game_id: null,
           score: expect.any(Number),
         },
         {
-          teamId: expect.any(Number),
-          gameId: null,
+          team_id: expect.any(Number),
+          game_id: null,
           score: expect.any(Number),
         },
         {
-          teamId: expect.any(Number),
-          gameId: null,
+          team_id: expect.any(Number),
+          game_id: null,
           score: expect.any(Number),
         },
       ]);

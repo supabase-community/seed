@@ -18,14 +18,24 @@ for (const [dialect, adapter] of adapterEntries) {
   };
 
   test("seed.<model> supports async column generate callbacks", async () => {
-    const { db } = await setupProject({
-      adapter,
-      databaseSchema: `
-        CREATE TABLE "User" (
-          "id" uuid not null,
-          "fullName" text not null
+    const schema: SchemaRecord = {
+      default: `
+        CREATE TABLE ${adapter.escapeIdentifier("User")} (
+          "id" UUID NOT NULL,
+          ${adapter.escapeIdentifier("fullName")} TEXT NOT NULL
         );
       `,
+      mysql: `
+        CREATE TABLE ${adapter.escapeIdentifier("User")} (
+          id CHAR(36) NOT NULL,
+          ${adapter.escapeIdentifier("fullName")} VARCHAR(255) NOT NULL,
+          PRIMARY KEY (id)
+        );
+      `,
+    };
+    const { db } = await setupProject({
+      adapter,
+      databaseSchema: schema[dialect] ?? schema.default,
       seedScript: `
         import { createSeedClient } from '#snaplet/seed'
         const seed = await createSeedClient()
@@ -36,7 +46,7 @@ for (const [dialect, adapter] of adapterEntries) {
     });
 
     const [{ fullName }] = await db.query<{ fullName: string }>(
-      'select * from "User"',
+      `select * from ${adapter.escapeIdentifier("User")}`,
     );
 
     expect(fullName).toEqual("Foo Bar");
@@ -45,29 +55,43 @@ for (const [dialect, adapter] of adapterEntries) {
   test("seed.$resetDatabase should reset all tables per default", async () => {
     const schema: SchemaRecord = {
       default: `
-          CREATE TABLE "Team" (
+          CREATE TABLE ${adapter.escapeIdentifier("Team")} (
             "id" SERIAL PRIMARY KEY
           );
-          CREATE TABLE "Player" (
+          CREATE TABLE ${adapter.escapeIdentifier("Player")} (
             "id" BIGSERIAL PRIMARY KEY,
-            "teamId" integer NOT NULL REFERENCES "Team"("id"),
+            ${adapter.escapeIdentifier("teamId")} integer NOT NULL REFERENCES ${adapter.escapeIdentifier("Team")}(id),
             "name" text NOT NULL
           );
-          CREATE TABLE "Game" (
+          CREATE TABLE ${adapter.escapeIdentifier("Game")} (
             "id" INTEGER GENERATED ALWAYS AS IDENTITY PRIMARY KEY
           );
         `,
       sqlite: `
-          CREATE TABLE "Team" (
+          CREATE TABLE ${adapter.escapeIdentifier("Team")} (
             "id" INTEGER PRIMARY KEY AUTOINCREMENT
           );
-          CREATE TABLE "Player" (
+          CREATE TABLE ${adapter.escapeIdentifier("Player")} (
             "id" INTEGER PRIMARY KEY AUTOINCREMENT,
-            "teamId" integer NOT NULL REFERENCES "Team"("id"),
+            ${adapter.escapeIdentifier("teamId")} integer NOT NULL REFERENCES ${adapter.escapeIdentifier("Team")}(id),
             "name" text NOT NULL
           );
-          CREATE TABLE "Game" (
+          CREATE TABLE ${adapter.escapeIdentifier("Game")} (
             "id" INTEGER PRIMARY KEY AUTOINCREMENT
+          );
+        `,
+      mysql: `
+          CREATE TABLE ${adapter.escapeIdentifier("Team")} (
+            id INT AUTO_INCREMENT PRIMARY KEY
+          );
+          CREATE TABLE ${adapter.escapeIdentifier("Player")} (
+            id INT AUTO_INCREMENT PRIMARY KEY,
+            ${adapter.escapeIdentifier("teamId")} INT NOT NULL,
+            name VARCHAR(255) NOT NULL,
+            FOREIGN KEY (${adapter.escapeIdentifier("teamId")}) REFERENCES ${adapter.escapeIdentifier("Team")}(id)
+          );
+          CREATE TABLE ${adapter.escapeIdentifier("Game")} (
+            id INT AUTO_INCREMENT PRIMARY KEY
           );
         `,
     };
@@ -86,14 +110,32 @@ for (const [dialect, adapter] of adapterEntries) {
       databaseSchema: schema[dialect] ?? schema.default,
       seedScript,
     });
-    expect((await db.query('SELECT * FROM "Player"')).length).toEqual(6);
-    expect((await db.query('SELECT * FROM "Team"')).length).toEqual(2);
-    expect((await db.query('SELECT * FROM "Game"')).length).toEqual(3);
+    expect(
+      (await db.query(`SELECT * FROM ${adapter.escapeIdentifier("Player")}`))
+        .length,
+    ).toEqual(6);
+    expect(
+      (await db.query(`SELECT * FROM ${adapter.escapeIdentifier("Team")}`))
+        .length,
+    ).toEqual(2);
+    expect(
+      (await db.query(`SELECT * FROM ${adapter.escapeIdentifier("Game")}`))
+        .length,
+    ).toEqual(3);
     // Should be able to re-run the seed script again thanks to the $resetDatabase
     await runSeedScript(seedScript);
-    expect((await db.query('SELECT * FROM "Player"')).length).toEqual(6);
-    expect((await db.query('SELECT * FROM "Team"')).length).toEqual(2);
-    expect((await db.query('SELECT * FROM "Game"')).length).toEqual(3);
+    expect(
+      (await db.query(`SELECT * FROM ${adapter.escapeIdentifier("Player")}`))
+        .length,
+    ).toEqual(6);
+    expect(
+      (await db.query(`SELECT * FROM ${adapter.escapeIdentifier("Team")}`))
+        .length,
+    ).toEqual(2);
+    expect(
+      (await db.query(`SELECT * FROM ${adapter.escapeIdentifier("Game")}`))
+        .length,
+    ).toEqual(3);
   });
 
   test("seed.$resetDatabase should not reset config excluded table", async () => {
@@ -102,7 +144,6 @@ for (const [dialect, adapter] of adapterEntries) {
           CREATE TABLE "BABBA" (
             "id" SERIAL PRIMARY KEY
           );
-
           CREATE TABLE "BABA" (
             "id" SERIAL PRIMARY KEY
           );
@@ -113,6 +154,14 @@ for (const [dialect, adapter] of adapterEntries) {
           );
           CREATE TABLE "BABA" (
             "id" INTEGER PRIMARY KEY AUTOINCREMENT
+          );
+        `,
+      mysql: `
+          CREATE TABLE \`BABBA\` (
+            id INT AUTO_INCREMENT PRIMARY KEY
+          );
+          CREATE TABLE \`BABA\` (
+            id INT AUTO_INCREMENT PRIMARY KEY
           );
         `,
     };
@@ -126,6 +175,10 @@ for (const [dialect, adapter] of adapterEntries) {
         adapter.generateSeedConfig(connectionString, {
           select: `["!public.BABA"]`,
         }),
+      mysql: (connectionString) =>
+        adapter.generateSeedConfig(connectionString, {
+          select: `["!*.BABA"]`,
+        }),
     };
 
     const { db, runSeedScript } = await setupProject({
@@ -134,11 +187,19 @@ for (const [dialect, adapter] of adapterEntries) {
       databaseSchema: schema[dialect] ?? schema.default,
     });
 
-    await db.execute(`INSERT INTO "BABBA" DEFAULT VALUES`);
-    await db.execute(`INSERT INTO "BABBA" DEFAULT VALUES`);
+    await db.execute(
+      `INSERT INTO ${adapter.escapeIdentifier("BABBA")} VALUES (1)`,
+    );
+    await db.execute(
+      `INSERT INTO ${adapter.escapeIdentifier("BABBA")} VALUES (2)`,
+    );
 
-    await db.execute(`INSERT INTO "BABA" DEFAULT VALUES`);
-    await db.execute(`INSERT INTO "BABA" DEFAULT VALUES`);
+    await db.execute(
+      `INSERT INTO ${adapter.escapeIdentifier("BABA")} VALUES (3)`,
+    );
+    await db.execute(
+      `INSERT INTO ${adapter.escapeIdentifier("BABA")} VALUES (4)`,
+    );
 
     await runSeedScript(`
         import { createSeedClient } from '#snaplet/seed'
@@ -147,7 +208,13 @@ for (const [dialect, adapter] of adapterEntries) {
         await seed.$resetDatabase()
       `);
 
-    expect((await db.query('SELECT * FROM "BABBA"')).length).toBe(0);
-    expect((await db.query('SELECT * FROM "BABA"')).length).toBe(2);
+    expect(
+      (await db.query(`SELECT * FROM ${adapter.escapeIdentifier("BABBA")}`))
+        .length,
+    ).toBe(0);
+    expect(
+      (await db.query(`SELECT * FROM ${adapter.escapeIdentifier("BABA")}`))
+        .length,
+    ).toBe(2);
   });
 }

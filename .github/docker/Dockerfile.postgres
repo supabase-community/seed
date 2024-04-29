@@ -1,0 +1,5 @@
+FROM postgres:16
+
+# Use a shell script to modify config and start PostgreSQL
+
+CMD ["postgres", "-c", "max_connections=300"]

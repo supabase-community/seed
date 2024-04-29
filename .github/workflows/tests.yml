@@ -24,8 +24,10 @@ defaults:
 env:
   SNAPLET_DISABLE_TELEMETRY: '1'
   PG_TEST_DATABASE_SERVER: postgresql://postgres:postgres@localhost:5432/postgres
+  MYSQL_TEST_DATABASE_SERVER: mysql://root@localhost:3306/mysql
   TURBO_TOKEN: ${{ secrets.TURBO_TOKEN }}
   TURBO_TEAM: ${{ vars.TURBO_TEAM }}
+  CI: '1'
 
 jobs:
   test-type-check:
@@ -73,20 +75,38 @@ jobs:
   test-unit-integration:
     if: github.event.pull_request.draft == false
     name: Unit and integration tests
-    runs-on: buildjet-16vcpu-ubuntu-2204
+    runs-on: buildjet-32vcpu-ubuntu-2204
     services:
       postgres:
-        image: postgres:16
+        # Custom image built with higher max_connections for vitests parralelization
+        # See docker/Dockerfile.postgres to see how it was built
+        image: avallete/postgres-custom-ci
         credentials:
           username: ${{ secrets.DOCKER_HUB_USERNAME }}
           password: ${{ secrets.DOCKER_HUB_PASSWORD }}
         ports:
           - 5432:5432
-        options: --health-cmd pg_isready --health-interval 10s --health-timeout 5s --health-retries 5
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
         env:
           POSTGRES_USER: postgres
           POSTGRES_PASSWORD: postgres
           POSTGRES_DB: postgres
+      mysql:
+        # Custom image built with higher timeout for vitest parralelization
+        # See docker/Dockerfile.mysql to see how it was built
+        image: avallete/mysql-custom-ci
+        credentials:
+          username: ${{ secrets.DOCKER_HUB_USERNAME }}
+          password: ${{ secrets.DOCKER_HUB_PASSWORD }}
+        ports:
+          - 3306:3306
+        env:
+          MYSQL_ALLOW_EMPTY_PASSWORD: true
+          MYSQL_DATABASE: mysql
     steps:
       - name: Checkout
         uses: actions/checkout@v4
