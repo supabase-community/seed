@@ -41,7 +41,10 @@ export async function loggedCommandPrerun(
   };
 }
 
-export async function initHandler(args: { directory: string; reset: boolean }) {
+export async function initHandler(args: {
+  directory: string;
+  reset?: boolean;
+}) {
   // Every files are created in the same directory as the seed.config.ts file
   process.env["SNAPLET_SEED_CONFIG"] = path.join(
     args.directory,
