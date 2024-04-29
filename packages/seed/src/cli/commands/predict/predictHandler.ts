@@ -76,7 +76,9 @@ export async function predictHandler({
       waitForDataGeneration({
         isInit,
         onProgress({ percent }) {
-          spinner.text = `[ ${percent}% ] Enhancing your generated data using ${bold("Snaplet AI")} 🤖`;
+          if (percent > 0) {
+            spinner.text = `[ ${percent}% ] Enhancing your generated data using ${bold("Snaplet AI")} 🤖`;
+          }
         },
       }).then(() => "COMPLETE"),
       sKeyPress.promise.then(() => "CANCELLED_BY_USER" as const),
@@ -89,7 +91,7 @@ export async function predictHandler({
       );
     }
 
-    spinner.start(`Fetching ${bold("Snaplet AI")} results 🤖`);
+    spinner.text = `Fetching ${bold("Snaplet AI")} results 🤖`;
     const shapeExamples = await fetchShapeExamples(shapePredictions);
     dataExamples.push(...shapeExamples);
 
