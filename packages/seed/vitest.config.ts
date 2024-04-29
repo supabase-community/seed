@@ -11,6 +11,7 @@ const pkg = JSON.parse(readFileSync(join(root, "package.json"), "utf-8")) as {
 
 export default defineProject({
   test: {
+    retry: process.env["CI"] ? 1 : 0, // Retry failed tests once in CI in case of flakiness due to parrallelization
     name: pkg.name,
     root,
     testTimeout: 120_000,
