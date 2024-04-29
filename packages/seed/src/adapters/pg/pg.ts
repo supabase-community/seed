@@ -19,6 +19,7 @@ export class SeedPg extends DatabaseClient<Client> {
 }
 
 export const pgAdapter = {
+  getDialect: () => "postgres",
   id: "pg" as const,
   name: "node-postgres",
   packageName: "pg",

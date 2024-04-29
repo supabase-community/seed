@@ -19,6 +19,7 @@ export class SeedPostgres extends DatabaseClient<Sql> {
 }
 
 export const postgresAdapter = {
+  getDialect: () => "postgres",
   id: "postgres" as const,
   name: "Postgres.js",
   packageName: "postgres",

@@ -1,6 +1,7 @@
 import dedent from "dedent";
 import { DatabaseClient } from "#core/databaseClient.js";
 import { type Adapter } from "../types.js";
+import { getDialect } from "./getDialect.js";
 import { patchSeedConfig } from "./patchSeedConfig.js";
 import { patchUserModels } from "./patchUserModels.js";
 
@@ -55,6 +56,7 @@ export class SeedPrisma extends DatabaseClient<PrismaLikeClient> {
 }
 
 export const prismaAdapter = {
+  getDialect,
   id: "prisma" as const,
   name: "Prisma",
   packageName: "@prisma/client",

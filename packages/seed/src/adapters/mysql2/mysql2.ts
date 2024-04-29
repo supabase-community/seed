@@ -19,6 +19,7 @@ export class SeedMysql2 extends DatabaseClient<Connection | Pool> {
 }
 
 export const mysql2Adapter = {
+  getDialect: () => "mysql",
   id: "mysql2" as const,
   name: "mysql2",
   packageName: "mysql2",
