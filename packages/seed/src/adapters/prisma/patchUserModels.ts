@@ -46,7 +46,6 @@ function patchSqliteUserModels(dataModel: DataModel, userModels: UserModels) {
   return patchSqliteDatetimeFields(dataModel, userModels);
 }
 
-// eslint-disable-next-line @typescript-eslint/require-await
 export async function patchUserModels(props: {
   dataModel: DataModel;
   userModels: UserModels;
