@@ -73,7 +73,18 @@ const computeDataGenerationProgressPercent = (
     return 0;
   }
 
-  return ((seenJobs.size - incompleteJobs.length) / seenJobs.size) * 100;
+  const incompleteJobSet = new Map(incompleteJobs.map((job) => [job.id, job]));
+
+  const jobTotal = Array.from(seenJobs).reduce(
+    (total: number, jobId: string) => {
+      const job = incompleteJobSet.get(jobId);
+      const progress = job ? job.progressCurrent / job.progressTotal : 1;
+      return total + progress;
+    },
+    0,
+  );
+
+  return (jobTotal / seenJobs.size) * 100;
 };
 
 type WaitForDataGeneration = (options?: {
@@ -116,17 +127,6 @@ export const startDataGeneration = async (
             },
           );
 
-        for (const job of result.incompleteJobs) {
-          seenJobs.add(job.id);
-        }
-
-        onProgress?.({
-          percent: computeDataGenerationProgressPercent(
-            seenJobs,
-            result.incompleteJobs,
-          ),
-        });
-
         if (result.incompleteJobs.length > 0) {
           isDone = true;
         } else {
@@ -146,6 +146,18 @@ export const startDataGeneration = async (
             projectId,
           },
         );
+
+      for (const job of result.incompleteJobs) {
+        seenJobs.add(job.id);
+      }
+
+      onProgress?.({
+        percent: computeDataGenerationProgressPercent(
+          seenJobs,
+          result.incompleteJobs,
+        ),
+      });
+
       if (result.incompleteJobs.length > 0) {
         await new Promise((resolve) => setTimeout(resolve, POLL_INTERVAL));
       } else {
