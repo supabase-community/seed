@@ -89,7 +89,7 @@ export async function predictHandler({
       );
     }
 
-    spinner.start(`Fetching ${bold("Snaplet AI")} results 🤖`);
+    spinner.text = `Fetching ${bold("Snaplet AI")} results 🤖`;
     const shapeExamples = await fetchShapeExamples(shapePredictions);
     dataExamples.push(...shapeExamples);
 
