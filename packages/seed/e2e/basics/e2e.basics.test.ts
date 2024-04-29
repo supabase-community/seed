@@ -297,11 +297,13 @@ for (const [dialect, adapter] of adapterEntries) {
 
     expect(JSON.parse(row.result)).toEqual({
       id: expect.any(Number),
+      // Will be our latin sentence coming from defaults userModels
       notinplandescription: expect.any(String),
       organizationid: expect.any(Number),
       fromclientoptions: "fromclientoptionsValue",
       fromplanoptions: "fromplanoptionsValue",
       fromplandescription1: "fromplandescription1Value",
+      // NOTE fromplandescription2 is not available because it's overriden in the plan, but declared after the result
     });
   });
 
