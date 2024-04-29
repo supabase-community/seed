@@ -5,7 +5,7 @@ export async function getDialect() {
     datamodel: await getSchema(),
   });
 
-  const provider = config.datasources[0].provider;
+  const provider = config.datasources.at(0)?.provider;
 
   switch (provider) {
     case "mysql":
