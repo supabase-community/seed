@@ -250,3 +250,58 @@ export function jsonStringify(
 ) {
   return JSON.stringify(value, replacer, space);
 }
+
+export function createTimer() {
+  const start = () => {
+    self.startTime = Date.now();
+    self.endTime = 0;
+    self.duration = 0;
+  };
+
+  const stop = () => {
+    self.endTime = Date.now();
+    self.duration = self.endTime - self.startTime;
+  };
+
+  const wrap = <Result, Args extends Array<unknown>>(
+    fn: (...args: Args) => Promise<Result> | Result,
+  ): ((...args: Args) => Promise<Result>) => {
+    const timerWrappedFn: (...args: Args) => Promise<Result> = async (
+      ...args
+    ) => {
+      self.start();
+      try {
+        return await fn(...args);
+      } finally {
+        self.stop();
+      }
+    };
+
+    return timerWrappedFn;
+  };
+
+  const self = {
+    startTime: 0,
+    endTime: 0,
+    duration: 0,
+    start,
+    stop,
+    wrap,
+  };
+
+  return self;
+}
+
+export type Timer = ReturnType<typeof createTimer>;
+
+export const serializeTimerDurations = (
+  timers: Record<string, Timer>,
+): Record<string, number> => {
+  const results: Partial<Record<string, number>> = {};
+
+  for (const key of Object.keys(timers)) {
+    results[key] = timers[key].duration;
+  }
+
+  return results as Record<string, number>;
+};
