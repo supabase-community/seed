@@ -69,8 +69,8 @@ const computeDataGenerationProgressPercent = (
   seenJobs: Set<string>,
   incompleteJobs: Array<DataGenerationJob>,
 ) => {
-  if (incompleteJobs.length === 0) {
-    return 100;
+  if (seenJobs.size === 0) {
+    return 0;
   }
 
   const incompleteJobSet = new Map(incompleteJobs.map((job) => [job.id, job]));
@@ -127,17 +127,6 @@ export const startDataGeneration = async (
             },
           );
 
-        for (const job of result.incompleteJobs) {
-          seenJobs.add(job.id);
-        }
-
-        onProgress?.({
-          percent: computeDataGenerationProgressPercent(
-            seenJobs,
-            result.incompleteJobs,
-          ),
-        });
-
         if (result.incompleteJobs.length > 0) {
           isDone = true;
         } else {
@@ -157,6 +146,18 @@ export const startDataGeneration = async (
             projectId,
           },
         );
+
+      for (const job of result.incompleteJobs) {
+        seenJobs.add(job.id);
+      }
+
+      onProgress?.({
+        percent: computeDataGenerationProgressPercent(
+          seenJobs,
+          result.incompleteJobs,
+        ),
+      });
+
       if (result.incompleteJobs.length > 0) {
         await new Promise((resolve) => setTimeout(resolve, POLL_INTERVAL));
       } else {
