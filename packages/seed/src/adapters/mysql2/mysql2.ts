@@ -4,10 +4,6 @@ import { DatabaseClient } from "#core/databaseClient.js";
 import { type Adapter } from "../types.js";
 
 export class SeedMysql2 extends DatabaseClient<Connection | Pool> {
-  constructor(client: Connection) {
-    super("mysql", client);
-  }
-
   async execute(query: string): Promise<void> {
     await this.client.query(query);
   }

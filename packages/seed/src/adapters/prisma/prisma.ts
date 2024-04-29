@@ -27,24 +27,6 @@ interface PrismaLikeClient {
 }
 
 export class SeedPrisma extends DatabaseClient<PrismaLikeClient> {
-  constructor(client: PrismaLikeClient) {
-    switch (client._engineConfig?.activeProvider) {
-      case "postgresql":
-        super("postgres", client);
-        break;
-      case "sqlite":
-        super("sqlite", client);
-        break;
-      case "mysql":
-        super("mysql", client);
-        break;
-      default:
-        throw new Error(
-          `Unsupported Prisma provider ${client._engineConfig?.activeProvider}`,
-        );
-    }
-  }
-
   async execute(query: string): Promise<void> {
     await this.client.$executeRawUnsafe(query);
   }

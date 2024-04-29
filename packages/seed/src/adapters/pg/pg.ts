@@ -4,10 +4,6 @@ import { DatabaseClient } from "#core/databaseClient.js";
 import { type Adapter } from "../types.js";
 
 export class SeedPg extends DatabaseClient<Client> {
-  constructor(client: Client) {
-    super("postgres", client);
-  }
-
   async execute(query: string): Promise<void> {
     await this.client.query(query);
   }
