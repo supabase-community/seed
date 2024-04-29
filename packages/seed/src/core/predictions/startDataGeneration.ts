@@ -69,7 +69,7 @@ const computeDataGenerationProgressPercent = (
   seenJobs: Set<string>,
   incompleteJobs: Array<DataGenerationJob>,
 ) => {
-  if (incompleteJobs.length === 0) {
+  if (seenJobs.size === 0) {
     return 100;
   }
 
