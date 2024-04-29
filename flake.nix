@@ -40,10 +40,25 @@
                     corepack.enable = true;
                   };
 
+                  services.mysql = {
+                    enable = true;
+                    package = pkgs.mysql80;
+                    settings = {
+                      mysqld = {
+                        interactive_timeout = 28800;
+                        port = 6033;
+                        wait_timeout = 28800;
+                      };
+                    };
+                  };
+
                   services.postgres = {
                     enable = true;
                     package = pkgs.postgresql_16;
-                    initialDatabases = [{ name = "snaplet"; }];
+                    settings = {
+                      max_connections = 300;
+                      shared_buffers = "4GB";
+                    };
                     listen_addresses = "localhost";
                     port = 2345;
                     initialScript = ''
