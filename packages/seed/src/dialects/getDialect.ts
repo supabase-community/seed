@@ -1,19 +1,12 @@
-import { getDatabaseClient } from "#adapters/getDatabaseClient.js";
-import { getDataModelConfig } from "#config/dataModelConfig.js";
+import { getAdapter } from "#adapters/getAdapter.js";
 import { mysqlDialect } from "./mysql/dialect.js";
 import { postgresDialect } from "./postgres/dialect.js";
 import { sqliteDialect } from "./sqlite/dialect.js";
 
 async function getDialectId() {
-  const dataModelConfig = await getDataModelConfig();
+  const adapter = await getAdapter();
 
-  if (dataModelConfig) {
-    return dataModelConfig.dialect;
-  }
-
-  const databaseClient = await getDatabaseClient();
-
-  return databaseClient.dialect;
+  return adapter.getDialect();
 }
 
 export async function getDialect() {
