@@ -119,6 +119,7 @@ export const createCliRouter = ({ publicProcedure = t.procedure } = {}) =>
               .optional(),
             tableNames: z.array(z.string()).optional(),
             projectId: z.string().optional(),
+            shouldEnableDataSets: z.boolean().optional(),
           }),
         )
         .mutation(() => {

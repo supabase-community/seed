@@ -22,6 +22,7 @@ export const fetchShapePredictions = async (
       },
       tableNames,
       projectId,
+      shouldEnableDataSets: true,
     });
 
   const waitForShapePredictions = async () => {
