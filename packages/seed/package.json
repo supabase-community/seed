@@ -158,7 +158,7 @@
     "ora": "^8.0.1",
     "portfinder": "^1.0.32",
     "posthog-node": "^4.0.1",
-    "quicktype-core": "^23.0.157",
+    "quicktype-core": "^23.0.158",
     "remeda": "^1.61.0",
     "sqlstring": "^2.3.3",
     "terminal-link": "^3.0.0",
@@ -192,7 +192,7 @@
     "tsc-alias": "^1.8.8",
     "tsx": "4.7.3",
     "typescript": "5.4.5",
-    "vitest": "1.5.2"
+    "vitest": "1.5.3"
   },
   "peerDependencies": {
     "@prisma/client": ">=5",
