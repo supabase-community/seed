@@ -1,7 +1,4 @@
-import { type DialectId } from "#dialects/dialects.js";
-
 export interface DataModel {
-  dialect: DialectId;
   enums: Record<string, DataModelEnum>;
   models: Record<string, DataModelModel>;
 }
@@ -33,19 +30,19 @@ export interface DataModelSequence {
 
 export type DataModelField = DataModelObjectField | DataModelScalarField;
 
-export type DataModelObjectField = DataModelCommonFieldProps & {
+export type DataModelObjectField = {
   kind: "object";
   relationFromFields: Array<string>;
   relationName: string;
   relationToFields: Array<string>;
-};
+} & DataModelCommonFieldProps;
 
-export type DataModelScalarField = DataModelCommonFieldProps & {
+export type DataModelScalarField = {
   columnName: string;
   id: string;
   kind: "scalar";
   maxLength?: null | number;
-};
+} & DataModelCommonFieldProps;
 
 interface DataModelCommonFieldProps {
   hasDefaultValue: boolean;

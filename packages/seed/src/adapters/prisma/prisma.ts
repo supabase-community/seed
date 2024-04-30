@@ -1,6 +1,7 @@
 import dedent from "dedent";
 import { DatabaseClient } from "#core/databaseClient.js";
 import { type Adapter } from "../types.js";
+import { getDialect } from "./getDialect.js";
 import { patchSeedConfig } from "./patchSeedConfig.js";
 import { patchUserModels } from "./patchUserModels.js";
 
@@ -26,25 +27,6 @@ interface PrismaLikeClient {
 }
 
 export class SeedPrisma extends DatabaseClient<PrismaLikeClient> {
-  constructor(client: PrismaLikeClient) {
-    switch (client._engineConfig?.activeProvider) {
-      case "postgresql":
-        super("postgres", client);
-        break;
-      case "sqlite":
-        super("sqlite", client);
-        break;
-      // TODO: uncomment when we add MySQL support
-      // case "mysql":
-      //   super("mysql", client);
-      //   break;
-      default:
-        throw new Error(
-          `Unsupported Prisma provider ${client._engineConfig?.activeProvider}`,
-        );
-    }
-  }
-
   async execute(query: string): Promise<void> {
     await this.client.$executeRawUnsafe(query);
   }
@@ -56,6 +38,7 @@ export class SeedPrisma extends DatabaseClient<PrismaLikeClient> {
 }
 
 export const prismaAdapter = {
+  getDialect,
   id: "prisma" as const,
   name: "Prisma",
   packageName: "@prisma/client",

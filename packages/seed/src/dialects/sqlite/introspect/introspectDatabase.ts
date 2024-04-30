@@ -1,6 +1,6 @@
 import { type DatabaseClient } from "#core/databaseClient.js";
+import { groupParentsChildrenRelations } from "#core/dialect/groupParentsChildrenRelations.js";
 import { groupBy } from "../utils.js";
-import { groupParentsChildrenRelations } from "./groupParentsChildrenRelations.js";
 import {
   type FetchRelationshipsInfosResult,
   fetchDatabaseRelationships,
@@ -39,20 +39,20 @@ export async function basicIntrospectDatabase(client: DatabaseClient) {
 interface IntrospectedStructure {
   sequences: Array<FetchSequencesResult>;
   tables: Array<
-    FetchTableAndColumnsResult & {
+    {
       children: Array<FetchRelationshipsInfosResult>;
       columns: Array<
-        SelectColumnsResult & {
+        {
           identity: {
             current: number;
             name: string;
           } | null;
-        }
+        } & SelectColumnsResult
       >;
       constraints: Array<FetchUniqueConstraintsResult>;
       parents: Array<FetchRelationshipsInfosResult>;
       primaryKeys: FetchPrimaryKeysResult | null;
-    }
+    } & FetchTableAndColumnsResult
   >;
 }
 

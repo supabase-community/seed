@@ -10,58 +10,72 @@ for (const [dialect, adapter] of adapterEntries) {
     // eslint-disable-next-line vitest/expect-expect, vitest/valid-title
     _test.concurrent(computeName(name), fn);
   };
-
   test("generates valid sequences", async () => {
     const schema: DialectRecordWithDefault = {
       default: `
-            CREATE TABLE "Team" (
-              "id" SERIAL PRIMARY KEY
-            );
-            CREATE TABLE "Player" (
-              "id" BIGSERIAL PRIMARY KEY,
-              "teamId" integer NOT NULL REFERENCES "Team"("id"),
-              "name" text NOT NULL
-            );
-            CREATE TABLE "Game" (
-              "id" INTEGER GENERATED ALWAYS AS IDENTITY PRIMARY KEY
-            );
-          `,
+        CREATE TABLE team (
+          id SERIAL PRIMARY KEY
+        );
+        CREATE TABLE player (
+          id BIGSERIAL PRIMARY KEY,
+          team_id INTEGER NOT NULL REFERENCES team(id),
+          name TEXT NOT NULL
+        );
+        CREATE TABLE game (
+          id INTEGER GENERATED ALWAYS AS IDENTITY PRIMARY KEY
+        );
+      `,
       sqlite: `
-        CREATE TABLE "Team" (
-          "id" INTEGER PRIMARY KEY AUTOINCREMENT
+        CREATE TABLE team (
+          id INTEGER PRIMARY KEY AUTOINCREMENT
         );
-        CREATE TABLE "Player" (
-          "id" INTEGER PRIMARY KEY AUTOINCREMENT,
-          "teamId" INTEGER NOT NULL,
-          "name" TEXT NOT NULL,
-          FOREIGN KEY ("teamId") REFERENCES "Team"("id")
+        CREATE TABLE player (
+          id INTEGER PRIMARY KEY AUTOINCREMENT,
+          team_id INTEGER NOT NULL,
+          name TEXT NOT NULL,
+          FOREIGN KEY (team_id) REFERENCES team(id)
         );
-        CREATE TABLE "Game" (
-          "id" INTEGER PRIMARY KEY AUTOINCREMENT
-        );`,
+        CREATE TABLE game (
+          id INTEGER PRIMARY KEY AUTOINCREMENT
+        );
+      `,
+      mysql: `
+        CREATE TABLE team (
+          id INT AUTO_INCREMENT PRIMARY KEY
+        );
+        CREATE TABLE player (
+          id INT AUTO_INCREMENT PRIMARY KEY,
+          team_id INT NOT NULL,
+          name VARCHAR(255) NOT NULL,
+          FOREIGN KEY (team_id) REFERENCES team(id)
+        );
+        CREATE TABLE game (
+          id INT AUTO_INCREMENT PRIMARY KEY
+        );
+      `,
     };
     const { db } = await setupProject({
       adapter,
       databaseSchema: schema[dialect] ?? schema.default,
       seedScript: `
         import { createSeedClient } from '#snaplet/seed'
-          const seed = await createSeedClient({ dryRun: false })
-          await seed.teams((x) => x(2, {
-            players: (x) => x(3)
-          }))
-          await seed.games((x) => x(3))
-          // We declare games twice so that the second declaration should continue the sequence
-          await seed.games((x) => x(3))
-        `,
+        const seed = await createSeedClient({ dryRun: false })
+        await seed.teams((x) => x(2, {
+          players: (x) => x(3)
+        }));
+        await seed.games((x) => x(3));
+        // We declare games twice so that the second declaration should continue the sequence
+        await seed.games((x) => x(3));
+      `,
     });
 
-    const teams = await db.query<{ id: number }>('SELECT * FROM "Team"');
+    const teams = await db.query<{ id: number }>("SELECT * FROM team");
     const players = await db.query<{
       id: number;
       name: string;
-      teamId: number;
-    }>('SELECT * FROM "Player"');
-    const games = await db.query<{ id: number }>('SELECT * FROM "Game"');
+      team_id: number;
+    }>("SELECT * FROM player");
+    const games = await db.query<{ id: number }>("SELECT * FROM game");
     expect(teams.length).toEqual(2); // Expected number of teams
     expect(players.length).toEqual(6); // Expected number of players
     expect(games.length).toEqual(6); // Expected number of games
@@ -76,35 +90,49 @@ for (const [dialect, adapter] of adapterEntries) {
     expect(playerIDs).toEqual([1, 2, 3, 4, 5, 6]);
     expect(gameIDs).toEqual([1, 2, 3, 4, 5, 6]);
   });
-
   test("should be able to override sequences", async () => {
     const schema: DialectRecordWithDefault = {
       default: `
-          CREATE TABLE "Team" (
-            "id" SERIAL PRIMARY KEY
-          );
-          CREATE TABLE "Player" (
-            "id" BIGSERIAL PRIMARY KEY,
-            "teamId" integer NOT NULL REFERENCES "Team"("id"),
-            "name" text NOT NULL
-          );
-          CREATE TABLE "Game" (
-            "id" INTEGER GENERATED ALWAYS AS IDENTITY PRIMARY KEY
-          );
-          `,
+        CREATE TABLE team (
+          id SERIAL PRIMARY KEY
+        );
+        CREATE TABLE player (
+          id BIGSERIAL PRIMARY KEY,
+          team_id INTEGER NOT NULL REFERENCES team(id),
+          name TEXT NOT NULL
+        );
+        CREATE TABLE game (
+          id INTEGER GENERATED ALWAYS AS IDENTITY PRIMARY KEY
+        );
+      `,
       sqlite: `
-        CREATE TABLE "Team" (
-          "id" INTEGER PRIMARY KEY AUTOINCREMENT
+        CREATE TABLE team (
+          id INTEGER PRIMARY KEY AUTOINCREMENT
         );
-        CREATE TABLE "Player" (
-          "id" INTEGER PRIMARY KEY AUTOINCREMENT,
-          "teamId" INTEGER NOT NULL,
-          "name" TEXT NOT NULL,
-          FOREIGN KEY ("teamId") REFERENCES "Team"("id")
+        CREATE TABLE player (
+          id INTEGER PRIMARY KEY AUTOINCREMENT,
+          team_id INTEGER NOT NULL,
+          name TEXT NOT NULL,
+          FOREIGN KEY (team_id) REFERENCES team(id)
         );
-        CREATE TABLE "Game" (
-          "id" INTEGER PRIMARY KEY AUTOINCREMENT
-        );`,
+        CREATE TABLE game (
+          id INTEGER PRIMARY KEY AUTOINCREMENT
+        );
+      `,
+      mysql: `
+        CREATE TABLE team (
+          id INT AUTO_INCREMENT PRIMARY KEY
+        );
+        CREATE TABLE player (
+          id INT AUTO_INCREMENT PRIMARY KEY,
+          team_id INT NOT NULL,
+          name VARCHAR(255) NOT NULL,
+          FOREIGN KEY (team_id) REFERENCES team(id)
+        );
+        CREATE TABLE game (
+          id INT AUTO_INCREMENT PRIMARY KEY
+        );
+      `,
     };
     const { db } = await setupProject({
       adapter,
@@ -124,13 +152,13 @@ for (const [dialect, adapter] of adapterEntries) {
         `,
     });
 
-    const teams = await db.query<{ id: number }>('SELECT * FROM "Team"');
+    const teams = await db.query<{ id: number }>("SELECT * FROM team");
     const players = await db.query<{
       id: number;
       name: string;
-      teamId: number;
-    }>('SELECT * FROM "Player"');
-    const games = await db.query<{ id: number }>('SELECT * FROM "Game"');
+      team_id: number;
+    }>("SELECT * FROM player");
+    const games = await db.query<{ id: number }>("SELECT * FROM game");
     expect(teams.length).toEqual(2); // Expected number of teams
     expect(players.length).toEqual(6); // Expected number of players
     expect(games.length).toEqual(6); // Expected number of games
@@ -145,35 +173,49 @@ for (const [dialect, adapter] of adapterEntries) {
     expect(playerIDs).toEqual([95, 96, 97, 98, 99, 100]);
     expect(gameIDs).toEqual([1, 2, 3, 4, 5, 6]);
   });
-
   test("should be able to override sequences via models override", async () => {
     const schema: DialectRecordWithDefault = {
       default: `
-          CREATE TABLE "Team" (
-            "id" SERIAL PRIMARY KEY
+          CREATE TABLE team (
+            id SERIAL PRIMARY KEY
           );
-          CREATE TABLE "Player" (
-            "id" BIGSERIAL PRIMARY KEY,
-            "teamId" integer NOT NULL REFERENCES "Team"("id"),
-            "name" text NOT NULL
+          CREATE TABLE player (
+            id BIGSERIAL PRIMARY KEY,
+            team_id INTEGER NOT NULL REFERENCES team(id),
+            name TEXT NOT NULL
           );
-          CREATE TABLE "Game" (
-            "id" INTEGER GENERATED ALWAYS AS IDENTITY PRIMARY KEY
+          CREATE TABLE game (
+            id INTEGER GENERATED ALWAYS AS IDENTITY PRIMARY KEY
           );
-          `,
+      `,
       sqlite: `
-        CREATE TABLE "Team" (
-          "id" INTEGER PRIMARY KEY AUTOINCREMENT
+        CREATE TABLE team (
+          id INTEGER PRIMARY KEY AUTOINCREMENT
         );
-        CREATE TABLE "Player" (
-          "id" INTEGER PRIMARY KEY AUTOINCREMENT,
-          "teamId" INTEGER NOT NULL,
-          "name" TEXT NOT NULL,
-          FOREIGN KEY ("teamId") REFERENCES "Team"("id")
+        CREATE TABLE player (
+          id INTEGER PRIMARY KEY AUTOINCREMENT,
+          team_id INTEGER NOT NULL,
+          name TEXT NOT NULL,
+          FOREIGN KEY (team_id) REFERENCES team(id)
         );
-        CREATE TABLE "Game" (
-          "id" INTEGER PRIMARY KEY AUTOINCREMENT
-        );`,
+        CREATE TABLE game (
+          id INTEGER PRIMARY KEY AUTOINCREMENT
+        );
+      `,
+      mysql: `
+        CREATE TABLE team (
+          id INT AUTO_INCREMENT PRIMARY KEY
+        );
+        CREATE TABLE player (
+          id INT AUTO_INCREMENT PRIMARY KEY,
+          team_id INT NOT NULL,
+          name VARCHAR(255) NOT NULL,
+          FOREIGN KEY (team_id) REFERENCES team(id)
+        );
+        CREATE TABLE game (
+          id INT AUTO_INCREMENT PRIMARY KEY
+        );
+      `,
     };
     const { db } = await setupProject({
       adapter,
@@ -204,13 +246,13 @@ for (const [dialect, adapter] of adapterEntries) {
         `,
     });
 
-    const teams = await db.query<{ id: number }>('SELECT * FROM "Team"');
+    const teams = await db.query<{ id: number }>("SELECT * FROM team");
     const players = await db.query<{
       id: number;
       name: string;
-      teamId: number;
-    }>('SELECT * FROM "Player"');
-    const games = await db.query<{ id: number }>('SELECT * FROM "Game"');
+      team_id: number;
+    }>("SELECT * FROM player");
+    const games = await db.query<{ id: number }>("SELECT * FROM game");
     expect(teams.length).toEqual(2); // Expected number of teams
     expect(players.length).toEqual(6); // Expected number of players
     expect(games.length).toEqual(6); // Expected number of games

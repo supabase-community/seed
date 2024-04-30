@@ -3,6 +3,7 @@ import { gracefulExit } from "exit-hook";
 import {
   type AdapterId,
   adapters,
+  mysqlAdapters,
   ormAdapters,
   postgresAdapters,
   sqliteAdapters,
@@ -20,6 +21,8 @@ export async function selectAdapterFromPrompt() {
       ...formatAdapters(postgresAdapters),
       new Separator("SQLite 🪶"),
       ...formatAdapters(sqliteAdapters),
+      new Separator("MySQL 🐬"),
+      ...formatAdapters(mysqlAdapters),
     ],
   }).catch(() => {
     gracefulExit();

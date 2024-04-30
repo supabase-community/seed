@@ -15,7 +15,6 @@ describe("aliases", () => {
   test("it correctly computes aliases", () => {
     // arrange
     const dataModel: DataModel = {
-      dialect: "postgres",
       models: {
         Comment: {
           uniqueConstraints: [],
@@ -441,7 +440,6 @@ describe("aliases", () => {
   test("it correctly applies aliases", () => {
     // arrange
     const dataModel: DataModel = {
-      dialect: "postgres",
       models: {
         Comment: {
           uniqueConstraints: [],

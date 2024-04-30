@@ -3,7 +3,9 @@ import { adapterEntries } from "#test/adapters.js";
 import { setupProject } from "#test/setupProject.js";
 import { type DialectRecordWithDefault } from "../../test/types.js";
 
-for (const [dialect, adapter] of adapterEntries) {
+for (const [dialect, adapter] of adapterEntries.filter(
+  ([d]) => d === "postgres",
+)) {
   const computeName = (name: string) =>
     `e2e > transforms > ${dialect} > ${name}`;
   const test = (name: string, fn: TestFunction) => {

@@ -1,5 +1,4 @@
 {
-  "dialect": "postgres",
   "models": {
     "test_table": {
       "id": "public.test_table",

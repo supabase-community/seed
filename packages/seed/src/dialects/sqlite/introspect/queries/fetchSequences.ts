@@ -22,7 +22,7 @@ export async function fetchSequences(client: DatabaseClient) {
   const tableColumnsInfosGrouped = tableColumnsInfos.reduce<
     Record<
       string,
-      Array<FetchTableAndColumnsResultRaw & { affinity: SQLiteAffinity }>
+      Array<{ affinity: SQLiteAffinity } & FetchTableAndColumnsResultRaw>
     >
   >((acc, row) => {
     // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition

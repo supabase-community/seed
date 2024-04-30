@@ -1,12 +1,10 @@
-import { groupBy } from "../utils.js";
+import { groupBy } from "./utils.js";
 
 export function groupParentsChildrenRelations<
   C extends {
     fkColumn: string;
-    fkType: string;
     nullable: boolean;
     targetColumn: string;
-    targetType: string;
   },
   T extends {
     fkTable: string;

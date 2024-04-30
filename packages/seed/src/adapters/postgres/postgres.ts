@@ -4,10 +4,6 @@ import { DatabaseClient } from "#core/databaseClient.js";
 import { type Adapter } from "../types.js";
 
 export class SeedPostgres extends DatabaseClient<Sql> {
-  constructor(client: Sql) {
-    super("postgres", client);
-  }
-
   async execute(query: string): Promise<void> {
     await this.client.unsafe(query);
   }
@@ -19,6 +15,7 @@ export class SeedPostgres extends DatabaseClient<Sql> {
 }
 
 export const postgresAdapter = {
+  getDialect: () => "postgres",
   id: "postgres" as const,
   name: "Postgres.js",
   packageName: "postgres",

@@ -13,7 +13,6 @@ for (const [dialect, adapter] of adapterEntries) {
     // eslint-disable-next-line vitest/expect-expect, vitest/valid-title
     _test.concurrent(computeName(name), fn);
   };
-
   test("connect callback needs only ids", async () => {
     const schema: SchemaRecord = {
       default: `
@@ -38,6 +37,18 @@ for (const [dialect, adapter] of adapterEntries) {
             "userId" integer not null references "User"("id")
           );
         `,
+      mysql: `
+          CREATE TABLE \`User\` (
+            id INT AUTO_INCREMENT PRIMARY KEY,
+            fullName TEXT NOT NULL
+          );
+
+          CREATE TABLE \`Post\` (
+            id INT AUTO_INCREMENT PRIMARY KEY,
+            userId INT NOT NULL,
+            FOREIGN KEY (userId) REFERENCES \`User\` (id)
+          );
+        `,
     };
 
     const { db } = await setupProject({
@@ -56,7 +67,9 @@ for (const [dialect, adapter] of adapterEntries) {
       `,
     });
 
-    const posts = await db.query<{ fullName: string }>('select * from "Post"');
+    const posts = await db.query<{ fullName: string }>(
+      `select * from ${adapter.escapeIdentifier("Post")}`,
+    );
 
     expect(posts).toEqual([
       {
@@ -98,6 +111,18 @@ for (const [dialect, adapter] of adapterEntries) {
             "userId" integer not null references "User"("id")
           );
         `,
+      mysql: `
+          CREATE TABLE \`User\` (
+            id INT AUTO_INCREMENT PRIMARY KEY,
+            fullName TEXT NOT NULL
+          );
+
+          CREATE TABLE \`Post\` (
+            id INT AUTO_INCREMENT PRIMARY KEY,
+            userId INT NOT NULL,
+            FOREIGN KEY (userId) REFERENCES \`User\` (id)
+          );
+        `,
     };
 
     const { db } = await setupProject({
@@ -116,7 +141,9 @@ for (const [dialect, adapter] of adapterEntries) {
       `,
     });
 
-    const posts = await db.query<{ fullName: string }>('select * from "Post"');
+    const posts = await db.query<{ fullName: string }>(
+      `select * from ${adapter.escapeIdentifier("Post")}`,
+    );
 
     expect(posts).toEqual([
       {
@@ -158,6 +185,18 @@ for (const [dialect, adapter] of adapterEntries) {
             "userId" integer not null references "User"("id")
           );
         `,
+      mysql: `
+          CREATE TABLE \`User\` (
+            id INT AUTO_INCREMENT PRIMARY KEY,
+            fullName TEXT NOT NULL
+          );
+
+          CREATE TABLE \`Post\` (
+            id INT AUTO_INCREMENT PRIMARY KEY,
+            userId INT NOT NULL,
+            FOREIGN KEY (userId) REFERENCES \`User\` (id)
+          );
+        `,
     };
 
     const { db } = await setupProject({
@@ -180,7 +219,9 @@ for (const [dialect, adapter] of adapterEntries) {
       `,
     });
 
-    const posts = await db.query<{ fullName: string }>('select * from "Post"');
+    const posts = await db.query<{ fullName: string }>(
+      `select * from ${adapter.escapeIdentifier("Post")}`,
+    );
 
     expect(posts).toEqual([
       {

@@ -9,11 +9,11 @@
     "@snaplet/eslint-config": "workspace:*",
     "@snaplet/tsconfig": "workspace:*",
     "eslint": "8.57.0",
-    "knip": "5.9.3",
+    "knip": "5.11.0",
     "skott": "0.33.2",
-    "turbo": "1.13.2",
-    "typescript": "5.4.4",
-    "vitest": "1.4.0"
+    "turbo": "1.13.3",
+    "typescript": "5.4.5",
+    "vitest": "1.5.2"
   },
   "scripts": {
     "build": "turbo run build",

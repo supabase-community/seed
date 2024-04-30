@@ -22,9 +22,9 @@ export interface IPlan extends PromiseLike<unknown> {
 export type ScalarField = GenerateCallback | Serializable;
 
 type ChildModelCallback = (
-  ctx: ModelCallbackContext & {
+  ctx: {
     index: number;
-  },
+  } & ModelCallbackContext,
 ) => ModelRecord;
 
 export type ChildModel = ChildModelCallback | ModelRecord;
@@ -63,9 +63,9 @@ interface ModelCallbackContext {
 }
 
 type ParentModelCallback = (
-  ctx: ModelCallbackContext & {
+  ctx: {
     connect: (modelData: ModelData) => ConnectInstruction;
-  },
+  } & ModelCallbackContext,
 ) => ConnectInstruction | ModelRecord;
 
 export type ParentField = ModelRecord | ParentModelCallback;

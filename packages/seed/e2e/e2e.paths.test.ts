@@ -1,6 +1,7 @@
 import { test as _test, type TestFunction, expect } from "vitest";
 import { adapterEntries } from "#test/adapters.js";
 import { setupProject } from "#test/setupProject.js";
+import { type DialectRecordWithDefault } from "#test/types.js";
 
 for (const [dialect, adapter] of adapterEntries) {
   const computeName = (name: string) => `e2e > ${dialect} > ${name}`;
@@ -10,30 +11,57 @@ for (const [dialect, adapter] of adapterEntries) {
   };
 
   test("basic path connection", async () => {
-    const { db } = await setupProject({
-      adapter,
-      databaseSchema: `
-        create table board (
-          id uuid not null primary key,
-          name text not null
+    const schema: DialectRecordWithDefault = {
+      default: `
+        CREATE TABLE board (
+          id UUID NOT NULL PRIMARY KEY,
+          name TEXT NOT NULL
         );
-        create table "column" (
-          id uuid not null primary key,
-          name text not null,
-          board_id uuid not null references board(id)
+        CREATE TABLE "column" (
+          id UUID NOT NULL PRIMARY KEY,
+          name TEXT NOT NULL,
+          board_id UUID NOT NULL REFERENCES board(id)
         );
-        create table item (
-          id uuid not null primary key,
-          name text not null,
-          column_id uuid not null references "column"(id),
-          board_id uuid not null references board(id)
+        CREATE TABLE item (
+          id UUID NOT NULL PRIMARY KEY,
+          name TEXT NOT NULL,
+          column_id UUID NOT NULL REFERENCES "column"(id),
+          board_id UUID NOT NULL REFERENCES board(id)
         );
       `,
+      mysql: `
+        CREATE TABLE board (
+          id CHAR(36) NOT NULL,
+          name VARCHAR(255) NOT NULL,
+          PRIMARY KEY (id)
+        );
+        CREATE TABLE \`column\` (
+          id CHAR(36) NOT NULL,
+          name VARCHAR(255) NOT NULL,
+          board_id CHAR(36) NOT NULL,
+          PRIMARY KEY (id),
+          FOREIGN KEY (board_id) REFERENCES board(id)
+        );
+        CREATE TABLE item (
+          id CHAR(36) NOT NULL,
+          name VARCHAR(255) NOT NULL,
+          column_id CHAR(36) NOT NULL,
+          board_id CHAR(36) NOT NULL,
+          PRIMARY KEY (id),
+          FOREIGN KEY (column_id) REFERENCES \`column\`(id),
+          FOREIGN KEY (board_id) REFERENCES board(id)
+        );
+      `,
+    };
+
+    const { db } = await setupProject({
+      adapter,
+      databaseSchema: schema[dialect] ?? schema.default,
       seedScript: `
         import { createSeedClient } from '#snaplet/seed'
-
+  
         const seed = await createSeedClient()
-
+  
         await seed.boards([{
           columns: [{
             items: [{}, {}]
@@ -42,9 +70,15 @@ for (const [dialect, adapter] of adapterEntries) {
       `,
     });
 
-    const boards = await db.query<{ id: string }>("select * from board");
-    const columns = await db.query('select * from "column"');
-    const items = await db.query("select * from item");
+    const boards = await db.query<{ id: string }>("SELECT * FROM board");
+    const columns = await db.query<{ board_id: string; id: string }>(
+      `SELECT * FROM ${adapter.escapeIdentifier("column")}`,
+    );
+    const items = await db.query<{
+      board_id: string;
+      column_id: string;
+      id: string;
+    }>("SELECT * FROM item");
 
     expect(boards).toHaveLength(1);
     expect(columns).toHaveLength(1);
@@ -55,25 +89,51 @@ for (const [dialect, adapter] of adapterEntries) {
   });
 
   test("multiple path connections", async () => {
+    const schema: DialectRecordWithDefault = {
+      default: `
+        CREATE TABLE board (
+          id UUID NOT NULL PRIMARY KEY,
+          name TEXT NOT NULL
+        );
+        CREATE TABLE "column" (
+          id UUID NOT NULL PRIMARY KEY,
+          name TEXT NOT NULL,
+          board_id UUID NOT NULL REFERENCES board(id)
+        );
+        CREATE TABLE item (
+          id UUID NOT NULL PRIMARY KEY,
+          name TEXT NOT NULL,
+          column_id UUID NOT NULL REFERENCES "column"(id),
+          board_id UUID NOT NULL REFERENCES board(id)
+        );
+      `,
+      mysql: `
+        CREATE TABLE board (
+          id CHAR(36) NOT NULL,
+          name VARCHAR(255) NOT NULL,
+          PRIMARY KEY (id)
+        );
+        CREATE TABLE \`column\` (
+          id CHAR(36) NOT NULL,
+          name VARCHAR(255) NOT NULL,
+          board_id CHAR(36) NOT NULL,
+          PRIMARY KEY (id),
+          FOREIGN KEY (board_id) REFERENCES board(id)
+        );
+        CREATE TABLE item (
+          id CHAR(36) NOT NULL,
+          name VARCHAR(255) NOT NULL,
+          column_id CHAR(36) NOT NULL,
+          board_id CHAR(36) NOT NULL,
+          PRIMARY KEY (id),
+          FOREIGN KEY (column_id) REFERENCES \`column\`(id),
+          FOREIGN KEY (board_id) REFERENCES board(id)
+        );
+      `,
+    };
     const { db } = await setupProject({
       adapter,
-      databaseSchema: `
-              create table board (
-                id uuid not null primary key,
-                name text not null
-              );
-              create table "column" (
-                id uuid not null primary key,
-                name text not null,
-                board_id uuid not null references board(id)
-              );
-              create table item (
-                id uuid not null primary key,
-                name text not null,
-                column_id uuid not null references "column"(id),
-                board_id uuid not null references board(id)
-              );
-            `,
+      databaseSchema: schema[dialect] ?? schema.default,
       seedScript: `
               import { createSeedClient } from '#snaplet/seed'
 
@@ -87,44 +147,79 @@ for (const [dialect, adapter] of adapterEntries) {
             `,
     });
 
-    const boards = await db.query<{ id: string }>("select * from board");
-    const columns = await db.query('select * from "column"');
-    const items = await db.query("select * from item");
+    const boards = await db.query<{ id: string }>("SELECT * FROM board");
+    const columns = await db.query<{ board_id: string; id: string }>(
+      `SELECT * FROM ${adapter.escapeIdentifier("column")}`,
+    );
+    const items = await db.query<{
+      board_id: string;
+      column_id: string;
+      id: string;
+    }>("SELECT * FROM item");
 
     expect(boards).toHaveLength(2);
     expect(columns).toHaveLength(4);
-    expect(items).toEqual([
-      expect.objectContaining({ board_id: boards[0].id }),
-      expect.objectContaining({ board_id: boards[0].id }),
-      expect.objectContaining({ board_id: boards[0].id }),
-      expect.objectContaining({ board_id: boards[0].id }),
-      expect.objectContaining({ board_id: boards[1].id }),
-      expect.objectContaining({ board_id: boards[1].id }),
-      expect.objectContaining({ board_id: boards[1].id }),
-      expect.objectContaining({ board_id: boards[1].id }),
-    ]);
+    // Should have re-used existing boards and linked them to the items
+    expect(items).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({ board_id: boards[0].id }),
+        expect.objectContaining({ board_id: boards[0].id }),
+        expect.objectContaining({ board_id: boards[0].id }),
+        expect.objectContaining({ board_id: boards[0].id }),
+        expect.objectContaining({ board_id: boards[1].id }),
+        expect.objectContaining({ board_id: boards[1].id }),
+        expect.objectContaining({ board_id: boards[1].id }),
+        expect.objectContaining({ board_id: boards[1].id }),
+      ]),
+    );
   });
 
   test("connect option overrides path connection", async () => {
+    const schema: DialectRecordWithDefault = {
+      default: `
+        CREATE TABLE board (
+          id UUID NOT NULL PRIMARY KEY,
+          name TEXT NOT NULL
+        );
+        CREATE TABLE "column" (
+          id UUID NOT NULL PRIMARY KEY,
+          name TEXT NOT NULL,
+          board_id UUID NOT NULL REFERENCES board(id)
+        );
+        CREATE TABLE item (
+          id UUID NOT NULL PRIMARY KEY,
+          name TEXT NOT NULL,
+          column_id UUID NOT NULL REFERENCES "column"(id),
+          board_id UUID NOT NULL REFERENCES board(id)
+        );
+      `,
+      mysql: `
+        CREATE TABLE board (
+          id CHAR(36) NOT NULL,
+          name VARCHAR(255) NOT NULL,
+          PRIMARY KEY (id)
+        );
+        CREATE TABLE \`column\` (
+          id CHAR(36) NOT NULL,
+          name VARCHAR(255) NOT NULL,
+          board_id CHAR(36) NOT NULL,
+          PRIMARY KEY (id),
+          FOREIGN KEY (board_id) REFERENCES board(id)
+        );
+        CREATE TABLE item (
+          id CHAR(36) NOT NULL,
+          name VARCHAR(255) NOT NULL,
+          column_id CHAR(36) NOT NULL,
+          board_id CHAR(36) NOT NULL,
+          PRIMARY KEY (id),
+          FOREIGN KEY (column_id) REFERENCES \`column\`(id),
+          FOREIGN KEY (board_id) REFERENCES board(id)
+        );
+      `,
+    };
     const { db } = await setupProject({
       adapter,
-      databaseSchema: `
-              create table board (
-                id uuid not null primary key,
-                name text not null
-              );
-              create table "column" (
-                id uuid not null primary key,
-                name text not null,
-                board_id uuid not null references board(id)
-              );
-              create table item (
-                id uuid not null primary key,
-                name text not null,
-                column_id uuid not null references "column"(id),
-                board_id uuid not null references board(id)
-              );
-            `,
+      databaseSchema: schema[dialect] ?? schema.default,
       seedScript: `
               import { createSeedClient } from '#snaplet/seed'
 
@@ -141,10 +236,16 @@ for (const [dialect, adapter] of adapterEntries) {
     });
 
     const boards = await db.query<{ id: string; name: string }>(
-      "select * from board",
+      "SELECT * FROM board",
     );
-    const columns = await db.query('select * from "column"');
-    const items = await db.query("select * from item");
+    const columns = await db.query<{ board_id: string; id: string }>(
+      `SELECT * FROM ${adapter.escapeIdentifier("column")}`,
+    );
+    const items = await db.query<{
+      board_id: string;
+      column_id: string;
+      id: string;
+    }>("SELECT * FROM item");
 
     // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
     const connectedBoard = boards.find((b) => b.name === "connected board")!;

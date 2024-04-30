@@ -5318,6 +5318,12 @@ describe("SQL_TEMPLATES", () => {
             "value": "(9, 7), (5, 3)",
           },
         },
+        "longblob": {
+          "__DEFAULT": {
+            "success": true,
+            "value": "4",
+          },
+        },
         "lseg": {
           "__DEFAULT": {
             "success": true,
@@ -5334,6 +5340,12 @@ describe("SQL_TEMPLATES", () => {
           "__DEFAULT": {
             "success": true,
             "value": "af:c7:ef:62:20:9e",
+          },
+        },
+        "mediumblob": {
+          "__DEFAULT": {
+            "success": true,
+            "value": "4",
           },
         },
         "money": {
@@ -6361,6 +6373,12 @@ describe("SQL_TEMPLATES", () => {
           "__DEFAULT": {
             "success": true,
             "value": "2020-05-21T04:57:14.000Z",
+          },
+        },
+        "tinyblob": {
+          "__DEFAULT": {
+            "success": true,
+            "value": "4",
           },
         },
         "tinyint": {

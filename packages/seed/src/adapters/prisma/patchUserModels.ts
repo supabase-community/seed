@@ -2,6 +2,7 @@ import { type DataModel } from "#core/dataModel/types.js";
 import { SQL_DATE_TYPES } from "#core/dialect/utils.js";
 import { FallbackSymbol } from "#core/symbols.js";
 import { type UserModels } from "#core/userModels/types.js";
+import { type DialectId } from "#dialects/dialects.js";
 
 function patchSqliteDatetimeFields(
   dataModel: DataModel,
@@ -48,9 +49,10 @@ function patchSqliteUserModels(dataModel: DataModel, userModels: UserModels) {
 // eslint-disable-next-line @typescript-eslint/require-await
 export async function patchUserModels(props: {
   dataModel: DataModel;
+  dialect: DialectId;
   userModels: UserModels;
 }) {
-  if (props.dataModel.dialect === "sqlite") {
+  if (props.dialect === "sqlite") {
     return patchSqliteUserModels(props.dataModel, props.userModels);
   }
 

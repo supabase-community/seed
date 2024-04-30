@@ -96,8 +96,59 @@ for (const [dialect, adapter] of adapterEntries) {
 
         ALTER TABLE shipment ADD COLUMN order_id integer not null REFERENCES "order"(id);
         ALTER TABLE shipment ADD COLUMN supplier_id integer not null REFERENCES supplier(id);
-        PRAGMA foreign_keys = ON;
-        `,
+      `,
+      mysql: `
+        CREATE TABLE customer (
+          id INT AUTO_INCREMENT PRIMARY KEY,
+          name VARCHAR(255) NOT NULL,
+          last_order_id INT,
+          INDEX idx_last_order_id (last_order_id)
+        );
+        
+        CREATE TABLE product (
+          id INT AUTO_INCREMENT PRIMARY KEY,
+          name VARCHAR(255) NOT NULL,
+          first_order_id INT,
+          INDEX idx_first_order_id (first_order_id)
+        );
+        
+        CREATE TABLE supplier (
+          id INT AUTO_INCREMENT PRIMARY KEY,
+          name VARCHAR(255) NOT NULL,
+          first_shipment_id INT,
+          INDEX idx_first_shipment_id (first_shipment_id)
+        );
+        
+        CREATE TABLE \`order\` (
+          id INT AUTO_INCREMENT PRIMARY KEY,
+          customer_id INT NOT NULL,
+          product_id INT NOT NULL,
+          quantity INT NOT NULL,
+          shipment_id INT,
+          INDEX idx_customer_id (customer_id),
+          INDEX idx_product_id (product_id),
+          INDEX idx_shipment_id (shipment_id)
+        );
+        
+        CREATE TABLE shipment (
+          id INT AUTO_INCREMENT PRIMARY KEY,
+          order_id INT NOT NULL,
+          supplier_id INT NOT NULL,
+          INDEX idx_order_id (order_id),
+          INDEX idx_supplier_id (supplier_id)
+        );
+        
+        ALTER TABLE customer ADD CONSTRAINT fk_customer_last_order FOREIGN KEY (last_order_id) REFERENCES \`order\` (id);
+        ALTER TABLE product ADD CONSTRAINT fk_product_first_order FOREIGN KEY (first_order_id) REFERENCES \`order\` (id);
+        ALTER TABLE supplier ADD CONSTRAINT fk_supplier_first_shipment FOREIGN KEY (first_shipment_id) REFERENCES shipment (id);
+        
+        ALTER TABLE \`order\` ADD CONSTRAINT fk_order_customer FOREIGN KEY (customer_id) REFERENCES customer (id);
+        ALTER TABLE \`order\` ADD CONSTRAINT fk_order_product FOREIGN KEY (product_id) REFERENCES product (id);
+        ALTER TABLE \`order\` ADD CONSTRAINT fk_order_shipment FOREIGN KEY (shipment_id) REFERENCES shipment (id);
+        
+        ALTER TABLE shipment ADD CONSTRAINT fk_shipment_order FOREIGN KEY (order_id) REFERENCES \`order\` (id);
+        ALTER TABLE shipment ADD CONSTRAINT fk_shipment_supplier FOREIGN KEY (supplier_id) REFERENCES supplier (id);
+      `,
     };
     const { db } = await setupProject({
       adapter,
@@ -126,7 +177,9 @@ for (const [dialect, adapter] of adapterEntries) {
     // Verify the circular dependencies
     const customerResult = await db.query(`SELECT * FROM customer`);
     const productResult = await db.query(`SELECT * FROM product`);
-    const orderResult = await db.query(`SELECT * FROM "order"`);
+    const orderResult = await db.query(
+      `SELECT * FROM ${adapter.escapeIdentifier("order")}`,
+    );
     const shipmentResult = await db.query(`SELECT * FROM shipment`);
     const supplierResult = await db.query(`SELECT * FROM supplier`);
 
@@ -237,8 +290,37 @@ for (const [dialect, adapter] of adapterEntries) {
         );
         ALTER TABLE customer ADD COLUMN last_order_id integer not null REFERENCES "order"(id);
         ALTER TABLE product ADD COLUMN first_order_id integer not null REFERENCES "order"(id);
-        PRAGMA foreign_keys = ON;
-        `,
+      `,
+      mysql: `
+        CREATE TABLE customer (
+          id INT AUTO_INCREMENT PRIMARY KEY,
+          name VARCHAR(255) NOT NULL,
+          last_order_id INT NOT NULL,
+          INDEX idx_last_order_id (last_order_id)
+        );
+        
+        CREATE TABLE product (
+          id INT AUTO_INCREMENT PRIMARY KEY,
+          name VARCHAR(255) NOT NULL,
+          first_order_id INT NOT NULL,
+          INDEX idx_first_order_id (first_order_id)
+        );
+        
+        CREATE TABLE \`order\` (
+          id INT AUTO_INCREMENT PRIMARY KEY,
+          customer_id INT,
+          product_id INT,
+          quantity INT NOT NULL,
+          INDEX idx_customer_id (customer_id),
+          INDEX idx_product_id (product_id)
+        );
+        
+        ALTER TABLE customer ADD CONSTRAINT fk_customer_last_order FOREIGN KEY (last_order_id) REFERENCES \`order\` (id);
+        ALTER TABLE product ADD CONSTRAINT fk_product_first_order FOREIGN KEY (first_order_id) REFERENCES \`order\` (id);
+        
+        ALTER TABLE \`order\` ADD CONSTRAINT fk_order_customer FOREIGN KEY (customer_id) REFERENCES customer (id);
+        ALTER TABLE \`order\` ADD CONSTRAINT fk_order_product FOREIGN KEY (product_id) REFERENCES product (id);      
+      `,
     };
     const { db } = await setupProject({
       adapter,
@@ -257,7 +339,7 @@ for (const [dialect, adapter] of adapterEntries) {
       `select * from customer order by id asc`,
     );
     const orderResults = await db.query(
-      `select * from "order" order by id asc`,
+      `select * from ${adapter.escapeIdentifier("order")} order by id asc`,
     );
     const productResults = await db.query(
       `select * from product order by id asc`,
@@ -345,7 +427,37 @@ for (const [dialect, adapter] of adapterEntries) {
         );
         ALTER TABLE customer ADD COLUMN last_order_id integer not null REFERENCES "order"(id);
         ALTER TABLE product ADD COLUMN first_order_id integer not null REFERENCES "order"(id);
-        PRAGMA foreign_keys = ON;
+        
+        `,
+      mysql: `
+          CREATE TABLE customer (
+            id INT AUTO_INCREMENT PRIMARY KEY,
+            name VARCHAR(255) NOT NULL,
+            last_order_id INT NOT NULL,
+            INDEX idx_last_order_id (last_order_id)
+          );
+          
+          CREATE TABLE product (
+            id INT AUTO_INCREMENT PRIMARY KEY,
+            name VARCHAR(255) NOT NULL,
+            first_order_id INT NOT NULL,
+            INDEX idx_first_order_id (first_order_id)
+          );
+          
+          CREATE TABLE \`order\` (
+            id INT AUTO_INCREMENT PRIMARY KEY,
+            customer_id INT NOT NULL,
+            product_id INT NOT NULL,
+            quantity INT NOT NULL,
+            INDEX idx_customer_id (customer_id),
+            INDEX idx_product_id (product_id)
+          );
+          
+          ALTER TABLE customer ADD CONSTRAINT fk_customer_last_order FOREIGN KEY (last_order_id) REFERENCES \`order\` (id);
+          ALTER TABLE product ADD CONSTRAINT fk_product_first_order FOREIGN KEY (first_order_id) REFERENCES \`order\` (id);
+          
+          ALTER TABLE \`order\` ADD CONSTRAINT fk_order_customer FOREIGN KEY (customer_id) REFERENCES customer (id);
+          ALTER TABLE \`order\` ADD CONSTRAINT fk_order_product FOREIGN KEY (product_id) REFERENCES product (id);
         `,
     };
     await expect(() =>
@@ -429,7 +541,7 @@ for (const [dialect, adapter] of adapterEntries) {
           FOREIGN KEY(customer_id) REFERENCES customer(id),
           FOREIGN KEY(product_id) REFERENCES product(id)
         );
-        PRAGMA foreign_keys = ON;
+        
         `,
       };
       const { db } = await setupProject({

@@ -11,21 +11,6 @@ import {
   type Relationship,
 } from "./introspectDatabase.js";
 
-function getModelName(
-  introspection: { tables: Array<{ name: string; schema: string }> },
-  table: IntrospectedStructure["tables"][number],
-) {
-  const tableIsInMultipleSchemas = introspection.tables.some(
-    (t) => t.name === table.name && t.schema !== table.schema,
-  );
-
-  const modelName = tableIsInMultipleSchemas
-    ? `${table.schema}_${table.name}`
-    : table.name;
-
-  return modelName;
-}
-
 function getEnumName(
   introspection: IntrospectedStructure,
   enumItem: IntrospectedStructure["enums"][number],
@@ -41,6 +26,24 @@ function getEnumName(
   return enumName;
 }
 
+type MinimalRelationship = {
+  keys: Array<Pick<Relationship["keys"][number], "fkColumn" | "targetColumn">>;
+} & Pick<Relationship, "fkTable" | "targetTable">;
+function getModelName(
+  introspection: { tables: Array<{ name: string; schema: string }> },
+  table: Pick<IntrospectedStructure["tables"][number], "name" | "schema">,
+) {
+  const tableIsInMultipleSchemas = introspection.tables.some(
+    (t) => t.name === table.name && t.schema !== table.schema,
+  );
+
+  const modelName = tableIsInMultipleSchemas
+    ? `${table.schema}_${table.name}`
+    : table.name;
+
+  return modelName;
+}
+
 function getParentRelationAndFieldName({
   introspection,
   table,
@@ -48,9 +51,12 @@ function getParentRelationAndFieldName({
   parentRelation,
 }: {
   introspection: IntrospectedStructure;
-  parentRelation: Relationship;
+  parentRelation: MinimalRelationship;
   table: IntrospectedStructure["tables"][number];
-  targetTable: IntrospectedStructure["tables"][number];
+  targetTable: { parents: Array<MinimalRelationship> } & Pick<
+    IntrospectedStructure["tables"][number],
+    "name" | "schema"
+  >;
 }) {
   const modelName = getModelName(introspection, table);
   const targetModelName = getModelName(introspection, targetTable);
@@ -75,7 +81,7 @@ function getChildRelationAndFieldName({
   childTable,
   childRelation,
 }: {
-  childRelation: Relationship;
+  childRelation: MinimalRelationship;
   childTable: IntrospectedStructure["tables"][number];
   introspection: IntrospectedStructure;
   table: IntrospectedStructure["tables"][number];
@@ -206,7 +212,7 @@ function columnSequence(
 export function introspectionToDataModel(
   introspection: IntrospectedStructure,
 ): DataModel {
-  const dataModel: DataModel = { dialect: "postgres", models: {}, enums: {} };
+  const dataModel: DataModel = { models: {}, enums: {} };
 
   for (const e of introspection.enums) {
     const enumName = getEnumName(introspection, e);
