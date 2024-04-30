@@ -13,6 +13,7 @@ import { adapters } from '#adapters/index.js';
 import { seedConfigExists } from '#config/seedConfig/seedConfig.js';
 import { getUser } from '#cli/lib/getUser.js';
 import { getAdapter } from '#adapters/getAdapter.js';
+import dedent from 'dedent';
 
 export async function initHandler(args: {
   directory: string;
@@ -37,7 +38,8 @@ export async function initHandler(args: {
 
   if (!user) {
     const shouldUseSnapletAI = await confirm({
-      message: `Would you like to use Snaplet AI to enhance your generated data?`,
+      message: dedent`
+      Would you like to use ${bold('Snaplet AI to enhance')} your generated data?  Snaplet AI takes a few minutes to generate data, but improves data quality significantly. Snaplet AI requires a free Snaplet account? Try Snaplet AI?`,
       default: true
     })
 

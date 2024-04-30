@@ -1,6 +1,7 @@
 import { input, select } from "@inquirer/prompts";
 import { updateProjectConfig } from "#config/project/projectConfig.js";
 import { trpc } from "#trpc/client.js";
+import { telemetry } from '#cli/lib/telemetry.js';
 
 const createOrganization = async () => {
   const organizationName = await input({
@@ -10,6 +11,9 @@ const createOrganization = async () => {
   const organization = await trpc.organization.create.mutate({
     organizationName,
   });
+
+
+  await telemetry.captureEvent('$action:organization:create')
 
   return organization.id;
 };
@@ -22,6 +26,10 @@ const selectOrganization = async () => {
       "You do not yet have any organizations to put the project under, creating one",
     );
     return createOrganization();
+  }
+
+  if (organizations.length === 1) {
+    return organizations[0].id
   }
 
   const createOption = {
@@ -60,6 +68,9 @@ const createProject = async () => {
     organizationId,
   });
 
+
+  await telemetry.captureEvent('$action:project:create')
+
   return project.id;
 };
 
@@ -70,6 +81,10 @@ const selectProject = async () => {
     console.log("You do not yet have any projects, creating one");
     console.log("");
     return createProject();
+  }
+
+  if (projects.length === 1 && projects[0].SeedDataSet.length === 0) {
+    return projects[0].id
   }
 
   const createOption = {

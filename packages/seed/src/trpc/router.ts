@@ -65,10 +65,12 @@ export const createCliRouter = ({ publicProcedure = t.procedure } = {}) =>
           {
             id: "1",
             name: "Project 1",
+            SeedDataSet: []
           },
         ] as Array<{
           id: string;
           name: string;
+          SeedDataSet: { id: string }[]
         }>;
       }),
     }),
