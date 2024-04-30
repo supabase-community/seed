@@ -6,11 +6,10 @@ export function initCommand(program: Argv) {
     "init [directory]",
     "Initialize Snaplet Seed locally for your project",
     (y) =>
-      y
-        .positional("directory", {
-          type: "string",
-          describe: "Directory path to initialize Snaplet Seed in",
-          default: ".",
+      y.positional("directory", {
+        type: "string",
+        describe: "Directory path to initialize Snaplet Seed in",
+        default: ".",
       }),
     telemetryWithUsageStatsMiddleware(async (args) => {
       const { initHandler } = await import("./initHandler.js");

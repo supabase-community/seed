@@ -1,19 +1,18 @@
-import boxen from 'boxen'
-import path from "node:path";
 import { confirm } from "@inquirer/prompts";
+import boxen from "boxen";
+import path from "node:path";
+import { adapters } from "#adapters/index.js";
+import { getUser } from "#cli/lib/getUser.js";
 import { getProjectConfig } from "#config/project/projectConfig.js";
+import { seedConfigExists } from "#config/seedConfig/seedConfig.js";
 import { bold, highlight } from "../../lib/output.js";
 import { linkHandler } from "../link/linkHandler.js";
 import { loginHandler } from "../login/loginHandler.js";
 import { syncHandler } from "../sync/syncHandler.js";
+import { adapterHandler } from "./adapterHandler.js";
 import { generateSeedScriptExample } from "./generateSeedScriptExample.js";
 import { installDependencies } from "./installDependencies.js";
 import { saveSeedConfig } from "./saveSeedConfig.js";
-import { adapters } from '#adapters/index.js';
-import { seedConfigExists } from '#config/seedConfig/seedConfig.js';
-import { getUser } from '#cli/lib/getUser.js';
-import { getAdapter } from '#adapters/getAdapter.js';
-import dedent from 'dedent';
 
 export async function initHandler(args: {
   directory: string;
@@ -34,18 +33,17 @@ export async function initHandler(args: {
   console.log(welcomeText);
 
   const projectConfig = await getProjectConfig();
-  let isLoggedIn = Boolean(user)
+  let isLoggedIn = Boolean(user);
 
   if (!user) {
     const shouldUseSnapletAI = await confirm({
-      message: dedent`
-      Would you like to use ${bold('Snaplet AI to enhance')} your generated data?  Snaplet AI takes a few minutes to generate data, but improves data quality significantly. Snaplet AI requires a free Snaplet account? Try Snaplet AI?`,
-      default: true
-    })
+      message: `Would you like to use Snaplet AI to enhance your generated data?`,
+      default: true,
+    });
 
-    if (shouldUseSnapletAI === true) {
+    if (shouldUseSnapletAI) {
       await loginHandler();
-      isLoggedIn = true
+      isLoggedIn = true;
     }
   }
 
@@ -53,25 +51,33 @@ export async function initHandler(args: {
     await linkHandler();
   }
 
-  const adapter = projectConfig.adapter ? adapters[projectConfig.adapter] : await getAdapter();
+  const adapter = projectConfig.adapter
+    ? adapters[projectConfig.adapter]
+    : await adapterHandler();
+
   await installDependencies({ adapter });
 
-  if (!await seedConfigExists()) {
+  if (!(await seedConfigExists())) {
     await saveSeedConfig({ adapter });
   }
 
   await syncHandler({ isInit: true });
 
   if (!isLoggedIn) {
-    console.log(boxen(`To enhance your data with Snaplet AI, just rerun ${bold('npx @snaplet/seed init')}`, {
-      padding: 1,
-      margin: 1,
-      borderStyle: 'bold'
-    }))
+    console.log(
+      boxen(
+        `To enhance your data with Snaplet AI, just rerun ${bold("npx @snaplet/seed init")}`,
+        {
+          padding: 1,
+          margin: 1,
+          borderStyle: "bold",
+        },
+      ),
+    );
   }
 
   await generateSeedScriptExample();
 
-  console.log()
+  console.log();
   console.log("Happy seeding! 🌱");
 }
