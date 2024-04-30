@@ -24,21 +24,23 @@ const createAnonymousId = async () => {
   return anonymousId;
 };
 
+// context(justinvdm, 30 Apr 2024): Determining distinct id (to identify distinct users):
+// * If user logged in, use the user id as the distinct id
+// * Otherwise if not CI, get/create anonymous id + use this as the distinct id
+// * Otherwise if in CI and project id exists, use `<projectId>:ci` as the distinct id
+// * Otherwise do not send metrics (e.g. if logged out CI user)
 const getDistinctId = async () => {
   const systemConfig = await getSystemConfig();
   const projectConfig = await getProjectConfig();
-  const projectDistinctId =
-    ci.isCI && projectConfig.projectId
-      ? `${projectConfig.projectId}:ci`
-      : undefined;
+
   if (typeof systemConfig.userId === "string") {
     return systemConfig.userId;
-  } else if (typeof systemConfig.anonymousId == "string") {
-    return systemConfig.anonymousId;
-  } else if (projectDistinctId) {
-    return projectDistinctId;
+  } else if (!ci.isCI) {
+    return systemConfig.anonymousId ?? createAnonymousId();
+  } else if (projectConfig.projectId != null) {
+    return `${projectConfig.projectId}:ci`;
   } else {
-    return createAnonymousId();
+    return null;
   }
 };
 
@@ -64,19 +66,19 @@ export const createTelemetry = (options: TelemetryOptions) => {
 
   const captureUserLogin = async (user: { email: string; id: string }) => {
     const { id: userId, email } = user;
-    // Cache the userId in the system configuration.
-    await updateSystemConfig({ userId });
 
     const distinctId = await getDistinctId();
     const { anonymousId } = await getSystemConfig();
 
     // Associate the old "anonymousId (alias)" to the new "userId (distinctId)"
-    if (anonymousId != null && !distinctId.endsWith(":ci")) {
+    if (anonymousId != null && anonymousId === distinctId) {
       posthog?.alias({
         distinctId,
         alias: anonymousId,
       });
     }
+
+    await updateSystemConfig({ userId });
 
     await captureEvent("$action:user:login", {
       $set: {
@@ -96,6 +98,12 @@ export const createTelemetry = (options: TelemetryOptions) => {
     event: string,
     properties: Record<string, unknown> = {},
   ) => {
+    const distinctId = await getDistinctId();
+
+    if (distinctId == null) {
+      return;
+    }
+
     const { userId } = await getSystemConfig();
 
     properties = {
@@ -118,7 +126,7 @@ export const createTelemetry = (options: TelemetryOptions) => {
 
     properties = deepmerge(baseProperties(), properties);
     posthog?.capture({
-      distinctId: await getDistinctId(),
+      distinctId,
       event,
       properties,
     });
