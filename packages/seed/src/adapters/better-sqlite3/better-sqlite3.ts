@@ -23,7 +23,9 @@ export const betterSqlite3Adapter = {
   name: "better-sqlite3",
   packageName: "better-sqlite3",
   typesPackageName: "@types/better-sqlite3",
-  template: (parameters = `'<your-database-path>', { fileMustExist: true }`) => dedent`
+  template: (
+    parameters = `'<your-database-path>', { fileMustExist: true }`,
+  ) => dedent`
     import { SeedBetterSqlite3 } from "@snaplet/seed/adapter-better-sqlite3";
     import { defineConfig } from "@snaplet/seed/config";
     import Database from "better-sqlite3";
