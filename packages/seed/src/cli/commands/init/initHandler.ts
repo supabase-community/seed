@@ -5,7 +5,7 @@ import { adapters } from "#adapters/index.js";
 import { getUser } from "#cli/lib/getUser.js";
 import { getProjectConfig } from "#config/project/projectConfig.js";
 import { seedConfigExists } from "#config/seedConfig/seedConfig.js";
-import { bold, highlight } from "../../lib/output.js";
+import { bold, brightGreen, highlight } from "../../lib/output.js";
 import { linkHandler } from "../link/linkHandler.js";
 import { loginHandler } from "../login/loginHandler.js";
 import { syncHandler } from "../sync/syncHandler.js";
@@ -30,14 +30,21 @@ export async function initHandler(args: {
     ? `Welcome back ${highlight(user.email)}! 😻`
     : `Snaplet Seed is a generative AI tool for your data, it's like Faker and your ORM had a baby! 🐣`;
 
+  console.log();
   console.log(welcomeText);
 
   const projectConfig = await getProjectConfig();
   let isLoggedIn = Boolean(user);
 
   if (!user) {
+    console.log();
+    console.log(
+      `🤖 ${bold("@snaplet/seed")} works best with ${highlight("Snaplet AI")}. It requires a free Snaplet account, but improves data quality significantly! 🤖`,
+    );
+    console.log();
+
     const shouldUseSnapletAI = await confirm({
-      message: `Would you like to use Snaplet AI to enhance your generated data?`,
+      message: `Would you like to use ${brightGreen("Snaplet AI to enhance")} your generated data?`,
       default: true,
     });
 
@@ -66,7 +73,7 @@ export async function initHandler(args: {
   if (!isLoggedIn) {
     console.log(
       boxen(
-        `To enhance your data with Snaplet AI, just rerun ${bold("npx @snaplet/seed init")}`,
+        `Want to improve your data? Use ${highlight("Snaplet AI")}! Rerun ${bold("npx @snaplet/seed init")} and choose ${bold("Snaplet AI")}.`,
         {
           padding: 1,
           margin: 1,
