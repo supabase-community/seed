@@ -54,7 +54,7 @@ export async function initHandler(args: {
   const adapter = projectConfig.adapter ? adapters[projectConfig.adapter] : await getAdapter();
   await installDependencies({ adapter });
 
-  if (!seedConfigExists()) {
+  if (!await seedConfigExists()) {
     await saveSeedConfig({ adapter });
   }
 
