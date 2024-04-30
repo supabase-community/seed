@@ -14,6 +14,7 @@ import { type ClientState, type SeedClientOptions } from "./types.js";
 const noop = () => ({});
 
 export abstract class SeedClientBase implements SeedClient {
+  readonly connect: PlanOptions["connect"];
   readonly createStore: (dataModel: DataModel) => Store;
   dataModel: DataModel;
   readonly emit: (event: string) => void;
@@ -53,6 +54,7 @@ export abstract class SeedClientBase implements SeedClient {
     Object.keys(props.dataModel.models).forEach((model) => {
       // @ts-expect-error dynamic methods creation
       this[model] = (inputs: PlanInputs["inputs"], options?: PlanOptions) => {
+        const connect = options?.connect ?? props.options?.connect;
         return new Plan({
           createStore: this.createStore,
           emit: this.emit,
@@ -65,7 +67,7 @@ export abstract class SeedClientBase implements SeedClient {
             model,
             inputs,
           },
-          options,
+          options: { ...options, connect },
         });
       };
     });

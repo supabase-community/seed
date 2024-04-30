@@ -572,9 +572,30 @@ ${Object.keys(dataModel.models)
 function generateSeedClientTypes() {
   return `
   export type SeedClientOptions = {
+    /**
+     * Overrides the adapter defined in the seed.config.ts configuration file.
+     * 
+     * Learn more in the {@link https://docs.snaplet.dev/seed/reference/client#adapter | documentation}.
+     */
     adapter?: DatabaseClient;
+    /**
+     * If true, the Seed Client will not execute any database operations, it will log the generated SQL queries to stdout instead.
+     * 
+     * Learn more in the {@link https://docs.snaplet.dev/seed/reference/client#dryrun | documentation}.
+     */
     dryRun?: boolean;
+    /**
+     * Default value for the models option that will be passed accross plans. It will be merged with the models option of each plan.
+     *
+     * Learn more in the {@link https://docs.snaplet.dev/core-concepts/seed#using-autoconnect-option | documentation}.
+     */
     models?: UserModels;
+    /**
+     * Default value for the connect option that will be passed accross the plans.
+     *
+     * Learn more in the {@link https://docs.snaplet.dev/core-concepts/seed#using-autoconnect-option | documentation}.
+     */
+    connect?: PlanOptions["connect"];
   }
   export declare const createSeedClient: (options?: SeedClientOptions) => Promise<SeedClient>`;
 }
