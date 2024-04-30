@@ -140,6 +140,7 @@
     "@trpc/client": "^10.45.2",
     "@trpc/server": "^10.45.2",
     "ansi-escapes": "^6.2.1",
+    "boxen": "^7.1.1",
     "c12": "^1.10.0",
     "change-case": "^5.4.4",
     "ci-info": "^4.0.0",

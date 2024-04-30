@@ -1,8 +1,8 @@
+import boxen from 'boxen'
 import path from "node:path";
-import { dotSnapletPathExists } from "#config/dotSnaplet.js";
-import { projectConfigExists } from "#config/project/projectConfig.js";
-import { seedConfigExists } from "#config/seedConfig/seedConfig.js";
-import { highlight } from "../../lib/output.js";
+import { confirm } from "@inquirer/prompts";
+import { getProjectConfig } from "#config/project/projectConfig.js";
+import { bold, highlight } from "../../lib/output.js";
 import { linkHandler } from "../link/linkHandler.js";
 import { loginHandler } from "../login/loginHandler.js";
 import { syncHandler } from "../sync/syncHandler.js";
@@ -11,35 +11,7 @@ import { getAdapter } from "./getAdapter.js";
 import { getUser } from "./getUser.js";
 import { installDependencies } from "./installDependencies.js";
 import { saveSeedConfig } from "./saveSeedConfig.js";
-
-export async function loggedCommandPrerun(
-  props: { showWelcome?: boolean } = {},
-) {
-  const user = await getUser();
-
-  const welcomeText = user
-    ? `Welcome back ${highlight(user.email)}! 😻`
-    : `Snaplet Seed is a generative AI tool for your data, it's like Faker and your ORM had a baby! 🐣`;
-
-  if (props.showWelcome) {
-    console.log(welcomeText);
-  }
-
-  if (!user) {
-    await loginHandler();
-  }
-
-  const seedConfigExist = await seedConfigExists();
-  const projectConfigExist = await projectConfigExists();
-  const dotSnapletExist = await dotSnapletPathExists();
-  const isFirstTimeInit = !seedConfigExist || !projectConfigExist;
-  return {
-    isFirstTimeInit,
-    seedConfigExist,
-    projectConfigExist,
-    dotSnapletExist,
-  };
-}
+import { adapters } from '#adapters/index.js';
 
 export async function initHandler(args: {
   directory: string;
@@ -51,19 +23,42 @@ export async function initHandler(args: {
     "seed.config.ts",
   );
 
-  const { isFirstTimeInit } = await loggedCommandPrerun({ showWelcome: true });
-  if (isFirstTimeInit || args.reset) {
-    await linkHandler();
-    const adapter = await getAdapter();
-    await installDependencies({ adapter });
-    await saveSeedConfig({ adapter });
+  const user = await getUser();
+
+  const welcomeText = user
+    ? `Welcome back ${highlight(user.email)}! 😻`
+    : `Snaplet Seed is a generative AI tool for your data, it's like Faker and your ORM had a baby! 🐣`;
+
+  console.log(welcomeText);
+
+  const projectConfig = await getProjectConfig();
+
+  if (!user) {
+    const shouldUseSnapletAI = await confirm({
+      message: `Would you like to use Snaplet AI to enhance your generated data?`,
+      default: true
+    })
+
+    if (shouldUseSnapletAI === true) {
+      await loginHandler();
+    }
   }
+
+  await linkHandler();
+  const adapter = projectConfig.adapter ? adapters[projectConfig.adapter] : await getAdapter();
+  await installDependencies({ adapter });
+  await saveSeedConfig({ adapter });
 
   await syncHandler({ isInit: true });
+  await generateSeedScriptExample();
 
-  if (isFirstTimeInit || args.reset) {
-    await generateSeedScriptExample();
-  }
+  console.log(boxen(`To enhance your data with Snaplet AI, just rerun ${bold('npx @snaplet/seed init')}`, {
+    padding: 1,
+    margin: 1,
+    borderStyle: 'bold'
+  }))
+
+  console.log()
 
   console.log("Happy seeding! 🌱");
 }
