@@ -88,7 +88,7 @@ export async function predictHandler({
 
     const displayEnhanceProgress = (percent?: number) =>
       [
-        `${percent ? "[ ${percent}% ] " : ""}Enhancing your generated data using ${bold("Snaplet AI")} 🤖`,
+        `${percent ? `[ ${percent}% ] ` : ""}Enhancing your generated data using ${bold("Snaplet AI")} 🤖`,
         skipMessage,
       ].join("\n\n");
 
