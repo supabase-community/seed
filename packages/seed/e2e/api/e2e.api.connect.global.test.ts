@@ -7,9 +7,7 @@ type DialectRecordWithDefault<T> = Partial<Record<DialectId, T>> &
   Record<"default", T>;
 type SchemaRecord = DialectRecordWithDefault<string>;
 
-for (const [dialect, adapter] of adapterEntries.filter(
-  ([d]) => d === "sqlite",
-)) {
+for (const [dialect, adapter] of adapterEntries) {
   const computeName = (name: string) => `e2e > api > ${dialect} > ${name}`;
   const test = (name: string, fn: TestFunction) => {
     // eslint-disable-next-line vitest/expect-expect, vitest/valid-title
@@ -176,7 +174,7 @@ for (const [dialect, adapter] of adapterEntries.filter(
             id serial primary key,
             "userId" integer not null references ${adapter.escapeIdentifier("User")}(id)
           );
-          INSERT INTO ${adapter.escapeIdentifier("User")} (id, fullName) VALUES (1, 'John Doe');
+          INSERT INTO ${adapter.escapeIdentifier("User")} ("id", "fullName") VALUES (nextval('"User_id_seq"'::regclass), 'John Doe');
         `,
       sqlite: `
           CREATE TABLE ${adapter.escapeIdentifier("User")} (
@@ -187,7 +185,7 @@ for (const [dialect, adapter] of adapterEntries.filter(
             id integer primary key autoincrement,
             "userId" integer not null references ${adapter.escapeIdentifier("User")}(id)
           );
-          INSERT INTO ${adapter.escapeIdentifier("User")} (id, fullName) VALUES (1, 'John Doe');
+          INSERT INTO ${adapter.escapeIdentifier("User")} ("id", "fullName") VALUES (1, 'John Doe');
         `,
       mysql: `
           CREATE TABLE ${adapter.escapeIdentifier("User")} (
@@ -199,7 +197,7 @@ for (const [dialect, adapter] of adapterEntries.filter(
             \`userId\` INT NOT NULL,
             FOREIGN KEY (\`userId\`) REFERENCES ${adapter.escapeIdentifier("User")}(id)
           );
-          INSERT INTO ${adapter.escapeIdentifier("User")} (id, fullName) VALUES (1, 'John Doe');
+          INSERT INTO ${adapter.escapeIdentifier("User")} (\`id\`, \`fullName\`) VALUES (1, 'John Doe');
         `,
     };
 
@@ -220,6 +218,9 @@ for (const [dialect, adapter] of adapterEntries.filter(
           await seed.users(x => x(1, ({
             posts: [{}, {}, {}]
           })))
+
+          // We create 3 more posts, those should be associated with the 1st use as it's our global default
+          await seed.posts(x => x(3))
         `,
     });
 
@@ -243,6 +244,18 @@ for (const [dialect, adapter] of adapterEntries.filter(
         {
           id: 3,
           userId: 5,
+        },
+        {
+          id: 4,
+          userId: 1,
+        },
+        {
+          id: 5,
+          userId: 1,
+        },
+        {
+          id: 6,
+          userId: 1,
         },
       ]),
     );
