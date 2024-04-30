@@ -75,9 +75,9 @@ export async function fetchUniqueConstraints(client: DatabaseClient) {
   const groupedResults: Record<
     string,
     Omit<
-      FetchUniqueConstraintsResult & {
+      {
         origin: FetchUniqueConstraintsResultRaw["idxOrigin"];
-      },
+      } & FetchUniqueConstraintsResult,
       "name"
     >
   > = {};

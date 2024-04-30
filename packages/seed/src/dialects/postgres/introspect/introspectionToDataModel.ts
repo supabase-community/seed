@@ -26,9 +26,9 @@ function getEnumName(
   return enumName;
 }
 
-type MinimalRelationship = Pick<Relationship, "fkTable" | "targetTable"> & {
+type MinimalRelationship = {
   keys: Array<Pick<Relationship["keys"][number], "fkColumn" | "targetColumn">>;
-};
+} & Pick<Relationship, "fkTable" | "targetTable">;
 function getModelName(
   introspection: { tables: Array<{ name: string; schema: string }> },
   table: Pick<IntrospectedStructure["tables"][number], "name" | "schema">,
@@ -53,10 +53,10 @@ function getParentRelationAndFieldName({
   introspection: IntrospectedStructure;
   parentRelation: MinimalRelationship;
   table: IntrospectedStructure["tables"][number];
-  targetTable: Pick<
+  targetTable: { parents: Array<MinimalRelationship> } & Pick<
     IntrospectedStructure["tables"][number],
     "name" | "schema"
-  > & { parents: Array<MinimalRelationship> };
+  >;
 }) {
   const modelName = getModelName(introspection, table);
   const targetModelName = getModelName(introspection, targetTable);

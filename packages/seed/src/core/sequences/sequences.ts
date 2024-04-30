@@ -2,7 +2,7 @@ import { type DataModel, type DataModelSequence } from "../dataModel/types.js";
 import { type UserModels } from "../userModels/types.js";
 
 function sequenceGeneratorFactory(
-  sequence: DataModelSequence & { current: number },
+  sequence: { current: number } & DataModelSequence,
 ) {
   return function* () {
     let current = sequence.current;

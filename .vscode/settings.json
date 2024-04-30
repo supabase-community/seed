@@ -3,7 +3,7 @@
     "source.fixAll.eslint": "explicit",
   },
   "editor.formatOnSave": false,
-  "eslint.experimental.useFlatConfig": true,
+  "eslint.useFlatConfig": true,
   "eslint.workingDirectories": [
     {
       "pattern": "./packages/*"
@@ -11,5 +11,4 @@
   ],
   "typescript.disableAutomaticTypeAcquisition": true,
   "typescript.tsdk": "node_modules/typescript/lib",
-  "vitest.nodeExecutable": ".devenv/profile/bin/node",
 }
