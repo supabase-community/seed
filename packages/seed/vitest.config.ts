@@ -18,6 +18,7 @@ export default defineProject({
     sequence: {
       shuffle: false,
     },
+    setupFiles: ["dotenv/config"],
   },
   esbuild: {
     target: "es2022",

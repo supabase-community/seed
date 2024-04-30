@@ -29,7 +29,6 @@ export const recommended = [
         sourceType: "module",
         ecmaVersion: "latest",
         project: "./tsconfig.json",
-        EXPERIMENTAL_useProjectService: true,
       },
     },
     settings: {

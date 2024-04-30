@@ -34,11 +34,11 @@ interface IntrospectedStructureBase {
 export interface IntrospectedStructure extends IntrospectedStructureBase {
   sequences?: Record<string, Sequences>;
   tables: Array<
-    IntrospectedStructureBase["tables"][number] &
-      GroupedRelationshipsValue & {
-        primaryKeys: PrimaryKeys[number] | null;
-        uniqueConstraints?: UniqueConstraints;
-      }
+    {
+      primaryKeys: PrimaryKeys[number] | null;
+      uniqueConstraints?: UniqueConstraints;
+    } & GroupedRelationshipsValue &
+      IntrospectedStructureBase["tables"][number]
   >;
 }
 

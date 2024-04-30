@@ -167,5 +167,5 @@ export function sortModels(dataModel: DataModel) {
 
   return [...sortOp.sort().values()]
     .reverse()
-    .map((m) => m.node as DataModelModel & { modelName: string });
+    .map((m) => m.node as { modelName: string } & DataModelModel);
 }

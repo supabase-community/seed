@@ -102,7 +102,7 @@ for (const [
       // patch the package.json file with the package manager and its version
       const packageJson = JSON.parse(
         await readFile(join(cwd, "package.json"), "utf-8"),
-      ) as Record<string, string> & { packageManager: string };
+      ) as { packageManager: string } & Record<string, string>;
       packageJson.packageManager = `${packageManager}@${version}`;
       await writeFile(
         join(cwd, "package.json"),

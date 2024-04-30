@@ -78,7 +78,7 @@ export async function fetchPrimaryKeys(client: DatabaseClient) {
   const groupedTableColumnsInfos = tableColumnsInfos.reduce<
     Record<
       string,
-      Array<FetchTableAndColumnsResultRaw & { affinity: SQLiteAffinity }>
+      Array<{ affinity: SQLiteAffinity } & FetchTableAndColumnsResultRaw>
     >
   >((acc, row) => {
     if (!acc[row.tableId]) {
