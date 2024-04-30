@@ -35,7 +35,7 @@ export async function syncHandler(args: { isInit?: boolean; output?: string }) {
   const hasProjectId = Boolean((await getProjectConfig()).projectId)
   const canUseAI = (isLoggedIn && hasProjectId)
 
-  if (!process.env["SNAPLET_DISABLE_AI"] || canUseAI) {
+  if (!process.env["SNAPLET_DISABLE_AI"] && canUseAI) {
     await predictHandler({ isInit: args.isInit });
   }
 

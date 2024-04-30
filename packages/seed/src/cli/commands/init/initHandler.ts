@@ -32,6 +32,7 @@ export async function initHandler(args: {
   console.log(welcomeText);
 
   const projectConfig = await getProjectConfig();
+  let isLoggedIn = Boolean(user)
 
   if (!user) {
     const shouldUseSnapletAI = await confirm({
@@ -41,10 +42,14 @@ export async function initHandler(args: {
 
     if (shouldUseSnapletAI === true) {
       await loginHandler();
+      isLoggedIn = true
     }
   }
 
-  await linkHandler();
+  if (!projectConfig.projectId && isLoggedIn) {
+    await linkHandler();
+  }
+
   const adapter = projectConfig.adapter ? adapters[projectConfig.adapter] : await getAdapter();
   await installDependencies({ adapter });
   await saveSeedConfig({ adapter });
