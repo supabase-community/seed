@@ -5,6 +5,7 @@ export async function getDialect() {
 
   const config = await getConfig({
     datamodel: await getSchema(),
+    ignoreEnvVarErrors: true,
   });
 
   const provider = config.datasources.at(0)?.provider;
