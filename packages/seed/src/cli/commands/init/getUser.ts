@@ -2,7 +2,7 @@ import { checkIsLoggedIn } from '#cli/lib/isLoggedIn.js';
 import { trpc } from "#trpc/client.js";
 
 export async function getUser() {
-  if (!checkIsLoggedIn()) {
+  if (!(await checkIsLoggedIn())) {
     return null
   }
 
