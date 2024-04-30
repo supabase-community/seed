@@ -1,13 +1,13 @@
 import path from "node:path";
-import { dotSnapletPathExists } from "#config/dotSnaplet.js";
-import { projectConfigExists } from "#config/project/projectConfig.js";
+import { getAdapter } from "#adapters/getAdapter.js";
+import { getProjectConfig } from "#config/project/projectConfig.js";
 import { seedConfigExists } from "#config/seedConfig/seedConfig.js";
 import { highlight } from "../../lib/output.js";
 import { linkHandler } from "../link/linkHandler.js";
 import { loginHandler } from "../login/loginHandler.js";
 import { syncHandler } from "../sync/syncHandler.js";
+import { adapterHandler } from "./adapterHandler.js";
 import { generateSeedScriptExample } from "./generateSeedScriptExample.js";
-import { getAdapter } from "./getAdapter.js";
 import { getUser } from "./getUser.js";
 import { installDependencies } from "./installDependencies.js";
 import { saveSeedConfig } from "./saveSeedConfig.js";
@@ -28,17 +28,6 @@ export async function loggedCommandPrerun(
   if (!user) {
     await loginHandler();
   }
-
-  const seedConfigExist = await seedConfigExists();
-  const projectConfigExist = await projectConfigExists();
-  const dotSnapletExist = await dotSnapletPathExists();
-  const isFirstTimeInit = !seedConfigExist || !projectConfigExist;
-  return {
-    isFirstTimeInit,
-    seedConfigExist,
-    projectConfigExist,
-    dotSnapletExist,
-  };
 }
 
 export async function initHandler(args: { directory: string }) {
@@ -48,17 +37,31 @@ export async function initHandler(args: { directory: string }) {
     "seed.config.ts",
   );
 
-  const { isFirstTimeInit } = await loggedCommandPrerun({ showWelcome: true });
-  if (isFirstTimeInit) {
+  await loggedCommandPrerun({ showWelcome: true });
+
+  const projectConfig = await getProjectConfig();
+
+  if (!projectConfig.projectId) {
     await linkHandler();
-    const adapter = await getAdapter();
-    await installDependencies({ adapter });
+  }
+
+  if (!projectConfig.adapter) {
+    await adapterHandler();
+  }
+
+  const adapter = await getAdapter();
+
+  await installDependencies({ adapter });
+
+  const seedConfigExist = await seedConfigExists();
+
+  if (!seedConfigExist) {
     await saveSeedConfig({ adapter });
   }
 
   await syncHandler({});
 
-  if (isFirstTimeInit) {
+  if (!seedConfigExist) {
     await generateSeedScriptExample();
   }
 
