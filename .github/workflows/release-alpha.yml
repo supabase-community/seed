@@ -3,7 +3,7 @@ name: Release Alpha
 on:
   push:
     branches:
-      - main
+      - next
 
 concurrency:
   group: release-alpha-${{ github.ref }}
@@ -26,7 +26,7 @@ jobs:
 
       - name: Setup
         uses: ./.github/actions/setup
-    
+
       - name: Set short-sha
         id: short-sha
         run: echo "sha_short=$(git rev-parse --short HEAD)" >> $GITHUB_OUTPUT
@@ -36,7 +36,7 @@ jobs:
           echo '//registry.npmjs.org/:_authToken=${NODE_AUTH_TOKEN}' >> .npmrc && \
           echo "registry=https://registry.npmjs.org/" >> .npmrc && \
           echo "always-auth=true" >> .npmrc
-      
+
       - name: Publish alpha package
         run: pnpm -F @snaplet/seed run release:alpha
         env:
