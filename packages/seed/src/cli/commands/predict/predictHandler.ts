@@ -20,13 +20,7 @@ import {
 } from "#core/utils.js";
 import { getDialect } from "#dialects/getDialect.js";
 import { trpc } from "#trpc/client.js";
-import {
-  bold,
-  brightGreen,
-  highlight,
-  link,
-  spinner,
-} from "../../lib/output.js";
+import { bold, brightGreen, link, spinner } from "../../lib/output.js";
 import { listenForKeyPress } from "./listenForKeyPress.js";
 
 export async function predictHandler({
@@ -70,10 +64,6 @@ export async function predictHandler({
     console.log(
       `ℹ You can tell us more about your data to further ${brightGreen("improve the results")} over here: ${link(`${SNAPLET_APP_URL}/o/${organization.id}/p/${projectConfig.projectId}/seed`)}`,
     );
-    console.log();
-    console.log(
-      `ℹ Data generation **taking too long**? Hit '${highlight("s")}' to skip and proceed with basic data and continue AI data generation in the cloud. You'll be able to use your AI-generated data once complete.`,
-    );
 
     let columns = columnsToPredict(dataModel, dialect.determineShapeFromType);
     const inputs = columns.map((c) =>
@@ -94,21 +84,30 @@ export async function predictHandler({
       waitForShapePredictions,
     )();
 
+    const skipMessage = `ℹ Data generation ${bold("taking too long")}? Hit '${brightGreen("s")}' to skip and continue AI data generation in the cloud. You'll be able to use your AI-generated data once complete.`;
+
+    const displayEnhanceProgress = (percent?: number) =>
+      [
+        `${percent ? "[ ${percent}% ] " : ""}Enhancing your generated data using ${bold("Snaplet AI")} 🤖`,
+        skipMessage,
+      ].join("\n\n");
+
     const promisedDataGeneration = timers.dataGenerationWait.wrap(
       waitForDataGeneration,
     )({
       isInit,
       onProgress({ percent }) {
         if (percent > 0) {
-          spinner.text = `[ ${percent}% ] Enhancing your generated data using ${bold("Snaplet AI")} 🤖`;
+          spinner.text = displayEnhanceProgress(percent);
         }
       },
     });
-
     const shapePredictions = await promisedShapePrediction;
     await setShapePredictions(shapePredictions);
 
     const sKeyPress = listenForKeyPress("s");
+
+    spinner.text = displayEnhanceProgress();
 
     const dataGenerationResult = await Promise.race([
       promisedDataGeneration.then(() => "COMPLETE"),
@@ -118,10 +117,11 @@ export async function predictHandler({
     // context(justinvdm, 30 Apr 2024): Manually stop the timer in case the user cancelled
     timers.dataGenerationWait.stop();
 
+    spinner.clear();
+
     if (dataGenerationResult === "CANCELLED_BY_USER") {
-      console.log();
       console.log(
-        `ℹ AI Data generation ${highlight("skipped")} for now - you can use the data already generated. Snaplet AI data generation will ${bold("continue in the cloud")}. Once completed, you can use this data with ${bold("npx @snaplet/seed sync")}`,
+        `ℹ AI Data generation ${bold("skipped")} for now - you can use the data already generated. Snaplet AI data generation will ${bold("continue in the cloud")}. Once completed, you can use this data with ${bold("npx @snaplet/seed sync")}`,
       );
     }
 
