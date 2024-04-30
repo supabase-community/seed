@@ -1,4 +1,4 @@
-import { checkIsLoggedIn } from '#cli/lib/isLoggedIn.js';
+import { getUser } from '#cli/lib/getUser.js';
 import { dotSnapletPathExists, getDotSnapletPath } from "#config/dotSnaplet.js";
 import { getProjectConfig, getProjectConfigPath, projectConfigExists } from "#config/project/projectConfig.js";
 import { getSeedConfigPath, seedConfigExists } from "#config/seedConfig/seedConfig.js";
@@ -31,7 +31,7 @@ export async function syncHandler(args: { isInit?: boolean; output?: string }) {
   await ensureCanSync();
   await introspectHandler();
 
-  const isLoggedIn = await checkIsLoggedIn()
+  const isLoggedIn = Boolean(await getUser())
   const hasProjectId = Boolean((await getProjectConfig()).projectId)
   const canUseAI = (isLoggedIn && hasProjectId)
 

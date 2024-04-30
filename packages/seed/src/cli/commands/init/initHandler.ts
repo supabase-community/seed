@@ -6,13 +6,13 @@ import { bold, highlight } from "../../lib/output.js";
 import { linkHandler } from "../link/linkHandler.js";
 import { loginHandler } from "../login/loginHandler.js";
 import { syncHandler } from "../sync/syncHandler.js";
-import { adapterHandler } from "./adapterHandler.js";
 import { generateSeedScriptExample } from "./generateSeedScriptExample.js";
-import { getUser } from "./getUser.js";
 import { installDependencies } from "./installDependencies.js";
 import { saveSeedConfig } from "./saveSeedConfig.js";
 import { adapters } from '#adapters/index.js';
 import { seedConfigExists } from '#config/seedConfig/seedConfig.js';
+import { getUser } from '#cli/lib/getUser.js';
+import { getAdapter } from '#adapters/getAdapter.js';
 
 export async function initHandler(args: {
   directory: string;
