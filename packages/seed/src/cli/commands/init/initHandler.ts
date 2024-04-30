@@ -13,6 +13,7 @@ import { syncHandler } from "../sync/syncHandler.js";
 import { generateSeedScriptExample } from "./generateSeedScriptExample.js";
 import { installDependencies } from "./installDependencies.js";
 import { saveSeedConfig } from "./saveSeedConfig.js";
+import { adapterHandler } from './adapterHandler.js';
 
 export async function initHandler(args: {
   directory: string;
@@ -53,7 +54,8 @@ export async function initHandler(args: {
 
   const adapter = projectConfig.adapter
     ? adapters[projectConfig.adapter]
-    : await getAdapter();
+    : await adapterHandler();
+
   await installDependencies({ adapter });
 
   if (!(await seedConfigExists())) {
