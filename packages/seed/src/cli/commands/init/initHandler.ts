@@ -1,7 +1,6 @@
 import { confirm } from "@inquirer/prompts";
 import boxen from "boxen";
 import path from "node:path";
-import { getAdapter } from "#adapters/getAdapter.js";
 import { adapters } from "#adapters/index.js";
 import { getUser } from "#cli/lib/getUser.js";
 import { getProjectConfig } from "#config/project/projectConfig.js";
