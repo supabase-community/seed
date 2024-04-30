@@ -253,12 +253,22 @@ export function jsonStringify(
 
 export function createTimer() {
   const start = () => {
+    if (self.started) {
+      return;
+    }
+
+    self.started = true;
     self.startTime = Date.now();
     self.endTime = 0;
     self.duration = 0;
   };
 
   const stop = () => {
+    if (!self.started) {
+      return;
+    }
+
+    self.started = false;
     self.endTime = Date.now();
     self.duration = self.endTime - self.startTime;
   };
@@ -281,6 +291,7 @@ export function createTimer() {
   };
 
   const self = {
+    started: false,
     startTime: 0,
     endTime: 0,
     duration: 0,
@@ -300,7 +311,7 @@ export const serializeTimerDurations = (
   const results: Partial<Record<string, number>> = {};
 
   for (const key of Object.keys(timers)) {
-    results[key] = timers[key].duration;
+    results[key + "Duration"] = timers[key].duration;
   }
 
   return results as Record<string, number>;

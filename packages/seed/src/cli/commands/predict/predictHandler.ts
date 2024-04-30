@@ -48,36 +48,12 @@ export async function predictHandler({
     const dataExamples: Array<DataExample> = [];
     const projectConfig = await getProjectConfig();
     const seedConfig = await getSeedConfig();
+
     if (!projectConfig.projectId) {
       throw new SnapletError("SNAPLET_PROJECT_CONFIG_NOT_FOUND", {
         path: await getProjectConfigPath(),
       });
     }
-
-    let columns = columnsToPredict(dataModel, dialect.determineShapeFromType);
-    const inputs = columns.map((c) =>
-      formatInput([c.schemaName, c.tableName, c.columnName]),
-    );
-
-    const tableNames = Object.values(dataModel.models).map((m) => m.id);
-
-    let { waitForDataGeneration } = await timers.dataGenerationStart.wrap(
-      startDataGeneration,
-    )(projectConfig.projectId, dataModel, seedConfig.fingerprint);
-
-    let { waitForShapePredictions } = await timers.shapePredictionStart.wrap(
-      fetchShapePredictions,
-    )(columns, tableNames, projectConfig.projectId);
-
-    waitForDataGeneration = timers.dataGenerationWait.wrap(
-      waitForDataGeneration,
-    );
-    waitForShapePredictions = timers.shapePredictionWait.wrap(
-      waitForShapePredictions,
-    );
-
-    const shapePredictions = await waitForShapePredictions();
-    await setShapePredictions(shapePredictions);
 
     const organization =
       await trpc.organization.organizationGetByProjectId.query({
@@ -90,19 +66,48 @@ export async function predictHandler({
     );
     console.log(`ℹ You can skip this step by hitting the ${bold("s")} key`);
 
+    let columns = columnsToPredict(dataModel, dialect.determineShapeFromType);
+    const inputs = columns.map((c) =>
+      formatInput([c.schemaName, c.tableName, c.columnName]),
+    );
+
+    const tableNames = Object.values(dataModel.models).map((m) => m.id);
+
+    const { waitForDataGeneration } = await timers.dataGenerationStart.wrap(
+      startDataGeneration,
+    )(projectConfig.projectId, dataModel, seedConfig.fingerprint);
+
+    const { waitForShapePredictions } = await timers.shapePredictionStart.wrap(
+      fetchShapePredictions,
+    )(columns, tableNames, projectConfig.projectId);
+
+    const promisedShapePrediction = timers.shapePredictionWait.wrap(
+      waitForShapePredictions,
+    )();
+
+    const promisedDataGeneration = timers.dataGenerationWait.wrap(
+      waitForDataGeneration,
+    )({
+      isInit,
+      onProgress({ percent }) {
+        if (percent > 0) {
+          spinner.text = `[ ${percent}% ] Enhancing your generated data using ${bold("Snaplet AI")} 🤖`;
+        }
+      },
+    });
+
+    const shapePredictions = await promisedShapePrediction;
+    await setShapePredictions(shapePredictions);
+
     const sKeyPress = listenForKeyPress("s");
 
     const dataGenerationResult = await Promise.race([
-      waitForDataGeneration({
-        isInit,
-        onProgress({ percent }) {
-          if (percent > 0) {
-            spinner.text = `[ ${percent}% ] Enhancing your generated data using ${bold("Snaplet AI")} 🤖`;
-          }
-        },
-      }).then(() => "COMPLETE"),
+      promisedDataGeneration.then(() => "COMPLETE"),
       sKeyPress.promise.then(() => "CANCELLED_BY_USER" as const),
     ]);
+
+    // context(justinvdm, 30 Apr 2024): Manually stop the timer in case the user cancelled
+    timers.dataGenerationWait.stop();
 
     if (dataGenerationResult === "CANCELLED_BY_USER") {
       console.log();
@@ -112,6 +117,7 @@ export async function predictHandler({
     }
 
     spinner.text = `Fetching ${bold("Snaplet AI")} results 🤖`;
+
     const shapeExamples =
       await timers.shapeExamplesFetch.wrap(fetchShapeExamples)(
         shapePredictions,
@@ -147,8 +153,8 @@ export async function predictHandler({
 
     await telemetry.captureEvent("$action:predict:end", {
       skippedByUser: dataGenerationResult === "CANCELLED_BY_USER",
-      durations,
       isInit,
+      ...durations,
     });
 
     return { ok: true };

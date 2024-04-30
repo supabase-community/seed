@@ -84,7 +84,7 @@ const computeDataGenerationProgressPercent = (
     0,
   );
 
-  return (jobTotal / seenJobs.size) * 100;
+  return Math.round((jobTotal / seenJobs.size) * 100);
 };
 
 type WaitForDataGeneration = (options?: {
