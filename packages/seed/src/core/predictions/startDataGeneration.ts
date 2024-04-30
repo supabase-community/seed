@@ -7,7 +7,7 @@ import { trpc } from "#trpc/client.js";
 import { formatInput } from "./utils.js";
 
 const POLL_INTERVAL = 1000;
-const MAX_START_WAIT = 1000 * 3;
+const MAX_START_WAIT = 1000 * 5;
 
 type DataGenerationJob = Awaited<
   ReturnType<

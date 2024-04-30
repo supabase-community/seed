@@ -60,11 +60,13 @@ export async function initHandler(args: {
 
   await syncHandler({ isInit: true });
 
-  console.log(boxen(`To enhance your data with Snaplet AI, just rerun ${bold('npx @snaplet/seed init')}`, {
-    padding: 1,
-    margin: 1,
-    borderStyle: 'bold'
-  }))
+  if (!isLoggedIn) {
+    console.log(boxen(`To enhance your data with Snaplet AI, just rerun ${bold('npx @snaplet/seed init')}`, {
+      padding: 1,
+      margin: 1,
+      borderStyle: 'bold'
+    }))
+  }
 
   await generateSeedScriptExample();
 
