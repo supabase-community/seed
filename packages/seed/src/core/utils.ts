@@ -303,7 +303,7 @@ export function createTimer() {
   return self;
 }
 
-export type Timer = ReturnType<typeof createTimer>;
+type Timer = ReturnType<typeof createTimer>;
 
 export const serializeTimerDurations = (
   timers: Record<string, Timer>,
