@@ -15,19 +15,19 @@ import { introspectHandler } from "../introspect/introspectHandler.js";
 import { predictHandler } from "../predict/predictHandler.js";
 
 async function ensureCanSync() {
-  if (!seedConfigExists()) {
+  if (!await seedConfigExists()) {
     throw new SnapletError("SEED_CONFIG_NOT_FOUND", {
       path: await getSeedConfigPath(),
     });
   }
 
-  if (!dotSnapletPathExists()) {
+  if (!await dotSnapletPathExists()) {
     throw new SnapletError("SNAPLET_FOLDER_NOT_FOUND", {
       path: await getDotSnapletPath(),
     });
   }
 
-  if (!projectConfigExists()) {
+  if (!await projectConfigExists()) {
     throw new SnapletError("SNAPLET_PROJECT_CONFIG_NOT_FOUND", {
       path: await getProjectConfigPath(),
     });
