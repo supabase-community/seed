@@ -9,8 +9,8 @@ on:
       - 'packages/seed/package.json'
 
 concurrency:
-  group: release-latest-${{ github.ref }}
-  cancel-in-progress: true
+  group: release-npm
+  cancel-in-progress: false
 
 defaults:
   run:
