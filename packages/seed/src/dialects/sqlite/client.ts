@@ -15,7 +15,28 @@ import { patchUserModelsSequences } from "#core/sequences/sequences.js";
 import { type UserModels } from "#core/userModels/types.js";
 import { fetchSequences } from "./introspect/queries/fetchSequences.js";
 import { SqliteStore } from "./store.js";
-import { escapeIdentifier } from "./utils.js";
+import { escapeIdentifier, escapeLiteral } from "./utils.js";
+
+async function resetSequences(
+  db: DatabaseClient,
+  sequencesIdentifiers: Array<string>,
+) {
+  // In some case, if the sqlite database have not one single AUTOINCREMENT field, the sqlite_sequence table is not created
+  // In that case, the "sequences" will be driven by the rowid of the table which will be reset by the DELETE FROM table query.
+  // So we need to check if the table exists before trying to reset the sequences values in it.
+  const hasSqliteSequenceTable = await db.query<{ hasSequenceTable: boolean }>(
+    `SELECT COUNT(1) as hasSequenceTable FROM sqlite_master WHERE type = 'table' AND name = 'sqlite_sequence'`,
+  );
+  const { hasSequenceTable } = hasSqliteSequenceTable[0];
+  if (!hasSequenceTable) {
+    return;
+  }
+  for (const sequenceIdentifier of sequencesIdentifiers) {
+    await db.execute(
+      `UPDATE sqlite_sequence SET seq = 0 WHERE name = ${escapeLiteral(sequenceIdentifier)}`,
+    );
+  }
+}
 
 export const getSeedClient: GetSeedClient = (props) => {
   process.env["SNAPLET_SEED_CONFIG"] = props.seedConfigPath;
@@ -66,15 +87,15 @@ export const getSeedClient: GetSeedClient = (props) => {
         }
         await this.db.execute("PRAGMA foreign_keys = ON");
         // reset sequences
+        const sequencesIdentifiers = [];
         for (const model of filteredModels) {
           for (const field of model.fields) {
             if (field.sequence && field.sequence.identifier !== null) {
-              await this.db.execute(
-                `UPDATE sqlite_sequence SET seq = 0 WHERE name = '${field.sequence.identifier}'`,
-              );
+              sequencesIdentifiers.push(field.sequence.identifier);
             }
           }
         }
+        await resetSequences(this.db, sequencesIdentifiers);
         this.state = this.getInitialState();
         await this.$syncDatabase();
       }
