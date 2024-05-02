@@ -51,6 +51,6 @@ export async function generateSeedScriptExample() {
   );
 
   spinner.warn(
-    `Executing this script will delete all data in your database and seed it with 10 ${model.modelName}. Make sure to adjust the script to your needs.`,
+    `Executing this script will delete all data in your database and seed it with 10 ${model.modelName}. Make sure to adjust the script to your needs`,
   );
 }

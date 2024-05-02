@@ -3,7 +3,7 @@ import { updateProjectConfig } from "#config/project/projectConfig.js";
 import { getInstalledDependencies } from "#config/utils.js";
 import { selectAdapterFromPrompt } from "./selectAdapterFromPrompt.js";
 
-export async function getAdapter() {
+export async function adapterHandler() {
   const adapter = await selectAdapter();
   await updateProjectConfig({ adapter: adapter.id });
   return adapter;
