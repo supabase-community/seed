@@ -26,13 +26,8 @@ jobs:
       - name: Setup
         uses: ./.github/actions/setup
 
-      - name: Setup npmrc auth for publish
-        run: |
-          echo '//registry.npmjs.org/:_authToken=${NODE_AUTH_TOKEN}' >> .npmrc && \
-          echo "registry=https://registry.npmjs.org/" >> .npmrc && \
-          echo "always-auth=true" >> .npmrc
-
-      - name: Publish latest package
-        run: pnpm -F @snaplet/seed run release:latest
-        env:
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+      - name: Publish
+        uses: ./.github/actions/publish
+        with:
+          channel: latest
+          token: ${{ secrets.NPM_TOKEN }}
