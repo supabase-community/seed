@@ -97,7 +97,15 @@ export async function initHandler(args: {
     await saveSeedConfig({ adapter });
   }
 
+  await telemetry.captureEvent("$action:init:step:config", {
+    isLoggedIn,
+  });
+
   await syncHandler({ isInit: true });
+
+  await telemetry.captureEvent("$action:init:step:sync", {
+    isLoggedIn,
+  });
 
   const seedScriptExamplePath = await generateSeedScriptExample();
 
