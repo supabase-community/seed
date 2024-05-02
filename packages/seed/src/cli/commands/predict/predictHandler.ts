@@ -119,7 +119,7 @@ export async function predictHandler({
     spinner.clear();
 
     if (dataGenerationResult === "CANCELLED_BY_USER") {
-      console.log(
+      spinner.info(
         `ℹ Sample data generation ${bold("skipped")} for now - you can use the data already generated. Snaplet AI data generation will ${bold("continue in the cloud")}. Once completed, you can use this data with ${bold("npx @snaplet/seed sync")}`,
       );
       console.log();

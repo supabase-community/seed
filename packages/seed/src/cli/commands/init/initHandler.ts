@@ -31,7 +31,7 @@ export async function initHandler(args: {
 
   const welcomeText = user
     ? `Welcome back ${highlight(user.email)}! 😻`
-    : `Welcome to ${bold("@snaplet/seed")}! Snaplet Seed populates your database with realistic, production-like mock data ✨✨`;
+    : `Welcome to ${bold("@snaplet/seed")}! Snaplet Seed populates your database with realistic, production-like mock data ✨`;
 
   console.log();
   console.log(welcomeText);
