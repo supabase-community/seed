@@ -20,8 +20,6 @@ export async function loginHandler(args?: { accessToken?: string }) {
       `Please sign up/in and get your auth token: ${link(accessTokenUrl)}`,
     );
     console.log();
-    console.log(link(accessTokenUrl));
-    console.log();
     spinner.start(`Waiting for authentication`);
 
     accessToken = await getAccessTokenFromHttpServer(port);
