@@ -100,7 +100,7 @@ export async function initHandler(args: {
   }
 
   await telemetry.captureEvent("$action:init:step:config", {
-    hadSeedConfig,
+    hadConfig: hadSeedConfig,
     isLoggedIn,
   });
 
