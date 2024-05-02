@@ -13,6 +13,7 @@ export async function saveSeedConfig({ adapter }: { adapter: Adapter }) {
 
   const seedConfigPath = await getSeedConfigPath();
 
+  console.log();
   spinner.succeed(
     `Seed configuration saved to ${link(pathToFileURL(seedConfigPath).toString())}`,
   );

@@ -1,3 +1,4 @@
+import dedent from "dedent";
 import { pathToFileURL } from "node:url";
 import { getDatabaseClient } from "#adapters/getDatabaseClient.js";
 import {
@@ -5,11 +6,12 @@ import {
   setDataModelConfig,
 } from "#config/dataModelConfig.js";
 import { getDialect } from "#dialects/getDialect.js";
-import { link, spinner } from "../../lib/output.js";
+import { dim, link, spinner } from "../../lib/output.js";
 
 export async function introspectHandler() {
   try {
-    spinner.start(`Introspecting your database`);
+    console.log();
+    spinner.start(`Analysing your database structure 🔍`);
 
     const dialect = await getDialect();
     const databaseClient = await getDatabaseClient();
@@ -27,11 +29,15 @@ export async function introspectHandler() {
     // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
     const dataModelConfigPath = (await getDataModelConfigPath())!;
     spinner.succeed(
-      `Introspected ${Object.keys(dataModel.models).length} models and wrote them into ${link(pathToFileURL(dataModelConfigPath).toString())}`,
+      dedent`
+    Database structure analyzed, data model saved to: ${link(pathToFileURL(dataModelConfigPath).toString())}
+
+    ${dim("The data model represents the structure of your database, and is used by Seed to generate realistic data 🔍")}
+  ` + "\n",
     );
     return { ok: true };
   } catch (error) {
-    spinner.fail(`Introspection failed`);
+    spinner.fail(`Database analysis failed`);
     throw error;
   }
 }

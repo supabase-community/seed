@@ -287,5 +287,100 @@ describe.concurrent.each(["postgres"] as const)(
       const constraints = await fetchUniqueConstraints(db.client);
       expect(constraints).toEqual([]);
     });
+
+    test("should get all the constraints with a mix between primary key, unique, and unique indexes constraints", async () => {
+      const structure = `
+        CREATE TABLE "channel_thread_message" (
+            "id" UUID NOT NULL,
+            "user_id" UUID NOT NULL,
+            "channel_thread_id" UUID NOT NULL,
+            "message" TEXT NOT NULL UNIQUE,
+            "unique_nullable" TEXT UNIQUE NULL,
+            "unique_nullable_with_index" TEXT,
+            "unique_notnull_with_index" TEXT NOT NULL,
+            "created_at" TIMESTAMPTZ(6) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+            "updated_at" TIMESTAMPTZ(6) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+        
+            CONSTRAINT "channel_thread_message_pkey" PRIMARY KEY ("id")
+        );
+        CREATE UNIQUE INDEX "channel_thread_message_uniquenullable" ON "channel_thread_message"("unique_nullable_with_index");
+        CREATE UNIQUE INDEX "channel_thread_message_uniquenotnullable" ON "channel_thread_message"("unique_notnull_with_index");
+        CREATE UNIQUE INDEX "composite_unique" ON "channel_thread_message"("user_id", "channel_thread_id");
+        CREATE UNIQUE INDEX "composite_unique_not_nullable" ON "channel_thread_message"("user_id", "channel_thread_id", "unique_notnull_with_index");
+      `;
+
+      const db = await createTestDb(structure);
+      const constraints = await fetchUniqueConstraints(db.client);
+
+      expect(constraints).toEqual([
+        {
+          tableId: "public.channel_thread_message",
+          schema: "public",
+          table: "channel_thread_message",
+          dirty: false,
+          name: "channel_thread_message_message_key",
+          columns: ["message"],
+          nullNotDistinct: false,
+        },
+        {
+          tableId: "public.channel_thread_message",
+          schema: "public",
+          table: "channel_thread_message",
+          dirty: false,
+          name: "channel_thread_message_pkey",
+          columns: ["id"],
+          nullNotDistinct: false,
+        },
+        {
+          tableId: "public.channel_thread_message",
+          schema: "public",
+          table: "channel_thread_message",
+          dirty: false,
+          name: "channel_thread_message_unique_nullable_key",
+          columns: ["unique_nullable"],
+          nullNotDistinct: false,
+        },
+        {
+          tableId: "public.channel_thread_message",
+          schema: "public",
+          table: "channel_thread_message",
+          dirty: false,
+          name: "channel_thread_message_uniquenotnullable",
+          columns: ["unique_notnull_with_index"],
+          nullNotDistinct: false,
+        },
+        {
+          tableId: "public.channel_thread_message",
+          schema: "public",
+          table: "channel_thread_message",
+          dirty: false,
+          name: "channel_thread_message_uniquenullable",
+          columns: ["unique_nullable_with_index"],
+          nullNotDistinct: false,
+        },
+        {
+          tableId: "public.channel_thread_message",
+          schema: "public",
+          table: "channel_thread_message",
+          dirty: false,
+          name: "composite_unique",
+          columns: ["channel_thread_id", "user_id"],
+          nullNotDistinct: false,
+        },
+        {
+          tableId: "public.channel_thread_message",
+          schema: "public",
+          table: "channel_thread_message",
+          dirty: false,
+          name: "composite_unique_not_nullable",
+          columns: [
+            "channel_thread_id",
+            "unique_notnull_with_index",
+            "user_id",
+          ],
+          nullNotDistinct: false,
+        },
+      ]);
+    });
   },
 );

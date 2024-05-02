@@ -71,10 +71,59 @@ ORDER BY
     tc.constraint_name;
 `;
 
+const FETCH_UNIQUE_INDEXES = `
+SELECT
+    CONCAT(idx.schemaname, '.', idx.tablename) AS "tableId",
+    idx.schemaname AS "schema",
+    idx.tablename AS "table",
+    FALSE AS "dirty",
+    idx.indexname AS "name",
+    json_agg(att.attname ORDER BY att.attname) AS "columns",
+    FALSE AS "nullNotDistinct"
+FROM
+    pg_indexes AS idx
+JOIN
+    pg_class AS cls ON cls.relname = idx.indexname
+JOIN
+    pg_index AS ind ON ind.indexrelid = cls.oid
+JOIN
+    pg_attribute AS att ON att.attrelid = ind.indrelid AND att.attnum = ANY(ind.indkey)
+WHERE
+    ${buildSchemaExclusionClause("idx.schemaname")}
+    AND ind.indisunique = TRUE
+    AND NOT ind.indisprimary
+GROUP BY
+    idx.schemaname,
+    idx.tablename,
+    idx.indexname
+ORDER BY
+    idx.schemaname,
+    idx.tablename,
+    idx.indexname;
+`;
+
 export async function fetchUniqueConstraints(client: DatabaseClient) {
-  const response = await client.query<FetchUniqueConstraintsResult>(
+  const results: Array<FetchUniqueConstraintsResult> = [];
+  const uniqueConstraints = await client.query<FetchUniqueConstraintsResult>(
     FETCH_UNIQUE_CONSTRAINTS,
   );
 
-  return response;
+  const uniqueIndexes =
+    await client.query<FetchUniqueConstraintsResult>(FETCH_UNIQUE_INDEXES);
+
+  const constraints = new Set();
+  for (const constraint of uniqueConstraints) {
+    // Save the constraint to the set to avoid duplicates with unique indexes
+    constraints.add(
+      `${constraint.tableId}.${JSON.stringify(constraint.columns)}`,
+    );
+    results.push(constraint);
+  }
+  for (const index of uniqueIndexes) {
+    // Check if the unique index is already a unique constraint
+    if (!constraints.has(`${index.tableId}.${JSON.stringify(index.columns)}`)) {
+      results.push(index);
+    }
+  }
+  return results;
 }
