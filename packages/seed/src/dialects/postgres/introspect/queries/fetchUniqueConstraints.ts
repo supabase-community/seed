@@ -78,7 +78,7 @@ SELECT
     idx.tablename AS "table",
     FALSE AS "dirty",
     idx.indexname AS "name",
-    json_agg(att.attname ORDER BY att.attnum) AS "columns",
+    json_agg(att.attname ORDER BY att.attname) AS "columns",
     FALSE AS "nullNotDistinct"
 FROM
     pg_indexes AS idx

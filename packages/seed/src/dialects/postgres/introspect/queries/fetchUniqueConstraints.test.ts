@@ -364,7 +364,7 @@ describe.concurrent.each(["postgres"] as const)(
           table: "channel_thread_message",
           dirty: false,
           name: "composite_unique",
-          columns: ["user_id", "channel_thread_id"],
+          columns: ["channel_thread_id", "user_id"],
           nullNotDistinct: false,
         },
         {
@@ -374,9 +374,9 @@ describe.concurrent.each(["postgres"] as const)(
           dirty: false,
           name: "composite_unique_not_nullable",
           columns: [
-            "user_id",
             "channel_thread_id",
             "unique_notnull_with_index",
+            "user_id",
           ],
           nullNotDistinct: false,
         },
