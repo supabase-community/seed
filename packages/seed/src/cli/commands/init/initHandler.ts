@@ -113,11 +113,13 @@ export async function initHandler(args: {
   const seedScriptExamplePath = await generateSeedScriptExample();
 
   if (isLoggedIn) {
+    // context(justinvdm, 02 May 2024): At this point, we've linked the project
+    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+    const projectId = (await getProjectConfig()).projectId!;
+
     const organization =
       await trpc.organization.organizationGetByProjectId.query({
-        // context(justinvdm, 02 May 2024): At this point, we've linked the project
-        // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-        projectId: (await getProjectConfig()).projectId!,
+        projectId,
       });
 
     console.log(
@@ -130,7 +132,7 @@ export async function initHandler(args: {
         ${bold("$")} npx tsx seed.ts  ${dim("# Run your seed script")}
 
         ${bold("2. Refine your data (optional)")} 🔧
-        Customize your AI-generated data using our Data Generator: ${link(`${SNAPLET_APP_URL}/o/${organization.id}/p/${projectConfig.projectId}/seed`)}
+        Customize your AI-generated data using our Data Generator: ${link(`${SNAPLET_APP_URL}/o/${organization.id}/p/${projectId}/seed`)}
 
         ${bold("3. Learn more")} 📚
         * Quick start guide: ${link("https://docs.snaplet.dev/getting-started/quick-start/seed")}
