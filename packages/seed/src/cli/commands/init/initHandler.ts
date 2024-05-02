@@ -93,11 +93,14 @@ export async function initHandler(args: {
 
   await installDependencies({ adapter });
 
-  if (!(await seedConfigExists())) {
+  const hadSeedConfig = await seedConfigExists();
+
+  if (!hadSeedConfig) {
     await saveSeedConfig({ adapter });
   }
 
   await telemetry.captureEvent("$action:init:step:config", {
+    hadSeedConfig,
     isLoggedIn,
   });
 
