@@ -26,15 +26,21 @@ jobs:
       - name: Setup
         uses: ./.github/actions/setup
 
-      - name: Publish
+      - name: Publish package
         uses: ./.github/actions/publish
         with:
           channel: latest
           token: ${{ secrets.NPM_TOKEN }}
 
-      - name: Update documentation release notes
-        uses: ./.github/actions/update-docs-release-notes
-        with:
-          body: ${{ github.event.release.body }}
-          name: ${{ github.event.release.name }}
-          tag: ${{ github.event.release.tag_name }}
+      - name: Publish release note to docs.snaplet.dev
+        run: pnpm -F @snaplet/seed run publish:docs
+        env:
+          GITHUB_TOKEN: ${{ secrets.GH_PAT_COMMIT }}
+          RELEASE_TAG: ${{ github.event.release.tag_name }}
+
+      - name: Publish release note to Discord
+        run: pnpm -F @snaplet/seed run publish:discord
+        env:
+          DISCORD_WEBHOOK_URL: ${{ secrets.DISCORD_WEBHOOK_URL }}
+          GITHUB_TOKEN: ${{ secrets.GH_PAT_COMMIT }}
+          RELEASE_TAG: ${{ github.event.release.tag_name }}

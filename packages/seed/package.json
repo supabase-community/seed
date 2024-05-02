@@ -168,7 +168,7 @@
     "zod": "^3.23.5"
   },
   "devDependencies": {
-    "@octokit/core": "^6.1.2",
+    "@octokit/rest": "^20.1.0",
     "@snaplet/copycat": "5.0.0",
     "@snaplet/eslint-config": "workspace:*",
     "@snaplet/tsconfig": "workspace:*",
@@ -241,6 +241,8 @@
     "start:server": "tsx --conditions development src/trpc/server.ts",
     "release:alpha": "tsx scripts/release-alpha.mts",
     "release:latest": "tsx scripts/release-latest.mts",
+    "publish:discord": "tsx scripts/publishToDiscord.mts",
+    "publish:docs": "tsx scripts/publishToDocs.mts",
     "type-check": "tsc --build",
     "test": "vitest run src",
     "test:e2e": "vitest --reporter=tap run e2e",

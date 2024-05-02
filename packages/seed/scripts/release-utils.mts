@@ -1,3 +1,5 @@
+import { Octokit } from "@octokit/rest";
+import dayjs from "dayjs";
 import { execaSync } from "execa";
 
 export function releaseSnapletSeed({
@@ -59,4 +61,30 @@ export function releaseSnapletSeed({
     console.error(error);
     throw error;
   }
+}
+
+export async function getGitHubRelease(props: {
+  githubToken: string;
+  releaseTag: string;
+}) {
+  const octokit = new Octokit({ auth: props.githubToken });
+
+  const release = await octokit.repos.getReleaseByTag({
+    owner: "snaplet",
+    repo: "seed",
+    tag: props.releaseTag,
+  });
+
+  const publishedAt = dayjs(release.data.published_at);
+
+  const title = `## ${release.data.tag_name} - ${publishedAt.format("DD MMM YYYY")}`;
+
+  const body = [title, release.data.body].join("\n\n");
+
+  return {
+    body,
+    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+    publishedAt: release.data.published_at!,
+    tagName: release.data.tag_name,
+  };
 }
