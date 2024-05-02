@@ -10,6 +10,7 @@ import { dim, link, spinner } from "../../lib/output.js";
 
 export async function introspectHandler() {
   try {
+    console.log();
     spinner.start(`Analysing your database structure 🔍`);
 
     const dialect = await getDialect();

@@ -80,7 +80,7 @@ export async function initHandler(args: {
       await trpc.organization.organizationGetByProjectId.query({
         // context(justinvdm, 02 May 2024): At this point, we've linked the project
         // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-        projectId: projectConfig.projectId!,
+        projectId: (await getProjectConfig()).projectId!,
       });
 
     console.log(
