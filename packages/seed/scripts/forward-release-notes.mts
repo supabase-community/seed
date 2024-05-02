@@ -39,7 +39,7 @@ async function getReleaseNotes() {
   const anchor =
     `#${release.data.tag_name.replaceAll(".", "")}---${publishedAt.format("DD-MMMM-YYYY")}`.toLowerCase();
 
-  const docsLink = `https://docs.snaplet.dev/docs/seed/release-notes${anchor}`;
+  const docsLink = `https://docs.snaplet.dev/seed/release-notes${anchor}`;
 
   const title = `## ${release.data.tag_name} - ${publishedAt.format("DD MMM YYYY")}`;
 
