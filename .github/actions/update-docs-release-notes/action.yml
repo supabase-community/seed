@@ -1,0 +1,40 @@
+name: Update Documentation Release Notes
+
+inputs:
+  body:
+    description: 'The body of the release'
+    required: true
+  name:
+    description: 'The name of the release'
+    required: true
+  tag:
+    description: 'The tag of the release'
+    required: true
+  token:
+    description: 'The GitHub token to use for publishing'
+    required: true
+
+runs:
+  using: "composite"
+  steps:
+    - name: Generate a release notes file
+      run: |
+        echo "${{ inputs.body }}" > release-notes.md
+        echo "" >> release-notes.md
+        echo "Release tag: ${{ inputs.tag }}" >> release-notes.md
+        echo "" >> release-notes.md
+        echo "Release name: ${{ inputs.name }}" >> release-notes.md
+        echo "" >> release-notes.md
+        echo "Release date: $(date)" >> release-notes.md
+
+    - name: Push to snaplet/docs repository
+      uses: dmnemec/copy_file_to_another_repo_action@main
+      env:
+        API_TOKEN_GITHUB: ${{ inputs.token }}
+      with:
+        source_file: 'release-notes.md'
+        destination_repo: 'snaplet/docs'
+        destination_folder: 'test-dir'
+        user_email: 'example@email.com'
+        user_name: 'dmnemec'
+        commit_message: 'A custom message for the commit'
