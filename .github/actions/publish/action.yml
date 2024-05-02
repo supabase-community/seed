@@ -21,8 +21,8 @@ runs:
         echo "registry=https://registry.npmjs.org/" >> .npmrc && \
         echo "always-auth=true" >> .npmrc
 
-     - name: Publish package
-        run: pnpm -F @snaplet/seed run release:${{ inputs.channel }}
-        env:
-          NODE_AUTH_TOKEN: ${{ inputs.token }}
-          GIT_HASH: ${{ steps.short-sha.outputs.sha_short }}
+    - name: Publish package
+      run: pnpm -F @snaplet/seed run release:${{ inputs.channel }}
+      env:
+        NODE_AUTH_TOKEN: ${{ inputs.token }}
+        GIT_HASH: ${{ steps.short-sha.outputs.sha_short }}
