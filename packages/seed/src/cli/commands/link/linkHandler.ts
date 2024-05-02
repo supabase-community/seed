@@ -111,4 +111,5 @@ const selectProject = async () => {
 export const linkHandler = async () => {
   const projectId = await selectProject();
   await updateProjectConfig({ projectId });
+  return projectId;
 };

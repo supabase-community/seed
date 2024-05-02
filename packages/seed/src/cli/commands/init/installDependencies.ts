@@ -32,6 +32,7 @@ export async function installDependencies({ adapter }: { adapter: Adapter }) {
     .map((d) => `\`${d}\``)
     .join(", ");
 
+  console.log();
   spinner.start(`Installing the dependencies: ${devDependenciesToInstallList}`);
 
   const packageManager = await getPackageManager();

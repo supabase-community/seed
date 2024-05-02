@@ -15,9 +15,12 @@ export async function loginHandler(args?: { accessToken?: string }) {
 
     const accessTokenUrl = `${SNAPLET_APP_URL}/access-token/cli-auto?port=${port}`;
 
-    console.log(`Please visit the following URL in your web browser:`);
-    console.log(link(accessTokenUrl));
-    spinner.start(`Waiting for authentication to be completed`);
+    console.log();
+    console.log(
+      `Please sign up/in and get your auth token: ${link(accessTokenUrl)}`,
+    );
+    console.log();
+    spinner.start(`Waiting for authentication`);
 
     accessToken = await getAccessTokenFromHttpServer(port);
     prompted = true;
