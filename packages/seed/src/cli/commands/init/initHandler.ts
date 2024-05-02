@@ -1,11 +1,14 @@
 import { confirm } from "@inquirer/prompts";
 import boxen from "boxen";
+import dedent from "dedent";
 import path from "node:path";
 import { adapters } from "#adapters/index.js";
 import { getUser } from "#cli/lib/getUser.js";
+import { SNAPLET_APP_URL } from "#config/constants.js";
 import { getProjectConfig } from "#config/project/projectConfig.js";
 import { seedConfigExists } from "#config/seedConfig/seedConfig.js";
-import { bold, brightGreen, highlight } from "../../lib/output.js";
+import { trpc } from "#trpc/client.js";
+import { bold, brightGreen, dim, highlight, link } from "../../lib/output.js";
 import { linkHandler } from "../link/linkHandler.js";
 import { loginHandler } from "../login/loginHandler.js";
 import { syncHandler } from "../sync/syncHandler.js";
@@ -28,7 +31,7 @@ export async function initHandler(args: {
 
   const welcomeText = user
     ? `Welcome back ${highlight(user.email)}! 😻`
-    : `Snaplet Seed is a generative AI tool for your data, it's like Faker and your ORM had a baby! 🐣`;
+    : `Welcome to ${bold("@snaplet/seed")}! Snaplet Seed populates your database with realistic, production-like mock data ✨✨`;
 
   console.log();
   console.log(welcomeText);
@@ -39,12 +42,12 @@ export async function initHandler(args: {
   if (!user) {
     console.log();
     console.log(
-      `🤖 ${bold("@snaplet/seed")} works best with ${highlight("Snaplet AI")}. It requires a free Snaplet account, but improves data quality significantly! 🤖`,
+      `Seed works best with ${brightGreen("Snaplet AI")} - it improves data quality significantly and requires a ${bold("free")} Snaplet account 🤖`,
     );
     console.log();
 
     const shouldUseSnapletAI = await confirm({
-      message: `Would you like to use ${brightGreen("Snaplet AI to enhance")} your generated data?`,
+      message: `Use Snaplet AI to enhance your generated data?`,
       default: true,
     });
 
@@ -70,7 +73,36 @@ export async function initHandler(args: {
 
   await syncHandler({ isInit: true });
 
-  if (!isLoggedIn) {
+  const seedScriptExamplePath = await generateSeedScriptExample();
+
+  if (isLoggedIn) {
+    const organization =
+      await trpc.organization.organizationGetByProjectId.query({
+        // context(justinvdm, 02 May 2024): At this point, we've linked the project
+        // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+        projectId: projectConfig.projectId!,
+      });
+
+    console.log(
+      "\n" +
+        dedent`
+      ✅ Seed is now set up for your project. Here's what to do next:
+
+        ${bold("1. Edit and run your seed script")} 📝
+        ${bold("$")} code ${path.relative(process.cwd(), seedScriptExamplePath)}  ${dim("# Tell Seed how to seed your database")}
+        ${bold("$")} npx tsx seed.ts  ${dim("# Run your seed script")}
+
+        ${bold("2. Refine your data (optional)")} 🔧
+        Customize your AI-generated data using our Data Generator: ${link(`${SNAPLET_APP_URL}/o/${organization.id}/p/${projectConfig.projectId}/seed`)}
+
+        ${bold("3. Learn more")} 📚
+        * Quick start guide: ${link("https://docs.snaplet.dev/getting-started/quick-start/seed")}
+        * Community and support: ${link("https://app.snaplet.dev/chat")}
+
+      Happy seeding! 🌱
+  `,
+    );
+  } else {
     console.log(
       boxen(
         `Want to improve your data? Use ${highlight("Snaplet AI")}! Rerun ${bold("npx @snaplet/seed init")} and choose ${bold("Snaplet AI")}.`,
@@ -81,10 +113,21 @@ export async function initHandler(args: {
         },
       ),
     );
+
+    console.log(
+      "\n" +
+        dedent`
+      ✅ Seed is now set up for your project. Here's what to do next:
+
+        ${bold("1. Edit and run your seed script")} 📝
+        ${bold("$")} code ${path.relative(process.cwd(), seedScriptExamplePath)}  ${dim("# Tell Seed how to seed your database")}
+        ${bold("$")} npx tsx seed.ts  ${dim("# Run your seed script")}
+
+        ${bold("2. Learn more")} 📚
+        * Quick start guide: ${link("https://docs.snaplet.dev/getting-started/quick-start/seed")}
+        * Community and support: ${link("https://app.snaplet.dev/chat")}
+
+      Happy seeding! 🌱`,
+    );
   }
-
-  await generateSeedScriptExample();
-
-  console.log();
-  console.log("Happy seeding! 🌱");
 }

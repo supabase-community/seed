@@ -15,9 +15,6 @@ export async function generateHandler(args: { output?: string }) {
       `Generated your ${bold("Seed Client")} to ${link(pathToFileURL(outputDir).toString())}`,
     );
 
-    spinner.info(
-      `You might want to reload your TypeScript Server to pick up the changes`,
-    );
     return { ok: true };
   } catch (error) {
     spinner.fail(`Generation failed`);

@@ -13,7 +13,7 @@ export async function generateSeedScriptExample() {
 
   // If the seed script already exists, we don't want to overwrite it
   if (existsSync(seedScriptPath)) {
-    return;
+    return seedScriptPath;
   }
 
   const dataModel = await getDataModel();
@@ -36,6 +36,8 @@ export async function generateSeedScriptExample() {
       // Seed the database with 10 ${model.modelName}
       await seed.${model.modelName}((x) => x(10));
 
+      // Type completion not working? You might want to reload your TypeScript Server to pick up the changes
+
       console.log("Database seeded successfully!");
 
       process.exit();
@@ -53,4 +55,6 @@ export async function generateSeedScriptExample() {
   spinner.warn(
     `Executing this script will delete all data in your database and seed it with 10 ${model.modelName}. Make sure to adjust the script to your needs`,
   );
+
+  return seedScriptPath;
 }

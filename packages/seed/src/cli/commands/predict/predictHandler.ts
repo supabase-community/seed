@@ -1,5 +1,4 @@
 import { telemetry } from "#cli/lib/telemetry.js";
-import { SNAPLET_APP_URL } from "#config/constants.js";
 import {
   getProjectConfig,
   getProjectConfigPath,
@@ -20,7 +19,7 @@ import {
 } from "#core/utils.js";
 import { getDialect } from "#dialects/getDialect.js";
 import { trpc } from "#trpc/client.js";
-import { bold, brightGreen, link, spinner } from "../../lib/output.js";
+import { bold, brightGreen, spinner } from "../../lib/output.js";
 import { listenForKeyPress } from "./listenForKeyPress.js";
 
 export async function predictHandler({
@@ -40,7 +39,7 @@ export async function predictHandler({
 
   try {
     spinner.start(
-      `Enhancing your generated data using ${bold("Snaplet AI")} 🤖`,
+      `Starting up ${bold("Snaplet AI")} tasks to generate sample data 🤖`,
     );
 
     const dataModel = await getDataModel();
@@ -54,16 +53,6 @@ export async function predictHandler({
         path: await getProjectConfigPath(),
       });
     }
-
-    const organization =
-      await trpc.organization.organizationGetByProjectId.query({
-        projectId: projectConfig.projectId,
-      });
-
-    console.log();
-    console.log(
-      `ℹ You can tell us more about your data to further ${brightGreen("improve the results")} over here: ${link(`${SNAPLET_APP_URL}/o/${organization.id}/p/${projectConfig.projectId}/seed`)}`,
-    );
 
     let columns = columnsToPredict(dataModel, dialect.determineShapeFromType);
     const inputs = columns.map((c) =>
@@ -84,13 +73,21 @@ export async function predictHandler({
       waitForShapePredictions,
     )();
 
-    const skipMessage = `ℹ Data generation ${bold("taking too long")}? Hit '${brightGreen("s")}' to skip and continue AI data generation in the cloud. You'll be able to use your AI-generated data once complete.`;
+    const skipMessage = `ℹ ${bold("Taking too long")}? Hit '${brightGreen("s")}' to skip - we'll continue the work in the cloud, you'll be able to use your AI-generated data once complete`;
 
-    const displayEnhanceProgress = (percent?: number) =>
-      [
-        `${percent ? `[ ${percent}% ] ` : ""}Enhancing your generated data using ${bold("Snaplet AI")} 🤖`,
-        skipMessage,
-      ].join("\n\n");
+    const displayEnhanceProgress = (percent?: number) => {
+      if (!percent) {
+        return [
+          `Starting up ${bold("Snaplet AI")} tasks to generate sample data 🤖`,
+          skipMessage,
+        ].join("\n\n");
+      } else {
+        return [
+          `[ ${percent}% ] Generating sample data with ${bold("Snaplet AI")} 🤖`,
+          skipMessage,
+        ].join("\n\n");
+      }
+    };
 
     const promisedDataGeneration = timers.dataGenerationWait.wrap(
       waitForDataGeneration,
@@ -104,6 +101,8 @@ export async function predictHandler({
     });
     const shapePredictions = await promisedShapePrediction;
     await setShapePredictions(shapePredictions);
+
+    spinner.text = displayEnhanceProgress();
 
     const sKeyPress = listenForKeyPress("s");
 
@@ -121,11 +120,10 @@ export async function predictHandler({
 
     if (dataGenerationResult === "CANCELLED_BY_USER") {
       console.log(
-        `ℹ AI Data generation ${bold("skipped")} for now - you can use the data already generated. Snaplet AI data generation will ${bold("continue in the cloud")}. Once completed, you can use this data with ${bold("npx @snaplet/seed sync")}`,
+        `ℹ Sample data generation ${bold("skipped")} for now - you can use the data already generated. Snaplet AI data generation will ${bold("continue in the cloud")}. Once completed, you can use this data with ${bold("npx @snaplet/seed sync")}`,
       );
+      console.log();
     }
-
-    spinner.text = `Fetching ${bold("Snaplet AI")} results 🤖`;
 
     const shapeExamples =
       await timers.shapeExamplesFetch.wrap(fetchShapeExamples)(
@@ -146,7 +144,7 @@ export async function predictHandler({
     await setDataExamples(dataExamples);
 
     if (dataGenerationResult !== "CANCELLED_BY_USER") {
-      spinner.succeed("Enhancements complete! 🤖");
+      spinner.succeed(`Sample data generation complete! 🤖`);
     }
 
     timers.totalPrediction.stop();
@@ -170,7 +168,7 @@ export async function predictHandler({
 
     return { ok: true };
   } catch (error) {
-    spinner.fail(`Failed to apply enhancements`);
+    spinner.fail(`Failed to generate sample data`);
     throw error;
   }
 }
