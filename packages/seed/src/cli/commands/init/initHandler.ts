@@ -4,6 +4,7 @@ import dedent from "dedent";
 import path from "node:path";
 import { adapters } from "#adapters/index.js";
 import { getUser } from "#cli/lib/getUser.js";
+import { telemetry } from "#cli/lib/telemetry.js";
 import { SNAPLET_APP_URL } from "#config/constants.js";
 import { getProjectConfig } from "#config/project/projectConfig.js";
 import { seedConfigExists } from "#config/seedConfig/seedConfig.js";
@@ -28,6 +29,7 @@ export async function initHandler(args: {
   );
 
   const user = await getUser();
+  const wasLoggedIn = Boolean(user);
 
   const welcomeText = user
     ? `Welcome back ${highlight(user.email)}! 😻`
@@ -51,36 +53,73 @@ export async function initHandler(args: {
       default: true,
     });
 
+    await telemetry.captureEvent("$action:init:step:authChosen", {
+      choice: shouldUseSnapletAI,
+    });
+
     if (shouldUseSnapletAI) {
       await loginHandler();
       isLoggedIn = true;
     }
   }
 
-  if (!projectConfig.projectId && isLoggedIn) {
+  await telemetry.captureEvent("$action:init:step:authDone", {
+    isLoggedIn,
+    wasLoggedIn,
+  });
+
+  const shouldLink = !projectConfig.projectId && isLoggedIn;
+
+  if (shouldLink) {
     await linkHandler();
   }
+
+  await telemetry.captureEvent("$action:init:step:afterLink", {
+    didLink: shouldLink,
+    isLoggedIn,
+  });
+
+  const hadAdapter = Boolean(projectConfig.adapter);
 
   const adapter = projectConfig.adapter
     ? adapters[projectConfig.adapter]
     : await adapterHandler();
 
+  await telemetry.captureEvent("$action:init:step:adapter", {
+    adapter: adapter.id,
+    hadAdapter,
+    isLoggedIn,
+  });
+
   await installDependencies({ adapter });
 
-  if (!(await seedConfigExists())) {
+  const hadSeedConfig = await seedConfigExists();
+
+  if (!hadSeedConfig) {
     await saveSeedConfig({ adapter });
   }
 
+  await telemetry.captureEvent("$action:init:step:config", {
+    hadConfig: hadSeedConfig,
+    isLoggedIn,
+  });
+
   await syncHandler({ isInit: true });
+
+  await telemetry.captureEvent("$action:init:step:sync", {
+    isLoggedIn,
+  });
 
   const seedScriptExamplePath = await generateSeedScriptExample();
 
   if (isLoggedIn) {
+    // context(justinvdm, 02 May 2024): At this point, we've linked the project
+    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+    const projectId = (await getProjectConfig()).projectId!;
+
     const organization =
       await trpc.organization.organizationGetByProjectId.query({
-        // context(justinvdm, 02 May 2024): At this point, we've linked the project
-        // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-        projectId: (await getProjectConfig()).projectId!,
+        projectId,
       });
 
     console.log(
@@ -93,7 +132,7 @@ export async function initHandler(args: {
         ${bold("$")} npx tsx seed.ts  ${dim("# Run your seed script")}
 
         ${bold("2. Refine your data (optional)")} 🔧
-        Customize your AI-generated data using our Data Generator: ${link(`${SNAPLET_APP_URL}/o/${organization.id}/p/${projectConfig.projectId}/seed`)}
+        Customize your AI-generated data using our Data Generator: ${link(`${SNAPLET_APP_URL}/o/${organization.id}/p/${projectId}/seed`)}
 
         ${bold("3. Learn more")} 📚
         * Quick start guide: ${link("https://docs.snaplet.dev/getting-started/quick-start/seed")}
