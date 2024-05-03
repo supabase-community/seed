@@ -8,6 +8,8 @@ const router = t.router;
 
 export const trpc = t;
 
+let incompleteDataGenerationJobsRequestCounter = 0;
+
 export const createCliRouter = ({ publicProcedure = t.procedure } = {}) =>
   router({
     organization: router({
@@ -185,13 +187,24 @@ export const createCliRouter = ({ publicProcedure = t.procedure } = {}) =>
           }),
         )
         .query(() => {
+          const incompleteJobs: Array<{
+            id: string;
+            progressCurrent: number;
+            progressTotal: number;
+            status: "IN_PROGRESS" | "PENDING";
+          }> = [];
+
+          if (++incompleteDataGenerationJobsRequestCounter % 2) {
+            incompleteJobs.push({
+              id: "1",
+              progressCurrent: 0,
+              progressTotal: 1,
+              status: "IN_PROGRESS",
+            });
+          }
+
           return {
-            incompleteJobs: [] as Array<{
-              id: string;
-              progressCurrent: number;
-              progressTotal: number;
-              status: "IN_PROGRESS" | "PENDING";
-            }>,
+            incompleteJobs,
           };
         }),
       seedShapeRoute: publicProcedure

@@ -8,6 +8,7 @@ import { getDataModel } from "#core/dataModel/dataModel.js";
 import { fetchShapeExamples } from "#core/predictions/shapeExamples/fetchShapeExamples.js";
 import { setDataExamples } from "#core/predictions/shapeExamples/setDataExamples.js";
 import { fetchShapePredictions } from "#core/predictions/shapePredictions/fetchShapePrediction.js";
+import { getShapePredictions } from "#core/predictions/shapePredictions/getShapePredictions.js";
 import { setShapePredictions } from "#core/predictions/shapePredictions/setShapePredictions.js";
 import { startDataGeneration } from "#core/predictions/startDataGeneration.js";
 import { type DataExample } from "#core/predictions/types.js";
@@ -24,7 +25,9 @@ import { listenForKeyPress } from "./listenForKeyPress.js";
 
 export async function predictHandler({
   isInit = false,
-}: { isInit?: boolean } = {}) {
+}: {
+  isInit?: boolean;
+} = {}) {
   const timers = {
     totalPrediction: createTimer(),
     dataGenerationStart: createTimer(),
@@ -59,6 +62,25 @@ export async function predictHandler({
       formatInput([c.schemaName, c.tableName, c.columnName]),
     );
 
+    const currentInputSet = new Set(
+      (await getShapePredictions()).flatMap((list) =>
+        list.predictions.map((item) =>
+          formatInput([list.schemaName, list.tableName, item.column]),
+        ),
+      ),
+    );
+
+    const project = (await trpc.project.list.query()).find(
+      (project) => project.id === projectConfig.projectId,
+    );
+    const isEmptyProject = project?.SeedDataSet.length === 0;
+
+    // context(justinvdm, 3 May 2024):
+    // * If the project is empty (has no data sets), then we'll need to wait for its prediction jobs to start
+    // * If the project is not empty, there will only be prediction jobs to wait for if there are new inputs
+    const hasNewInputs =
+      isEmptyProject || inputs.some((input) => !currentInputSet.has(input));
+
     const tableNames = Object.values(dataModel.models).map((m) => m.id);
 
     const { waitForDataGeneration } = await timers.dataGenerationStart.wrap(
@@ -92,7 +114,7 @@ export async function predictHandler({
     const promisedDataGeneration = timers.dataGenerationWait.wrap(
       waitForDataGeneration,
     )({
-      isInit,
+      hasNewInputs,
       onProgress({ percent }) {
         if (percent > 0) {
           spinner.text = displayEnhanceProgress(percent);
@@ -163,6 +185,7 @@ export async function predictHandler({
     await telemetry.captureEvent("$action:predict:end", {
       skippedByUser: dataGenerationResult === "CANCELLED_BY_USER",
       isInit,
+      isEmptyProject,
       ...durations,
     });
 
