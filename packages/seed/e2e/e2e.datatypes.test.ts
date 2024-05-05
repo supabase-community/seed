@@ -3,9 +3,7 @@ import { adapterEntries } from "#test/adapters.js";
 import { setupProject } from "#test/setupProject.js";
 import { type DialectRecordWithDefault } from "#test/types.js";
 
-for (const [dialect, adapter] of adapterEntries.filter(
-  ([d]) => d === "mysql",
-)) {
+for (const [dialect, adapter] of adapterEntries) {
   const computeName = (name: string) => `e2e > keys > ${dialect} > ${name}`;
   const test = (name: string, fn: TestFunction) => {
     // eslint-disable-next-line vitest/expect-expect, vitest/valid-title
