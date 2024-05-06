@@ -7,7 +7,6 @@ import { trpc } from "#trpc/client.js";
 import { formatInput } from "./utils.js";
 
 const POLL_INTERVAL = 1000;
-const MAX_START_WAIT = 1000 * 30;
 
 type DataGenerationJob = Awaited<
   ReturnType<
@@ -88,7 +87,7 @@ const computeDataGenerationProgressPercent = (
 };
 
 type WaitForDataGeneration = (options?: {
-  isInit?: boolean;
+  hasNewInputs?: boolean;
   onProgress?: (context: { percent: number }) => unknown;
 }) => Promise<unknown>;
 
@@ -108,18 +107,15 @@ export const startDataGeneration = async (
   );
 
   const waitForDataGeneration: WaitForDataGeneration = async ({
-    isInit = false,
+    hasNewInputs = false,
     onProgress,
   } = {}) => {
     let isDone = false;
     const seenJobs = new Set<string>();
 
-    if (isInit) {
-      const startTimeoutTime = Date.now() + MAX_START_WAIT;
-
+    if (hasNewInputs) {
       // context(justinvdm, 25 April 2024): First wait for the first incomplete job to appear so that we don't jump the gun.
-      // We won't wait more than MAX_START_WAIT for this first incomplete job
-      while (!isDone && Date.now() < startTimeoutTime) {
+      while (!isDone) {
         const result =
           await trpc.predictions.getIncompleteDataGenerationJobsStatusRoute.query(
             {

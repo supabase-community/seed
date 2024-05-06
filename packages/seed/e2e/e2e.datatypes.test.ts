@@ -480,4 +480,77 @@ for (const [dialect, adapter] of adapterEntries) {
       );
     });
   }
+  if (dialect === "mysql") {
+    test("can create valid geometry types in mysql", async () => {
+      const structure = `CREATE TABLE \`geometries\` (
+        \`id\` INT AUTO_INCREMENT PRIMARY KEY,
+        \`point\` POINT NOT NULL,
+        \`geometry\` GEOMETRY NOT NULL,
+        \`linestring\` LINESTRING NOT NULL,
+        \`polygon\` POLYGON NOT NULL,
+        \`multipoint\` MULTIPOINT NOT NULL,
+        \`multilinestring\` MULTILINESTRING NOT NULL,
+        \`multipolygon\` MULTIPOLYGON NOT NULL,
+        \`geometrycollection\` GEOMETRYCOLLECTION NOT NULL
+      );`;
+
+      const { db } = await setupProject({
+        adapter,
+        databaseSchema: structure,
+        seedScript: `
+        import { createSeedClient } from '#snaplet/seed'
+          const seed = await createSeedClient({ dryRun: false })
+          await seed.geometries((x) => x(10));
+        `,
+      });
+
+      const geometries = await db.query(
+        `SELECT * FROM ${adapter.escapeIdentifier("geometries")}`,
+      );
+      expect(geometries.length).toBe(10);
+    });
+    test("can override geometry types in mysql", async () => {
+      const structure = `CREATE TABLE \`geometries\` (
+        \`id\` INT AUTO_INCREMENT PRIMARY KEY,
+        \`point\` POINT NOT NULL
+      );`;
+
+      const { db } = await setupProject({
+        adapter,
+        databaseSchema: structure,
+        seedScript: `
+        import { createSeedClient } from '#snaplet/seed'
+          const seed = await createSeedClient({
+            dryRun: false,
+            models: {
+              geometries: {
+                data: {
+                  point: 'POINT(1 1)',
+                }
+              }
+            }
+          })
+          await seed.geometries((x) => x(10));
+        `,
+      });
+
+      const geometries = await db.query<{
+        id: number;
+        point: { x: number; y: number };
+      }>(`SELECT * FROM ${adapter.escapeIdentifier("geometries")}`);
+      expect(geometries.length).toBe(10);
+      expect(geometries).toEqual([
+        { id: 1, point: { x: 1, y: 1 } },
+        { id: 2, point: { x: 1, y: 1 } },
+        { id: 3, point: { x: 1, y: 1 } },
+        { id: 4, point: { x: 1, y: 1 } },
+        { id: 5, point: { x: 1, y: 1 } },
+        { id: 6, point: { x: 1, y: 1 } },
+        { id: 7, point: { x: 1, y: 1 } },
+        { id: 8, point: { x: 1, y: 1 } },
+        { id: 9, point: { x: 1, y: 1 } },
+        { id: 10, point: { x: 1, y: 1 } },
+      ]);
+    });
+  }
 }
