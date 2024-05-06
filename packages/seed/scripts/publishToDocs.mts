@@ -17,7 +17,7 @@ const release = await getGitHubRelease({
   releaseTag: env.RELEASE_TAG,
 });
 
-const filename = `${dayjs().format("YYYYMMDDHHmmSS")}-${env.RELEASE_TAG}.md`;
+const filename = `${dayjs().format("YYYYMMDDHHmmss")}-${env.RELEASE_TAG}.md`;
 
 await octokit.repos.createOrUpdateFileContents({
   owner: "snaplet",
