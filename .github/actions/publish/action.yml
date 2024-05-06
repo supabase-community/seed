@@ -13,15 +13,18 @@ runs:
   steps:
     - name: Set short-sha
       id: short-sha
+      shell: devenv {0}
       run: echo "sha_short=$(git rev-parse --short HEAD)" >> $GITHUB_OUTPUT
 
     - name: Setup npmrc auth for publish
+      shell: devenv {0}
       run: |
         echo '//registry.npmjs.org/:_authToken=${NODE_AUTH_TOKEN}' >> .npmrc && \
         echo "registry=https://registry.npmjs.org/" >> .npmrc && \
         echo "always-auth=true" >> .npmrc
 
     - name: Publish package
+      shell: devenv {0}
       run: pnpm -F @snaplet/seed run release:${{ inputs.channel }}
       env:
         NODE_AUTH_TOKEN: ${{ inputs.token }}
