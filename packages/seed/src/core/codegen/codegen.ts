@@ -62,7 +62,7 @@ export const FILES = {
         const seedConfigPath = "<SEED_CONFIG_PATH>";
 
         export const createSeedClient = getSeedClient({ dataModel, seedConfigPath, userModels });
-      `.replace("<SEED_CONFIG_PATH>", seedConfigPath);
+      `.replace("<SEED_CONFIG_PATH>", seedConfigPath.replaceAll("\\", "\\\\"));
     },
   },
   TYPEDEFS: {
