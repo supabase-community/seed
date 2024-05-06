@@ -93,6 +93,10 @@ export async function initHandler(args: {
 
   await installDependencies({ adapter });
 
+  await telemetry.captureEvent("$action:init:step:installDeps", {
+    isLoggedIn,
+  });
+
   const hadSeedConfig = await seedConfigExists();
 
   if (!hadSeedConfig) {
