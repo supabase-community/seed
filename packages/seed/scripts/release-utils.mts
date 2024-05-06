@@ -77,7 +77,7 @@ export async function getGitHubRelease(props: {
 
   const publishedAt = dayjs(release.data.published_at);
 
-  const title = `## ${release.data.tag_name} - ${publishedAt.format("DD MMM YYYY")}`;
+  const title = `## ${release.data.tag_name} - ${publishedAt.format("D MMM YYYY")}`;
 
   const body = [title, release.data.body].join("\n\n");
 
