@@ -205,7 +205,7 @@ for (const [dialect, adapter] of adapterEntries.filter(
     ]);
   });
 
-  _test.only("db's without any inputs to predict", async () => {
+  test("db's without any inputs to predict", async () => {
     await using server = await getServer({
       router: createCliRouter({
         publicProcedure: trpc.procedure.use(async (context) => {
