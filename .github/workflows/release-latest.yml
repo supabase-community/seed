@@ -1,12 +1,8 @@
-name: Release latest
+name: Release Latest
 
 on:
-  workflow_dispatch:
-  push:
-    branches:
-      - main
-    paths:
-      - 'packages/seed/package.json'
+  release:
+    types: [published]
 
 concurrency:
   group: release-npm
@@ -27,35 +23,24 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Check package version
-        id: cpv
-        uses: PostHog/check-package-version@v2
-        with:
-          path: packages/seed
-      
       - name: Setup
-        if: steps.cpv.outputs.is-new-version == 'true'
         uses: ./.github/actions/setup
 
-      - name: Setup npmrc auth for publish
-        if: steps.cpv.outputs.is-new-version == 'true'
-        run: |
-          echo '//registry.npmjs.org/:_authToken=${NODE_AUTH_TOKEN}' >> .npmrc && \
-          echo "registry=https://registry.npmjs.org/" >> .npmrc && \
-          echo "always-auth=true" >> .npmrc
-      
-      - name: Publish latest package
-        if: steps.cpv.outputs.is-new-version == 'true'
-        run: pnpm -F @snaplet/seed run release:latest
-        env:
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
-          NODE_ENV: production
-      
-      - name: Push a new tag on git repo
-        if: steps.cpv.outputs.is-new-version == 'true'
-        uses: Klemensas/action-autotag@stable
-        env:
-          GITHUB_TOKEN: "${{ secrets.GITHUB_TOKEN }}"
+      - name: Publish package
+        uses: ./.github/actions/publish
         with:
-          package_root: "packages/seed"
-          tag_prefix: "v"
+          channel: latest
+          token: ${{ secrets.NPM_TOKEN }}
+
+      - name: Publish release note to docs.snaplet.dev
+        run: pnpm -F @snaplet/seed run publish:docs
+        env:
+          GITHUB_TOKEN: ${{ secrets.GH_PAT_COMMIT }}
+          RELEASE_TAG: ${{ github.event.release.tag_name }}
+
+      - name: Publish release note to Discord
+        run: pnpm -F @snaplet/seed run publish:discord
+        env:
+          DISCORD_WEBHOOK_URL: ${{ secrets.DISCORD_WEBHOOK_URL }}
+          GITHUB_TOKEN: ${{ secrets.GH_PAT_COMMIT }}
+          RELEASE_TAG: ${{ github.event.release.tag_name }}

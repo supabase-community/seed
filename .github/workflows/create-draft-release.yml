@@ -1,0 +1,22 @@
+name: Create draft release
+
+on:
+  push:
+    tags:
+      - "v*.*.*"
+
+concurrency:
+  group: create-draft-release-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  create-draft-release:
+    runs-on: buildjet-4vcpu-ubuntu-2204
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Create draft release
+        uses: softprops/action-gh-release@v2
+        with:
+          draft: true
