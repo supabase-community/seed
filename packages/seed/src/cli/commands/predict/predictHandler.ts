@@ -73,13 +73,14 @@ export async function predictHandler({
     const project = (await trpc.project.list.query()).find(
       (project) => project.id === projectConfig.projectId,
     );
-    const isEmptyProject = project?.SeedDataSet.length === 0;
+    const isEmptyProject = project ? project.SeedDataSet.length === 0 : true;
 
     // context(justinvdm, 3 May 2024):
     // * If the project is empty (has no data sets), then we'll need to wait for its prediction jobs to start
     // * If the project is not empty, there will only be prediction jobs to wait for if there are new inputs
     const hasNewInputs =
-      isEmptyProject || inputs.some((input) => !currentInputSet.has(input));
+      (isEmptyProject && inputs.length > 0) ||
+      inputs.some((input) => !currentInputSet.has(input));
 
     const tableNames = Object.values(dataModel.models).map((m) => m.id);
 

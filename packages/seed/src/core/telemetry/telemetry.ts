@@ -67,17 +67,6 @@ export const createTelemetry = (options: TelemetryOptions) => {
   const captureUserLogin = async (user: { email: string; id: string }) => {
     const { id: userId, email } = user;
 
-    const distinctId = await getDistinctId();
-    const { anonymousId } = await getSystemConfig();
-
-    // Associate the old "anonymousId (alias)" to the new "userId (distinctId)"
-    if (anonymousId != null && anonymousId === distinctId) {
-      posthog?.alias({
-        distinctId,
-        alias: anonymousId,
-      });
-    }
-
     await updateSystemConfig({ userId });
 
     await captureEvent("$action:user:login", {
@@ -102,6 +91,16 @@ export const createTelemetry = (options: TelemetryOptions) => {
 
     if (distinctId == null) {
       return;
+    }
+
+    const { anonymousId } = await getSystemConfig();
+
+    // Associate the old "anonymousId (alias)" to the new distinct id
+    if (anonymousId != null) {
+      posthog?.alias({
+        distinctId,
+        alias: anonymousId,
+      });
     }
 
     const { userId } = await getSystemConfig();
