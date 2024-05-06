@@ -4,6 +4,7 @@ import { promisify } from "node:util";
 import { test as _test, type TestFunction, expect } from "vitest";
 import { adapterEntries } from "#test/adapters.js";
 import { setupProject } from "#test/setupProject.js";
+import { type DialectRecordWithDefault } from "#test/types.js";
 import { type cliRouter, createCliRouter, trpc } from "#trpc/router.js";
 import { type TableShapePredictions } from "#trpc/shapes.js";
 
@@ -202,6 +203,62 @@ for (const [dialect, adapter] of adapterEntries.filter(
         fullName: "Quam in unt locus mihi.",
       },
     ]);
+  });
+
+  _test.only("db's without any inputs to predict", async () => {
+    await using server = await getServer({
+      router: createCliRouter({
+        publicProcedure: trpc.procedure.use(async (context) => {
+          const result = await context.next();
+          let nextData;
+
+          if (
+            context.path ===
+            "predictions.getIncompleteDataGenerationJobsStatusRoute"
+          ) {
+            nextData = { incompleteJobs: [] };
+          }
+
+          if (nextData) {
+            (result as { data: unknown }).data = nextData;
+          }
+          return result;
+        }),
+      }),
+    });
+
+    const schema: DialectRecordWithDefault = {
+      default: `
+        CREATE TABLE users (
+          id SERIAL PRIMARY KEY
+        );
+      `,
+      sqlite: `
+        CREATE TABLE users (
+          id INTEGER PRIMARY KEY AUTOINCREMENT
+        );
+      `,
+      mysql: `
+        CREATE TABLE users (
+          id INT AUTO_INCREMENT PRIMARY KEY
+        );
+      `,
+    };
+    const { db } = await setupProject({
+      adapter,
+      databaseSchema: schema[dialect] ?? schema.default,
+      seedScript: `
+          import { createSeedClient } from '#snaplet/seed'
+          const seed = await createSeedClient()
+          await seed.users((x) => x(2))
+        `,
+      env: {
+        SNAPLET_API_URL: server.url,
+      },
+    });
+
+    const users = await db.query<{ id: number }>("SELECT * FROM users");
+    expect(users).toHaveLength(2);
   });
 
   if (dialect !== "sqlite") {
