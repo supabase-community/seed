@@ -18,6 +18,8 @@ interface StartPredictionJobsResult {
   promise: Promise<unknown>;
 }
 
+const POLL_INTERVAL = 1000;
+
 export const startPredictionJobs = ({
   columns,
   dataModel,
@@ -75,6 +77,10 @@ export const startPredictionJobs = ({
 
       isComplete = result.isComplete;
       since = result.since;
+
+      if (!isComplete) {
+        await new Promise((resolve) => setTimeout(resolve, POLL_INTERVAL));
+      }
     }
   }
 };
