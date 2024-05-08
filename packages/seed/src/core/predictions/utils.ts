@@ -1,4 +1,5 @@
 import { snakeCase } from "change-case";
+import { type FingerprintConfig } from "#config/seedConfig/fingerprint/schemas.js";
 import { isPartOfRelation, isUniqueField } from "#core/dataModel/dataModel.js";
 import { shouldGenerateFieldValue } from "#core/dataModel/shouldGenerateFieldValue.js";
 import { type DataModel } from "#core/dataModel/types.js";
@@ -9,10 +10,13 @@ import { type StartPredictionsColumn } from "#trpc/shapes.js";
 export const columnsToPredict = (
   dataModel: DataModel,
   determineShapeFromType: DetermineShapeFromType,
+  fingerprintConfig: FingerprintConfig,
 ) => {
   const allColumns: Array<StartPredictionsColumn> = [];
 
   for (const [modelName, model] of Object.entries(dataModel.models)) {
+    const modelFingerprintConfig = fingerprintConfig[modelName];
+
     const columns = model.fields
       .map((field) => {
         if (
@@ -34,12 +38,21 @@ export const columnsToPredict = (
           // function to generate the value with the most possible uniqueness and avoid collisions rather than pool of examples
           !isUniqueField(dataModel, modelName, field.name);
 
+        const fieldFingerprintConfig = modelFingerprintConfig[field.name];
+        const promptFieldFingerprintConfig =
+          "description" in fieldFingerprintConfig
+            ? fieldFingerprintConfig
+            : null;
+
         return {
           schemaName: model.schemaName ?? "",
           tableName: model.tableName,
           columnName: field.columnName,
           pgType: field.type,
           useLLMByDefault: isLLMPredictable,
+          description: promptFieldFingerprintConfig?.description,
+          examples: promptFieldFingerprintConfig?.examples,
+          sampleSize: promptFieldFingerprintConfig?.itemCount,
         };
       })
       .filter(Boolean);
