@@ -53,6 +53,7 @@ export const startPredictionJobs = ({
     let dataGenerationIsComplete = false;
     let shapePredictionIsComplete = false;
     let since = startedAt;
+    let progressPercent = 0;
 
     while (!isComplete) {
       const result =
@@ -61,8 +62,10 @@ export const startPredictionJobs = ({
           since,
         });
 
+      progressPercent = Math.max(progressPercent, result.progressPercent);
+
       events.emit("progress", {
-        percent: result.progressPercent,
+        percent: progressPercent,
       });
 
       if (result.dataGenerationIsComplete && !dataGenerationIsComplete) {
