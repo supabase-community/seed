@@ -3,6 +3,7 @@ import { computePredictionContext } from "#core/predictions/computePredictionCon
 import { fetchShapeExamples } from "#core/predictions/shapeExamples/fetchShapeExamples.js";
 import { setDataExamples } from "#core/predictions/shapeExamples/setDataExamples.js";
 import { fetchShapePredictions } from "#core/predictions/shapePredictions/fetchShapePrediction.js";
+import { setShapePredictions } from '#core/predictions/shapePredictions/setShapePredictions.js';
 import { startPredictionJobs } from "#core/predictions/startPredictionJobs.js";
 import { type DataExample } from "#core/predictions/types.js";
 import { createTimer, serializeTimerDurations } from "#core/utils.js";
@@ -111,6 +112,8 @@ export async function predictHandler({
     const shapePredictions = await timers.shapePredictionsFetch.wrap(
       fetchShapePredictions,
     )(context.columns);
+
+    await setShapePredictions(shapePredictions)
 
     const dataExamples: Array<DataExample> = [];
 
