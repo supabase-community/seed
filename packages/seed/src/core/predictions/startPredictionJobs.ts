@@ -1,4 +1,4 @@
-import { EventEmitter } from "events";
+import { EventEmitter } from "node:events";
 import { trpc } from "#trpc/client.js";
 import { type PredictionContext } from "./computePredictionContext.js";
 
