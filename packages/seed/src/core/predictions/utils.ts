@@ -15,7 +15,7 @@ export const columnsToPredict = (
   const allColumns: Array<StartPredictionsColumn> = [];
 
   for (const [modelName, model] of Object.entries(dataModel.models)) {
-    const modelFingerprintConfig = fingerprintConfig[modelName];
+    const modelFingerprintConfig = fingerprintConfig[modelName] ?? {};
 
     const columns = model.fields
       .map((field) => {
@@ -38,7 +38,8 @@ export const columnsToPredict = (
           // function to generate the value with the most possible uniqueness and avoid collisions rather than pool of examples
           !isUniqueField(dataModel, modelName, field.name);
 
-        const fieldFingerprintConfig = modelFingerprintConfig[field.name];
+        const fieldFingerprintConfig = modelFingerprintConfig[field.name] ?? {};
+
         const promptFieldFingerprintConfig =
           "description" in fieldFingerprintConfig
             ? fieldFingerprintConfig
