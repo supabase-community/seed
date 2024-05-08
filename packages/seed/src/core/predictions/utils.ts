@@ -10,7 +10,7 @@ import { type StartPredictionsColumn } from "#trpc/shapes.js";
 export const columnsToPredict = (
   dataModel: DataModel,
   determineShapeFromType: DetermineShapeFromType,
-  fingerprintConfig: FingerprintConfig,
+  fingerprintConfig: FingerprintConfig = {},
 ) => {
   const allColumns: Array<StartPredictionsColumn> = [];
 
