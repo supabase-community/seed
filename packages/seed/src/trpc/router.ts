@@ -8,8 +8,6 @@ const router = t.router;
 
 export const trpc = t;
 
-let incompleteDataGenerationJobsRequestCounter = 0;
-
 export const createCliRouter = ({ publicProcedure = t.procedure } = {}) =>
   router({
     organization: router({
@@ -95,7 +93,6 @@ export const createCliRouter = ({ publicProcedure = t.procedure } = {}) =>
                 engine: z.literal("FINETUNED_DISTI_BERT_SEED_ONLY"),
               })
               .optional(),
-            tableNames: z.array(z.string()).optional(),
           }),
         )
         .mutation(() => {
@@ -113,6 +110,9 @@ export const createCliRouter = ({ publicProcedure = t.procedure } = {}) =>
                 columnName: z.string().min(1),
                 pgType: z.string().min(1),
                 useLLMByDefault: z.boolean().default(false),
+                description: z.string().optional(),
+                examples: z.array(z.string()).optional(),
+                sampleSize: z.number().optional(),
               }),
             ),
             modelInfo: z
@@ -121,90 +121,29 @@ export const createCliRouter = ({ publicProcedure = t.procedure } = {}) =>
                 engine: z.string(),
               })
               .optional(),
-            tableNames: z.array(z.string()).optional(),
             projectId: z.string().optional(),
             shouldEnableDataSets: z.boolean().optional(),
+            tableNames: z.array(z.string()).optional(),
           }),
         )
         .mutation(() => {
           return { predictionJobId: "1" };
         }),
-      getPredictionJobProgressRoute: publicProcedure
-        .input(
-          z.object({
-            predictionJobId: z.string().min(1),
-          }),
-        )
-        .query(() => {
-          return {
-            status: "COMPLETED" as "COMPLETED" | "IN_PROGRESS",
-            progress: {
-              current: 1,
-              total: 1,
-              message: "finished" as string | undefined,
-            },
-          };
-        }),
-      startDataGenerationJobRoute: publicProcedure
+      getPredictionJobTotalProgressRoute: publicProcedure
         .input(
           z.object({
             projectId: z.string(),
-            input: z.string(),
-            description: z.string(),
-            examples: z.array(z.string()).optional(),
-            sampleSize: z.number().optional(),
-          }),
-        )
-        .mutation(() => {
-          return {
-            dataGenerationJobId: "1" as string,
-            status: "SUCCESS" as
-              | "FAILURE"
-              | "IN_PROGRESS"
-              | "PENDING"
-              | "SUCCESS",
-          };
-        }),
-      getDataGenerationJobStatusRoute: publicProcedure
-        .input(
-          z.object({
-            dataGenerationJobId: z.string().min(1),
+            since: z.number(),
           }),
         )
         .query(() => {
           return {
-            status: "SUCCESS" as
-              | "FAILURE"
-              | "IN_PROGRESS"
-              | "PENDING"
-              | "SUCCESS",
-          };
-        }),
-      getIncompleteDataGenerationJobsStatusRoute: publicProcedure
-        .input(
-          z.object({
-            projectId: z.string().min(1),
-          }),
-        )
-        .query(() => {
-          const incompleteJobs: Array<{
-            id: string;
-            progressCurrent: number;
-            progressTotal: number;
-            status: "IN_PROGRESS" | "PENDING";
-          }> = [];
-
-          if (++incompleteDataGenerationJobsRequestCounter % 2) {
-            incompleteJobs.push({
-              id: "1",
-              progressCurrent: 0,
-              progressTotal: 1,
-              status: "IN_PROGRESS",
-            });
-          }
-
-          return {
-            incompleteJobs,
+            isComplete: true,
+            dataGenerationIsComplete: true,
+            shapePredictionIsComplete: true,
+            progress: 1,
+            progressPercent: 100,
+            since: 0,
           };
         }),
       seedShapeRoute: publicProcedure
