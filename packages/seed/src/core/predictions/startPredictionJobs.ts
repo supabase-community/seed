@@ -34,18 +34,24 @@ export const startPredictionJobs = ({
   };
 
   async function start() {
-    await trpc.predictions.startPredictionJobRoute.mutate({
-      columns,
-      modelInfo: {
-        version: "20240801",
-        engine: "FINETUNED_DISTI_BERT_SEED_ONLY",
-      },
-      tableNames: Object.values(dataModel.models).map((m) => m.id),
-      projectId,
-      shouldEnableDataSets: true,
-    });
+    const { hasIncompleteJobs } =
+      await trpc.predictions.startPredictionJobRoute.mutate({
+        columns,
+        modelInfo: {
+          version: "20240801",
+          engine: "FINETUNED_DISTI_BERT_SEED_ONLY",
+        },
+        tableNames: Object.values(dataModel.models).map((m) => m.id),
+        projectId,
+        shouldEnableDataSets: true,
+      });
 
-    await poll();
+    if (!hasIncompleteJobs) {
+      events.emit("dataGenerationJobsComplete");
+      events.emit("shapePredictionJobsComplete");
+    } else {
+      await poll();
+    }
   }
 
   async function poll() {

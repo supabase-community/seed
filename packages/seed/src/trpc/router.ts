@@ -127,7 +127,10 @@ export const createCliRouter = ({ publicProcedure = t.procedure } = {}) =>
           }),
         )
         .mutation(() => {
-          return { predictionJobId: "1" };
+          return {
+            predictionJobId: "1",
+            hasIncompleteJobs: false,
+          };
         }),
       getPredictionJobTotalProgressRoute: publicProcedure
         .input(
