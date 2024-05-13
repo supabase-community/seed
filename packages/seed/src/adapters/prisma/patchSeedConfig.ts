@@ -77,8 +77,20 @@ async function getAliasOverride(props: {
                 (f) =>
                   f.kind === "object" && f.relationName === field.relationName,
               ) as DataModelObjectField;
+
+              const prismaRelationParent =
+                prismaDataModel.datamodel.models.find((m) =>
+                  m.fields.find(
+                    (f) =>
+                      f.relationName === field.relationName &&
+                      f.relationFromFields &&
+                      f.relationToFields &&
+                      f.relationFromFields.length > 0 &&
+                      f.relationToFields.length > 0,
+                  ),
+                );
               const prismaField = matchPrismaField(
-                prismaModel.fields,
+                prismaRelationParent?.fields ?? [],
                 parentRelationField,
               );
               if (prismaField) {
