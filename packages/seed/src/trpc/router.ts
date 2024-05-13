@@ -1,3 +1,6 @@
+// context(justinvdm, 13 May 2024): This is a dummy router for the API, that we use for:
+// 1. types when using the trpc client
+// 2. receiving dummy responses in our e2e tests
 import { initTRPC } from "@trpc/server";
 import { z } from "zod";
 import { type TableShapePredictions } from "./shapes.js";
@@ -127,7 +130,12 @@ export const createCliRouter = ({ publicProcedure = t.procedure } = {}) =>
           }),
         )
         .mutation(() => {
-          return { predictionJobId: "1" };
+          // context(justinvdm, 13 May 2024): This is a mocked route, not the actual logic in production
+          // Actual logic here: https://github.com/snaplet/snaplet/blob/2a735f86432575a48c3b43d05de6b4d604e28800/api/src/endpoints/cli/predictions/startPredictionJobRoute.ts#L251
+          return {
+            predictionJobId: "1",
+            hasIncompleteJobs: false,
+          };
         }),
       getPredictionJobTotalProgressRoute: publicProcedure
         .input(
