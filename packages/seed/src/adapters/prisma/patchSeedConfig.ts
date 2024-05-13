@@ -49,6 +49,11 @@ async function getAliasOverride(props: {
       (m) => (m.dbName ?? m.name) === modelName,
     );
     if (prismaModel) {
+      const prismaModelChildFields = prismaModel.fields.filter(
+        (f) =>
+          (!f.relationFromFields || f.relationFromFields.length === 0) &&
+          (!f.relationToFields || f.relationToFields.length === 0),
+      );
       aliasOverride[modelName] = {
         name:
           // prisma client uncapitalizes model names, example: User -> prisma.user
@@ -77,24 +82,20 @@ async function getAliasOverride(props: {
                 (f) =>
                   f.kind === "object" && f.relationName === field.relationName,
               ) as DataModelObjectField;
-
-              const prismaRelationParent =
-                prismaDataModel.datamodel.models.find((m) =>
-                  m.fields.find(
-                    (f) =>
-                      f.relationName === field.relationName &&
-                      f.relationFromFields &&
-                      f.relationToFields &&
-                      f.relationFromFields.length > 0 &&
-                      f.relationToFields.length > 0,
-                  ),
+              // We loop over the child fields of the prisma model to find the matching parent field for the relation
+              for (const prismaChildField of prismaModelChildFields) {
+                const prismaModelParent = prismaDataModel.datamodel.models.find(
+                  (f) => f.name === prismaChildField.type,
                 );
-              const prismaField = matchPrismaField(
-                prismaRelationParent?.fields ?? [],
-                parentRelationField,
-              );
-              if (prismaField) {
-                acc[field.name] = prismaField.name;
+                const prismaParentField = matchPrismaField(
+                  prismaModelParent?.fields ?? [],
+                  parentRelationField,
+                );
+                // If we find the parent field, we can use the child field as the alias
+                if (prismaParentField) {
+                  acc[field.name] = prismaParentField.name;
+                  break;
+                }
               }
             }
           }
