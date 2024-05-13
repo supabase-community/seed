@@ -1,5 +1,5 @@
 import { EOL } from "node:os";
-import { bold } from "#cli/lib/output.js";
+import { bold } from "../cli/lib/output.js";
 import { type DataModelModel } from "./dataModel/types.js";
 
 export const dedupePreferLast = <Value>(values: Array<Value>): Array<Value> =>
