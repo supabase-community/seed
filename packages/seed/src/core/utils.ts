@@ -1,4 +1,5 @@
 import { EOL } from "node:os";
+import { bold } from "../cli/lib/output.js";
 import { type DataModelModel } from "./dataModel/types.js";
 
 export const dedupePreferLast = <Value>(values: Array<Value>): Array<Value> =>
@@ -164,7 +165,7 @@ ${conflicts}
   SEED_CONFIG_NOT_FOUND: (data) => {
     return [
       `Seed config not found at path: ${data.path}`,
-      `run npx @snaplet/seed init to generate it if you haven't already.`,
+      `run ${bold("npx @snaplet/seed init")} to generate it if you haven't already.`,
     ].join(EOL);
   },
   SEED_DATA_MODEL_NOT_FOUND: (data) => {
@@ -177,13 +178,13 @@ ${conflicts}
     return [
       `.snaplet folder not found at path: ${data.path}`,
       `.snaplet folder must collocate the seed.config.ts file`,
-      `run npx @snaplet/seed init if you haven't already.`,
+      `run ${bold("npx @snaplet/seed init")} if you haven't already.`,
     ].join(EOL);
   },
   SNAPLET_PROJECT_CONFIG_NOT_FOUND: (data) => {
     return [
       `config.json not found at path: ${data.path}`,
-      `run npx @snaplet/seed init to generate it if you haven't already.`,
+      `run ${bold("npx @snaplet/seed init")} to generate it if you haven't already.`,
     ].join(EOL);
   },
 };
