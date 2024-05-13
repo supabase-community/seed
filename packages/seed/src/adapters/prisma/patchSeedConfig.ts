@@ -12,6 +12,24 @@ const difference = (
   other: Readonly<Array<unknown>>,
 ) => R.filter(data, R.isNot(R.isIncludedIn(other)));
 
+function matchPrismaField(
+  prismaModelFields: Awaited<
+    ReturnType<typeof getPrismaDataModel>
+  >["datamodel"]["models"][number]["fields"],
+  field: DataModelObjectField,
+) {
+  const prismaField = prismaModelFields.find(
+    (pf) =>
+      pf.kind === "object" &&
+      pf.type === field.type &&
+      difference(pf.relationFromFields ?? [], field.relationFromFields)
+        .length === 0 &&
+      difference(pf.relationToFields ?? [], field.relationToFields).length ===
+        0,
+  );
+  return prismaField;
+}
+
 async function getAliasOverride(props: {
   dataModel: DataModel;
   seedConfig: SeedConfig;
@@ -47,38 +65,21 @@ async function getAliasOverride(props: {
           } else {
             // In the case where the field is a parent relation, we can match the relationFromFields and relationToFields
             if (field.relationFromFields.length > 0) {
-              const prismaField = prismaModel.fields.find(
-                (pf) =>
-                  pf.kind === "object" &&
-                  pf.type === field.type &&
-                  difference(
-                    pf.relationFromFields ?? [],
-                    field.relationFromFields,
-                  ).length === 0 &&
-                  difference(pf.relationToFields ?? [], field.relationToFields)
-                    .length === 0,
-              );
+              const prismaField = matchPrismaField(prismaModel.fields, field);
               if (prismaField) {
                 acc[field.name] = prismaField.name;
               }
             } else {
               // Otherwise the field is a child relation, we need to match the relationFromFields and relationToFields in reverse from the parent
-              const parentRelation = dataModel.models[field.type].fields.find(
+              const parentRelationField = dataModel.models[
+                field.type
+              ].fields.find(
                 (f) =>
                   f.kind === "object" && f.relationName === field.relationName,
               ) as DataModelObjectField;
-              const prismaField = prismaModel.fields.find(
-                (pf) =>
-                  pf.kind === "object" &&
-                  pf.type === parentRelation.type &&
-                  difference(
-                    pf.relationFromFields ?? [],
-                    parentRelation.relationFromFields,
-                  ).length === 0 &&
-                  difference(
-                    pf.relationToFields ?? [],
-                    parentRelation.relationToFields,
-                  ).length === 0,
+              const prismaField = matchPrismaField(
+                prismaModel.fields,
+                parentRelationField,
               );
               if (prismaField) {
                 acc[field.name] = prismaField.name;
