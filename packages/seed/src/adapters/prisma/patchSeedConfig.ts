@@ -51,8 +51,11 @@ async function getAliasOverride(props: {
     if (prismaModel) {
       const prismaModelChildFields = prismaModel.fields.filter(
         (f) =>
-          (!f.relationFromFields || f.relationFromFields.length === 0) &&
-          (!f.relationToFields || f.relationToFields.length === 0),
+          f.kind === "object" &&
+          f.relationFromFields &&
+          f.relationFromFields.length === 0 &&
+          f.relationToFields &&
+          f.relationToFields.length === 0,
       );
       aliasOverride[modelName] = {
         name:
@@ -76,26 +79,41 @@ async function getAliasOverride(props: {
               }
             } else {
               // Otherwise the field is a child relation, we need to match the relationFromFields and relationToFields in reverse from the parent
-              const parentRelationField = dataModel.models[
-                field.type
-              ].fields.find(
+              // We get the parent model of the child field in our datamodel
+              const dataModelParent = dataModel.models[field.type];
+              // We find the parent field in the parent model that has the same relationName as the child field
+              const parentField = dataModelParent.fields.find(
                 (f) =>
                   f.kind === "object" && f.relationName === field.relationName,
               ) as DataModelObjectField;
-              // We loop over the child fields of the prisma model to find the matching parent field for the relation
-              for (const prismaChildField of prismaModelChildFields) {
-                const prismaModelParent = prismaDataModel.datamodel.models.find(
-                  (f) => f.name === prismaChildField.type,
+              // We find the prisma field that match our relationship
+              const prismaField = prismaModelChildFields.find((pf) => {
+                // We get the parent model of the child field in the prisma datamodel
+                // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+                const prismaParentModel = prismaDataModel.datamodel.models.find(
+                  (m) => m.name === pf.type,
+                )!;
+                // We search the field in the parent model matching the one in the child model
+                const prismaParentModelField = prismaParentModel.fields.find(
+                  (f) => f.relationName === pf.relationName,
                 );
-                const prismaParentField = matchPrismaField(
-                  prismaModelParent?.fields ?? [],
-                  parentRelationField,
+                return (
+                  // We ensure that the relation are pointing to the same destination table
+                  dataModelParent.tableName ===
+                    (prismaParentModel.dbName ?? prismaParentModel.name) &&
+                  // We check that the columns of the relationship match
+                  difference(
+                    prismaParentModelField?.relationFromFields ?? [],
+                    parentField.relationFromFields,
+                  ).length === 0 &&
+                  difference(
+                    prismaParentModelField?.relationToFields ?? [],
+                    parentField.relationToFields,
+                  ).length === 0
                 );
-                // If we find the parent field, we can use the child field as the alias
-                if (prismaParentField) {
-                  acc[field.name] = prismaParentField.name;
-                  break;
-                }
+              });
+              if (prismaField) {
+                acc[field.name] = prismaField.name;
               }
             }
           }
