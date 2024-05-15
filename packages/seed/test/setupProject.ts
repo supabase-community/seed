@@ -24,6 +24,13 @@ async function seedSetup(props: {
     })
   ).path);
 
+  const systemDir = path.join(cwd, "system");
+
+  const env: Record<string, string> = {
+    SNAPLET_SYSTEM_DIR: systemDir,
+    ...(props.env ?? {}),
+  };
+
   const tsConfigPath = path.join(cwd, "tsconfig.json");
   const pkgPath = path.join(cwd, "package.json");
   const snapletSeedDestPath = path.join(
@@ -117,7 +124,7 @@ async function seedSetup(props: {
 
   await runCLI(["sync", "--output", "./assets"], {
     cwd,
-    env: props.env,
+    env,
   });
 
   const runSeedScript = async (
@@ -132,7 +139,10 @@ async function seedSetup(props: {
       adapter: props.adapter,
       cwd,
       connectionString: props.connectionString,
-      env: options?.env,
+      env: {
+        ...env,
+        ...options?.env,
+      },
       delete: options?.delete,
     });
   };
@@ -146,6 +156,7 @@ async function seedSetup(props: {
   return {
     cwd,
     stdout,
+    systemDir,
     runSeedScript,
     connectionString: props.connectionString,
   };

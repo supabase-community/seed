@@ -11,12 +11,14 @@ const systemConfigSchema = z.object({
   userId: z.string().optional(),
 });
 
-type SystemConfig = z.infer<typeof systemConfigSchema>;
+export type SystemConfig = z.infer<typeof systemConfigSchema>;
 
 let cachedSystemConfig: SystemConfig | null = null;
 
 export function getSystemPath(baseDir: string = homedir()) {
-  return join(baseDir, ".config", "snaplet");
+  return (
+    process.env["SNAPLET_SYSTEM_DIR"] ?? join(baseDir, ".config", "snaplet")
+  );
 }
 
 function getSystemConfigPath(baseName = "system") {

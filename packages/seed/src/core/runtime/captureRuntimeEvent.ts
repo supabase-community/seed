@@ -10,6 +10,7 @@ export const captureRuntimeEvent = async (
   event: string,
   properties: Record<string, unknown> = {},
 ) => {
+  console.log("####################33");
   const telemetry = createTelemetry({
     source: "seed",
   });
@@ -18,7 +19,10 @@ export const captureRuntimeEvent = async (
     return;
   }
 
-  const now = Date.now();
+  const now =
+    process.env["SNAPLET_NOW"] && !isNaN(+process.env["SNAPLET_NOW"])
+      ? +process.env["SNAPLET_NOW"]
+      : Date.now();
 
   const manifest = await readSystemManifest();
   const lastEventTimestamps = (manifest.lastEventTimestamps ??= {});
@@ -31,7 +35,9 @@ export const captureRuntimeEvent = async (
   lastEventTimestamps[event] = now;
   await updateSystemManifest({ lastEventTimestamps });
 
+  console.log("### capture", event);
   await telemetry.captureEvent(event, properties);
 
+  console.log("### teardown");
   await telemetry.teardownTelemetry();
 };
