@@ -10,7 +10,6 @@ export const captureRuntimeEvent = async (
   event: string,
   properties: Record<string, unknown> = {},
 ) => {
-  console.log("####################33");
   const telemetry = createTelemetry({
     source: "seed",
   });
@@ -35,9 +34,7 @@ export const captureRuntimeEvent = async (
   lastEventTimestamps[event] = now;
   await updateSystemManifest({ lastEventTimestamps });
 
-  console.log("### capture", event);
   await telemetry.captureEvent(event, properties);
 
-  console.log("### teardown");
   await telemetry.teardownTelemetry();
 };

@@ -1,4 +1,4 @@
-import { readFile } from "node:fs/promises";
+import { readFile, writeFile } from "node:fs/promises";
 import {
   type Server as HTTPServer,
   type IncomingMessage,
@@ -9,6 +9,7 @@ import { type AddressInfo } from "node:net";
 import path from "node:path";
 import { promisify } from "node:util";
 import { test as _test, type TestFunction, afterAll, expect } from "vitest";
+import { type ProjectConfig } from "#config/project/projectConfig.js";
 import { type SystemConfig } from "#config/systemConfig.js";
 import { adapterEntries } from "#test/adapters.js";
 import { setupProject } from "#test/setupProject.js";
@@ -20,6 +21,7 @@ interface Server {
 }
 
 interface Event {
+  distinct_id: string;
   event: string;
   properties: Record<string, unknown>;
 }
@@ -114,14 +116,14 @@ for (const [dialect, adapter] of adapterEntries.filter(
       },
     });
 
-    expect(events.map(({ event }) => event)).toEqual([
-      "$create_alias",
+    expect(
+      events
+        .map(({ event }) => event)
+        .filter((event) => event !== "$create_alias"),
+    ).toEqual([
       "$command:sync:start",
-      "$create_alias",
       "$action:predict:end",
-      "$create_alias",
       "$command:sync:end",
-      "$create_alias",
       "$action:client:create",
     ]);
   });
@@ -185,10 +187,142 @@ for (const [dialect, adapter] of adapterEntries.filter(
     expect(countRuntimeEvents()).toEqual(2);
   });
 
-  test("aliases to the logged in user", async () => {
+  test("aliases from anonymous to user id", async () => {
     const { events, server } = await createEventCapturingServer();
 
-    const { systemDir } = await setupProject({
+    const script = `
+      import { createSeedClient } from '#snaplet/seed'
+
+      const seed = await createSeedClient()
+      await seed.foos((x) => x(2));
+      await seed.bars((x) => x(2));
+    `;
+
+    const { systemDir, runSeedScript, runSync } = await setupProject({
+      adapter,
+      databaseSchema: `
+          CREATE TABLE "Foo" (
+            "baz" text NOT NULL
+          );
+
+          CREATE TABLE "Bar" (
+            "quux" text NOT NULL
+          );
+        `,
+      env: {
+        CI: "",
+        SNAPLET_TELEMETRY_HOST: server.url,
+        SNAPLET_ENABLE_TELEMETRY: "1",
+        SNAPLET_DISABLE_TELEMETRY: "0",
+      },
+    });
+
+    const eventsBeforeLogin = [...events];
+    events.length = 0;
+    const eventsAfterLogin = events;
+
+    const systemConfigPath = path.join(systemDir, "system.json");
+
+    const config = JSON.parse(
+      (await readFile(systemConfigPath)).toString(),
+    ) as SystemConfig;
+
+    expect(config.anonymousId).toBeDefined();
+
+    expect(config.userId).not.toBeDefined();
+
+    config.userId = "1";
+
+    await writeFile(systemConfigPath, JSON.stringify(config));
+
+    await runSync();
+    await runSeedScript(script);
+
+    for (const event of eventsBeforeLogin) {
+      expect(event.distinct_id).toEqual(config.anonymousId);
+    }
+
+    for (const event of eventsAfterLogin) {
+      expect(event.distinct_id).toEqual(config.userId);
+    }
+
+    for (const event of eventsAfterLogin.filter(
+      (event) => event.event === "$create_alias",
+    )) {
+      expect(event.properties).toEqual(
+        expect.objectContaining({
+          alias: config.anonymousId,
+          distinct_id: config.userId,
+        }),
+      );
+    }
+
+    for (const event of eventsAfterLogin.filter(
+      (event) => event.event !== "$create_alias",
+    )) {
+      expect(event.properties).toEqual(
+        expect.objectContaining({
+          $set: expect.objectContaining({
+            userId: config.userId,
+          }),
+        }),
+      );
+    }
+  });
+
+  test("uses the project id as the distinct id when logged out on CI", async () => {
+    const { events, server } = await createEventCapturingServer();
+
+    const script = `
+      import { createSeedClient } from '#snaplet/seed'
+
+      const seed = await createSeedClient()
+      await seed.foos((x) => x(2));
+      await seed.bars((x) => x(2));
+    `;
+
+    const { systemDir, runSeedScript, runSync } = await setupProject({
+      adapter,
+      databaseSchema: `
+          CREATE TABLE "Foo" (
+            "baz" text NOT NULL
+          );
+
+          CREATE TABLE "Bar" (
+            "quux" text NOT NULL
+          );
+        `,
+      env: {
+        CI: "1",
+        SNAPLET_TELEMETRY_HOST: server.url,
+        SNAPLET_ENABLE_TELEMETRY: "1",
+        SNAPLET_DISABLE_TELEMETRY: "0",
+      },
+    });
+
+    events.length = 0;
+
+    const systemConfigPath = path.join(systemDir, "system.json");
+
+    const systemConfig = JSON.parse(
+      (await readFile(systemConfigPath)).toString(),
+    ) as SystemConfig;
+
+    expect(systemConfig.anonymousId).not.toBeDefined();
+    expect(systemConfig.userId).not.toBeDefined();
+
+    await runSync();
+    await runSeedScript(script);
+
+    for (const event of events) {
+      expect(event.distinct_id).toEqual("testProject:ci");
+    }
+  });
+
+  test("does not send events when logged out on CI and there is no project id in the project config", async () => {
+    const { events, server } = await createEventCapturingServer();
+
+    const { cwd, systemDir, runSync } = await setupProject({
       adapter,
       databaseSchema: `
           CREATE TABLE "Foo" (
@@ -200,35 +334,41 @@ for (const [dialect, adapter] of adapterEntries.filter(
           );
         `,
       seedScript: `
-          import { createSeedClient } from '#snaplet/seed'
+        import { createSeedClient } from '#snaplet/seed'
 
-          const seed = await createSeedClient()
-          await seed.foos((x) => x(2));
-          await seed.bars((x) => x(2));
-        `,
+        const seed = await createSeedClient()
+        await seed.foos((x) => x(2));
+        await seed.bars((x) => x(2));
+      `,
       env: {
+        CI: "1",
         SNAPLET_TELEMETRY_HOST: server.url,
         SNAPLET_ENABLE_TELEMETRY: "1",
         SNAPLET_DISABLE_TELEMETRY: "0",
       },
     });
 
-    const config = JSON.parse(
-      (await readFile(path.join(systemDir, "system.json"))).toString(),
+    events.length = 0;
+
+    const systemConfigPath = path.join(systemDir, "system.json");
+
+    const systemConfig = JSON.parse(
+      (await readFile(systemConfigPath)).toString(),
     ) as SystemConfig;
 
-    console.log(config);
-    expect(config.anonymousId).toBeDefined();
+    expect(systemConfig.anonymousId).not.toBeDefined();
+    expect(systemConfig.userId).not.toBeDefined();
 
-    expect(config.userId).toBeDefined();
+    const projectConfigPath = path.join(cwd, ".snaplet", "config.json");
+    const projectConfig = (JSON.parse(
+      (await readFile(projectConfigPath)).toString(),
+    ) ?? {}) as ProjectConfig;
+    delete projectConfig.projectId;
 
-    for (const event of events.filter(
-      (event) => event.event === "$create_alias",
-    )) {
-      expect(event.properties).toEqual({
-        alias: config.anonymousId,
-        distinct_id: config.userId,
-      });
-    }
+    await writeFile(projectConfigPath, JSON.stringify(projectConfig));
+
+    await runSync();
+
+    expect(events).toEqual([]);
   });
 }

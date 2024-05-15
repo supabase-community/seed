@@ -25,6 +25,8 @@ async function seedSetup(props: {
   ).path);
 
   const systemDir = path.join(cwd, "system");
+  await mkdirp(systemDir);
+  await writeFile(path.join(systemDir, "system.json"), "{}");
 
   const env: Record<string, string> = {
     SNAPLET_SYSTEM_DIR: systemDir,
@@ -122,10 +124,13 @@ async function seedSetup(props: {
     );
   }
 
-  await runCLI(["sync", "--output", "./assets"], {
-    cwd,
-    env,
-  });
+  const runSync = () =>
+    runCLI(["sync", "--output", "./assets"], {
+      cwd,
+      env,
+    });
+
+  await runSync();
 
   const runSeedScript = async (
     script: string,
@@ -157,6 +162,7 @@ async function seedSetup(props: {
     cwd,
     stdout,
     systemDir,
+    runSync,
     runSeedScript,
     connectionString: props.connectionString,
   };
