@@ -1,3 +1,4 @@
+import { mergeDeep } from "remeda";
 import { type SelectConfig } from "#config/seedConfig/selectConfig.js";
 import { type DialectId } from "#dialects/dialects.js";
 import { type DataModel } from "../dataModel/types.js";
@@ -54,7 +55,21 @@ export abstract class SeedClientBase implements SeedClient {
     Object.keys(props.dataModel.models).forEach((model) => {
       // @ts-expect-error dynamic methods creation
       this[model] = (inputs: PlanInputs["inputs"], options?: PlanOptions) => {
-        const connect = options?.connect ?? props.options?.connect;
+        let connect = options?.connect;
+        // If one of the connect option is a boolean, we use it
+        if (
+          typeof props.options?.connect === "boolean" ||
+          typeof options?.connect === "boolean"
+        ) {
+          // We prioritize the value coming from the plan options (lower level) and fallback to the client global options otherwise
+          connect = options?.connect ?? props.options?.connect;
+        } else {
+          // Otherwise we merge the connect options between both the plan and the global client options
+          connect = mergeDeep(
+            props.options?.connect ?? {},
+            options?.connect ?? {},
+          );
+        }
         return new Plan({
           createStore: this.createStore,
           emit: this.emit,
