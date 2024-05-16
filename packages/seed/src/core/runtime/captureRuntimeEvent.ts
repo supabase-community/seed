@@ -18,7 +18,10 @@ export const captureRuntimeEvent = async (
     return;
   }
 
-  const now = Date.now();
+  const now =
+    process.env["SNAPLET_NOW"] && !isNaN(+process.env["SNAPLET_NOW"])
+      ? +process.env["SNAPLET_NOW"]
+      : Date.now();
 
   const manifest = await readSystemManifest();
   const lastEventTimestamps = (manifest.lastEventTimestamps ??= {});

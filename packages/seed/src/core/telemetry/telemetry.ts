@@ -55,12 +55,15 @@ export const createTelemetry = (options: TelemetryOptions) => {
 
   const initPosthog = () =>
     (posthog ??= new PostHog(POSTHOG_API_KEY, {
-      host: "https://app.posthog.com",
+      host: process.env["SNAPLET_TELEMETRY_HOST"] ?? "https://app.posthog.com",
       flushAt: 0,
       flushInterval: 0,
     }));
 
-  if (process.env["SNAPLET_DISABLE_TELEMETRY"] !== "1" && isProduction) {
+  if (
+    process.env["SNAPLET_DISABLE_TELEMETRY"] !== "1" &&
+    (isProduction || process.env["SNAPLET_ENABLE_TELEMETRY"] === "1")
+  ) {
     initPosthog();
   }
 
