@@ -1,3 +1,4 @@
+import { execa } from "execa";
 import { readFile, writeFile } from "node:fs/promises";
 import {
   type Server as HTTPServer,
@@ -12,6 +13,7 @@ import { test as _test, type TestFunction, afterAll, expect } from "vitest";
 import { type ProjectConfig } from "#config/project/projectConfig.js";
 import { type SystemConfig } from "#config/systemConfig.js";
 import { adapterEntries } from "#test/adapters.js";
+import { ROOT_DIR } from "#test/constants.js";
 import { setupProject } from "#test/setupProject.js";
 
 interface Server {
@@ -373,5 +375,43 @@ for (const [dialect, adapter] of adapterEntries.filter(
     await runSync();
 
     expect(events).toEqual([]);
+  });
+
+  test("the built package sends telemetry", async () => {
+    const { events, server } = await createEventCapturingServer();
+
+    const { cwd } = await setupProject({
+      adapter,
+      databaseSchema: `
+          CREATE TABLE "Foo" (
+            "baz" text NOT NULL
+          );
+        `,
+    });
+
+    await execa("pnpm", ["build"], {
+      cwd: ROOT_DIR,
+    });
+
+    expect(events.length).toBe(0);
+
+    await execa(
+      "node",
+      [path.join(ROOT_DIR, "dist", "src", "cli", "index.js"), "generate"],
+      {
+        cwd,
+        extendEnv: true,
+        env: {
+          CI: "",
+          GITHUB_ACTIONS: "",
+          SNAPLET_TELEMETRY_HOST: server.url,
+          SNAPLET_DISABLE_TELEMETRY: "",
+        },
+      },
+    );
+
+    expect(
+      events.find((event) => event.event === "$command:generate:end"),
+    ).toBeDefined();
   });
 }
