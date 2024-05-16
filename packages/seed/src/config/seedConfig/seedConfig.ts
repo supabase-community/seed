@@ -4,7 +4,7 @@ import { writeFile } from "node:fs/promises";
 import { basename, dirname, join, resolve } from "node:path";
 import * as z from "zod";
 import { getAdapter } from "#adapters/getAdapter.js";
-import { getRootPath } from "#config/utils.js";
+import { getPackageJson, getRootPath } from "#config/utils.js";
 import { type Inflection } from "#core/dataModel/aliases.js";
 import { getRawDataModel } from "#core/dataModel/dataModel.js";
 import { SnapletError } from "#core/utils.js";
@@ -169,7 +169,20 @@ export async function getSeedConfigPath() {
     return resolve(process.env["SNAPLET_SEED_CONFIG"]);
   }
 
-  return join(await getRootPath(), "seed.config.ts");
+  const packageJson = (await getPackageJson()) as {
+    "@snaplet/seed"?: { config?: string };
+  };
+  if (packageJson["@snaplet/seed"]?.config) {
+    process.env["SNAPLET_SEED_CONFIG"] = packageJson["@snaplet/seed"].config;
+    return resolve(process.env["SNAPLET_SEED_CONFIG"]);
+  }
+
+  process.env["SNAPLET_SEED_CONFIG"] = join(
+    await getRootPath(),
+    "seed.config.ts",
+  );
+
+  return process.env["SNAPLET_SEED_CONFIG"];
 }
 
 export async function seedConfigExists() {
