@@ -177,7 +177,12 @@ export async function getSeedConfigPath() {
     return resolve(process.env["SNAPLET_SEED_CONFIG"]);
   }
 
-  return join(await getRootPath(), "seed.config.ts");
+  process.env["SNAPLET_SEED_CONFIG"] = join(
+    await getRootPath(),
+    "seed.config.ts",
+  );
+
+  return process.env["SNAPLET_SEED_CONFIG"];
 }
 
 export async function seedConfigExists() {
