@@ -211,6 +211,7 @@ for (const [dialect, adapter] of adapterEntries.filter(
         `,
       env: {
         CI: "",
+        GITHUB_ACTIONS: "",
         SNAPLET_TELEMETRY_HOST: server.url,
         SNAPLET_ENABLE_TELEMETRY: "1",
         SNAPLET_DISABLE_TELEMETRY: "0",
@@ -294,6 +295,7 @@ for (const [dialect, adapter] of adapterEntries.filter(
         `,
       env: {
         CI: "1",
+        GITHUB_ACTIONS: "1",
         SNAPLET_TELEMETRY_HOST: server.url,
         SNAPLET_ENABLE_TELEMETRY: "1",
         SNAPLET_DISABLE_TELEMETRY: "0",
@@ -342,6 +344,7 @@ for (const [dialect, adapter] of adapterEntries.filter(
       `,
       env: {
         CI: "1",
+        GITHUB_ACTIONS: "1",
         SNAPLET_TELEMETRY_HOST: server.url,
         SNAPLET_ENABLE_TELEMETRY: "1",
         SNAPLET_DISABLE_TELEMETRY: "0",
