@@ -1,6 +1,7 @@
 import { loadConfig } from "c12";
+import { findUp } from "find-up";
 import { existsSync } from "node:fs";
-import { writeFile } from "node:fs/promises";
+import { readFile, writeFile } from "node:fs/promises";
 import { basename, dirname, join, resolve } from "node:path";
 import * as z from "zod";
 import { getAdapter } from "#adapters/getAdapter.js";
@@ -167,6 +168,17 @@ export async function getSeedConfig(props?: { disablePatch?: boolean }) {
 export async function getSeedConfigPath() {
   if (process.env["SNAPLET_SEED_CONFIG"]) {
     return resolve(process.env["SNAPLET_SEED_CONFIG"]);
+  }
+
+  const packageJsonPath = await findUp("package.json");
+  if (packageJsonPath) {
+    const packageJson = JSON.parse(await readFile(packageJsonPath, "utf8")) as {
+      "@snaplet/seed"?: { config?: string };
+    };
+    if (packageJson["@snaplet/seed"]?.config) {
+      process.env["SNAPLET_SEED_CONFIG"] = packageJson["@snaplet/seed"].config;
+      return resolve(process.env["SNAPLET_SEED_CONFIG"]);
+    }
   }
 
   return join(await getRootPath(), "seed.config.ts");
