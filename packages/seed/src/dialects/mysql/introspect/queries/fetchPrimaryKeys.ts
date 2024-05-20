@@ -103,16 +103,17 @@ interface PrimaryKey {
   tableId: string;
 }
 
-
 async function isVitess(client: DatabaseClient): Promise<boolean> {
   const result: any = await client.query(`SELECT VERSION();`);
-  return result[0]['VERSION()'].includes('Vitess');
+  return result[0]["VERSION()"].includes("Vitess");
 }
 
-function processColumnCounts(results: FetchUniqueConstraintsFallbackResult[]): FetchUniqueConstraintssResult[] {
-  const indexCountMap: { [key: string]: number } = {};
+function processColumnCounts(
+  results: Array<FetchUniqueConstraintsFallbackResult>,
+): Array<FetchUniqueConstraintssResult> {
+  const indexCountMap: Record<string, number> = {};
 
-  results.forEach(row => {
+  results.forEach((row) => {
     const indexKey = `${row.schema}.${row.table}.${row.indexName}`;
     if (!indexCountMap[indexKey]) {
       indexCountMap[indexKey] = 0;
@@ -120,13 +121,13 @@ function processColumnCounts(results: FetchUniqueConstraintsFallbackResult[]): F
     indexCountMap[indexKey]++;
   });
 
-  return results.map(row => ({
+  return results.map((row) => ({
     schema: row.schema,
     table: row.table,
     tableId: row.tableId,
     name: row.name,
     type: row.type,
-    columnCount: indexCountMap[`${row.schema}.${row.table}.${row.indexName}`]
+    columnCount: indexCountMap[`${row.schema}.${row.table}.${row.indexName}`],
   }));
 }
 
@@ -138,12 +139,15 @@ export async function fetchPrimaryKeys(
   const primaryKeys = await client.query<FetchPrimaryKeysResult>(
     FETCH_PRIMARY_KEYS(schemas),
   );
-  let uniqueConstraints: FetchUniqueConstraintssResult[];
+  let uniqueConstraints: Array<FetchUniqueConstraintssResult>;
   if (await isVitess(client)) {
-    console.log("Vitess Mysql Detected - Falling back to fetching unique constraints without window functions");
-    const uniqueConstraintsFallback = await client.query<FetchUniqueConstraintsFallbackResult>(
-      FETCH_UNIQUE_CONSTRAINTS_FALLBACK(schemas)
+    console.log(
+      "Vitess Mysql Detected - Falling back to fetching unique constraints without window functions",
     );
+    const uniqueConstraintsFallback =
+      await client.query<FetchUniqueConstraintsFallbackResult>(
+        FETCH_UNIQUE_CONSTRAINTS_FALLBACK(schemas),
+      );
     uniqueConstraints = processColumnCounts(uniqueConstraintsFallback);
   } else {
     uniqueConstraints = await client.query<FetchUniqueConstraintssResult>(
