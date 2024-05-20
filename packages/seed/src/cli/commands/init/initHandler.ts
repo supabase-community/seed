@@ -8,6 +8,7 @@ import { telemetry } from "#cli/lib/telemetry.js";
 import { SNAPLET_APP_URL } from "#config/constants.js";
 import { getProjectConfig } from "#config/project/projectConfig.js";
 import { seedConfigExists } from "#config/seedConfig/seedConfig.js";
+import { updatePackageJson } from "#config/utils.js";
 import { trpc } from "#trpc/client.js";
 import { bold, brightGreen, dim, highlight, link } from "../../lib/output.js";
 import { linkHandler } from "../link/linkHandler.js";
@@ -27,6 +28,14 @@ export async function initHandler(args: {
     args.directory,
     "seed.config.ts",
   );
+  // If it's a custom directory, we add the @snaplet/seed config path to the package.json
+  if (args.directory !== ".") {
+    await updatePackageJson({
+      "@snaplet/seed": {
+        config: process.env["SNAPLET_SEED_CONFIG"],
+      },
+    });
+  }
 
   const user = await getUser();
   const wasLoggedIn = Boolean(user);

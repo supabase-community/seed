@@ -20,3 +20,16 @@ jobs:
         uses: softprops/action-gh-release@v2
         with:
           draft: true
+          body: |
+            ### Breaking changes 🚨
+            * Oops, we did it again!
+
+            ### New Features 🎉
+            * A very useful feature
+
+            ### Bugfixes 🐛
+            * One bug fixed
+            * Another bug fixed!
+
+            ### Improvements 🛠️
+            * It's so fast now!

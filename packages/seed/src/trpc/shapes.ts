@@ -216,7 +216,10 @@ export interface TableShapePredictions {
 
 export interface StartPredictionsColumn {
   columnName: string;
+  description?: string;
+  examples?: Array<string>;
   pgType: string;
+  sampleSize?: number;
   schemaName: string;
   tableName: string;
   useLLMByDefault: boolean;

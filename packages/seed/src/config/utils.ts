@@ -1,6 +1,6 @@
 import { execa } from "execa";
 import { findUp } from "find-up";
-import { readFile } from "node:fs/promises";
+import { readFile, writeFile } from "node:fs/promises";
 import { dirname } from "node:path";
 
 interface PackageManager {
@@ -78,6 +78,23 @@ export async function getPackageJsonPath() {
     throw new Error("No package.json found");
   }
   return packageJsonPath;
+}
+
+export async function getPackageJson() {
+  const packageJsonPath = await getPackageJsonPath();
+  return JSON.parse(await readFile(packageJsonPath, "utf8")) as Record<
+    string,
+    unknown
+  >;
+}
+
+export async function updatePackageJson(data: Record<string, unknown>) {
+  const packageJsonPath = await getPackageJsonPath();
+  const packageJson = await getPackageJson();
+  await writeFile(
+    packageJsonPath,
+    JSON.stringify({ ...packageJson, ...data }, null, 2),
+  );
 }
 
 export async function getRootPath() {
