@@ -10,6 +10,11 @@ import { createTimer, serializeTimerDurations } from "#core/utils.js";
 import { trpc } from "#trpc/client.js";
 import { bold, brightGreen, spinner } from "../../lib/output.js";
 import { listenForKeyPress } from "./listenForKeyPress.js";
+import * as ort from 'onnxruntime-node';
+import { AutoTokenizer } from '@xenova/transformers';
+import fs from 'fs';
+import { env } from '@xenova/transformers';
+import { findUp } from "find-up";
 
 const displayEnhanceProgress = ({
   percent,
@@ -39,9 +44,29 @@ const displayEnhanceProgress = ({
 
 export async function predictHandler({
   isInit = false,
+  test = true
 }: {
   isInit?: boolean;
+  test?: boolean;
 } = {}) {
+  const inputText = "public user address";
+  const predictedLabel = await predictShape(inputText);
+  console.log(`The predicted label is: ${predictedLabel}`);
+  if (test) {
+    return { ok: true };
+  }
+  const timers = {
+    totalPrediction: createTimer(),
+    dataGenerationStart: createTimer(),
+    dataGenerationWait: createTimer(),
+    shapePredictionStart: createTimer(),
+    shapePredictionWait: createTimer(),
+    shapeExamplesFetch: createTimer(),
+    datasetsFetch: createTimer(),
+  };
+
+  timers.totalPrediction.start();
+
   try {
     spinner.start(displayEnhanceProgress());
 
@@ -164,3 +189,74 @@ export async function predictHandler({
     throw error;
   }
 }
+
+async function predictShape(input: string): Promise<string> {
+  // Define the model directory
+ const modelDir = await findUp('model', { type: 'directory' });
+ if(!modelDir) {
+    throw new Error('Model directory not found');
+  }
+  env.localModelPath = modelDir;
+
+    try {
+        // Load label mappings
+        const labelMappings: any = JSON.parse(fs.readFileSync(`${modelDir}/label_mappings.json`, 'utf-8'));
+        const id2label = labelMappings.id2label;
+
+        // Load the tokenizer
+        const tokenizer = await AutoTokenizer.from_pretrained(`/tokenizer/`, { local_files_only: true });
+
+        // Load the ONNX model
+
+        // @ts-ignore
+        const session = await ort.InferenceSession.create(`${modelDir}/model.onnx`);
+
+        // Function to get the best label from the output
+        function getBestLabel(logits: Float32Array): string {
+            const predictedLabelIndex = logits.reduce((bestIdx, currentVal, currentIdx, array) =>
+                currentVal > array[bestIdx] ? currentIdx : bestIdx, 0);
+            return id2label[predictedLabelIndex.toString()];
+        }
+
+        // Prepare the input
+        const maxLength = 25;
+        // @ts-ignore
+        const inputIdsArray = await tokenizer.encode(input, null, { padding: 'max_length', truncation: true, max_length: maxLength });
+
+        // Create attention mask (1 for real tokens, 0 for padding)
+        const attentionMaskArray = inputIdsArray.map(id => (id > 0 ? 1 : 0));
+
+        // Ensure the arrays are padded to maxLength
+        const padArray = (arr: number[], maxLength: number) => {
+            while (arr.length < maxLength) {
+                arr.push(0);
+            }
+            return arr;
+        };
+
+        const paddedInputIdsArray = padArray([...inputIdsArray], maxLength);
+        const paddedAttentionMaskArray = padArray([...attentionMaskArray], maxLength);
+
+        // Convert arrays to BigInt64Array and create tensors
+        const inputIds = new ort.Tensor('int64', BigInt64Array.from(paddedInputIdsArray.map(BigInt)), [1, maxLength]);
+        const attentionMask = new ort.Tensor('int64', BigInt64Array.from(paddedAttentionMaskArray.map(BigInt)), [1, maxLength]);
+
+        // Run the ONNX model
+        const feeds = { input_ids: inputIds, attention_mask: attentionMask };
+        const results = await session.run(feeds);
+
+        // Get the logits from the model output
+        const logits = results.logits.data as Float32Array;
+
+        // Get the best label
+        const bestLabel = getBestLabel(logits);
+        return bestLabel;
+
+    } catch (error) {
+        console.error('Error during inference:', error);
+        throw error;
+    }
+}
+
+
+
