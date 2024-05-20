@@ -104,7 +104,9 @@ interface PrimaryKey {
 }
 
 async function isVitess(client: DatabaseClient): Promise<boolean> {
-  const result: any = await client.query(`SELECT VERSION();`);
+  const result = await client.query<{ "VERSION()": string }>(
+    `SELECT VERSION();`,
+  );
   return result[0]["VERSION()"].includes("Vitess");
 }
 
