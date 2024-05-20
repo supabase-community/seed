@@ -18,6 +18,15 @@ interface FetchUniqueConstraintssResult {
   type: string;
 }
 
+interface FetchUniqueConstraintsFallbackResult {
+  indexName: string;
+  name: string;
+  schema: string;
+  table: string;
+  tableId: string;
+  type: string;
+}
+
 const FETCH_PRIMARY_KEYS = (schemas: Array<string>) => `
 SELECT 
   tc.TABLE_SCHEMA AS \`schema\`,
@@ -64,12 +73,61 @@ WHERE
   ${buildSchemaInclusionClause(schemas, "s.TABLE_SCHEMA")}
 `;
 
+const FETCH_UNIQUE_CONSTRAINTS_FALLBACK = (schemas: Array<string>) => `
+SELECT 
+  s.TABLE_SCHEMA AS \`schema\`,
+  s.TABLE_NAME AS \`table\`,
+  CONCAT(s.TABLE_SCHEMA, '.', s.TABLE_NAME) AS tableId,
+  s.COLUMN_NAME AS name,
+  cols.DATA_TYPE AS type,
+  s.INDEX_NAME AS \`indexName\`
+FROM 
+  information_schema.STATISTICS AS s
+JOIN
+  information_schema.COLUMNS AS cols
+    ON cols.TABLE_SCHEMA = s.TABLE_SCHEMA
+    AND cols.TABLE_NAME = s.TABLE_NAME
+    AND cols.COLUMN_NAME = s.COLUMN_NAME
+WHERE 
+  s.NON_UNIQUE = 0 AND
+  s.INDEX_NAME != 'PRIMARY' AND
+  cols.IS_NULLABLE = 'NO' AND
+  ${buildSchemaInclusionClause(schemas, "s.TABLE_SCHEMA")}
+`;
+
 interface PrimaryKey {
   dirty: boolean;
   keys: Array<{ name: string; type: string }>;
   schema: string;
   table: string;
   tableId: string;
+}
+
+
+async function isVitess(client: DatabaseClient) : Promise<boolean>{
+  const result: any = await client.query(`SELECT VERSION();`);
+  return result[0]['VERSION()'].includes('Vitess');
+}
+
+function processColumnCounts(results: FetchUniqueConstraintsFallbackResult[]): FetchUniqueConstraintssResult[] {
+  const indexCountMap: { [key: string]: number } = {};
+
+  results.forEach(row => {
+    const indexKey = `${row.schema}.${row.table}.${row.indexName}`;
+    if (!indexCountMap[indexKey]) {
+      indexCountMap[indexKey] = 0;
+    }
+    indexCountMap[indexKey]++;
+  });
+
+  return results.map(row => ({
+    schema: row.schema,
+    table: row.table,
+    tableId: row.tableId,
+    name: row.name,
+    type: row.type,
+    columnCount: indexCountMap[`${row.schema}.${row.table}.${row.indexName}`]
+  }));
 }
 
 export async function fetchPrimaryKeys(
@@ -80,9 +138,18 @@ export async function fetchPrimaryKeys(
   const primaryKeys = await client.query<FetchPrimaryKeysResult>(
     FETCH_PRIMARY_KEYS(schemas),
   );
-  const uniqueConstraints = await client.query<FetchUniqueConstraintssResult>(
-    FETCH_UNIQUE_CONSTRAINTS(schemas),
-  );
+  let uniqueConstraints: FetchUniqueConstraintssResult[];
+  if (await isVitess(client)) {
+    console.log("Vitess Mysql Detected - Falling back to fetching unique constraints without window functions");
+    const uniqueConstraintsFallback = await client.query<FetchUniqueConstraintsFallbackResult>(
+      FETCH_UNIQUE_CONSTRAINTS_FALLBACK(schemas)
+    );
+    uniqueConstraints = processColumnCounts(uniqueConstraintsFallback);
+  } else {
+    uniqueConstraints = await client.query<FetchUniqueConstraintssResult>(
+      FETCH_UNIQUE_CONSTRAINTS(schemas),
+    );
+  }
 
   // Group all primary keys results together by tableId
   const groupedPrimaryKeys = primaryKeys.reduce<typeof results>((acc, row) => {
@@ -123,6 +190,7 @@ export async function fetchPrimaryKeys(
           tableId: row.tableId,
         };
       }
+
       if (
         acc[row.tableId].keys.length === 0 ||
         row.columnCount < acc[row.tableId].keys[0].name.length
