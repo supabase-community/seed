@@ -73,7 +73,7 @@ export const runSeedScript = async ({
     });
     await typecheckResult;
 
-    const result = execa("tsx", ["--conditions=development", scriptPath], {
+    const result = execa("tsx", ["--conditions=seed:development", scriptPath], {
       stderr: "pipe",
       stdout: "pipe",
       extendEnv: true,
