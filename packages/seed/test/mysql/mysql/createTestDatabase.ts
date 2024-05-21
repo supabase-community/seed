@@ -57,7 +57,7 @@ const defineCreateTestDb = (state: State) => {
       host: url.hostname,
       port: parseInt(url.port) || 3306,
       user: url.username,
-      password: url.password ? undefined : url.password,
+      password: url.password ? url.password : undefined,
       database: dbName,
       multipleStatements: true,
     });
