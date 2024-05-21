@@ -51,7 +51,7 @@ export async function runCLI(args: Array<string>, options: RunCliOptions = {}) {
 
   const result = execa(
     "tsx",
-    ["--conditions=development", entrypointTS, ...args],
+    ["--conditions=seed:development", entrypointTS, ...args],
     {
       shell: SHELL,
       stderr: "pipe",

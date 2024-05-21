@@ -25,7 +25,7 @@
   "license": "FSL-1.1-MIT",
   "imports": {
     "#*": {
-      "development": "./src/*",
+      "seed:development": "./src/*",
       "default": "./dist/src/*"
     },
     "#test": "./test/index.js",
@@ -34,63 +34,63 @@
   "exports": {
     ".": {
       "types": "./dist/src/index.d.ts",
-      "default": "./dist/src/index.js",
-      "development": "./src/index.ts"
+      "seed:development": "./src/index.ts",
+      "default": "./dist/src/index.js"
     },
     "./adapter": {
       "types": "./dist/src/core/databaseClient.d.ts",
-      "default": "./dist/src/core/databaseClient.js",
-      "development": "./src/core/databaseClient.ts"
+      "seed:development": "./src/core/databaseClient.ts",
+      "default": "./dist/src/core/databaseClient.js"
     },
     "./adapter-better-sqlite3": {
       "types": "./dist/src/adapters/better-sqlite3/index.d.ts",
-      "default": "./dist/src/adapters/better-sqlite3/index.js",
-      "development": "./src/adapters/better-sqlite3/index.ts"
+      "seed:development": "./src/adapters/better-sqlite3/index.ts",
+      "default": "./dist/src/adapters/better-sqlite3/index.js"
     },
     "./adapter-pg": {
       "types": "./dist/src/adapters/pg/index.d.ts",
-      "default": "./dist/src/adapters/pg/index.js",
-      "development": "./src/adapters/pg/index.ts"
+      "seed:development": "./src/adapters/pg/index.ts",
+      "default": "./dist/src/adapters/pg/index.js"
     },
     "./adapter-postgres": {
       "types": "./dist/src/adapters/postgres/index.d.ts",
-      "default": "./dist/src/adapters/postgres/index.js",
-      "development": "./src/adapters/postgres/index.ts"
+      "seed:development": "./src/adapters/postgres/index.ts",
+      "default": "./dist/src/adapters/postgres/index.js"
     },
     "./adapter-mysql2": {
       "types": "./dist/src/adapters/mysql2/index.d.ts",
-      "default": "./dist/src/adapters/mysql2/index.js",
-      "development": "./src/adapters/mysql2/index.ts"
+      "seed:development": "./src/adapters/mysql2/index.ts",
+      "default": "./dist/src/adapters/mysql2/index.js"
     },
     "./adapter-prisma": {
       "types": "./dist/src/adapters/prisma/index.d.ts",
-      "default": "./dist/src/adapters/prisma/index.js",
-      "development": "./src/adapters/prisma/index.ts"
+      "seed:development": "./src/adapters/prisma/index.ts",
+      "default": "./dist/src/adapters/prisma/index.js"
     },
     "./config": {
       "types": "./dist/src/config/seedConfig/defineConfig.d.ts",
-      "default": "./dist/src/config/seedConfig/defineConfig.js",
-      "development": "./src/config/seedConfig/defineConfig.ts"
+      "seed:development": "./src/config/seedConfig/defineConfig.ts",
+      "default": "./dist/src/config/seedConfig/defineConfig.js"
     },
     "./dialects/postgres/client": {
       "types": "./dist/src/dialects/postgres/client.d.ts",
-      "default": "./dist/src/dialects/postgres/client.js",
-      "development": "./src/dialects/postgres/client.ts"
+      "seed:development": "./src/dialects/postgres/client.ts",
+      "default": "./dist/src/dialects/postgres/client.js"
     },
     "./dialects/mysql/client": {
       "types": "./dist/src/dialects/mysql/client.d.ts",
-      "default": "./dist/src/dialects/mysql/client.js",
-      "development": "./src/dialects/mysql/client.ts"
+      "seed:development": "./src/dialects/mysql/client.ts",
+      "default": "./dist/src/dialects/mysql/client.js"
     },
     "./dialects/sqlite/client": {
       "types": "./dist/src/dialects/sqlite/client.d.ts",
-      "default": "./dist/src/dialects/sqlite/client.js",
-      "development": "./src/dialects/sqlite/client.ts"
+      "seed:development": "./src/dialects/sqlite/client.ts",
+      "default": "./dist/src/dialects/sqlite/client.js"
     },
     "./core/symbols": {
       "types": "./dist/src/core/symbols.d.ts",
-      "default": "./dist/src/core/symbols.js",
-      "development": "./src/core/symbols.ts"
+      "seed:development": "./src/core/symbols.ts",
+      "default": "./dist/src/core/symbols.js"
     }
   },
   "types": "./dist/src/index.d.ts",
@@ -237,8 +237,8 @@
     "lint": "eslint --cache . --max-warnings 0",
     "lint:fix": "eslint --cache . --max-warnings 0 --fix",
     "start": "node dist/cli/index.js",
-    "start:dev": "tsx --conditions development src/cli/index.ts",
-    "start:server": "tsx --conditions development src/trpc/server.ts",
+    "start:dev": "tsx --conditions seed:development src/cli/index.ts",
+    "start:server": "tsx --conditions seed:development src/trpc/server.ts",
     "release:alpha": "tsx scripts/release-alpha.mts",
     "release:latest": "tsx scripts/release-latest.mts",
     "publish:discord": "tsx scripts/publishToDiscord.mts",
