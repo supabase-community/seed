@@ -1146,13 +1146,6 @@ describe.concurrent.each(["betterSqlite3"] as const)(
             constraints: [
               {
                 tableId: "albums",
-                columns: ["ArtistId"],
-                dirty: false,
-                table: "albums",
-                name: "albums_ArtistId_key",
-              },
-              {
-                tableId: "albums",
                 table: "albums",
                 dirty: false,
                 name: "albums_pkey",
@@ -1439,13 +1432,6 @@ describe.concurrent.each(["betterSqlite3"] as const)(
             constraints: [
               {
                 tableId: "customers",
-                columns: ["SupportRepId"],
-                dirty: false,
-                table: "customers",
-                name: "customers_SupportRepId_key",
-              },
-              {
-                tableId: "customers",
                 table: "customers",
                 dirty: false,
                 name: "customers_pkey",
@@ -1696,13 +1682,6 @@ describe.concurrent.each(["betterSqlite3"] as const)(
             constraints: [
               {
                 tableId: "employees",
-                columns: ["ReportsTo"],
-                dirty: false,
-                table: "employees",
-                name: "employees_ReportsTo_key",
-              },
-              {
-                tableId: "employees",
                 table: "employees",
                 dirty: false,
                 name: "employees_pkey",
@@ -1900,20 +1879,6 @@ describe.concurrent.each(["betterSqlite3"] as const)(
             constraints: [
               {
                 tableId: "invoice_items",
-                columns: ["InvoiceId"],
-                dirty: false,
-                table: "invoice_items",
-                name: "invoice_items_InvoiceId_key",
-              },
-              {
-                tableId: "invoice_items",
-                columns: ["TrackId"],
-                dirty: false,
-                table: "invoice_items",
-                name: "invoice_items_TrackId_key",
-              },
-              {
-                tableId: "invoice_items",
                 table: "invoice_items",
                 dirty: false,
                 name: "invoice_items_pkey",
@@ -2080,13 +2045,6 @@ describe.concurrent.each(["betterSqlite3"] as const)(
               },
             ],
             constraints: [
-              {
-                tableId: "invoices",
-                columns: ["CustomerId"],
-                dirty: false,
-                table: "invoices",
-                name: "invoices_CustomerId_key",
-              },
               {
                 tableId: "invoices",
                 table: "invoices",
@@ -2256,13 +2214,6 @@ describe.concurrent.each(["betterSqlite3"] as const)(
             ],
             children: [],
             constraints: [
-              {
-                tableId: "playlist_track",
-                columns: ["TrackId"],
-                dirty: false,
-                table: "playlist_track",
-                name: "playlist_track_TrackId_key",
-              },
               {
                 tableId: "playlist_track",
                 columns: ["PlaylistId", "TrackId"],
@@ -2544,27 +2495,6 @@ describe.concurrent.each(["betterSqlite3"] as const)(
             constraints: [
               {
                 tableId: "tracks",
-                columns: ["AlbumId"],
-                dirty: false,
-                table: "tracks",
-                name: "tracks_AlbumId_key",
-              },
-              {
-                tableId: "tracks",
-                columns: ["GenreId"],
-                dirty: false,
-                table: "tracks",
-                name: "tracks_GenreId_key",
-              },
-              {
-                tableId: "tracks",
-                columns: ["MediaTypeId"],
-                dirty: false,
-                table: "tracks",
-                name: "tracks_MediaTypeId_key",
-              },
-              {
-                tableId: "tracks",
                 table: "tracks",
                 dirty: false,
                 name: "tracks_pkey",
@@ -2651,6 +2581,107 @@ describe.concurrent.each(["betterSqlite3"] as const)(
             tableId: "tracks",
             name: "tracks_TrackId_seq",
             current: 3504,
+          },
+        ],
+      });
+    });
+
+    test("should introspect indexes correctly", async () => {
+      const structure = `
+        CREATE TABLE "_PermissionToRole" (
+          "A" TEXT NOT NULL,
+          "B" TEXT NOT NULL
+        );
+        CREATE UNIQUE INDEX "_PermissionToRole_AB_unique" ON "_PermissionToRole" (
+          "A" ASC,
+          "B" ASC
+        );
+        CREATE INDEX "_PermissionToRole_B_index" ON "_PermissionToRole" (
+          "B" ASC
+        );
+      `;
+
+      const { client } = await createTestDb(structure);
+
+      const result = await introspectDatabase(client);
+
+      expect(result).toEqual({
+        tables: [
+          {
+            id: "_PermissionToRole",
+            name: "_PermissionToRole",
+            type: "table",
+            wr: 0,
+            strict: 0,
+            columns: [
+              {
+                id: "_PermissionToRole.rowid",
+                table: "_PermissionToRole",
+                name: "rowid",
+                type: "INTEGER",
+                affinity: "integer",
+                nullable: false,
+                default: null,
+                constraints: ["p"],
+                identity: {
+                  current: 1,
+                  name: "_PermissionToRole_rowid_seq",
+                },
+              },
+              {
+                id: "_PermissionToRole.A",
+                name: "A",
+                type: "TEXT",
+                affinity: "text",
+                table: "_PermissionToRole",
+                nullable: false,
+                default: null,
+                constraints: [],
+                identity: null,
+              },
+              {
+                id: "_PermissionToRole.B",
+                name: "B",
+                type: "TEXT",
+                affinity: "text",
+                table: "_PermissionToRole",
+                nullable: false,
+                default: null,
+                constraints: [],
+                identity: null,
+              },
+            ],
+            parents: [],
+            children: [],
+            constraints: [
+              {
+                tableId: "_PermissionToRole",
+                columns: ["A", "B"],
+                dirty: false,
+                table: "_PermissionToRole",
+                name: "_PermissionToRole_A_B_key",
+              },
+            ],
+            primaryKeys: {
+              tableId: "_PermissionToRole",
+              table: "_PermissionToRole",
+              dirty: false,
+              keys: [
+                {
+                  name: "rowid",
+                  type: "INTEGER",
+                  affinity: "integer",
+                },
+              ],
+            },
+          },
+        ],
+        sequences: [
+          {
+            colId: "rowid",
+            tableId: "_PermissionToRole",
+            name: "_PermissionToRole_rowid_seq",
+            current: 1,
           },
         ],
       });

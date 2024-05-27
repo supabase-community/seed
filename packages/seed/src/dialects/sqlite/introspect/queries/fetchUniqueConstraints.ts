@@ -42,7 +42,9 @@ const FETCH_UNIQUE_CONSTRAINTS = `
     pragma_index_list(alltables.name) AS indexlist,
     pragma_index_info(indexlist.name) AS indexinfos
   WHERE
-    alltables.type = 'table' AND alltables.name NOT LIKE 'sqlite_%'
+    alltables.type = 'table' AND
+    alltables.name NOT LIKE 'sqlite_%' AND
+    indexlist."unique" = 1
   ORDER BY
     alltables.name, indexlist.name, indexinfos.seqno
 `;
