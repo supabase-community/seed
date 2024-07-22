@@ -6,7 +6,6 @@ import { type Fingerprint } from "../fingerprint/types.js";
 import { getInitialConstraints } from "../plan/constraints.js";
 import { Plan } from "../plan/plan.js";
 import { type PlanInputs, type PlanOptions } from "../plan/types.js";
-import { captureRuntimeEvent } from "../runtime/captureRuntimeEvent.js";
 import { type Store } from "../store/store.js";
 import { type UserModels } from "../userModels/types.js";
 import { mergeUserModels } from "../userModels/userModels.js";
@@ -117,17 +116,12 @@ export const setupClient = async <Client extends SeedClient>(props: {
   createClient: () => Client | Promise<Client>;
   dialect: DialectId;
 }): Promise<Client> => {
-  const { createClient, dialect } = props;
-
-  const promisedEventCapture = captureRuntimeEvent("$action:client:create", {
-    dialect,
-  });
+  const { createClient } = props;
 
   const seed = await createClient();
 
   await seed.$syncDatabase();
 
-  await promisedEventCapture;
   return seed;
 };
 

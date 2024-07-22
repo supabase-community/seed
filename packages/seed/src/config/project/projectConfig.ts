@@ -15,7 +15,7 @@ const projectConfigSchema = z.object({
     .optional() as z.ZodType<AdapterId | undefined>,
 });
 
-export type ProjectConfig = z.infer<typeof projectConfigSchema>;
+type ProjectConfig = z.infer<typeof projectConfigSchema>;
 
 export async function getProjectConfigPath() {
   return path.join(await getDotSnapletPath(), "config.json");
