@@ -1,5 +1,4 @@
 import { type Argv } from "yargs";
-import { telemetryMiddleware } from "../../lib/middlewares/telemetry.js";
 
 export function generateCommand(program: Argv) {
   return program.command(
@@ -13,9 +12,9 @@ export function generateCommand(program: Argv) {
         type: "string",
       },
     },
-    telemetryMiddleware(async (args) => {
+    async (args) => {
       const { generateHandler } = await import("./generateHandler.js");
       await generateHandler(args);
-    }),
+    },
   );
 }

@@ -114,11 +114,6 @@ jobs:
       - name: Setup
         uses: ./.github/actions/setup
 
-      - name: Run dev API in background
-        run: |
-          pnpm -F @snaplet/seed run start:server &
-          npx --yes wait-on -d 5000 -i 2000 -t 20000 http://localhost:3000 --log --verbose
-
       - name: Run unit and integration tests
         run: pnpm test
 

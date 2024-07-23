@@ -13,10 +13,6 @@ export function link(text: string, url?: string) {
 
 export const spinner = ora();
 
-export function highlight(text: string) {
-  return kleur.bold().underline(text);
-}
-
 export function bold(text: string) {
   return kleur.bold(text);
 }
@@ -27,8 +23,4 @@ export function dim(text: string) {
 
 export function error(text: string) {
   return kleur.red().bold(text);
-}
-
-export function brightGreen(text: string) {
-  return kleur.bold().green(text);
 }

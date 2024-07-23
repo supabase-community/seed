@@ -1,7 +1,5 @@
-import { getUser } from "#cli/lib/getUser.js";
 import { dotSnapletPathExists, getDotSnapletPath } from "#config/dotSnaplet.js";
 import {
-  getProjectConfig,
   getProjectConfigPath,
   projectConfigExists,
 } from "#config/project/projectConfig.js";
@@ -12,7 +10,6 @@ import {
 import { SnapletError } from "#core/utils.js";
 import { generateHandler } from "../generate/generateHandler.js";
 import { introspectHandler } from "../introspect/introspectHandler.js";
-import { predictHandler } from "../predict/predictHandler.js";
 
 async function ensureCanSync() {
   if (!(await seedConfigExists())) {
@@ -38,13 +35,13 @@ export async function syncHandler(args: { isInit?: boolean; output?: string }) {
   await ensureCanSync();
   await introspectHandler();
 
-  const isLoggedIn = Boolean(await getUser());
-  const hasProjectId = Boolean((await getProjectConfig()).projectId);
-  const canUseAI = isLoggedIn && hasProjectId;
+  // const isLoggedIn = Boolean(await getUser());
+  // const hasProjectId = Boolean((await getProjectConfig()).projectId);
+  // const canUseAI = isLoggedIn && hasProjectId;
 
-  if (!process.env["SNAPLET_DISABLE_AI"] && canUseAI) {
-    await predictHandler({ isInit: args.isInit });
-  }
+  // if (!process.env["SNAPLET_DISABLE_AI"] && canUseAI) {
+  //   await predictHandler({ isInit: args.isInit });
+  // }
 
   await generateHandler(args);
 }
