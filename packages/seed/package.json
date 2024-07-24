@@ -133,6 +133,9 @@
   },
   "dependencies": {
     "@inquirer/prompts": "^5.0.2",
+    "@langchain/core": "^0.2.18",
+    "@langchain/groq": "^0.0.15",
+    "@langchain/openai": "^0.2.4",
     "@prisma/generator-helper": "5.14.0-dev.34",
     "@prisma/internals": "5.14.0-dev.34",
     "@scaleleap/pg-format": "^1.0.0",

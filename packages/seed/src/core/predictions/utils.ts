@@ -63,6 +63,9 @@ export const columnsToPredict = (
   return allColumns;
 };
 
-export const formatInput = (values: Array<string>) => {
-  return values.map((value) => snakeCase(value)).join(" ");
+export const formatInput = (values: Array<string | undefined>) => {
+  return values
+    .filter(Boolean) // Filter: null, undefined, 0, false, NaN, or an empty string
+    .map((value) => snakeCase(value))
+    .join(" ");
 };

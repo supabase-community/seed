@@ -8,7 +8,7 @@ import { ensureDotSnapletPath, getDotSnapletPath } from "#config/dotSnaplet.js";
 import { jsonStringify } from "#core/utils.js";
 
 const projectConfigSchema = z.object({
-  projectId: z.string().optional(),
+  projectDescription: z.string().optional(),
   adapter: z
     .string()
     .refine((v) => Object.keys(adapters).includes(v))

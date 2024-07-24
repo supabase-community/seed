@@ -10,6 +10,7 @@ import {
 import { SnapletError } from "#core/utils.js";
 import { generateHandler } from "../generate/generateHandler.js";
 import { introspectHandler } from "../introspect/introspectHandler.js";
+import { predictHandler } from "../predict/predictHandler.js";
 
 async function ensureCanSync() {
   if (!(await seedConfigExists())) {
@@ -34,14 +35,12 @@ async function ensureCanSync() {
 export async function syncHandler(args: { isInit?: boolean; output?: string }) {
   await ensureCanSync();
   await introspectHandler();
-
-  // const isLoggedIn = Boolean(await getUser());
-  // const hasProjectId = Boolean((await getProjectConfig()).projectId);
-  // const canUseAI = isLoggedIn && hasProjectId;
-
-  // if (!process.env["SNAPLET_DISABLE_AI"] && canUseAI) {
-  //   await predictHandler({ isInit: args.isInit });
-  // }
+  if (
+    args.isInit &&
+    (process.env["OPENAI_API_KEY"] ?? process.env["GROQ_API_KEY"])
+  ) {
+    await predictHandler();
+  }
 
   await generateHandler(args);
 }
