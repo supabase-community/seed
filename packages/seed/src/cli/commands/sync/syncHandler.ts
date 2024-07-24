@@ -35,10 +35,7 @@ async function ensureCanSync() {
 export async function syncHandler(args: { isInit?: boolean; output?: string }) {
   await ensureCanSync();
   await introspectHandler();
-  if (
-    args.isInit &&
-    (process.env["OPENAI_API_KEY"] ?? process.env["GROQ_API_KEY"])
-  ) {
+  if (process.env["OPENAI_API_KEY"] ?? process.env["GROQ_API_KEY"]) {
     await predictHandler();
   }
 
