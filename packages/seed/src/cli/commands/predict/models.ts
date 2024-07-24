@@ -12,7 +12,7 @@ export const getCurrentModel = () => {
   throw new Error("No API key found for Groq or OpenAI");
 };
 
-export const openAIModel = (
+const openAIModel = (
   modelName = "gpt-3.5-turbo-0125",
   apiKey = process.env["OPENAI_API_KEY"],
 ) => {
@@ -27,7 +27,7 @@ export const openAIModel = (
   });
 };
 
-export const groqModel = (
+const groqModel = (
   modelName = "llama3-70b-8192",
   apiKey = process.env["GROQ_API_KEY"],
 ) => {

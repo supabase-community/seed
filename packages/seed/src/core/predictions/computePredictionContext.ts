@@ -3,10 +3,6 @@ import { getDataModel } from "#core/dataModel/dataModel.js";
 import { getDialect } from "#dialects/getDialect.js";
 import { columnsToPredict } from "./utils.js";
 
-export type PredictionContext = Awaited<
-  ReturnType<typeof computePredictionContext>
->;
-
 export const computePredictionContext = async () => {
   const dataModel = await getDataModel();
   const dialect = await getDialect();

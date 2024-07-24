@@ -7,14 +7,14 @@ import { type ChatGroq } from "@langchain/groq";
 import { type ChatOpenAI } from "@langchain/openai";
 import { type ResponseMetadata, getCurrentModel } from "./models.js";
 
-export const systemPrompt = `Predict the data in an database column.
+const systemPrompt = `Predict the data in an database column.
   Respond in the following JSON format:
   {
     "examples": ["example 1", "example 2", "example 3"]
   }
   Examples should strings.`;
 
-export const buildUserPrompt = (
+const buildUserPrompt = (
   fullyQualifiedColumnName: string,
   sampleSize: number,
   description: string,
@@ -59,7 +59,7 @@ export const generateExamples = async (
   return generateExamplesFromPrompts(systemPrompt, userPrompt, []);
 };
 
-export const generateExamplesFromPrompts = async (
+const generateExamplesFromPrompts = async (
   systemPrompt: string,
   userPrompt: string,
   promptHistory: Array<BaseMessage>,
