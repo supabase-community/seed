@@ -7,7 +7,7 @@ import { type ChatGroq } from "@langchain/groq";
 import { type ChatOpenAI } from "@langchain/openai";
 import { type ResponseMetadata, getCurrentModel } from "./models.js";
 
-const systemPrompt = `Predict the data in an database column.
+const systemPrompt = `Predict the data in a database column.
   Respond in the following JSON format:
   {
     "examples": ["example 1", "example 2", "example 3"]
