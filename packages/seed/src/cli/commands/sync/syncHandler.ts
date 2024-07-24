@@ -1,3 +1,4 @@
+import { bold, brightGreen, dim } from "#cli/lib/output.js";
 import { dotSnapletPathExists, getDotSnapletPath } from "#config/dotSnaplet.js";
 import {
   getProjectConfigPath,
@@ -37,6 +38,16 @@ export async function syncHandler(args: { isInit?: boolean; output?: string }) {
   await introspectHandler();
   if (process.env["OPENAI_API_KEY"] ?? process.env["GROQ_API_KEY"]) {
     await predictHandler();
+  } else {
+    console.log(`
+${dim("Skipping AI-generated data...")}
+
+To get ${bold(" AI-generated data")}, you need to set either the ${brightGreen("OPENAI_API_KEY")} or ${brightGreen("GROQ_API_KEY")} environment variable.")}
+We also look for a .env file in the root of your project.
+
+To use a specific model, set the ${brightGreen("AI_MODEL_NAME")} environment variable.
+Example: ${brightGreen("AI_MODEL_NAME=gpt-4-mini")}
+      `);
   }
 
   await generateHandler(args);

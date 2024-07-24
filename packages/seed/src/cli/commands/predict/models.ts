@@ -1,8 +1,12 @@
 import { ChatGroq } from "@langchain/groq";
 import { ChatOpenAI } from "@langchain/openai";
+import { bold, brightGreen } from "#cli/lib/output.js";
 
 export const getCurrentModel = () => {
   const name = process.env["AI_MODEL_NAME"];
+  if (name) {
+    console.log(`${bold("Model Override:")} Using ${brightGreen(name)}`);
+  }
   if (process.env["OPENAI_API_KEY"]) {
     return openAIModel(name);
   }
