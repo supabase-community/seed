@@ -1,0 +1,24 @@
+import { Step } from '../../components/Step'
+import { ReleaseNotes } from "../../components/ReleaseNotes"
+import { getReleases } from '../../lib/getReleases'
+import { Steps } from "nextra/components"
+
+export async function getStaticProps() {
+  return {
+    props: {
+      ssg: {
+        releases: await getReleases()
+      }
+    },
+  }
+}
+
+# Release notes
+
+*The latest Snaplet product updates from the Snaplet team.*
+
+<ReleaseNotes />
+
+---
+
+**Previous releases can be found [here](/seed/release-notes-archive)**

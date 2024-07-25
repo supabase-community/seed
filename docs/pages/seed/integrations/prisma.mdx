@@ -1,0 +1,95 @@
+# Prisma
+
+![Snappy loves Prisma](/seed/integrations/prisma/Prisma_Docs_image.svg)
+
+> **Note** Currently supported providers: `postgres`, `mysql`, `sqlite`
+
+This example shows how to set up your Seed workflow with [Prisma](https://www.prisma.io/orm).
+
+## Prerequisites
+
+- Set up a new Prisma project by following the [Prisma Quickstart](https://www.prisma.io/docs/getting-started/quickstart) guide.
+
+## 1. Install Seed
+
+Set up Seed in your Prisma project by running the following command:
+
+```bash >_&nbsp;terminal
+npx @snaplet/seed init prisma/seed
+```
+
+This command creates a `prisma/seed` folder with multiple files in it.
+
+## 2. Configure Seed
+
+Using the previous command should have created a `prisma/seed/seed.config.ts` [configuration file](../reference/configuration.mdx).
+
+You can use it as is, or customize it to fit your needs.
+
+```ts prisma/seed/seed.config.ts
+import { SeedPrisma } from "@snaplet/seed/adapter-prisma";
+import { defineConfig } from "@snaplet/seed/config";
+import { PrismaClient } from "@prisma/client";
+
+export default defineConfig({
+  adapter: () => {
+    const client = new PrismaClient();
+    return new SeedPrisma(client);
+  },
+  select: [
+    "!*_prisma_migrations",
+  ],
+});
+```
+
+## 3. Customize the Seed Script
+
+The `npx @snaplet/seed init prisma/seed` command should also have created a seed script example `seed.ts`.
+
+You can customize it to seed your database with the data you need.
+
+```ts prisma/seed/seed.ts
+import { createSeedClient } from "@snaplet/seed";
+
+const seed = await createSeedClient();
+
+// Truncate all tables in the database
+await seed.$resetDatabase();
+
+// Seed the database with 10 users
+await seed.user((x) => x(10));
+
+process.exit();
+```
+
+## 4. Hook into Prisma seeding workflow
+
+You can hook into [Prisma seeding workflow](https://www.prisma.io/docs/orm/prisma-migrate/workflows/seeding) by specifying a `seed` command in your `package.json` file:
+
+```json package.json
+"prisma": {
+  "seed": "npx tsx prisma/seed/seed.ts"
+},
+```
+
+With this change, the database will be seeded with the data you specified in your `seed.ts` file for each of the following commands:
+- `prisma db seed`
+- `prisma migrate dev`
+- `prisma migrate reset`
+
+## 5. Keep Seed Client in sync with your database
+
+Whenever your database structure changes (e.g after a new migration is applied), `@snaplet/seed` will need be regenerated to reflect the new structure. To do this, run the following command:
+
+```bash >_&nbsp;terminal
+npx @snaplet/seed sync
+```
+
+If you want to automate this process, you can add a [post script](https://docs.npmjs.com/cli/v10/using-npm/scripts#pre--post-scripts) to your `package.json` file:
+
+```json package.json
+"scripts": {
+  "migrate": "prisma migrate dev",
+  "postmigrate": "npx @snaplet/seed sync"
+}
+```

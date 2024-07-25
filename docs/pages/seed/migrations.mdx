@@ -1,0 +1,732 @@
+import { Callout } from 'nextra/components'
+
+# Migrations
+
+## From `0.90.0` and above
+
+### Welcome to a leaner `@snaplet/seed`
+
+Hello, `@snaplet/seed` community! With version 0.90.0, we're excited to bring you a suite of enhancements aimed at refining and streamlining your experience.
+This version introduces breaking changes, but fear not—we're here to guide you through them smoothly.
+
+### Why the Change?
+
+Our goal is to sharpen `@snaplet/seed`'s focus, simplifying both maintenance and your development workflows.
+These changes will differentiate `@snaplet/seed` from our snapshot tool, making it more intuitive and powerful for your projects.
+
+### What's New?
+
+- **SQLite Support**: We're rolling out alpha support for SQLite databases, expanding your options.
+- **Enhanced API Methods**: The `$resetDatabase` method now supports selective table resets, offering more control.
+- **PostgreSQL Improvements**: Expect fewer bugs, especially around unique constraints during seeding.
+
+### Key Changes to Note
+
+1. **Seed CLI**: The `@snaplet/seed` now has its own CLI.
+2. **New Configuration File**: Transition from `snaplet.config.ts` to `seed.config.ts` for a `@snaplet/seed` specific setup.
+3. **Simplified Syncing**: A single `npx @snaplet/seed sync` command now replaces the previous `generate` and `introspect` commands, streamlining your workflow.
+
+### `@snaplet/seed` now has its own CLI
+
+If you are not using our Snapshot tool, you can uninstall the `snaplet` CLI.
+
+```bash >_&nbsp;terminal
+npm uninstall snaplet
+```
+
+Start your `@snaplet/seed` journey using the new onboarding wizard command:
+
+```bash >_&nbsp;terminal
+npx @snaplet/seed init
+```
+
+You can read the new [CLI reference](./reference/cli.mdx) to learn about all the available commands.
+
+### Dive into `seed.config.ts`
+
+#### Adapting with "adapter"
+
+The introduction of a "database adapter" parameter in `seed.config.ts` is a significant update. Here's how you might configure the Prisma adapter:
+
+```typescript
+import { SeedPrisma } from "@snaplet/seed/adapter-prisma";
+import { defineConfig } from "@snaplet/seed/config";
+// You can import the prisma instance from your own code like you would
+// in your backend code
+import { db } from "./src/utils/db";
+export default defineConfig({
+  adapter: () => new SeedPrisma(db),
+});
+```
+
+We've expanded our adapter offerings, including support for [Prisma, pg, postgres-js, and betterSqlite3](./reference/adapters.mdx), with more on the horizon.
+Custom adapter creation is also possible, enhancing flexibility (Documentation forthcoming).
+
+<Callout type="warning" emoji="⚠️">
+The new adapter change also means we don't automatically close the database connection for you.
+You might now want to call `process.exit` to close the connection or your seed script may hang indefinitely.
+
+```typescript
+// at the end of seed.ts
+
+process.exit(0);
+```
+</Callout>
+
+You can read more about the new configuration by checking out the [Configuration reference](./reference/configuration.mdx).
+
+#### Inflection is now opt-in
+
+In response to user feedback, we've transitioned inflection to an opt-in feature, acknowledging that its default behaviour didn't align with the expectations of many within our community.
+To learn more about what inflection is and what it's for you can [read the documentation here](./reference/configuration.mdx#aliasinflection).
+
+```typescript
+export default defineConfig({
+  // Additional configuration options
+  alias: {
+     // Opt-in to enable inflection behavior
+     inflection: true,
+  }
+});
+```
+
+#### Selective Sync with "select"
+
+The "select" option has been overhauled for greater flexibility,
+adopting a [glob pattern matching](https://globster.xyz/) approach to include or exclude tables:
+
+```typescript
+export default defineConfig({
+    select: [
+        '!some_schema_name*', // Exclude all tables under a schema
+        '!public._*', // Exclude all tables prefixed by _ in the schema public
+        'public._specific_table', // include a specific table even with the prefix
+    ]
+});
+```
+
+All tables are included by default, if you prefix a pattern with `!` everything matching that pattern will be excluded.
+The patterns apply in their declaration order.
+
+#### Refined `$resetDatabase` Usage
+
+Fine-tune data resets with the `$resetDatabase` [method](./reference/client.mdx#resetdatabase), allowing you to persist certain tables across seeding operations:
+
+```typescript
+import { createSeedClient } from "@snaplet/seed";
+const seed = await createSeedClient();
+await seed.$resetDatabase(); // Resets, respecting exclusions from config
+// Example usage in tests
+test('your_test', () => {...});
+test('another_test', async () => {
+    await seed.$resetDatabase([
+        '!public.users', // Keeps user data intact
+    ]);
+});
+```
+
+#### `$transaction` and `$reset` methods have been removed
+
+To get a new instance of the client, you can simply use `createSeedClient` to get a new instance.
+
+```ts
+// before
+await snaplet.$transaction(async (snaplet) => {
+  await snaplet.users([{}]);
+});
+
+// after
+const snaplet = await createdSeedClient()
+await snaplet.users([{}])
+```
+
+```ts
+// before
+await snaplet.users([{}]);
+snaplet.$reset()
+
+// after
+let snaplet = await createdSeedClient()
+await snaplet.users([{}])
+snaplet = await createSeedClient()
+```
+
+
+### Let's Grow Together
+
+We're excited for you to experience the improvements in `@snaplet/seed` v0.90.0.
+Your feedback is invaluable to us, join the conversation on [Discord](https://app.snaplet.dev/chat) and let's make `@snaplet/seed` even better together.
+
+## From `0.85.0` and above
+
+**🚨 Breaking changes ahead 🚨**
+
+We're refining the API and getting closer and closer to a stable v1 release. 🎉
+
+### Creating a client is now async
+
+We've changed the way in which the client is instantiated.
+
+Previously, you would instantiate a class like this:
+
+```ts
+// before
+import { SnapletClient } from '@snaplet/seed'
+
+const snaplet = new SnapletClient({ /* options */ })
+```
+
+We now instead provide a promise-returning `createSeedClient` function for instantiating the client:
+
+```ts
+// after
+import { createSeedClient } from '@snaplet/seed'
+
+const seed = await createSeedClient({ /* options */ })
+```
+
+You will also need to [update your generated assets](https://docs.snaplet.dev/core-concepts/seed#3-regenerating-assets-as-your-database-changes-with-npx-snaplet-generate):
+
+```bash >_&nbsp;terminal
+npx snaplet generate
+```
+
+This change is due to the fact that we need to scan your database at instantiation time in order to fetch your sequences current values.
+
+Also, you noticed that we changed our naming convention, from `snaplet` to `seed`. We think it's easier to understand this way.
+
+### Better compatibility with non-empty databases
+
+`@snaplet/seed` now works better with tables that already have existing data in them. For tables with sequences, if you have existing data in them when using `@snaplet/seed`,
+any new rows generated by `@snaplet/seed` will start off the sequences where the existing data left off.
+
+For example, if you have a table with a `SERIAL PRIMARY KEY`, and there are 10 rows in a table already (so you already have primary keys from `1` to `10`),
+`@snaplet/seed` will start generating primary keys from `11` onwards.
+
+### Model callback API
+
+We are introducing a new way of definining models when you need contextual data. It impacts both parents and children fields.
+
+#### Children fields
+
+You can now define children fields as a callback function that receives the model's seed and the index of the current iteration:
+
+```ts
+await seed.posts([
+  // model level seed
+  ({ index, seed }) => ({
+    title: `Post #${index}`,
+    content: `This post's seed is ${seed}`
+  }),
+  // static data is of course still supported
+  {
+    title: 'Static post',
+    // field level seed
+    content: ({ seed }) => copycat.paragraph(seed)
+  },
+]);
+```
+
+This change is also reflected into the `x` helper function which now supports static data as well:
+
+```ts
+await seed.posts(x => x(3, (ctx) => ({
+  title: `Post #${ctx.index}`,
+  content: `This post's seed is ${ctx.seed}`
+})));
+
+await seed.posts(x => x(3, {
+  title: 'Static post',
+  content: (ctx) => copycat.paragraph(ctx.seed)
+}));
+```
+
+#### Parent fields
+
+You can now define parent fields as a callback function that receives the model's seed and a `connect` function. It finally makes connecting data more explicit:
+
+```ts
+await seed.posts([
+  {
+    // the author will be connected to the first user in the store
+    author: (ctx) => ctx.connect(({ store }) => store.users[0])
+  },
+  {
+    // a new author will be generated
+    author: (ctx) => {
+      const createdAt = new Date(copycat.dateString(ctx.seed))
+      const day = 1000 * 60 * 60 * 24
+      const updatedAt = new Date(createdAt.getTime() + day)
+      return {
+        createdAt,
+        updatedAt,
+      }
+    }
+  },
+])
+```
+
+### Fix the `seed` value for parent fields
+
+We were injecting the model's seed for all parent fields in a model. We're now injected a per parent field seed to have more variety in connected data.
+As the seed value changed, it means that you might experience different models being picked up when using `connect`.
+
+### Inflection is now turned on by default
+
+You no longer need a `seed.config.ts` file to enable inflection. It's now turned on by default.
+We think inflection brings a better developer experience and we want to make it the default.
+
+If you want to disable it, you can pass `false` to the `inflection` option in your `seed.config.ts` file:
+
+```ts seed.config.ts
+/// <reference path=".snaplet/snaplet.d.ts" />
+import { defineConfig } from 'snaplet';
+
+export default defineConfig({
+  seed: {
+    alias: {
+      inflection: false,
+    },
+  },
+});
+```
+
+Don't forget to regenerate your types and assets after updating your config by running:
+
+```bash >_&nbsp;terminal
+npx snaplet generate
+```
+
+## From `0.83.0` and above
+We've removed the `modelSeed` parameter that we pass to generate functions in favor of a new `data` parameter.
+
+Previously, if you had a field with a value that depended on another field, `modelSeed` provided a way to accomplish this:
+
+```
+// **before**
+await snaplet.users([{
+  createdAt: ({ modelSeed }) => copycat.dateString(modelSeed),
+  updateAt: ({ modelSeed }) => {
+    const createdAt = copycat.dateString(modelSeed)
+    const updatedAtMs = Number(new Date(createdAt)) + 60_000
+    return new Date(updatedAtMs).toISOString()
+  }
+}]
+```
+
+Since we now have the `data` parameter, we have a more natural way of obtaining the value generated for previous values:
+
+```
+// **after**
+await snaplet.users([{
+  createdAt: ({ seed }) => copycat.dateString(seed),
+  updateAt: ({ data }) => {
+    const updatedAtMs = Number(new Date(data.createdAt)) + 60_000
+    return new Date(updatedAtMs).toISOString()
+  }
+}]
+```
+
+## From `0.81.0` and above
+
+### Stateful data client
+
+The `SnapletClient` is now stateful.
+
+It means that a global seed is now incremented every time you call a model function on the data client.
+
+```ts seed.ts
+// calling a model multiple times works and will continue the id sequences
+await snaplet.users([{}]);
+await snaplet.users([{}]);
+```
+
+All the generated data is now centralized into a global store available as the `$store` property on the data client.
+
+```ts seed.ts
+await snaplet.users([{}]);
+
+// { users: [ { id: 1, email: 'john.doe@acme.com' } ] }
+console.log(snaplet.$store);
+```
+
+You can reset the state of the data client by calling the `$reset` function.
+
+```ts seed.ts
+await snaplet.users([{}]);
+snaplet.$reset();
+```
+
+And you can get a new instance of the data client by calling the `$transaction` function.
+It receives a data client which state is reset.
+It's particularly useful in tests when you want a new client for each test.
+
+```ts seed.ts
+await snaplet.$transaction(async (snaplet) => {
+  await snaplet.users([{}]);
+});
+```
+
+### Store as a first-class citizen
+
+Everytime you call a model function, it now returns the generated data as a store.
+
+```ts seed.ts
+const singleUserStore = await snaplet.users([{}]);
+const usersStore = await snaplet.users(x => x(3));
+
+// { users: [ { id: 1 } ] }
+console.log(singleUserStore);
+
+// { users: [ { id: 2 }, { id: 3 }, { id: 4 } ] }
+console.log(usersStore);
+
+// { users: [ { id: 1 }, { id: 2 }, { id: 3 }, { id: 4 } ] }
+console.log(snaplet.$store);
+```
+
+### Fine-grained connections
+
+`autoConnect` is renamed to `connect` and now accepts either `true` or a store.
+It allows for more flexibility when you want to connect generated data to existing data.
+
+```ts seed.ts
+await snaplet.users(x => x(3));
+
+// it will connect the authors of the posts to the previously generated users
+await snaplet.posts(x => x(3), { connect: true });
+```
+
+`connect: true` is a shorthand for `connect: snaplet.$store`.
+
+And here is how you can pass a custom store.
+
+```ts seed.ts
+// it will connect the authors of the posts to one of these users
+const externalStore = { users: [{ id: 42 }, { id: 5432 }]} };
+await snaplet.posts(x => x(3), { connect: externalStore });
+```
+
+### Good bye operators!
+
+We are removing the `pipe` and `merge` operators in light of the previous changes.
+
+If previously you had something like this:
+
+```ts seed.ts
+await snaplet.$pipe([
+  snaplet.users(x => x(3)),
+  snaplet.posts(x => x(3), { autoConnect: true }),
+]);
+```
+
+It is now equivalent to:
+
+```ts seed.ts
+await snaplet.users(x => x(3));
+await snaplet.posts(x => x(3), { connect: true });
+```
+
+Or if you don't want to connect on the global store:
+
+```ts seed.ts
+const usersStore = await snaplet.users(x => x(3));
+await snaplet.posts(x => x(3), { connect: usersStore });
+```
+
+## From `0.76.0` and above
+
+In this version, we are removing the `run` function from the `generate` configuration.
+
+Instead, we're introducing a new package called `@snaplet/seed`.
+
+We extracted the data client into its own package so you can use it everywhere in your codebase!
+
+Seed scripts or tests, data are now one import away! Let's see how to migrate to it.
+
+First, install the new package:
+
+```bash >_&nbsp;terminal
+npm install -D @snaplet/seed
+```
+
+Like the [Prisma Client](https://www.prisma.io/docs/concepts/components/prisma-client), this package is in fact a proxy to the local data client you will generate with Snaplet CLI based on your database schema.
+
+In order to do that, we repurposed the command `snaplet generate` to generate the data client! You can now run it.
+
+```bash >_&nbsp;terminal
+npx snaplet generate
+```
+
+It will create a folder containing your data client source code under `node_modules/.snaplet`. This package is then re-exported by `@snaplet/seed`.
+
+Now, let's edit your `seed.config.ts` and port your `run` function to a seed script.
+
+<CH.Scrollycoding>
+
+Given this configuration.
+
+```ts seed.config.ts
+/// <reference path=".snaplet/snaplet.d.ts" />
+import { defineConfig } from 'snaplet';
+
+export default defineConfig({
+  generate: {
+    alias: {
+      inflection: true,
+    },
+    async run(snaplet) {
+      await snaplet.users((x) => x(3, () => ({
+        posts: (x) => x(10),
+      }))),
+    },
+  },
+});
+```
+
+---
+
+* Copy the content of your `run` function and remove it.
+* Rename the `generate` key in your config to `seed`:
+
+```ts seed.config.ts
+/// <reference path=".snaplet/snaplet.d.ts" />
+import { defineConfig } from 'snaplet';
+
+export default defineConfig({
+  seed: {
+    alias: {
+      inflection: true,
+    },
+  },
+});
+```
+
+---
+
+Create a new `seed.ts` file and import the Snaplet data client.
+
+```ts seed.ts
+import { SnapletClient } from '@snaplet/seed';
+```
+
+---
+
+Create a new `snaplet` client instance.
+
+If you were relying on snaplet to clear any existing data from your database first, you now do this explicitly with `snaplet.$resetDatabase()`.
+
+```ts seed.ts
+import { SnapletClient } from '@snaplet/seed';
+
+const snaplet = new SnapletClient();
+
+snaplet.$resetDatabase();
+```
+
+---
+
+Paste what you copied earlier from your `run` function.
+
+```ts seed.ts
+import { SnapletClient } from '@snaplet/seed';
+
+const snaplet = new SnapletClient();
+
+snaplet.$resetDatabase();
+
+await snaplet.users((x) => x(3, () => ({
+  posts: (x) => x(10),
+})));
+```
+</CH.Scrollycoding>
+
+The `snaplet` data client is automatically connected to your target database defined in either your `.snaplet/config.json` file or your `SNAPLET_TARGET_DATABASE_URL` environment variable.
+
+You can now run your seed script with any TypeScript runner like [`tsx`](https://github.com/privatenumber/tsx) or [`ts-node`](https://typestrong.org/ts-node/).
+
+```bash >_&nbsp;terminal
+npx tsx seed.ts
+```
+
+If you were relying on the `--sql` option to generate a SQL file instead of having the data client writing directly to your database, you can now use the `dryRun` option in the data client.
+
+```ts seed.ts
+import { SnapletClient } from '@snaplet/seed';
+
+const snaplet = new SnapletClient({ dryRun: true });
+
+// With the dryRun option, the data client will output all the SQL queries to stdout.
+await snaplet.users((x) => x(3, () => ({
+  posts: (x) => x(10),
+})));
+```
+
+To know more about the data client, check out the [documentation](/seed/getting-started/quick-start).
+
+## From `0.66.0` and above
+
+The `generate` API is evolving! After a great number of feedbacks from the community during the alpha, we decided to make it more flexible and powerful.
+
+The new API is still in beta, but we encourage you to try it out and give us feedbacks.
+
+Here is a step-by-step guide to migrate your existing `generate` plan to the new API.
+
+You can start by regenerating your types by running:
+
+```bash >_&nbsp;terminal
+snaplet config generate
+```
+
+Now, let's edit your `seed.config.ts` file.
+
+<CH.Scrollycoding>
+
+This is what we had before version `0.66.0`.
+
+```ts seed.config.ts
+/// <reference path=".snaplet/snaplet.d.ts" />
+import { defineConfig } from 'snaplet';
+
+export default defineConfig({
+  generate: {
+    plan({ snaplet }) {
+      return snaplet.User({
+        count: 3,
+        data: {
+          email: ({ seed }) =>
+            copycat.email(seed),
+          Post: {
+            count: 10,
+          }
+        }
+      }),
+    },
+  },
+});
+```
+
+---
+
+Rename `plan` to `run`, and make it async. You are no longer required to return a plan. Calling `await` on a plan will automatically run it.
+
+```ts seed.config.ts
+/// <reference path=".snaplet/snaplet.d.ts" />
+import { defineConfig } from 'snaplet';
+
+export default defineConfig({
+  generate: {
+    // focus(1,2[7:12])
+    async run({ snaplet }) {
+      await snaplet.User({
+        count: 3,
+        data: {
+          email: ({ seed }) =>
+            copycat.email(seed),
+          Post: {
+            count: 10,
+          }
+        }
+      }),
+    },
+  },
+});
+```
+
+---
+
+We inject directly the `snaplet` data client in the `run` function.
+
+The utilities and operators are now available directly on the `snaplet` object: `snaplet.$pipe`, `snaplet.$merge` and `snaplet.$createStore`.
+
+```ts seed.config.ts
+/// <reference path=".snaplet/snaplet.d.ts" />
+import { defineConfig } from 'snaplet';
+
+export default defineConfig({
+  generate: {
+    // focus
+    async run(snaplet) {
+      await snaplet.User({
+        count: 3,
+        data: {
+          email: ({ seed }) =>
+            copycat.email(seed),
+          Post: {
+            count: 10,
+          }
+        }
+      }),
+    },
+  },
+});
+```
+
+---
+
+We no longer need `count` and `data`, you can pass the values directly.
+
+```ts seed.config.ts
+/// <reference path=".snaplet/snaplet.d.ts" />
+import { defineConfig } from 'snaplet';
+
+export default defineConfig({
+  generate: {
+    async run(snaplet) {
+      // focus(1:5)
+      await snaplet.User({
+          email: ({ seed }) =>
+            copycat.email(seed),
+        Post: {}
+      }),
+    },
+  },
+});
+```
+
+---
+
+To create lists of data, you can either pass an array or use our `x` helper function passed in a callback.
+
+```ts seed.config.ts
+/// <reference path=".snaplet/snaplet.d.ts" />
+import { defineConfig } from 'snaplet';
+
+export default defineConfig({
+  generate: {
+    async run(snaplet) {
+      // focus(1:5)
+      await snaplet.User((x) => x(3, () => ({
+        email: ({ seed }) =>
+          copycat.email(seed),
+        Post: (x) => x(10),
+      }))),
+    },
+  },
+});
+```
+
+---
+
+Congrats, you are now using the new API!
+
+```ts seed.config.ts
+/// <reference path=".snaplet/snaplet.d.ts" />
+import { defineConfig } from 'snaplet';
+
+export default defineConfig({
+  generate: {
+    async run(snaplet) {
+      await snaplet.User((x) => x(3, () => ({
+        email: ({ seed }) =>
+          copycat.email(seed),
+        Post: (x) => x(10),
+      }))),
+    },
+  },
+});
+```
+
+</CH.Scrollycoding>
+
+To learn more about the new API, check out the [documentation](/seed/core-concepts).

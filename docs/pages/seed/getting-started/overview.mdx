@@ -1,0 +1,74 @@
+import { Tabs, Tab } from "nextra/components";
+
+# Overview
+
+<iframe style={{ margin: "30px 0" }} width="100%" height="500" src="https://www.youtube.com/embed/-MfItFmmeqU?si=Yzg41rK4Spoy7FHa" title="YouTube video player" frameBorder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowFullScreen></iframe>
+
+**Seed** is a set of tools **understanding your database schema** to help you **generate production-accurate data**.
+
+It consists of the following parts:
+
+- **Seed Client**: Auto-generated and type-safe data client for Node.js & TypeScript 🛡️
+- **Seed CLI**: A CLI to generate and keep the data client in sync with your database 🛠️
+- **Seed AI**: Our custom model identifying the shape of your data 🤖
+
+We are compatible with [PostgreSQL](../reference/adapters.mdx#postgres), [SQLite](../reference/adapters.mdx#sqlite) and [MySQL](../reference/adapters.mdx#mysql).
+
+## Seed Client
+
+Our data client is auto-generated from your database schema.
+We are using the full power of TypeScript to provide you with a type-safe and auto-completed experience when working with your data.
+
+You can focus on the data that matter to **you**, we will take care of generating all the relationships. ✨
+
+Here is a sneak peek of what you can do with Seed Client:
+
+Are you working on a blog app and need 5 posts?
+```ts
+await seed.posts((x) => x(5))
+```
+
+Or maybe you need a user with a specific email?
+```ts
+await seed.users([
+  { email: 'snappy@snaplet.dev' },
+])
+```
+
+What if you want to create an organization with a varying number of members?
+```ts
+await seed.organizations([
+  {
+    name: 'Snaplet',
+    members: (x) => x({ min: 1, max: 10 }),
+  },
+])
+```
+
+And this is just the beginning! Read the [quick start guide](./quick-start.mdx) to get started with Seed Client.
+
+## Seed CLI
+
+The CLI is the entry point to Seed. It will help you generate the data client and keep it in sync with your database.
+
+To begin your journey with Seed in seconds, run this command in your project directory:
+```bash >_&nbsp;terminal
+npx @snaplet/seed init
+```
+
+Checkout the [Seed CLI reference](../reference/cli.mdx) to learn more about the CLI and how to use it.
+
+## Seed AI
+
+We are using AI to have a deeper understanding of your datatabase schema so we can generate the most accurate and production-like data for you.
+
+
+## Join our Community
+
+Connect with us on the [Snaplet Discord](https://app.snaplet.dev/chat), engage with a vibrant, supportive community, and get swag!
+
+💬 Drop a greeting in our `#chat` channel!
+
+🆘 Ask our team anything in our `#help` channel!
+
+🤪 Share your projects or other interests in our `#random` channel!

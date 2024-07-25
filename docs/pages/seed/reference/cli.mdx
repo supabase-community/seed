@@ -1,0 +1,89 @@
+# Seed CLI
+
+You can use the Command-Line Interface (CLI) provided by `@snaplet/seed` to manage your Seed Client from a terminal window.
+
+## **init**
+
+The `npx @snaplet/seed init` command is used to initialize Seed locally for your project.
+
+**Arguments**
+
+- `<directory>` - Directory path to initialize Snaplet Seed in.
+
+**Usage**
+
+Initialize Seed in the current directory:
+```bash >_&nbsp;terminal
+npx @snaplet/seed init
+```
+
+Initialize Seed in a specific directory:
+```bash >_&nbsp;terminal
+npx @snaplet/seed init prisma/seed
+```
+If you initialize Seed in a specific directory, you will have to specify the [`--config`](#common-options) option in the other commands.
+
+## **login**
+
+The `npx @snaplet/seed login` command is used to log into your Snaplet account.
+
+**Options**
+
+- `--access-token` - Snaplet Cloud access token to use for login, you can obtain one at https://app.snaplet.dev/access-tokens.
+
+**Usage**
+
+Interactive login:
+```bash >_&nbsp;terminal
+npx @snaplet/seed login
+```
+
+Login with access token:
+```bash >_&nbsp;terminal
+npx @snaplet/seed login --access-token <access-token>
+```
+
+## **sync**
+
+The `npx @snaplet/seed sync` command is used to synchronize your database schema with Seed Client.
+
+**Usage**
+
+```bash >_&nbsp;terminal
+npx @snaplet/seed sync
+```
+
+## **generate**
+
+The `npx @snaplet/seed generate` command is used to generate the necessary assets for Seed Client.
+
+**Usage**
+
+```bash >_&nbsp;terminal
+npx @snaplet/seed generate
+```
+
+## Common options
+
+- `--config <path>` - Path to the config file.
+
+**Usage**
+
+```bash >_&nbsp;terminal
+npx @snaplet/seed --config prisma/seed/seed.config.ts sync
+```
+
+## **link**
+
+The `npx @snaplet/seed link` command is used to link your local directory to a Snaplet Project.
+
+**Usage**
+
+```bash >_&nbsp;terminal
+npx @snaplet/seed link
+```
+
+## Global options
+
+- `--help` - Show help.
+- `--version` - Show version number.

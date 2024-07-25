@@ -1,0 +1,215 @@
+import { SlackAppERD } from '../../../components/recipes/SlackAppERD';
+
+# Relationships
+
+`@snaplet/seed` is a tool to help you write seed scripts more easily. It provides a type-safe, "ORM-ish" way to define your seeding logic. A significant part of using a relational database is managing relationships between data entities. In the context of a seed script, "connection" refers to references to existing data rather than creating new data. Here, we'll guide you through the various ways `@snaplet/seed` allows you to define such connections. You might not use all of them at once, depending on your needs, but they should all make sense based on the use cases we describe.
+
+### Connections overview
+
+`@snaplet/seed` allows you to "connect" data in several ways:
+
+1. **Path connect** (or implicit connections): These connections are made when a parent declares children, automatically creating a connection between them.
+2. **Plan connect**: This defines a connection pool only for a specific plan, helping to break down your seeding logic into dedicated functions.
+3. **Global connect**: This sets the default connection behavior for all plans defined in the seed script, useful for connecting everything across plans or augmenting data for existing rows.
+4. **Field connect**: This is the most granular level of connection, allowing you to connect specific columns and rows.
+
+While this may seem like a lot, all connections can be achieved via **field connect**; the other methods are just shortcuts for convenience.
+
+Let's dive in with an example, using a database schema for a "Slack clone" app:
+
+<SlackAppERD />
+
+This schema includes tables and relationships typical of a Slack app:
+
+1. Users
+2. Private messages between users (via `user_message`)
+3. Workspaces
+   - Workspaces can have members
+   - Workspace members have a "type" (admin / moderator / member)
+   - Workspaces can have channels
+     - Channels can have members
+     - Channels can have messages
+     - Channels can have threads
+     - Threads can have messages
+
+Now, let's look at a seeding scenario:
+
+### Path connect
+For starters, let's say we want a scenario where we can log in as a user and we want:
+1. One user
+2. Author of 2 direct messages
+3. Recipient of 2 direct messages
+4. Author of a conversation channel, with a thread, and 3 messages in it
+
+Using path connections, the code looks like this:
+
+```ts
+  await seed.users((x) =>
+    x(1, {
+      // Ensure we are the author of two direct messages
+      authored_user_messages: [{}, {}],
+      // Ensure we are the recipient of two direct messages
+      received_user_messages: [{}, {}],
+      // Create a channel
+      channel: [{
+        // With a thread in it
+        channel_thread: [{
+          // And three messages in this thread
+          channel_thread_message: [{}, {}, {}]
+        }]
+      }]
+    })
+  );
+```
+
+Since all elements are children of our user, path connections will connect all references to the currently created user. So, our user will be the author of the channel and the channel thread messages.
+
+However, there's an issue: our user will be both the author and the recipient of all the direct messages. We want different users for authors and recipients. We can enforce the creation of new users for these relations like this:
+
+```ts
+  await seed.users((x) =>
+    x(1, {
+      // Ensure each recipient creates a new user
+      authored_user_messages: [
+        { recipient: {} },
+        { recipient: {} }
+      ],
+      // Ensure each author creates a new user
+      received_user_messages: [
+        { author: {} },
+        { author: {} }
+      ],
+      channel: [{
+        channel_thread: [{
+          channel_thread_message: [{}, {}, {}]
+        }]
+      }]
+    })
+  );
+```
+
+### Plan connect
+Sometimes, you need more control over generated data without defining each element. Returning to our example, we have multiple "pools of users" in our app via members.
+
+1. A workspace connects to a pool of users via `workspace_members`
+2. A channel connects to a pool of users via `channel_members`
+
+We want to ensure:
+1. All authors and channel members in a workspace are a subset of the workspace members.
+2. All thread messages in a channel are authored by channel members.
+3. All direct messages between users are between users sharing at least one workspace.
+
+We'll create pools of users and use plan connections to generate data with the correct relationships:
+
+```ts
+  // Create a pool of between 2 and 10 users for our workspace
+  const { users } = await seed.users((x) => x({min: 2, max: 10}));
+  const workspacesNumber = 1;
+  // Create our workspace and connect all our users to it
+  const { workspace, workspace_member } = await seed.workspace((x) => 
+    x(workspacesNumber, () => ({
+      // Each workspace will have between 1 and 10 members
+      workspace_member: (x) => x(users.length)
+    }), 
+    // Connect the workspace members to the pool of users we created
+    { connect: { users }})
+  );
+
+  // Use the workspace and workspace_member objects
+  // to create more complex relationships
+  for (const w of workspace) {
+    // Retrieve all members for this specific workspace
+    const workspace_members = workspace_member
+      .filter((m) => m.workspace_id === w.id);
+    const channel_users = copycat
+      // Pick some of the workspace members
+      // to be channel members
+      .someOf(w.id, [1, workspace_members.length], workspace_members)
+      .map((m) => ({ id: m.user_id }));
+    // Create between 1 and 10 channels for this workspace
+    await seed.channel((x) => x({ min: 1, max: 10 }, () => ({
+      // Add all channel users as members of the current channel
+      channel_member: (x) => x(channel_users.length),
+      // Create between 1 and 10 threads for each channel
+      channel_thread: (x) => x({ min: 1, max: 10 }, ({
+        // Create between 0 and 10 messages for each thread
+        channel_thread_message: (x) => x({ min: 0, max: 10 })
+      }))
+    }), {
+      connect: { 
+        // Connect all channels to the current workspace
+        workspace: [w],
+        // Connect all channel users to the pool of users for this channel
+        users: channel_users
+      }
+    }));
+  }
+```
+
+Now, we can generate more workspaces that match our constraints by adjusting one variable (`workspacesNumber`).
+
+### Global connect
+
+We have some issues with our data, such as `workspace members` being connected to a `workspace_user_type` (user roles). We likely want to use the same values: "admin" and "member". We can use plan connections for these, or pass them as global values for our whole client, ensuring every plan uses these values:
+
+```ts
+  // Declare a base client to reset our database and set up global values
+  const baseClient = await createSeedClient();
+  // Truncate all tables in the database
+  await baseClient.$resetDatabase();
+
+  // Seed our database with our two workspace user types
+  const { workspace_user_type } = await baseClient.workspace_user_type([
+    { type: "admin" },
+    { type: "member" }
+  ]);
+
+  // Initialize another client to seed the rest
+  // of the data and link with global values
+  const seed = await createSeedClient({
+    connect: {
+      // Make our user types globally available in all plans
+      workspace_user_type
+    }
+  });
+```
+
+Adding this global connect at the beginning of our script ensures all our workspace_members have either the "admin" or "member" role.
+
+### Field connect
+
+Sometimes, you need precise control over connections for each row. For example, we might want only one "admin" per workspace, with the rest being "members". We can implement this logic via field connections:
+
+```ts
+  const { workspace_user_type } = await baseClient.workspace_user_type([
+    { type: "admin" },
+    { type: "member" }
+  ]);
+
+  const seed = await createSeedClient({
+    connect: {
+      workspace_user_type
+    }
+  });
+
+  const { users } = await seed.users((x) => x({ min: 2, max: 10 }));
+  const { workspace, workspace_member } = await seed.workspace((x) =>
+    x(3, () => ({
+      workspace_member: (x) => x(users.length, ({ index }) => {
+        // Make the first member an admin and the rest members
+        const wtype = index === 0
+          ? workspace_user_type.find((wut) => wut.type === "admin")
+          : workspace_user_type.find((wut) => wut.type === "member");
+        return {
+          workspace_user_type: (ctx) => ctx.connect(wtype!)
+        };
+      })
+    }), 
+    { connect: { users }})
+  );
+```
+
+### Conclusion
+
+Whether you use path connections for simplicity, plan connections for specific scenarios, global connections for shared configurations, or field connections for fine-grained control, you can efficiently seed your database with meaningful and correctly related data.
+By understanding and applying these connection strategies, you can ensure your seed data accurately represents the relationships in your database.

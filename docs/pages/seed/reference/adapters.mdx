@@ -1,0 +1,108 @@
+# Adapters
+
+Seed supports multiple databases and ORMs through adapters.
+
+## ORMs
+
+### Prisma
+
+> **Note** Currently supported providers: `postgres`, `mysql`, `sqlite`
+
+`@snaplet/seed` supports [Prisma](https://www.prisma.io/orm) using the `@snaplet/seed/adapter-prisma`:
+
+```ts seed.config.ts
+import { SeedPrisma } from "@snaplet/seed/adapter-prisma";
+import { defineConfig } from "@snaplet/seed/config";
+import { PrismaClient } from "@prisma/client";
+
+export default defineConfig({
+  adapter: () => {
+    const client = new PrismaClient();
+    return new SeedPrisma(client);
+  },
+  select: [
+    "!*_prisma_migrations",
+  ],
+});
+```
+
+## PostgreSQL
+
+### Postgres.js
+
+`@snaplet/seed` supports [Postgres.js](https://github.com/porsager/postgres) using the `@snaplet/seed/adapter-postgres` adapter:
+
+```ts seed.config.ts
+import { SeedPostgres } from "@snaplet/seed/adapter-postgres";
+import { defineConfig } from "@snaplet/seed/config";
+import postgres from "postgres";
+
+export default defineConfig({
+  adapter: () => {
+    const client = postgres(process.env.DATABASE_URL);
+    return new SeedPostgres(client);
+  },
+});
+```
+
+### node-postgres
+
+`@snaplet/seed` supports [node-postgres](https://node-postgres.com/) using the `@snaplet/seed/adapter-pg` adapter:
+
+```ts seed.config.ts
+import { SeedPg } from "@snaplet/seed/adapter-pg";
+import { defineConfig } from "@snaplet/seed/config";
+import { Client } from "pg";
+
+export default defineConfig({
+  alias: {
+    inflection: true,
+  },
+  adapter: async () => {
+    const client = new Client({ connectionString: process.env.DATABASE_URL  });
+    await client.connect();
+    return new SeedPg(client);
+  },
+});
+```
+
+## SQLite
+
+### better-sqlite3
+
+`@snaplet/seed` supports [better-sqlite3](https://github.com/WiseLibs/better-sqlite3) using the `@snaplet/seed/adapter-better-sqlite3` adapter:
+
+```ts seed.config.ts
+import { SeedBetterSqlite3 } from "@snaplet/seed/adapter-better-sqlite3";
+import { defineConfig } from "@snaplet/seed/config";
+import Database from "better-sqlite3";
+
+export default defineConfig({
+  adapter: () => {
+    const client = new Database('sqlite.db');
+    return new SeedBetterSqlite3(client);
+  },
+});
+```
+
+## MySQL
+
+> **Note** MySQL support is currently in alpha. We are working on improving the experience and welcome feedbacks on our [Discord](https://app.snaplet.dev/chat).
+
+### mysql2
+
+`@snaplet/seed` supports [mysql2](https://github.com/sidorares/node-mysql2) using the `@snaplet/seed/adapter-mysql2` adapter:
+
+```ts seed.config.ts
+import { SeedMysql2 } from "@snaplet/seed/adapter-mysql2";
+import { defineConfig } from "@snaplet/seed/config";
+import { createConnection } from "mysql2/promise";
+
+export default defineConfig({
+  adapter: async () => {
+    const client = await createConnection(process.env.DATABASE_URL);
+    await client.connect();
+    return new SeedMysql2(client);
+  },
+});
+```

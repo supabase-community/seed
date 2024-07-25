@@ -1,0 +1,139 @@
+# Configuration
+
+Seed configuration is done in the `seed.client.ts` file.
+
+## Config Location
+
+The default location is `seed.client.ts` in the root of your project.
+
+You can also specify a custom location using the [`--config`](/seed/reference/cli#common-options) flag when running the Seed CLI commands.
+
+If you want to persist your custom location to avoid having to use `--config` for every command, you can add a `@snaplet/seed` field to your `package.json` file.
+
+```json package.json
+{
+  "@snaplet/seed": {
+    "config": "prisma/seed/seed.config.ts"
+  }
+}
+```
+
+## Config Intellisense
+
+You can use the `defineConfig` helper to define your configuration. This will provide you with intellisense for the available options.
+
+```ts seed.client.ts
+import { defineConfig } from "@snaplet/seed/config";
+
+export default defineConfig({
+  // your configuration options here...
+});
+```
+
+`defineConfig` types are generic by default, but once you [sync](./cli.mdx#sync) your Seed Client, `defineConfig` becomes typed against your database schema. 🪄
+
+## Options
+
+### adapter
+
+- **Type:** `() => DatabaseClient<unknown> | Promise<DatabaseClient<unknown>>`
+- **Required**
+
+The database adapter to use.
+
+**Example:**
+
+```ts seed.client.ts
+import { SeedPostgres } from "@snaplet/seed/adapter-postgres";
+import { defineConfig } from "@snaplet/seed/config";
+import postgres from "postgres";
+
+export default defineConfig({
+  adapter: () => {
+    const client = postgres(process.env.DATABASE_URL);
+    return new SeedPostgres(client);
+  },
+});
+```
+
+To learn more about the available adapters, see the [Adapters](./adapters.mdx) reference.
+
+### alias.inflection
+
+- **Type:** `boolean | InflectionStrategy`
+- **Default**: `false`
+
+Apply a global renaming strategy to all tables and columns in the generated Seed Client.
+
+When `true`, a default strategy is applied:
+
+- **Model names:** pluralized and camelCased.
+- **Scalar field names:** camelCased.
+- **Parent field names (one to one relationships):** singularized and camelCased.
+- **Child field names (one to many relationships):** pluralized and camelCased.
+- We also support prefix extraction and opposite baseName for foreign keys inspired by [PostGraphile](https://github.com/graphile/pg-simplify-inflector#naming-your-foreign-key-fields).
+
+**Example:**
+
+```ts seed.client.ts
+import { defineConfig } from "@snaplet/seed/config";
+
+export default defineConfig({
+  alias: {
+    inflection: true,
+  },
+});
+```
+
+### alias.override
+
+- **Type:** `Record<string, { name?: string, fields?: Record<string, string> }>`
+
+Rename specific tables and columns in the generated Seed Client.
+This option is useful for resolving renaming conflicts that can arise when using `alias.inflection`.
+
+**Example:**
+
+```ts seed.client.ts
+import { defineConfig } from "@snaplet/seed/config";
+
+export default defineConfig({
+  alias: {
+    override: {
+      Book: {
+        name: "books",
+        fields: {
+          User: "author",
+          published_at: "publishedAt",
+        },
+      },
+    },
+  },
+});
+```
+
+### select
+
+- **Type:** `Array<string>`
+
+Exclude or include tables from the generated Seed Client.
+This use the [glob pattern matching api](https://globster.xyz/)
+
+All tables are included by default, if you prefix a table with `!` everything matching that pattern will be excluded.
+The patterns apply in their declaration order.
+
+**Example:**
+
+```ts seed.client.ts
+import { defineConfig } from "@snaplet/seed/config";
+
+export default defineConfig({
+  select: [
+    "!archive*",
+    "!*_logs",
+    "!auth.*",
+    "archive.specific_table_to_include",
+    "auth._prefixed_to_include*",
+  ],
+});
+```

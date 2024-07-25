@@ -1,0 +1,108 @@
+import { Tabs, Tab } from 'nextra/components';
+import { UniqueConstraintSchema } from '../../../components/recipes/UniqueConstraintSchema';
+
+# How to Handle Unique Constraint Errors with Snaplet Seed
+
+Welcome to your step-by-step guide on tackling unique constraint errors while establishing relationships between entities in your database using Snaplet Seed. 
+This guide is designed to make your journey smoother and help you understand how to navigate through common pitfalls with ease and efficiency.
+
+## Understanding Your Database
+
+In our example, we will lays out the database structure, highlighting two key constraints:
+
+- **Each User's Email Must Be Unique**: Ensuring every user has a unique email address in the database is crucial. This is enforced by marking the email field with `UNIQUE (email)` in the User model, mirroring the UNIQUE constraint on the email column in the SQL schema.
+- **One Membership Per Organization**: To avoid duplicate memberships, the Member model defines two unique constraints using the `UNIQUE(organizationId, userId)` attribute. This ensures a user can join multiple organizations but can't join the same one more than once.
+
+<Tabs items={["diagram", "sql"]}>
+<Tab>
+<UniqueConstraintSchema className="nx-mx-auto nx-my-4" />
+</Tab>
+<Tab>
+```sql
+-- CreateTable
+CREATE TABLE "User" (
+    "id" INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
+    "email" TEXT NOT NULL
+);
+
+-- CreateTable
+CREATE TABLE "Member" (
+    "id" INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
+    "organizationId" INTEGER NOT NULL,
+    "userId" INTEGER NOT NULL,
+    "role" TEXT NOT NULL,
+    CONSTRAINT "Member_userId_fkey" FOREIGN KEY ("userId") REFERENCES "User" ("id") ON DELETE RESTRICT ON UPDATE CASCADE,
+    CONSTRAINT "Member_organizationId_fkey" FOREIGN KEY ("organizationId") REFERENCES "Organization" ("id") ON DELETE RESTRICT ON UPDATE CASCADE
+);
+
+-- CreateTable
+CREATE TABLE "Organization" (
+    "id" INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT
+);
+
+-- CreateIndex
+CREATE UNIQUE INDEX "User_email_key" ON "User"("email");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "Member_organizationId_userId_key" ON "Member"("organizationId", "userId");
+```
+</Tab>
+</Tabs>
+
+## Solving Unique Constraint Errors on Scalars
+
+When linking entities, unique constraint errors may pop up if your data attempts to breach these defined constraints. 
+For example, trying to create two users with the identical email address will trigger a unique constraint error, as seen in the code snippet below:
+
+```typescript
+import { createSeedClient } from "@snaplet/seed";
+
+const seed = await createSeedClient();
+await seed.$resetDatabase();
+
+const user = await seed.User((x) => x(2, () => ({ email: 'a-static-user-email@gmail.com' })));
+```
+
+### How to Navigate Through
+
+Snaplet Seed attempts to avoid these errors by variating the data. 
+If you encounter an issue, modifying your script to generate unique emails using the `seed` value can be a straightforward solution:
+
+```typescript
+import { createSeedClient } from "@snaplet/seed";
+
+const seed = await createSeedClient();
+await seed.$resetDatabase();
+
+const user = await seed.User((x) => x(2, ({ seed }) => ({ email: `user-${seed}@example.com` })));
+```
+
+## Tackling Unique Constraint Errors on Relationships
+
+Similar errors can arise when establishing relationships. If your script exceeds the number of unique combinations allowed by your constraints, you'll face an error. 
+Consider this scenario where creating more members than the unique combinations of users and organizations leads to a constraint error.
+
+### The Solution
+
+Adjust your script to fit within the bounds of possible unique combinations. 
+For instance, increasing the number of organizations or reducing the number of members to be created ensures you stay within the limits.
+
+```typescript
+import { createSeedClient } from "@snaplet/seed";
+
+const seed = await createSeedClient();
+await seed.$resetDatabase();
+
+const { User } = await seed.User((x) => x(2));
+// Increase the number of organizations to 3
+const { Organization } = await seed.Organization((x) => x(3));
+
+// Adjust members to fit new possibilities
+const members = await seed.Member((x) => x(5, () => ({
+    role: 'MEMBER'
+})), { connect: { User, Organization } });
+```
+
+By following these steps, you can efficiently navigate and resolve unique constraint errors, ensuring your database relationships are established correctly. 
+
+Happy coding!

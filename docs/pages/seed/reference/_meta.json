@@ -1,0 +1,7 @@
+{
+  "adapters": "Adapters",
+  "configuration": "Configuration",
+  "environment-variables": "Environment Variables",
+  "cli": "Seed CLI",
+  "client": "Seed Client API"
+}
