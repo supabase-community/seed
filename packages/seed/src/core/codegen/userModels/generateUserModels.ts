@@ -15,14 +15,12 @@ import { formatInput } from "#core/predictions/utils.js";
 import { generateCodeFromTemplate } from "#core/userModels/templates/codegen.js";
 import { type UserModels } from "#core/userModels/types.js";
 import { jsonStringify } from "#core/utils.js";
-import { type Shape, type TableShapePredictions } from "#trpc/shapes.js";
+import { type Shape } from "#trpc/shapes.js";
 import { shouldGenerateFieldValue } from "../../dataModel/shouldGenerateFieldValue.js";
 import { unpackNestedType } from "../../dialect/unpackNestedType.js";
 import { encloseValueInArray } from "../../userModels/encloseValueInArray.js";
 import { FILES } from "../codegen.js";
 import { generateJsonField } from "./generateJsonField.js";
-
-const SHAPE_PREDICTION_CONFIDENCE_THRESHOLD = 0.65;
 
 const findEnumType = (dataModel: DataModel, field: DataModelField) =>
   Object.entries(dataModel.enums).find(
@@ -119,9 +117,8 @@ const generateDefaultsForModel = (props: {
   dialect: Dialect;
   fingerprint: Fingerprint[string] | null;
   model: DataModelModel;
-  shapePredictions: TableShapePredictions | null;
 }) => {
-  const { fingerprint, model, dataModel, shapePredictions, dialect } = props;
+  const { fingerprint, model, dataModel, dialect } = props;
 
   const fields: { data: NonNullable<UserModels[string]["data"]> } = {
     data: {},
@@ -138,30 +135,16 @@ const generateDefaultsForModel = (props: {
       shape: Shape | null;
     } = { shape: null, examples: [] };
 
-    const fieldShapePrediction =
-      shapePredictions?.predictions.find(
-        (prediction) => prediction.column === field.columnName,
-      ) ?? null;
-
     const customExample = props.dataExamples.find(
       (e) =>
-        e.input ===
-        formatInput([model.schemaName ?? "", model.tableName, field.name]),
+        // The trim was added to support old examples that had a space at start due to no schema name
+        // New examples should not have this issue
+        e.input.trim() ===
+        formatInput([model.schemaName, model.tableName, field.name]),
     );
     if (customExample) {
       predictionData.input = customExample.input;
       predictionData.examples = customExample.examples;
-    } else {
-      if (
-        fieldShapePrediction?.shape &&
-        fieldShapePrediction.confidence &&
-        fieldShapePrediction.confidence > SHAPE_PREDICTION_CONFIDENCE_THRESHOLD
-      ) {
-        predictionData.shape = fieldShapePrediction.shape;
-        predictionData.examples =
-          props.dataExamples.find((e) => e.shape === predictionData.shape)
-            ?.examples ?? [];
-      }
     }
     const fieldFingerprint = fingerprint?.[field.name] ?? null;
 
@@ -186,25 +169,15 @@ const generateDefaultsForModels = (props: {
   dataModel: DataModel;
   dialect: Dialect;
   fingerprint: Fingerprint;
-  shapePredictions: Array<TableShapePredictions>;
 }) => {
-  const { fingerprint, dataModel, shapePredictions, dialect } = props;
+  const { fingerprint, dataModel, dialect } = props;
   const models: UserModels = {};
 
   for (const [modelName, model] of Object.entries(dataModel.models)) {
-    const modelShapePredictions =
-      shapePredictions.find(
-        (predictions) =>
-          model.tableName === predictions.tableName &&
-          (model.schemaName ?? "") === predictions.schemaName,
-      ) ?? null;
-
     const modelFingerprint = fingerprint[modelName] ?? null;
-
     models[modelName] = generateDefaultsForModel({
       model,
       dataModel,
-      shapePredictions: modelShapePredictions,
       dataExamples: props.dataExamples,
       fingerprint: modelFingerprint,
       dialect,
@@ -215,12 +188,10 @@ const generateDefaultsForModels = (props: {
 };
 
 export const generateUserModels = (context: CodegenContext) => {
-  const { fingerprint, dataModel, shapePredictions, dataExamples, dialect } =
-    context;
+  const { fingerprint, dataModel, dataExamples, dialect } = context;
 
   const defaults = generateDefaultsForModels({
     dataModel,
-    shapePredictions,
     dataExamples,
     fingerprint,
     dialect,
@@ -257,7 +228,6 @@ export const generateUserModels = (context: CodegenContext) => {
     const dataExamples = JSON.parse(readFileSync(join(__dirname, "${FILES.DATA_EXAMPLES.name}")));
 
     const getCustomExamples = (input) => dataExamples.find((e) => e.input === input)?.examples ?? [];
-    const getExamples = (shape) => dataExamples.find((e) => e.shape === shape)?.examples ?? [];
 
     // This function is used to tag a function as a fallback function so we can later identify if the function comes from codegen or not
     const fallbackFunctionTagger = (fn) => {

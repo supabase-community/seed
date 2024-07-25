@@ -1,3 +1,4 @@
+import { bold, brightGreen, dim } from "#cli/lib/output.js";
 import { dotSnapletPathExists, getDotSnapletPath } from "#config/dotSnaplet.js";
 import {
   getProjectConfigPath,
@@ -10,6 +11,7 @@ import {
 import { SnapletError } from "#core/utils.js";
 import { generateHandler } from "../generate/generateHandler.js";
 import { introspectHandler } from "../introspect/introspectHandler.js";
+import { predictHandler } from "../predict/predictHandler.js";
 
 async function ensureCanSync() {
   if (!(await seedConfigExists())) {
@@ -34,14 +36,19 @@ async function ensureCanSync() {
 export async function syncHandler(args: { isInit?: boolean; output?: string }) {
   await ensureCanSync();
   await introspectHandler();
+  if (process.env["OPENAI_API_KEY"] ?? process.env["GROQ_API_KEY"]) {
+    await predictHandler();
+  } else {
+    console.log(`
+${dim("Skipping AI-generated data...")}
 
-  // const isLoggedIn = Boolean(await getUser());
-  // const hasProjectId = Boolean((await getProjectConfig()).projectId);
-  // const canUseAI = isLoggedIn && hasProjectId;
+To get ${bold(" AI-generated data")}, you need to set either the ${brightGreen("OPENAI_API_KEY")} or ${brightGreen("GROQ_API_KEY")} environment variable.")}
+We also look for a .env file in the root of your project.
 
-  // if (!process.env["SNAPLET_DISABLE_AI"] && canUseAI) {
-  //   await predictHandler({ isInit: args.isInit });
-  // }
+To use a specific model, set the ${brightGreen("AI_MODEL_NAME")} environment variable.
+Example: ${brightGreen("AI_MODEL_NAME=gpt-4-mini")}
+      `);
+  }
 
   await generateHandler(args);
 }
