@@ -18,6 +18,7 @@ const config: KnipConfig = {
     "./packages/seed/src/index.ts",
     "knip.ts",
     "./packages/seed/e2e/fixtures/install/**/*",
+    "docs/**/*",
   ],
 };
 
