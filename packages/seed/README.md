@@ -50,3 +50,35 @@ npx @snaplet/seed init
 ```
 
 Learn more by reading our [documentation](https://docs.snaplet.dev/seed).
+
+
+## AI-Generated Data
+
+Use a Large Language Model (LLM) to generate examples for text-based entries. To use this feature, set up one of the following environment variables in your `.env` file:
+
+```
+OPENAI_API_KEY=<your_openai_api_key>
+GROQ_API_KEY=<your_groq_api_key>
+```
+
+> Optionally, specify the AI model name with the `AI_MODEL_NAME` environment variable. Example: `AI_MODEL_NAME=gpt-4-mini`
+
+The predicted data is saved in the file `.snaplet/dataExamples.json` and can be modified by the user.
+
+Here is an example of a `dataExamples.json` file:
+
+```
+[
+  {
+    "input": "post title",
+    "examples": [
+      "Tips for Effective Time Management",
+      ...
+    ],
+    "description": "This column is about storing the titles of the user-generated posts in the project."
+  },
+  ...
+]
+```
+
+In the above example, one could modify the description and remove the examples. Running `npx @snaplet/seed sync` will then regenerate examples based on the updated description for that column.
