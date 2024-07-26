@@ -49,7 +49,10 @@ export async function predictHandler(defaultExampleCount = 20) {
     const sKeyPress = listenForKeyPress("s");
 
     const { columns, dataModel } = await computePredictionContext();
-
+    const modelName = process.env["AI_MODEL_NAME"];
+    if (modelName) {
+      spinner.info(`Using model: ${modelName}`);
+    }
     // Get or generate project description
     let projectConfig = await getProjectConfig();
     if (projectConfig.projectDescription === undefined) {
@@ -142,12 +145,30 @@ export async function predictHandler(defaultExampleCount = 20) {
               })
               .map((c) => c.columnName);
 
-            const { description } = await determineColumnDescription(
-              adjacentStringColumns,
-              fullyQualifiedColumnName,
-              projectConfig.projectDescription,
-            );
-            columnDescription = description;
+            try {
+              const { description } = await determineColumnDescription(
+                adjacentStringColumns,
+                fullyQualifiedColumnName,
+                projectConfig.projectDescription,
+              );
+              columnDescription = description;
+            } catch (error) {
+              console.log(
+                `Failed to generate description for column: ${fullyQualifiedColumnName}, skipping...`,
+              );
+              completedTasks++;
+              const percent = Math.round((completedTasks / totalTasks) * 100);
+              spinner.text = displayEnhanceProgress({
+                percent,
+                showSkip: true,
+              });
+              // We return empty examples to avoid breaking the generation process
+              return {
+                ...column,
+                description: "",
+                examples: [],
+              };
+            }
           }
 
           const { newExamples } = await generateExamples(
@@ -173,11 +194,13 @@ export async function predictHandler(defaultExampleCount = 20) {
 
     const generationResult = await Promise.race([
       Promise.all(asyncTasks).then(async (res) => {
-        const dataExamples = res.map((r) => ({
-          input: formatInput([r.schemaName, r.tableName, r.columnName]),
-          examples: r.examples ?? [],
-          description: r.description,
-        }));
+        const dataExamples = res
+          .filter((r) => Boolean(r.examples))
+          .map((r) => ({
+            input: formatInput([r.schemaName, r.tableName, r.columnName]),
+            examples: r.examples ?? [],
+            description: r.description,
+          }));
         await setDataExamples(dataExamples);
         return "COMPLETE" as const;
       }),

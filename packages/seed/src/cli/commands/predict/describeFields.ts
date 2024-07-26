@@ -6,10 +6,17 @@ import { type ResponseMetadata, getCurrentModel } from "./models.js";
 export const determineProjectDescription = async (
   tableNames: Array<string>,
 ) => {
-  return _determineDescription(
-    projectSystemPrompt,
-    projectUserPrompt(tableNames),
-  );
+  try {
+    return await _determineDescription(
+      projectSystemPrompt,
+      projectUserPrompt(tableNames),
+    );
+  } catch (error) {
+    console.log(
+      `\nFailed to determine project description! \nPlease use a different AI model or update the 'projectDescription' field manually in '.snaplet/config.json'\n\n`,
+    );
+    throw error;
+  }
 };
 
 const projectSystemPrompt = `Determine what a project does by looking at the table names of the database.
@@ -56,32 +63,49 @@ const _determineDescription = async (
   systemPrompt: string,
   userPrompt: string,
   model: ChatGroq | ChatOpenAI = getCurrentModel(),
-) => {
-  const messages = [
-    new SystemMessage(systemPrompt),
-    new HumanMessage(userPrompt),
-  ];
-  const response = await model
-    .bind({
-      response_format: {
-        type: "json_object",
-      },
-    })
-    .invoke(messages);
+  retries = 3,
+): Promise<{
+  description: string;
+  requestTokens: number;
+  responseTokens: number;
+}> => {
+  try {
+    const messages = [
+      new SystemMessage(systemPrompt),
+      new HumanMessage(userPrompt),
+    ];
+    const response = await model
+      .bind({
+        response_format: {
+          type: "json_object",
+        },
+      })
+      .invoke(messages);
 
-  if (typeof response.content === "string") {
-    const content = JSON.parse(response.content) as {
-      description: string;
-    };
-    const meta = response.response_metadata as ResponseMetadata;
-    const requestTokens = Number(meta.tokenUsage?.promptTokens ?? 0);
-    const responseTokens = Number(meta.tokenUsage?.completionTokens ?? 0);
-    return {
-      description: content.description,
-      requestTokens,
-      responseTokens,
-    };
-  } else {
-    throw new Error("Invalid response from model");
+    if (typeof response.content === "string") {
+      const content = JSON.parse(response.content) as {
+        description: string;
+      };
+      const meta = response.response_metadata as ResponseMetadata;
+      const requestTokens = Number(meta.tokenUsage?.promptTokens ?? 0);
+      const responseTokens = Number(meta.tokenUsage?.completionTokens ?? 0);
+      return {
+        description: content.description,
+        requestTokens,
+        responseTokens,
+      };
+    } else {
+      throw new Error("Invalid response from model");
+    }
+  } catch (error) {
+    if (retries > 0) {
+      return _determineDescription(
+        systemPrompt,
+        userPrompt,
+        model,
+        retries - 1,
+      );
+    }
+    throw error;
   }
 };

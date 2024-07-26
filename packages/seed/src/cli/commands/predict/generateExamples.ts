@@ -46,17 +46,52 @@ export const generateExamples = async (
   fullyQualifiedColumnName: string,
   sampleSize: number,
   description: string,
+  retries = 2,
   examples?: Array<string>,
-) => {
-  const userPrompt = buildUserPrompt(
-    fullyQualifiedColumnName,
-    sampleSize,
-    description,
-    true,
-    examples,
-  );
-
-  return generateExamplesFromPrompts(systemPrompt, userPrompt, []);
+): Promise<{
+  newExamples: Array<string>;
+  rawResponse: string;
+  requestTokens: number;
+  responseTokens: number;
+}> => {
+  // LLM's (more so llama) sometimes get the json formatting wrong
+  // reducing the sample size usually fixes this
+  try {
+    const userPrompt = buildUserPrompt(
+      fullyQualifiedColumnName,
+      sampleSize,
+      description,
+      true,
+      examples,
+    );
+    return await generateExamplesFromPrompts(systemPrompt, userPrompt, []);
+  } catch (error) {
+    if (retries > 0) {
+      console.log(
+        `Error generating examples for column: ${fullyQualifiedColumnName}. \n Retrying in 1 second...`,
+      );
+      // Wait 1 second to avoid rate limiting
+      await new Promise((resolve) => setTimeout(resolve, 1000));
+      return await generateExamples(
+        fullyQualifiedColumnName,
+        sampleSize - 5,
+        description,
+        retries - 1,
+        examples,
+      );
+    }
+    console.log(
+      `Error generating examples for column: ${fullyQualifiedColumnName}.\n Full error:`,
+      error,
+    );
+    // We swallow the error and return an empty array so the process can continue
+    return {
+      newExamples: [],
+      rawResponse: "",
+      requestTokens: 0,
+      responseTokens: 0,
+    };
+  }
 };
 
 const generateExamplesFromPrompts = async (

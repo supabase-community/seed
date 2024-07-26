@@ -1,12 +1,8 @@
 import { ChatGroq } from "@langchain/groq";
 import { ChatOpenAI } from "@langchain/openai";
-import { bold, brightGreen } from "#cli/lib/output.js";
 
 export const getCurrentModel = () => {
   const name = process.env["AI_MODEL_NAME"];
-  if (name) {
-    console.log(`${bold("Model Override:")} Using ${brightGreen(name)}`);
-  }
   if (process.env["OPENAI_API_KEY"]) {
     return openAIModel(name);
   }
@@ -32,8 +28,9 @@ const openAIModel = (
 };
 
 const groqModel = (
-  modelName = "llama3-70b-8192",
+  modelName = "llama-3.1-8b-instant",
   apiKey = process.env["GROQ_API_KEY"],
+  concurrency = process.env["AI_CONCURRENCY"] ?? "1", // Currently rate limits are quite low on Groq
 ) => {
   if (!apiKey) {
     throw new Error("GROQ_API_KEY is required to use Groq models");
@@ -41,7 +38,7 @@ const groqModel = (
   return new ChatGroq({
     apiKey,
     model: modelName,
-    maxConcurrency: 10,
+    maxConcurrency: parseInt(concurrency),
   });
 };
 
