@@ -1,0 +1,334 @@
+import { Callout, Tabs, Tab } from 'nextra/components';
+import { TutorialSchema } from '../../../components/TutorialSchema';
+
+# Quick Start
+
+![Snappy looking at the getting started guide on their laptop](/seed/getting-started/quick-start/docs-image-quick-start.svg)
+
+## Assumptions
+
+This guide will take you through the process of using `@snaplet/seed` to create realistic, production-like data.
+
+## Prerequisites
+
+You already followed the [installation guide](./installation.mdx) and have `@snaplet/seed` available locally.
+
+## Our first Seed script
+
+Given this PostgreSQL database schema of a blog application:
+
+<Tabs items={["diagram", "sql"]}>
+<Tab>
+<TutorialSchema className="nx-mx-auto nx-my-4" />
+</Tab>
+<Tab>
+```sql
+CREATE TABLE public.user (
+  id uuid NOT NULL PRIMARY KEY,
+  username text NOT NULL,
+  email text NOT NULL
+);
+CREATE TABLE public.post (
+  id uuid NOT NULL PRIMARY KEY,
+  title text NOT NULL,
+  content text NOT NULL,
+  author_id uuid NOT NULL REFERENCES public.user(id)
+);
+CREATE TABLE public.comment (
+  id uuid NOT NULL PRIMARY KEY,
+  content text NOT NULL,
+  author_id uuid NOT NULL REFERENCES public.user(id),
+  post_id uuid NOT NULL REFERENCES public.post(id),
+  written_at timestamptz NOT NULL DEFAULT now()
+);
+```
+</Tab>
+</Tabs>
+
+Let's see how `@snaplet/seed` gives a programmatic interface to describe seeding requirements.
+
+We need to apply this schema to a new PostgreSQL database.
+
+Once done, we can edit the configuration file `seed.config.ts` to point to the database. We assume we already have our database client library `postgres` installed.
+
+```ts seed.config.ts
+import { SeedPostgres } from "@snaplet/seed/adapter-postgres";
+import { defineConfig } from "@snaplet/seed/config";
+import postgres from "postgres";
+
+export default defineConfig({
+  adapter: () => {
+    const client = postgres("postgres://postgres@localhost:5432/blog");
+    return new SeedPostgres(client);
+  },
+});
+```
+
+We can now generate our `@snaplet/seed` assets by running:
+
+```bash >_&nbsp;terminal
+npx @snaplet/seed sync
+```
+
+It's time to write our first seed script!
+
+<CH.Scrollycoding className="seed-tutorial-seed-script">
+
+Let's start with a bare minimum seed script.
+
+```ts seed.ts
+import { createSeedClient } from '@snaplet/seed';
+
+const seed = await createSeedClient();
+```
+
+---
+
+For our example blog application, let's assume we need the following data:
+
+- A post titled "Hello World!"
+- A post author, with an email address that ends with "acme.org."
+- Three comments on the post.
+
+It's worth noting what we're not explicitly defining - that each comment needs to have a separate, unique author, for instance. We're assuming that `@snaplet/seed` will fill in the blanks based on the schema and seed realistic data as needed.
+
+`seed` in the code above exposes all the models (i.e. the database tables, or the entities in our blog application - in this case "user" and "post") as functions.
+
+These functions return what we call a _plan_. When describing a plan, we always start from a "root" model - a model where we would start describing how to seed seed data, along with data for its related models (more on this soon).
+
+Here we start from the `posts` models. `await`ing a plan will execute it.
+
+```ts seed.ts
+import { createSeedClient } from '@snaplet/seed';
+
+const seed = await createSeedClient();
+
+// focus
+await seed.posts([{}]);
+```
+
+---
+
+We can directly define the values of our model.
+
+```ts seed.ts
+import { createSeedClient } from '@snaplet/seed';
+
+const seed = await createSeedClient();
+
+await seed.posts([
+  {
+    // focus
+    title: 'Hello World!',
+  },
+]);
+```
+
+---
+
+We can also define the values of our model's relationships.
+Here we define the author of the post represented by the `author` field.
+
+```ts seed.ts
+import { createSeedClient } from '@snaplet/seed';
+import { copycat } from '@snaplet/copycat';
+
+const seed = await createSeedClient();
+
+await seed.posts([
+  {
+    title: 'Hello World!',
+    // focus(1:6)
+    author: {
+      email: (ctx) =>
+        copycat.email(ctx.seed, {
+          domain: 'acme.org',
+        }),
+    },
+  },
+]);
+```
+
+---
+
+Next, we also define the comments of the post represented by the `comments` field.
+As we need more than one comment, we can use the `x` function which will create a list of similar comments.
+We can read it as "comments times 3".
+
+```ts seed.ts
+import { createSeedClient } from '@snaplet/seed';
+import { copycat } from '@snaplet/copycat';
+
+const seed = await createSeedClient();
+
+await seed.posts([
+  {
+    title: 'Hello World!',
+    author: {
+      email: (ctx) =>
+        copycat.email(ctx.seed, {
+          domain: 'acme.org',
+        }),
+    },
+    // focus
+    comments: (x) => x(3),
+  },
+]);
+```
+
+---
+
+Finally:
+* We'll add a `dryRun` option when creating `SeedClient` - in dry run mode, we'll log the sql statements to the console instead of altering the database.
+* and a `$resetDatabase()` call - this will clear the database of any current data, but keep the structure around
+
+```ts seed.ts
+import { createSeedClient } from '@snaplet/seed';
+import { copycat } from '@snaplet/copycat';
+
+const seed = await createSeedClient({
+  // focus
+  dryRun: true
+});
+
+// focus
+await seed.$resetDatabase()
+
+await seed.posts([
+  {
+    title: 'Hello World!',
+    author: {
+      email: (ctx) =>
+        copycat.email(ctx.seed, {
+          domain: 'acme.org',
+        }),
+    },
+    comments: (x) => x(3),
+  },
+]);
+```
+
+---
+
+We're done!
+
+```ts seed.ts
+import { createSeedClient } from '@snaplet/seed';
+import { copycat } from '@snaplet/copycat';
+
+const seed = await createSeedClient({
+  dryRun: true
+});
+
+await seed.$resetDatabase()
+
+await seed.posts([
+  {
+    title: 'Hello World!',
+    author: {
+      email: (ctx) =>
+        copycat.email(ctx.seed, {
+          domain: 'acme.org',
+        }),
+    },
+    comments: (x) => x(3),
+  },
+]);
+```
+
+</CH.Scrollycoding>
+
+### Executing the script
+
+At this point, we're ready to run our seed script for the first time!
+
+Let's see first what statements are generated by using the `dryRun: true` option.
+
+We run this command in the terminal:
+
+```bash >_&nbsp;terminal
+npx tsx seed.ts
+```
+
+We should see the following output:
+
+<CH.Slideshow className="seed-tutorial-sql-output">
+
+Click the '**Next**' button on the slider above to see a step-by-step explanation of this output.
+
+```sql >_&nbsp;terminal
+INSERT INTO public.user (email,id,username) VALUES
+('Craig.Bednar82365@acme.org', '24058b0d-21ec-54b8-a3fa-b0ad8034f10f', 'site-glance56860'),
+('Humberto.Bruen34274@meternephew.org', '241ed1d9-c36c-50d4-b783-e12ce5187076', 'Alexis-Gleason29168'),
+('Mattie.Braun26688@plodantechamber.com', '8c84c800-1b34-5843-b34b-73d3239f0c5b', 'blissful-fountain21234'),
+('Dannie_Osinski74665@brownmidline.name', '0e041e68-00c0-53db-b0f8-e28be8a009e0', 'visualise-service97805');
+
+INSERT INTO public.post (title,content,author_id,id) VALUES
+('Hello World!', 'Ramo ramukin rae racea rakesoma, me vayota yume vi keyo munavima.', '24058b0d-21ec-54b8-a3fa-b0ad8034f10f', '1a294726-1661-5d42-aaf6-cdb66e6c6eaf');
+
+INSERT INTO public.comment (content,id,post_id,author_id,written_at) VALUES
+('Ma ceasova yuviketa shira chiyomu.', '13fdf8d2-2199-5dfd-81d0-c8dd3ce3b8a6', '1a294726-1661-5d42-aaf6-cdb66e6c6eaf', '241ed1d9-c36c-50d4-b783-e12ce5187076', DEFAULT),
+('Mukinra kahyceako kiva kai me hameso rae.', '71a504eb-a859-5217-9e27-e15975ac69c6', '1a294726-1661-5d42-aaf6-cdb66e6c6eaf', '8c84c800-1b34-5843-b34b-73d3239f0c5b', DEFAULT),
+('Ma nacea va memumi ta, mami viyua yoma shimusona viyo metake.', '8e826b31-f774-57f3-8ef2-183bddb35f3e', '1a294726-1661-5d42-aaf6-cdb66e6c6eaf', '0e041e68-00c0-53db-b0f8-e28be8a009e0', DEFAULT);
+```
+
+---
+
+This is the post, titled "Hello World!" as intended.
+
+```sql >_&nbsp;terminal focus=8
+
+```
+
+---
+
+This is the author of the post, notice the "acme.org" in the email.
+
+```sql >_&nbsp;terminal focus=2
+
+```
+
+---
+
+And here are the 3 comments.
+
+```sql >_&nbsp;terminal focus=11:13
+
+```
+
+---
+
+As mentioned earlier, these 3 users were automatically generated to satisfy the requirement of 3 comments. We didn't need to define them - `@snaplet/seed` did it for us, because it knows our schema relationships and can fulfill them automatically.
+
+```sql >_&nbsp;terminal focus=3:5
+
+```
+
+</CH.Slideshow>
+
+It's now time to seed this data into our database.
+
+In order to do that, we remove the `dryRun` option. Now, instead of logging the SQL statements to the
+console, the data will be inserted into our database:
+
+```ts seed.ts
+const seed = await createSeedClient();
+```
+
+All done, we're now ready to code against our generated data!
+
+### Evolving the application
+
+Whenever the database structure changes, `@snaplet/seed` will need to be re-generated so that it is in sync with the new database structure.
+
+We can do this by running:
+
+```bash >_&nbsp;terminal
+npx @snaplet/seed sync
+```
+
+This command will fetch the new structure from the database and use it to regenerate `@snaplet/seed` assets.
+
+## Next steps
+
+Learn more about how `@snaplet/seed` works and define more complex plans by following one of our [recipes](/seed/recipes/relationships).

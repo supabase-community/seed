@@ -1,0 +1,468 @@
+import { Callout, Tabs, Tab } from 'nextra/components';
+import { TutorialSchema } from '../../../components/TutorialSchema';
+
+# Seed Client API
+
+The Seed Client API reference documentation is based on the following PostgreSQL database schema and `seed.config.ts` configuration file:
+
+<Tabs items={["diagram", "sql"]}>
+<Tab>
+<TutorialSchema className="nx-mx-auto nx-my-4" />
+</Tab>
+<Tab>
+```sql
+CREATE TABLE public.user (
+  id uuid NOT NULL PRIMARY KEY,
+  username text NOT NULL,
+  email text NOT NULL
+);
+CREATE TABLE public.post (
+  id uuid NOT NULL PRIMARY KEY,
+  title text NOT NULL,
+  content text NOT NULL,
+  author_id uuid NOT NULL REFERENCES public.user(id)
+);
+CREATE TABLE public.comment (
+  id uuid NOT NULL PRIMARY KEY,
+  content text NOT NULL,
+  author_id uuid NOT NULL REFERENCES public.user(id),
+  post_id uuid NOT NULL REFERENCES public.post(id),
+  written_at timestamptz NOT NULL DEFAULT now()
+);
+```
+</Tab>
+</Tabs>
+
+```ts seed.config.ts
+import { SeedPostgres } from "@snaplet/seed/adapter-postgres";
+import { defineConfig } from "@snaplet/seed/config";
+import postgres from "postgres";
+
+export default defineConfig({
+  adapter: () => {
+    const client = postgres(process.env.DATABASE_URL);
+    return new SeedPostgres(client);
+  },
+  alias: {
+    inflection: true,
+  },
+});
+```
+
+## `createSeedClient`
+
+- **Type:** `(options?: SeedClientOptions) => Promise<SeedClient>`
+
+Create a new Seed Client instance.
+
+**Example**
+
+```ts
+import { createSeedClient } from "@snaplet/seed";
+
+const seed = await createSeedClient();
+```
+
+### `adapter`
+
+- **Type:** `DatabaseClient`
+
+Overrides the [adapter](./adapters.mdx) defined in the `seed.config.ts` configuration file.
+
+**Example**
+
+```ts
+import { SeedPostgres } from "@snaplet/seed/adapter-postgres";
+import postgres from "postgres";
+
+const client = postgres(process.env.DATABASE_URL);
+
+const seed = await createSeedClient({
+  adapter: new SeedPostgres(client),
+});
+```
+
+### `connect`
+
+- **Type:** `boolean`
+
+If `true`, the Seed Client will apply the [`connect`](#connect-1) option to every plan.
+
+**Example**
+
+```ts
+const seed = await createSeedClient({
+  connect: true,
+});
+
+await seed.users((x) => x(2));
+
+// these posts will be connected to the users
+await seed.posts((x) => x(10));
+
+// these posts will generate their own users, a plan's connect option overrides the client's connect option
+await seed.posts((x) => x(10), { connect: false });
+```
+
+
+### `dryRun`
+
+- **Type:** `boolean`
+
+If `true`, the Seed Client will not execute any database operations, it will log the generated SQL queries to stdout instead.
+
+**Example**
+
+```ts
+const seed = await createSeedClient({
+  dryRun: true,
+});
+```
+
+### `models`
+
+- **Type:** `UserModels`
+
+Provide custom data generation functions for the Seed Client instance.
+
+**Example**
+
+```ts
+import { copycat } from "@snaplet/copycat";
+
+const seed = await createSeedClient({
+  models: {
+    users: {
+      data: {
+        email: (ctx) => copycat.email(ctx.seed, { domain: "blog.dev" }),
+      },
+    },
+  },
+});
+```
+
+## Models functions
+
+- **Example type:** `(plan: Array<UserPlanInputs> | xCallback<UserPlanInputs>, options?: PlanOptions) => Promise<Store>`
+
+Seed one or more records in the database starting from the given model.
+
+### `plan`
+
+Describes the data to seed.
+
+You can provide the plan's inputs as a static array of inputs or more dynamically using the `x` function helper.
+
+#### static array
+
+- **Example type:** `Array<UserPlanInputs>`
+
+Seed a static array of a given model.
+
+**Example**
+
+Seed 3 users:
+
+```ts
+await seed.users([
+  { username: "Alice" },
+  { username: "Bob" },
+  {},
+]);
+```
+
+#### `x` function helper
+
+- **Example type:** `(n: number | MinMaxOption, plan?: UserPlanInputs) => Array<UserPlanInputs>`
+
+Seed a given model `n` times.
+
+**Examples**
+
+Seed 10 users:
+
+```ts
+await seed.users((x) => x(10));
+```
+
+Seed between 1 and 5 users:
+
+```ts
+await seed.users((x) => x({ min: 1, max: 5 }));
+```
+
+Seed 3 posts with the same title:
+
+```ts
+await seed.posts((x) => x(3, {
+  title: "Hello, world!",
+}));
+```
+
+Seed 3 posts with a specific title depending on the index:
+
+```ts
+await seed.posts((x) => x(3, (ctx) => ({
+  title: `Post ${ctx.index}`
+})));
+```
+
+#### model plan's inputs
+
+- **Example type:** `PostPlanInputs`
+
+Provides a description of the data to seed.
+
+The `PostPlanInputs` type is an union of two types:
+- `PostInputs`: an object that describes the data to seed.
+- `(ctx: PlanContext) => PostInputs`: a callback receiving the plan's context and which returns an object that describes the data to seed.
+
+```ts
+type PlanContext = {
+  index: number;
+  seed: string;
+  store: Store;
+};
+
+type PostPlanInputs = PostInputs | ((ctx: PlanContext) => PostInputs);
+```
+
+**Examples**
+
+Model's plan inputs as an object:
+
+```ts
+await seed.posts([
+  { title: "Hello, world!" },
+]);
+```
+
+Model's plan inputs as a callback:
+
+```ts
+await seed.posts([
+  (ctx) => ({ title: `Hello, world #${ctx.index}!` }),
+]);
+```
+
+The `PostInputs` type is a record of the model's fields.
+The fields can be scalar fields or [relationships](../recipes/relationships.mdx) (parents or children fields).
+
+```ts
+type FieldContext = {
+  // the scalar fields already generated for this model
+  data: Partial<PostScalarFields>;
+  seed: string;
+  store: Store;
+};
+
+type ParentContext<T> = {
+  // the parent field can be marked as connected
+  // it won't be created in this case but its ids will be used by the current model to satisfy the relationship
+  connect: (modelData: T) => Connect<T>;
+  seed: string;
+  store: Store;
+};
+
+type UserInputs = {
+  // scalar fields
+  id?: string | ((ctx: FieldContext) => string | Promise<string>);
+  title?: string | ((ctx: FieldContext) => string | Promise<string>);
+  content?: string | ((ctx: FieldContext) => string | Promise<string>);
+  // relationship (parent field)
+  author?: UserInputs | (ctx: ParentContext<UserInputs>) => UserInputs;
+  // relationship (child fields)
+  comments?: Array<CommentPlanInputs> | xCallback<CommentPlanInputs>;
+};
+```
+
+**Examples**
+
+Scalar field as a string:
+
+```ts
+await seed.posts([
+  { title: (ctx) => "Hello, world!" },
+]);
+```
+
+Scalar field as a callback:
+
+```ts
+await seed.posts([
+  {
+    title: "Hello, world!",
+    content: (ctx) => `The title of this post is "${ctx.data.title}"`,
+  },
+]);
+```
+
+Scalar field as an `async` callback:
+
+```ts
+await seed.posts([
+  {
+    title: async (ctx) => {
+      return await fetchTitle(ctx.seed);
+    },
+  },
+]);
+```
+
+Parent field as an object:
+
+```ts
+await seed.posts([
+  {
+    author: { username: "Snappy" },
+  }
+]);
+```
+
+Parent field as a callback:
+
+```ts
+await seed.users([{}]);
+
+await seed.posts([
+  {
+    author: (ctx) => ctx.connect(seed.$store.users[0]),
+  }
+]);
+```
+
+Child field as a static array:
+
+```ts
+await seed.posts([
+  {
+    comments: [
+      { title: "Very interesting!" },
+      { title: "It's Internet so I disagree!" },
+    ],
+  },
+]);
+```
+
+Child field as a callback:
+
+```ts
+await seed.posts([
+  {
+    comments: (x) => x(2),
+  },
+]);
+```
+
+### `options`
+
+Provides additional options for the plan.
+
+#### `connect`
+
+- **Type:** `true | Partial<Store>`
+
+Connects the missing relationships to one of the corresponding models in the provided store.
+
+If `true`, the relationships will be connected to the Seed Client instance's [`$store`](#store).
+
+**Examples**
+
+Connect 10 posts to 2 previously seeded users:
+
+```ts
+await seed.users((x) => x(2));
+
+await seed.posts((x) => x(10), {
+  connect: true,
+});
+```
+
+Connect 10 posts to one particular user:
+
+```ts
+const store = await seed.users((x) => x(2));
+
+await seed.posts((x) => x(10), {
+  connect: { users: [store.users[0]] },
+});
+```
+
+#### `models`
+
+- **Type:** `UserModels`
+
+Provides custom data generation functions for the plan.
+
+**Example**
+
+```ts
+import { copycat } from "@snaplet/copycat";
+
+await seed.users((x) => x(2), {
+  models: {
+    users: {
+      data: {
+        email: (ctx) => copycat.email(ctx.seed, { domain: "snaplet.dev" }),
+      },
+    },
+  },
+});
+```
+
+#### `seed`
+
+- **Type:** `string`
+
+Provides a custom seed for the plan.
+
+**Example**
+
+```ts
+await seed.users((x) => x(2), {
+  seed: 'snappy',
+});
+```
+
+## Client functions
+
+### `$resetDatabase`
+
+- **Type:** `(selectConfig?: SelectConfig) => Promise<void>`
+
+Reset the database by deleting all rows in given tables.
+
+You can provide a custom [`select` configuration](../reference/configuration.mdx#select) to filter the tables to truncate.
+
+**Examples**
+
+Truncate all the tables:
+
+```ts
+await seed.$resetDatabase();
+```
+
+Truncate all the tables except the `public._prisma_migrations` table:
+
+```ts
+await seed.$resetDatabase([
+  "!public._prisma_migrations",
+]);
+```
+
+## Client properties
+
+### `$store`
+
+- **Type:** `Store`
+
+The store is an object containing all the seeded data so far for each model.
+
+**Example**
+
+```ts
+await seed.users((x) => x(2));
+
+// [{ id: '...', username: 'Alice' }, { id: '...', username: 'Bob' }]
+console.log(seed.$store.users);
+```

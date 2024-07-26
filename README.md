@@ -83,6 +83,32 @@ Here is an example of a `dataExamples.json` file:
 
 In the above example, one could modify the description and remove the examples. Running `npx @snaplet/seed sync` will then regenerate examples based on the updated description for that column.
 
+## Documentation
+
+You can find the hosted documentation [here](https://docs.snaplet.dev/seed).
+
+The docs are also in this repo in the `docs` folder. 
+To host it locally follow below instructions:
+
+### Prerequisites
+
+Install `brew`, `git`, `pnpm` and `Node.js` :
+
+### Installation
+
+```bash
+cd docs
+pnpm install
+```
+
+### Run the project
+
+```bash
+pnpm dev
+# Go to http://localhost:3000
+```
+
+
 # Contributions 
 
 ## Setup local development environment

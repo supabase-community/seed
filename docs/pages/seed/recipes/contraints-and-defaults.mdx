@@ -1,0 +1,62 @@
+## Handling of `DEFAULT` Values and Constraints in Snaplet
+
+Snaplet manages default values for fields with constraints such as unique keys, primary keys, or sequences to ensure data integrity and avoid conflicts during the seeding process.
+
+### Why Snaplet Manages Certain Default Values
+
+Snaplet's approach is designed to:
+
+- **Prevent duplicates:** Automatically generate unique values for fields with uniqueness constraints to prevent insertion errors.
+- **Ensure relational integrity:** Produce predictable and reproducible values for maintaining links between related data across tables.
+
+### Snaplet's Default Behavior for ID Generation
+
+For fields requiring a UUID or similar unique identifier, Snaplet typically employs a method like the following:
+
+```javascript
+// Default UUID generation for fields requiring unique identifiers
+id: ({ seed }) => copycat.uuid(seed);
+```
+
+This function guarantees that each ID is unique and reproducibly generated, leveraging the `copycat` library to create UUIDs based on a given seed. This ensures consistent behavior across different instances of data generation.
+
+### Managing Auto-Increment Fields
+
+For auto-increment fields, Snaplet employs a methodical approach to mimic the database's own sequence generation:
+
+1. **Fetch Current Sequence Value:** Initially, Snaplet retrieves the current max value from the sequence in the database.
+2. **Internal Sequence Management:** Snaplet maintains an in-memory counter to continue where the database's sequence left off, ensuring that new values are in sequence.
+3. **Committing New Rows:** Upon seeding new data, Snaplet ensures that the sequence in the database is updated accordingly to reflect the new values, maintaining the integrity of the auto-increment sequence.
+
+### Configuring Database-Managed Defaults
+
+While Snaplet typically manages default values for fields with constraints, it can be configured to use database defaults when such management does not conflict with the constraints. Below is how you might configure Snaplet to allow database functions to generate default values:
+
+```javascript
+import { createSeedClient } from "@snaplet/seed";
+import { PrismaClient } from "@prisma/client";
+
+// Get a database client
+const client = new PrismaClient();
+
+async function getDatabaseGeneratedId() {
+  // Use the client to call our internal function
+  const res =
+    (await client.$queryRawUnsafe) <
+    { id: string } >
+    `SELECT generate_random_id(12) as id`;
+  return res[0]["id"];
+}
+
+const seed = await createSeedClient({
+  models: {
+    post: {
+      data: {
+        id: getDatabaseGeneratedId,
+      },
+    },
+  },
+});
+```
+
+This configuration leverages the database's own function to generate a default ID, seamlessly integrating into Snaplet's seeding process while respecting the database's capabilities.
