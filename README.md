@@ -214,3 +214,5 @@ Now that you have `direnv` installed, it should automatically load the necessary
 You can then start your local PostgreSQL server (running on port 2345) by doing: `devenv up`.
 
 ## License
+
+MIT License
