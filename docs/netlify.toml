@@ -1,9 +1,8 @@
 [build]
-  command = "pnpm build"
+  base = "docs"
   publish = ".next"
-
+  command = "pnpm install && pnpm --filter @snaplet/documentation build"
 [build.environment]
-  NODE_VERSION = "20" 
-
+  NODE_VERSION = "20.12.2" 
 [[plugins]]
   package = "@netlify/plugin-nextjs"
