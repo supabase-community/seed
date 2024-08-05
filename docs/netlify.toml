@@ -1,9 +1,7 @@
 [build]
-  command = "pnpm build"
-  publish = ".next"
+  base = "docs"
+  publish = "docs/.next"
+  command = "pnpm install && pnpm --filter @snaplet/documentation build"
 
-[build.environment]
-  NODE_VERSION = "18" 
-
-[[plugins]]
-  package = "@netlify/plugin-nextjs"
+[context.production.environment]
+  NEXT_TELEMETRY_DISABLED = "1"
