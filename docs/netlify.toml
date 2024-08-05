@@ -1,6 +1,6 @@
 [build]
   base = "docs"
-  publish = "docs/.next"
+  publish = ".next"
   command = "pnpm install && pnpm --filter @snaplet/documentation build"
 [build.environment]
   NODE_VERSION = "20.12.2" 
