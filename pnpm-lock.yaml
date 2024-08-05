@@ -54,6 +54,9 @@ importers:
         specifier: 18.2.0
         version: 18.2.0(react@18.2.0)
     devDependencies:
+      '@netlify/plugin-nextjs':
+        specifier: 5.6.0
+        version: 5.6.0
       '@types/node':
         specifier: 20.12.3
         version: 20.12.3
@@ -1360,6 +1363,11 @@ packages:
       '@napi-rs/simple-git-win32-arm64-msvc': 0.1.17
       '@napi-rs/simple-git-win32-x64-msvc': 0.1.17
     dev: false
+
+  /@netlify/plugin-nextjs@5.6.0:
+    resolution: {integrity: sha512-PBrsd/GJZ9MN8BdyIoleTkY22lAUMfcRxrbb8wgxGzXtTW0RU0GW2mc99ISB6zOwWMZ11rSjeN0GS6znnukvww==}
+    engines: {node: '>=18.0.0'}
+    dev: true
 
   /@next/env@14.1.4:
     resolution: {integrity: sha512-e7X7bbn3Z6DWnDi75UWn+REgAbLEqxI8Tq2pkFOFAMpWAWApz/YCUhtWMWn410h8Q2fYiYL7Yg5OlxMOCfFjJQ==}
