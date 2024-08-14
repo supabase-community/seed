@@ -49,7 +49,7 @@ Seed uses [Copycat](https://github.com/snaplet/copycat) for its data generation 
 npx @snaplet/seed init
 ```
 
-Learn more by reading our [documentation](https://docs.snaplet.dev/seed).
+Learn more by reading our [documentation](https://snaplet-seed.netlify.app/seed).
 
 
 ## AI-Generated Data
@@ -85,7 +85,7 @@ In the above example, one could modify the description and remove the examples. 
 
 ## Documentation
 
-You can find the hosted documentation [here](https://docs.snaplet.dev/seed).
+You can find the hosted documentation [here](https://snaplet-seed.netlify.app/seed).
 
 The docs are also in this repo in the `docs` folder. 
 To host it locally follow below instructions:
