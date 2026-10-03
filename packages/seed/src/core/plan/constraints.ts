@@ -92,9 +92,8 @@ export async function checkConstraints(
   const sortedConstraints = sortBy(filteredConstraints, (c) => c.fields.length);
 
   for (const constraint of sortedConstraints) {
-    // We skip the constraint if it contains null values
-    if (
-      constraint.fields.some((c) => props.modelData[c] === null) &&
+    // We skip the constraint if it contains nullish values
+    if (!constraint.fields.some((c) => props.modelData[c]) &&
       // Execpt if the constraint is nullNotDistinct so each null values isn't considered distinct
       // from the other null values anymore (maximum one null value is allowed)
       !constraint.nullNotDistinct
